@@ -1,11 +1,12 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import AppRoutes from './routes/AppRoutes'
+import { useEffect } from "react";
+import { RouterProvider } from "react-router-dom";
+import { router } from "./routes";
+import { authActions } from "./features/auth/store/auth.store";
 
-function App() {
-  return <AppRoutes />;
+export default function App() {
+  useEffect(() => {
+    authActions.init(); // chỉ 1 lần
+  }, []);
 
+  return <RouterProvider router={router} />;
 }
-export default App
