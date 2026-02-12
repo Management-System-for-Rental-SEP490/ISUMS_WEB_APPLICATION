@@ -1,13 +1,14 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 
-import AuthLayout from "./app/layout/AuthLayout"; // sửa path đúng dự án bạn
-import DashboardLayout from "./app/layout/DashboardLayout"; // sửa path đúng dự án bạn
-import LoginPage from "./features/auth/pages/LoginPage"; // đúng như bạn đang dùng
+import AuthLayout from "./app/layout/AuthLayout";
+import DashboardLayout from "./app/layout/DashboardLayout";
+import LoginPage from "./features/auth/pages/LoginPage";
+import ContractDetailStandalone from "./features/contracts/pages/ContractDetailStandalone";
+import ContractEditStandalone from "./features/contracts/pages/ContractEditStandalone";
 
 export const router = createBrowserRouter([
-  // vào / thì đi thẳng /dashboard (ProtectedRoute sẽ đá về /login nếu chưa auth)
-  { path: "/", element: <Navigate to="/dashboard" replace /> },
+  { path: "/", element: <Navigate to="/login" replace /> },
 
   // public
   {
@@ -18,7 +19,11 @@ export const router = createBrowserRouter([
   // protected
   {
     element: <ProtectedRoute />,
-    children: [{ path: "/dashboard", element: <DashboardLayout /> }],
+    children: [
+      { path: "/dashboard", element: <DashboardLayout /> },
+      { path: "/contracts/:id", element: <ContractDetailStandalone /> },
+       { path: "/contracts/:id/edit", element: <ContractEditStandalone /> },
+    ],
   },
 
   { path: "*", element: <div className="p-6">404 Not Found</div> },

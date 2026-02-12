@@ -5,8 +5,7 @@ import { authActions } from "./features/auth/store/auth.store";
 
 export default function App() {
   useEffect(() => {
-    authActions.init(); // chỉ 1 lần
+    authActions.init();
   }, []);
-
   return <RouterProvider router={router} />;
 }

@@ -1,5 +1,8 @@
 export function formatDateVi(dateStr) {
-  return new Date(dateStr).toLocaleDateString("vi-VN");
+  if (!dateStr) return "—";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("vi-VN");
 }
 
 export function formatMoneyVND(amount) {
@@ -7,8 +10,10 @@ export function formatMoneyVND(amount) {
 }
 
 export function getDaysRemaining(endDate) {
+  if (!endDate) return 0;
   const today = new Date();
   const end = new Date(endDate);
+  if (isNaN(end.getTime())) return 0;
   const diffTime = end - today;
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 }

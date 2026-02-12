@@ -1,17 +1,97 @@
 import React from "react";
 import { Edit } from "lucide-react";
-import Breadcrumbs from "../../components/components/Breadscrumbs";
-import { formatDateVi } from "../../utils/contract.format";
-import { STATUS_BADGE, STATUS_LABEL } from "../../utils/contract.constains";
+import Breadcrumbs from "../../../../components/shared/Breadcrumbs";
+import { formatDateVi, formatMoneyVND } from "../../utils/contract.format";
+import { STATUS_BADGE, STATUS_LABEL } from "../../utils/contract.constants";
 
-export default function ContractDetailView({ contract, onBack, onEdit, onNavigateMenu }) {
+export default function ContractDetailView({
+  contract,
+  contractId,
+  loading,
+  error,
+  onBack,
+  onEdit,
+  onNavigateMenu,
+}) {
+  const contractHtml = contract?.html;
+  const statusRaw = String(contract?.status ?? "pending");
+  const statusKey = statusRaw.toLowerCase();
+  const statusKeyUpper = statusRaw.toUpperCase();
+  const startDateRaw =
+    contract?.startDate ||
+    contract?.startAt ||
+    contract?.fromDate ||
+    contract?.createdAt;
+  const endDateRaw =
+    contract?.endDate || contract?.endAt || contract?.toDate || null;
+  const rentValue =
+    contract?.rent ??
+    contract?.rentAmount ??
+    contract?.price ??
+    contract?.monthlyRent ??
+    contract?.amount ??
+    0;
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <Breadcrumbs
+          items={[
+            { label: "Trang chủ", onClick: () => onNavigateMenu?.("dashboard") },
+            { label: "Quản lý hợp đồng", onClick: onBack },
+            { label: "Đang tải..." },
+          ]}
+        />
+        <div className="bg-white rounded-xl border shadow-sm p-12 text-center">
+          <div className="w-10 h-10 border-2 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Đang tải chi tiết hợp đồng...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !contract) {
+    return (
+      <div className="space-y-4">
+        <Breadcrumbs
+          items={[
+            { label: "Trang chủ", onClick: () => onNavigateMenu?.("dashboard") },
+            { label: "Quản lý hợp đồng", onClick: onBack },
+            { label: "Chi tiết" },
+          ]}
+        />
+        <div className="bg-white rounded-xl border shadow-sm p-8 text-center">
+          <p className="text-red-600 font-medium mb-4">
+            {error ?? "Không tìm thấy hợp đồng này."}
+          </p>
+          <button
+            type="button"
+            onClick={onBack}
+            className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition"
+          >
+            Quay lại danh sách
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const statusBadge =
+    STATUS_BADGE[statusKey] ??
+    STATUS_BADGE[statusKeyUpper] ??
+    STATUS_BADGE.draft;
+  const statusLabel =
+    STATUS_LABEL[statusKey] ??
+    STATUS_LABEL[statusKeyUpper] ??
+    contract?.status;
+
   return (
     <div className="space-y-4">
       <Breadcrumbs
         items={[
           { label: "Trang chủ", onClick: () => onNavigateMenu?.("dashboard") },
           { label: "Quản lý hợp đồng", onClick: onBack },
-          { label: contract?.contractNumber ?? "Chi tiết" },
+          { label: contract?.contractNumber ?? contract?.name ?? "Chi tiết" },
         ]}
       />
 
@@ -19,16 +99,17 @@ export default function ContractDetailView({ contract, onBack, onEdit, onNavigat
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 className="text-xl font-bold text-gray-900">
-              {contract?.contractNumber}
+              {contract?.contractNumber ?? contract?.name}
             </h2>
             <p className="text-gray-600 mt-1">
-              {contract?.tenant} • {contract?.property} ({contract?.unit})
+              {contract?.tenant} • {contract?.property ?? "—"} (
+              {contract?.unit ?? "—"})
             </p>
           </div>
 
           <button
             type="button"
-            onClick={() => onEdit(contract?.id)}
+            onClick={() => onEdit(contract?.id ?? contractId)}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-blue-700 transition"
           >
             <Edit className="w-4 h-4" />
@@ -40,27 +121,43 @@ export default function ContractDetailView({ contract, onBack, onEdit, onNavigat
           <div className="p-4 rounded-lg border">
             <div className="text-sm text-gray-500">Thời hạn</div>
             <div className="mt-1 text-gray-900 font-medium">
-              {formatDateVi(contract?.startDate)} → {formatDateVi(contract?.endDate)}
+              {startDateRaw ? formatDateVi(startDateRaw) : "—"} →{" "}
+              {endDateRaw ? formatDateVi(endDateRaw) : "—"}
             </div>
           </div>
           <div className="p-4 rounded-lg border">
             <div className="text-sm text-gray-500">Tiền thuê</div>
             <div className="mt-1 text-gray-900 font-medium">
-              ₫{(contract?.rent ?? 0).toLocaleString("vi-VN")}
+              {formatMoneyVND(rentValue)}
             </div>
           </div>
           <div className="p-4 rounded-lg border">
             <div className="text-sm text-gray-500">Trạng thái</div>
             <div className="mt-1">
               <span
-                className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  STATUS_BADGE[contract?.status] ?? STATUS_BADGE.pending
-                }`}
+                className={`px-2 py-1 text-xs font-medium rounded-full ${statusBadge}`}
               >
-                {STATUS_LABEL[contract?.status] ?? contract?.status}
+                {statusLabel}
               </span>
             </div>
           </div>
+        </div>
+
+        <div className="mt-6">
+          <div className="text-sm text-gray-500 mb-2">Nội dung hợp đồng</div>
+          {contractHtml ? (
+            <iframe
+              title="Contract HTML"
+              srcDoc={contractHtml}
+              className="w-full min-h-[900px] border rounded-lg bg-white"
+              sandbox=""
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <div className="border rounded-lg p-4 text-sm text-gray-500 bg-gray-50">
+              Chưa có nội dung HTML cho hợp đồng này.
+            </div>
+          )}
         </div>
 
         <div className="mt-6">

@@ -37,7 +37,6 @@ function setState(partial) {
   emit();
 }
 
-// chặn init chạy nhiều lần
 let initPromise = null;
 
 export const authActions = {
@@ -59,10 +58,7 @@ export const authActions = {
           checkLoginIframe: false,
           responseMode: "query",
         });
-
-        // nếu đang ở /login?code=... thì dọn URL sau khi keycloak-js consume
         cleanupCallbackUrl();
-
         const roles = authenticated ? getKeycloakRoles() : [];
         setState({
           isAuthenticated: Boolean(authenticated),
@@ -92,7 +88,6 @@ export const authActions = {
   async login() {
     if (!hasEnv()) return;
 
-    // callback về /login (bạn có thể đổi sang /dashboard nếu thích)
     const redirectUri = new URL("/login", window.location.origin).toString();
     await keycloak.login({ redirectUri });
   },
@@ -104,7 +99,9 @@ export const authActions = {
     } finally {
       try {
         keycloak.clearToken();
-      } catch {}
+      } catch {
+        // ignore
+      }
       setState({ isAuthenticated: false, roles: [], profile: null });
     }
   },

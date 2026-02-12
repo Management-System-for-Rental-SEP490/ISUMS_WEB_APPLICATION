@@ -1,12 +1,12 @@
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useCallback, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useContracts } from "../../../features/contracts/hooks/useContract";
 import ContractsListView from "./views/ContractListView";
 import ContractCreateView from "./views/ContractCreateView";
-import ContractDetailView from "./views/ContractDetailView";
-import ContractEditView from "./views/ContractEditView";
 
 export default function ContractsPage({ onNavigateMenu }) {
-  const [view, setView] = useState("list"); // list | create | detail | edit
+  const navigate = useNavigate();
+  const [view, setView] = useState("list");
   const [selectedId, setSelectedId] = useState(null);
 
   const {
@@ -17,14 +17,14 @@ export default function ContractsPage({ onNavigateMenu }) {
     filterStatus,
     setFilterStatus,
     stats,
+    loading,
+    error,
+    refetch,
     addContract,
     removeContract,
   } = useContracts();
 
-  const selectedContract = useMemo(
-    () => contracts.find((c) => c.id === selectedId) ?? null,
-    [contracts, selectedId]
-  );
+  const selectedContract = contracts.find((c) => c.id === selectedId) ?? null;
 
   const goList = useCallback(() => {
     setView("list");
@@ -32,21 +32,24 @@ export default function ContractsPage({ onNavigateMenu }) {
   }, []);
 
   const goCreate = useCallback(() => setView("create"), []);
-  const goDetail = useCallback((id) => {
-    setSelectedId(id);
-    setView("detail");
-  }, []);
+
+  const goDetail = useCallback(
+    (id) => {
+      navigate(`/contracts/${id}`);
+    },
+    [navigate],
+  );
+
   const goEdit = useCallback((id) => {
-    setSelectedId(id);
-    setView("edit");
-  }, []);
+    navigate(`/contracts/${id}/edit`);
+  }, [navigate]);
 
   const handleDelete = useCallback(
     (id) => {
       removeContract(id);
       if (selectedId === id) goList();
     },
-    [removeContract, selectedId, goList]
+    [removeContract, selectedId, goList],
   );
 
   if (view === "create") {
@@ -72,28 +75,8 @@ export default function ContractsPage({ onNavigateMenu }) {
             addContract(contract);
           }
           goList();
+          refetch();
         }}
-      />
-    );
-  }
-
-  if (view === "detail") {
-    return (
-      <ContractDetailView
-        onNavigateMenu={onNavigateMenu}
-        contract={selectedContract}
-        onBack={goList}
-        onEdit={goEdit}
-      />
-    );
-  }
-
-  if (view === "edit") {
-    return (
-      <ContractEditView
-        onNavigateMenu={onNavigateMenu}
-        contract={selectedContract}
-        onBack={goList}
       />
     );
   }
@@ -112,6 +95,9 @@ export default function ContractsPage({ onNavigateMenu }) {
       filterStatus={filterStatus}
       setFilterStatus={setFilterStatus}
       stats={stats}
+      loading={loading}
+      error={error}
+      onRetry={refetch}
     />
   );
 }

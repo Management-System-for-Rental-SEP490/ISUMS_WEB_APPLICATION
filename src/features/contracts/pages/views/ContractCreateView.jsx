@@ -1,5 +1,5 @@
 import React from "react";
-import Breadcrumbs from "../../components/components/Breadscrumbs";
+import Breadcrumbs from "../../../../components/shared/Breadcrumbs";
 import CreateContract from "../CreateContract";
 
 export default function ContractCreateView({ onNavigateMenu, onBack, onCreated }) {

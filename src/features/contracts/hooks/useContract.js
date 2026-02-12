@@ -1,29 +1,61 @@
-import { useMemo, useState, useCallback } from "react";
-import { CONTRACTS_DEMO } from "../mocks/contract.mock";
+import { useMemo, useState, useCallback, useEffect } from "react";
+import { getAllContracts } from "../api/contracts.api";
+import { mapContractFromApi } from "../utils/mapContractFromApi";
 
 export function useContracts() {
-  const [contracts, setContracts] = useState(CONTRACTS_DEMO);
+  const [contracts, setContracts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
 
+  const refetch = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const raw = await getAllContracts();
+      const arr = Array.isArray(raw) ? raw : raw?.data ?? [];
+      const mapped = arr.map(mapContractFromApi);
+      setContracts(mapped);
+    } catch (err) {
+      setError(err?.message ?? String(err));
+      setContracts([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
+
   const filteredContracts = useMemo(() => {
     const s = searchTerm.trim().toLowerCase();
+    const statusNorm = filterStatus === "all" ? null : filterStatus.toLowerCase();
     return contracts.filter((c) => {
       const matchesSearch =
         !s ||
-        c.contractNumber.toLowerCase().includes(s) ||
-        c.tenant.toLowerCase().includes(s) ||
-        c.property.toLowerCase().includes(s);
-      const matchesFilter = filterStatus === "all" || c.status === filterStatus;
+        (c.contractNumber ?? "").toLowerCase().includes(s) ||
+        (c.tenant ?? "").toLowerCase().includes(s) ||
+        (c.property ?? "").toLowerCase().includes(s) ||
+        (c.name ?? "").toLowerCase().includes(s);
+      const matchesFilter =
+        !statusNorm || (c.status ?? "").toLowerCase() === statusNorm;
       return matchesSearch && matchesFilter;
     });
   }, [contracts, searchTerm, filterStatus]);
 
   const stats = useMemo(() => {
     const total = contracts.length;
-    const active = contracts.filter((c) => c.status === "active").length;
-    const pending = contracts.filter((c) => c.status === "pending").length;
-    const totalRent = contracts.reduce((sum, c) => sum + c.rent, 0);
+    const active = contracts.filter(
+      (c) => (c.status ?? "").toLowerCase() === "active",
+    ).length;
+    const pending = contracts.filter(
+      (c) =>
+        (c.status ?? "").toLowerCase() === "pending" ||
+        (c.status ?? "").toLowerCase() === "draft",
+    ).length;
+    const totalRent = contracts.reduce((sum, c) => sum + (c.rent || 0), 0);
     return { total, active, pending, totalRent };
   }, [contracts]);
 
@@ -43,6 +75,9 @@ export function useContracts() {
     filterStatus,
     setFilterStatus,
     stats,
+    loading,
+    error,
+    refetch,
     addContract,
     removeContract,
   };
