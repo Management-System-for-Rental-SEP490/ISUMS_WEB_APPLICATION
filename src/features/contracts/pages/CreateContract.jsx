@@ -2,6 +2,8 @@ import React, { useMemo, useState } from "react";
 import CreateContractWizard from "../components/create/CreateContractWizard";
 import { useHouses } from "../../houses/hooks/useHouses";
 import { createContract } from "../api/contracts.api";
+import { toast } from "react-toastify";
+import { LoadingOverlay } from "../../../components/shared/Loading";
 
 const getInitialForm = (todayISO) => ({
   name: "",
@@ -52,15 +54,19 @@ export default function CreateContract({ onCancel, onCreated }) {
         paymentType: "monthly",
         autoRenew: true,
       });
+      toast.success("Tạo hợp đồng thành công!");
     } catch (err) {
-      setError(err?.response?.data?.message || err?.message || "Không thể tạo hợp đồng");
+      const msg = err?.response?.data?.message || err?.message || "Không thể tạo hợp đồng";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      <LoadingOverlay open={submitting} label="Đang tạo hợp đồng..." />
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-1">Tạo Hợp Đồng</h2>
         <p className="text-gray-600">
@@ -79,9 +85,6 @@ export default function CreateContract({ onCancel, onCreated }) {
         houses={houseOptions}
         disabled={submitting}
       />
-      {submitting && (
-        <p className="text-sm text-gray-500">Đang tạo hợp đồng...</p>
-      )}
     </div>
   );
 }

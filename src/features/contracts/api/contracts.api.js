@@ -81,23 +81,6 @@ export async function createContract(payload) {
 }
 
 /**
- * Update contract
- * @param {string} id - Contract ID
- * @param {Object} payload - Updated contract data
- * @returns {Promise<Object>} Updated contract
- * @throws {Error} If request fails
- */
-export async function updateContract(id, payload) {
-  try {
-    const body = transformContractPayload(payload);
-    const response = await api.put(CONTRACTS_ENDPOINTS.UPDATE(id), body);
-    return extractResponseData(response);
-  } catch (error) {
-    throw new Error(getErrorMessage(error));
-  }
-}
-
-/**
  * Update contract HTML content only
  * @param {string} id - Contract ID
  * @param {string} html - Full HTML document content
@@ -123,6 +106,14 @@ export async function updateContractHtml(id, html) {
 export async function deleteContract(id) {
   try {
     const response = await api.delete(CONTRACTS_ENDPOINTS.DELETE(id));
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+export async function confirmContract(id) {
+  try {
+    const response = await api.put(CONTRACTS_ENDPOINTS.CONFIRM(id));
     return extractResponseData(response);
   } catch (error) {
     throw new Error(getErrorMessage(error));

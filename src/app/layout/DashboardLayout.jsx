@@ -55,7 +55,7 @@ export default function Dashboard() {
   }, [location.state?.menu]);
 
   const headerTitles = {
-    dashboard: "Bảng điều khiển IoT",
+    dashboard: "Dashboard",
     houses: "Bất động sản",
     utilities: "Tiện ích",
     tenants: "Khách thuê",
@@ -196,7 +196,7 @@ export default function Dashboard() {
               <MapPin className="w-4 h-4 text-teal-600" />
               HCMC
             </button>
-            
+
             {/* User Menu Dropdown */}
             <div className="relative">
               <button
@@ -227,7 +227,7 @@ export default function Dashboard() {
                         {keycloak?.tokenParsed?.email || "admin@smartutil.vn"}
                       </p>
                     </div>
-                    
+
                     <button
                       type="button"
                       onClick={() => {
@@ -239,7 +239,7 @@ export default function Dashboard() {
                       <User className="w-4 h-4" />
                       Thông tin tài khoản
                     </button>
-                    
+
                     <button
                       type="button"
                       onClick={() => {
@@ -259,7 +259,7 @@ export default function Dashboard() {
           </div>
         </header>
 
-        <main className="flex-1 p-6">
+        <main className="flex-1 px-6 pt-6 pb-10 bg-gray-50">
           {/* Render content dựa trên activeMenu */}
           {activeMenu === "dashboard" && (
             <>

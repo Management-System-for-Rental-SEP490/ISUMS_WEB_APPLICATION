@@ -3,6 +3,8 @@
  * Centralized endpoint definitions for the application
  */
 
+import { id } from "zod/v4/locales";
+
 // Auth endpoints
 export const AUTH_ENDPOINTS = {
   LOGIN: "/auth/login",
@@ -26,6 +28,7 @@ export const CONTRACTS_ENDPOINTS = {
   CREATE: "/econtracts",
   UPDATE: (id) => `/econtracts/${id}`,
   DELETE: (id) => `/econtracts/${id}`,
+  CONFIRM: (id) => `/econtracts/confirm/${id}`, // Update contract after edit to send tenant to sign
 };
 
 // Tenants endpoints

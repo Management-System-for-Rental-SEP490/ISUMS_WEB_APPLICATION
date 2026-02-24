@@ -1,4 +1,5 @@
 import { useMemo, useState, useCallback, useEffect } from "react";
+import { toast } from "react-toastify";
 import { getAllContracts } from "../api/contracts.api";
 import { mapContractFromApi } from "../utils/mapContractFromApi";
 
@@ -14,12 +15,14 @@ export function useContracts() {
     setError(null);
     try {
       const raw = await getAllContracts();
-      const arr = Array.isArray(raw) ? raw : raw?.data ?? [];
+      const arr = Array.isArray(raw) ? raw : (raw?.data ?? []);
       const mapped = arr.map(mapContractFromApi);
       setContracts(mapped);
     } catch (err) {
-      setError(err?.message ?? String(err));
+      const msg = err?.message ?? String(err);
+      setError(msg);
       setContracts([]);
+      toast.error(`Không thể tải danh sách hợp đồng: ${msg}`);
     } finally {
       setLoading(false);
     }
@@ -31,7 +34,8 @@ export function useContracts() {
 
   const filteredContracts = useMemo(() => {
     const s = searchTerm.trim().toLowerCase();
-    const statusNorm = filterStatus === "all" ? null : filterStatus.toLowerCase();
+    const statusNorm =
+      filterStatus === "all" ? null : filterStatus.toLowerCase();
     return contracts.filter((c) => {
       const matchesSearch =
         !s ||

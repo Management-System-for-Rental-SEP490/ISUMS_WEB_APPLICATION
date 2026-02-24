@@ -1,10 +1,17 @@
+import { DatePicker } from "antd";
+import dayjs from "dayjs";
 import React from "react";
 
 const inputClass =
   "w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500";
 const labelClass = "block text-sm font-medium text-gray-700 mb-2";
 
-export default function StepHouseAndMoney({ form, update, houses }) {
+export default function StepHouseAndMoney({
+  form,
+  update,
+  houses,
+  errors = {},
+}) {
   return (
     <div className="space-y-6">
       {/* Nhà cho thuê */}
@@ -17,7 +24,9 @@ export default function StepHouseAndMoney({ form, update, houses }) {
               <select
                 value={form.houseId ?? ""}
                 onChange={update("houseId")}
-                className={inputClass}
+                className={`${inputClass} ${
+                  errors.houseId ? "border-red-500 focus:ring-red-500" : ""
+                }`}
               >
                 <option value="">-- Chọn nhà --</option>
                 {houses.map((h) => (
@@ -32,8 +41,13 @@ export default function StepHouseAndMoney({ form, update, houses }) {
                 value={form.houseId ?? ""}
                 onChange={update("houseId")}
                 placeholder="Nhập UUID nhà (VD: 70279423-989d-48dc-8f2e-9bd6508a6f4a)"
-                className={inputClass}
+                className={`${inputClass} ${
+                  errors.houseId ? "border-red-500 focus:ring-red-500" : ""
+                }`}
               />
+            )}
+            {errors.houseId && (
+              <p className="mt-1 text-xs text-red-600">{errors.houseId}</p>
             )}
           </div>
         </div>
@@ -50,8 +64,13 @@ export default function StepHouseAndMoney({ form, update, houses }) {
               value={form.rentAmount ?? ""}
               onChange={update("rentAmount")}
               placeholder="7000000"
-              className={inputClass}
+              className={`${inputClass} ${
+                errors.rentAmount ? "border-red-500 focus:ring-red-500" : ""
+              }`}
             />
+            {errors.rentAmount && (
+              <p className="mt-1 text-xs text-red-600">{errors.rentAmount}</p>
+            )}
           </div>
           <div>
             <label className={labelClass}>Tiền cọc (VND)</label>
@@ -60,11 +79,20 @@ export default function StepHouseAndMoney({ form, update, houses }) {
               value={form.depositAmount ?? ""}
               onChange={update("depositAmount")}
               placeholder="14000000"
-              className={inputClass}
+              className={`${inputClass} ${
+                errors.depositAmount ? "border-red-500 focus:ring-red-500" : ""
+              }`}
             />
+            {errors.depositAmount && (
+              <p className="mt-1 text-xs text-red-600">
+                {errors.depositAmount}
+              </p>
+            )}
           </div>
           <div>
-            <label className={labelClass}>Ngày thanh toán hàng tháng (1-28)</label>
+            <label className={labelClass}>
+              Ngày thanh toán hàng tháng (1-28)
+            </label>
             <input
               type="number"
               min={1}
@@ -72,26 +100,59 @@ export default function StepHouseAndMoney({ form, update, houses }) {
               value={form.payDate ?? ""}
               onChange={update("payDate")}
               placeholder="5"
-              className={inputClass}
+              className={`${inputClass} ${
+                errors.payDate ? "border-red-500 focus:ring-red-500" : ""
+              }`}
             />
+            {errors.payDate && (
+              <p className="mt-1 text-xs text-red-600">{errors.payDate}</p>
+            )}
           </div>
           <div>
             <label className={labelClass}>Ngày đặt cọc</label>
-            <input
-              type="date"
-              value={form.depositDate ?? ""}
-              onChange={update("depositDate")}
-              className={inputClass}
+
+            <DatePicker
+              className={`w-full ${errors.depositDate ? "border-red-500" : ""}`}
+              value={
+                form.depositDate ? dayjs(form.depositDate, "YYYY-MM-DD") : null
+              }
+              format="DD/MM/YYYY"
+              placeholder="Chọn ngày đặt cọc"
+              status={errors.depositDate ? "error" : ""}
+              onChange={(date) => {
+                const iso = date ? date.format("YYYY-MM-DD") : "";
+                update("depositDate")({ target: { value: iso } });
+              }}
             />
+
+            {errors.depositDate && (
+              <p className="mt-1 text-xs text-red-600">{errors.depositDate}</p>
+            )}
           </div>
+
+          {/* ngày bàn giao và ngày đặt cọc căn nhà */}
           <div>
             <label className={labelClass}>Ngày bàn giao</label>
-            <input
-              type="date"
-              value={form.handoverDate ?? ""}
-              onChange={update("handoverDate")}
-              className={inputClass}
+
+            <DatePicker
+              className={`w-full ${errors.handoverDate ? "border-red-500" : ""}`}
+              value={
+                form.handoverDate
+                  ? dayjs(form.handoverDate, "YYYY-MM-DD")
+                  : null
+              }
+              format="DD/MM/YYYY"
+              placeholder="Chọn ngày bàn giao"
+              status={errors.handoverDate ? "error" : ""}
+              onChange={(date) => {
+                const iso = date ? date.format("YYYY-MM-DD") : "";
+                update("handoverDate")({ target: { value: iso } });
+              }}
             />
+
+            {errors.handoverDate && (
+              <p className="mt-1 text-xs text-red-600">{errors.handoverDate}</p>
+            )}
           </div>
         </div>
       </div>

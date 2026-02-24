@@ -40,9 +40,12 @@ export default function ContractsPage({ onNavigateMenu }) {
     [navigate],
   );
 
-  const goEdit = useCallback((id) => {
-    navigate(`/contracts/${id}/edit`);
-  }, [navigate]);
+  const goEdit = useCallback(
+    (id) => {
+      navigate(`/contracts/${id}/edit`);
+    },
+    [navigate],
+  );
 
   const handleDelete = useCallback(
     (id) => {

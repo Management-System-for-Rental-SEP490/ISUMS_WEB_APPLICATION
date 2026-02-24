@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Building2, Plus, Search, Filter } from "lucide-react";
 import { useHouses } from "../hooks/useHouses";
 import HouseCard from "../components/HouseCard";
+import { LoadingSpinner } from "../../../components/shared/Loading";
 
 function normalize(str = "") {
   return String(str)
@@ -90,8 +91,8 @@ export default function Houses() {
       {/* States */}
       {loading && (
         <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-teal-100 animate-pulse" />
+          <div className="flex items-center justify-center gap-3">
+            <LoadingSpinner size="lg" showLabel label="Đang tải danh sách nhà..." />
             <p className="text-gray-600">Đang tải danh sách nhà...</p>
           </div>
         </div>
