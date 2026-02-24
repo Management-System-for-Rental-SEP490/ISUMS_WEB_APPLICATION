@@ -92,8 +92,11 @@ export default function Houses() {
       {loading && (
         <div className="bg-white border border-gray-200 rounded-xl p-8 shadow-sm">
           <div className="flex items-center justify-center gap-3">
-            <LoadingSpinner size="lg" showLabel label="Đang tải danh sách nhà..." />
-            <p className="text-gray-600">Đang tải danh sách nhà...</p>
+            <LoadingSpinner
+              size="lg"
+              showLabel
+              label="Đang tải danh sách nhà..."
+            />
           </div>
         </div>
       )}
@@ -111,7 +114,9 @@ export default function Houses() {
           <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-50 to-cyan-50 flex items-center justify-center">
             <Building2 className="w-8 h-8 text-teal-600" />
           </div>
-          <h3 className="mt-4 font-semibold text-gray-900">Không tìm thấy nhà phù hợp</h3>
+          <h3 className="mt-4 font-semibold text-gray-900">
+            Không tìm thấy nhà phù hợp
+          </h3>
           <p className="mt-2 text-gray-600 text-sm max-w-sm mx-auto">
             Thử thay đổi bộ lọc trạng thái hoặc từ khóa tìm kiếm.
           </p>
