@@ -1,12 +1,14 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bolt, Flame, ShieldCheck, Activity } from "lucide-react";
 import bg from "../../../assets/background_login.avif";
 import { useAuthStore, authActions } from "../store/auth.store";
+import { LoadingSpinner } from "../../../components/shared/Loading";
 
 export default function Login() {
   const navigate = useNavigate();
   const { isReady, isAuthenticated } = useAuthStore();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   // Quan trọng: luôn init ở trang login để:
   // - nếu vừa callback về /login?code=... -> keycloak-js consume code -> authenticate
@@ -85,26 +87,45 @@ export default function Login() {
 
         <section className="flex items-center justify-center px-6 sm:px-10 lg:px-16 xl:px-20 py-12 lg:py-16 bg-white">
           <div className="w-full max-w-[440px]">
-            <div className="mb-10">
-              <h2 className="text-3xl lg:text-[2rem] font-bold text-slate-900 tracking-tight">
-                Chào mừng quay lại
-              </h2>
-              <p className="mt-2.5 text-base text-slate-600">
-                Đăng nhập để vào bảng điều khiển quản trị
-              </p>
-            </div>
+            {!isReady ? (
+              <div className="flex flex-col items-center justify-center py-16">
+                <LoadingSpinner size="lg" showLabel label="Đang xác thực..." />
+              </div>
+            ) : (
+              <>
+                <div className="mb-10">
+                  <h2 className="text-3xl lg:text-[2rem] font-bold text-slate-900 tracking-tight">
+                    Chào mừng quay lại
+                  </h2>
+                  <p className="mt-2.5 text-base text-slate-600">
+                    Đăng nhập để vào bảng điều khiển quản trị
+                  </p>
+                </div>
 
-            <form className="space-y-5">
-              <button
-                type="button"
-                onClick={() => authActions.login()}
-                className="w-full rounded-xl bg-teal-600 px-4 py-3.5 font-semibold text-white text-[15px] shadow-lg shadow-teal-600/25 transition-all hover:bg-teal-700 hover:shadow-xl hover:shadow-teal-600/30 focus:outline-none focus:ring-4 focus:ring-teal-200 active:scale-[0.98] mt-7"
-              >
-                Đăng nhập
-                <span className="ml-2 inline-block transition-transform group-hover:translate-x-1">
-                  →
-                </span>
-              </button>
+                <form className="space-y-5">
+                  <button
+                    type="button"
+                    disabled={isLoggingIn}
+                    onClick={async () => {
+                      setIsLoggingIn(true);
+                      await authActions.login();
+                    }}
+                    className="w-full rounded-xl bg-teal-600 px-4 py-3.5 font-semibold text-white text-[15px] shadow-lg shadow-teal-600/25 transition-all hover:bg-teal-700 hover:shadow-xl hover:shadow-teal-600/30 focus:outline-none focus:ring-4 focus:ring-teal-200 active:scale-[0.98] mt-7 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {isLoggingIn ? (
+                      <>
+                        <LoadingSpinner size="sm" />
+                        Đang chuyển đến trang đăng nhập...
+                      </>
+                    ) : (
+                      <>
+                        Đăng nhập
+                        <span className="ml-2 inline-block transition-transform group-hover:translate-x-1">
+                          →
+                        </span>
+                      </>
+                    )}
+                  </button>
 
               <div className="pt-6 border-t border-slate-200 text-center">
                 <p className="text-sm text-slate-600">
@@ -117,12 +138,14 @@ export default function Login() {
                   </a>
                 </p>
 
-                {/* Debug nhỏ nếu bạn muốn nhìn trạng thái */}
-                {/* <pre className="mt-4 text-left text-xs text-slate-500">
-                  {JSON.stringify({ isReady, isAuthenticated }, null, 2)}
-                </pre> */}
-              </div>
-            </form>
+                  {/* Debug nhỏ nếu bạn muốn nhìn trạng thái */}
+                  {/* <pre className="mt-4 text-left text-xs text-slate-500">
+                    {JSON.stringify({ isReady, isAuthenticated }, null, 2)}
+                  </pre> */}
+                </div>
+              </form>
+              </>
+            )}
           </div>
         </section>
       </div>

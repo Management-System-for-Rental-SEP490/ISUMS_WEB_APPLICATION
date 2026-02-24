@@ -27,7 +27,6 @@ export function mapContractFromApi(item) {
 
 function extractTenantFromName(name) {
   if (!name || typeof name !== "string") return null;
-  // EContract_Nguyễn Văn ABC_1770631763 -> Nguyễn Văn ABC
   const match = name.match(/EContract_(.+?)_\d+/);
   return match ? match[1].trim() : null;
 }

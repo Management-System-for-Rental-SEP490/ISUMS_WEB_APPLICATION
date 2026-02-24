@@ -17,29 +17,160 @@ export default function CreateContractWizard({
 }) {
   const [form, setForm] = useState(initialForm);
   const [currentStep, setCurrentStep] = useState(1);
+  const [errors, setErrors] = useState({});
 
   const update = useCallback(
     (key) => (e) => {
       const value =
         e?.target?.type === "checkbox" ? e.target.checked : e.target.value;
       setForm((prev) => ({ ...prev, [key]: value }));
+      setErrors((prev) => {
+        if (!prev || !prev[key]) return prev;
+        const { [key]: _removed, ...rest } = prev;
+        return rest;
+      });
     },
     [],
   );
 
-  const canProceedStep1 =
-    form.startDate &&
-    form.endDate &&
-    String(form.name ?? "").trim() &&
-    String(form.phoneNumber ?? "").trim() &&
-    String(form.email ?? "").trim() &&
-    String(form.identityNumber ?? "").trim() &&
-    String(form.tenantAddress ?? "").trim();
-
   const canSubmitStep2 =
     String(form.houseId ?? "").trim() && String(form.rentAmount ?? "").trim();
 
+  const validateStep1 = (currentForm) => {
+    const newErrors = {};
+    const safeTrim = (v) => String(v ?? "").trim();
+    const todayIso = new Date().toISOString().slice(0, 10);
+
+    if (!currentForm.startDate) {
+      newErrors.startDate = "Thông tin không được trống";
+    }
+    if (!currentForm.endDate) {
+      newErrors.endDate = "Thông tin không được trống";
+    }
+    if (
+      currentForm.startDate &&
+      currentForm.endDate &&
+      currentForm.startDate > currentForm.endDate
+    ) {
+      newErrors.endDate = "Ngày kết thúc phải sau ngày bắt đầu";
+    }
+
+    if (!safeTrim(currentForm.name)) {
+      newErrors.name = "Thông tin không được trống";
+    }
+
+    const phone = safeTrim(currentForm.phoneNumber);
+    if (!phone) {
+      newErrors.phoneNumber = "Thông tin không được trống";
+    } else if (!/^\d{9,11}$/.test(phone)) {
+      newErrors.phoneNumber = "Số điện thoại không hợp lệ";
+    }
+
+    const email = safeTrim(currentForm.email);
+    if (!email) {
+      newErrors.email = "Thông tin không được trống";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Email không hợp lệ";
+    }
+
+    const identityNumber = safeTrim(currentForm.identityNumber);
+    if (!identityNumber) {
+      newErrors.identityNumber = "Thông tin không được trống";
+    } else if (!/^\d{9,12}$/.test(identityNumber)) {
+      newErrors.identityNumber = "Số CCCD không hợp lệ";
+    }
+
+    if (currentForm.dateOfIssue) {
+      if (currentForm.dateOfIssue > todayIso) {
+        newErrors.dateOfIssue =
+          "Ngày cấp CCCD phải trước hoặc bằng ngày hôm nay";
+      }
+      if (
+        currentForm.startDate &&
+        currentForm.dateOfIssue > currentForm.startDate
+      ) {
+        newErrors.dateOfIssue =
+          "Ngày cấp CCCD không được sau ngày bắt đầu hợp đồng";
+      }
+    }
+
+    if (!safeTrim(currentForm.tenantAddress)) {
+      newErrors.tenantAddress = "Thông tin không được trống";
+    }
+
+    return newErrors;
+  };
+
+  const validateStep2 = (currentForm) => {
+    const newErrors = {};
+    const safeTrim = (v) => String(v ?? "").trim();
+
+    if (!safeTrim(currentForm.houseId)) {
+      newErrors.houseId = "Vui lòng chọn hoặc nhập mã nhà";
+    }
+
+    const rentRaw = safeTrim(currentForm.rentAmount);
+    const rent = Number(rentRaw);
+    if (!rentRaw) {
+      newErrors.rentAmount = "Vui lòng nhập tiền thuê";
+    } else if (Number.isNaN(rent) || rent <= 0) {
+      newErrors.rentAmount = "Tiền thuê phải là số lớn hơn 0";
+    }
+
+    const depositRaw = safeTrim(currentForm.depositAmount);
+    if (depositRaw) {
+      const deposit = Number(depositRaw);
+      if (Number.isNaN(deposit) || deposit < 0) {
+        newErrors.depositAmount = "Tiền cọc phải là số không âm";
+      }
+    }
+
+    const payDateNumber = Number(currentForm.payDate);
+    if (
+      !Number.isFinite(payDateNumber) ||
+      payDateNumber < 1 ||
+      payDateNumber > 28
+    ) {
+      newErrors.payDate = "Ngày thanh toán phải từ 1 đến 30";
+    }
+
+    if (
+      currentForm.depositDate &&
+      currentForm.startDate &&
+      currentForm.depositDate < currentForm.startDate
+    ) {
+      newErrors.depositDate =
+        "Ngày đặt cọc không được trước ngày bắt đầu hợp đồng";
+    }
+
+    if (currentForm.handoverDate) {
+      if (
+        currentForm.startDate &&
+        currentForm.handoverDate < currentForm.startDate
+      ) {
+        newErrors.handoverDate =
+          "Ngày bàn giao không được trước ngày bắt đầu hợp đồng";
+      }
+      if (
+        currentForm.endDate &&
+        currentForm.handoverDate > currentForm.endDate
+      ) {
+        newErrors.handoverDate =
+          "Ngày bàn giao không được sau ngày kết thúc hợp đồng";
+      }
+    }
+
+    return newErrors;
+  };
+
   const handleNext = () => {
+    if (currentStep === 1) {
+      const stepErrors = validateStep1(form);
+      setErrors(stepErrors);
+      if (Object.keys(stepErrors).length > 0) {
+        return;
+      }
+    }
     if (currentStep < STEPS.length) setCurrentStep((s) => s + 1);
   };
 
@@ -49,7 +180,16 @@ export default function CreateContractWizard({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (currentStep !== STEPS.length || !canSubmitStep2) return;
+    if (currentStep !== STEPS.length) return;
+
+    const step1Errors = validateStep1(form);
+    const step2Errors = validateStep2(form);
+    const combinedErrors = { ...step1Errors, ...step2Errors };
+    setErrors(combinedErrors);
+    if (Object.keys(combinedErrors).length > 0 || !canSubmitStep2) {
+      return;
+    }
+
     onCreated?.(form);
   };
 
@@ -90,9 +230,14 @@ export default function CreateContractWizard({
         className="space-y-6"
       >
         {currentStep === 1 ? (
-          <StepGeneralInfo form={form} update={update} />
+          <StepGeneralInfo form={form} update={update} errors={errors} />
         ) : (
-          <StepHouseAndMoney form={form} update={update} houses={houses} />
+          <StepHouseAndMoney
+            form={form}
+            update={update}
+            houses={houses}
+            errors={errors}
+          />
         )}
 
         <div className="flex items-center justify-between gap-4 pt-4 border-t border-gray-200">
@@ -109,7 +254,6 @@ export default function CreateContractWizard({
               <button
                 type="button"
                 onClick={handleNext}
-                disabled={!canProceedStep1}
                 className="px-4 py-2 bg-teal-600 disabled:bg-teal-300 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-teal-700 disabled:hover:bg-teal-300 transition"
               >
                 Tiếp theo

@@ -18,8 +18,6 @@ import { useAuthStore } from "../../auth/store/auth.store";
 export default function Settings() {
   const { profile } = useAuthStore();
   const [activeTab, setActiveTab] = useState("profile");
-  
-  // Lấy thông tin từ Keycloak token
   const getUserInfo = () => {
     const token = keycloak?.tokenParsed;
     return {

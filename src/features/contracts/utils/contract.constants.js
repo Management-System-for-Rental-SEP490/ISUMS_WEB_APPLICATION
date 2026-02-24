@@ -1,23 +1,42 @@
 export const STATUS_BADGE = {
-  active: "bg-green-100 text-green-700",
-  pending: "bg-amber-100 text-amber-700",
-  expired: "bg-red-100 text-red-700",
-  draft: "bg-slate-100 text-slate-700",
-  DRAFT: "bg-slate-100 text-slate-700",
-  ACTIVE: "bg-green-100 text-green-700",
-  PENDING: "bg-amber-100 text-amber-700",
-  EXPIRED: "bg-red-100 text-red-700",
+  DRAFT: "bg-gray-100 text-gray-700",
+
+  CONFIRM: "bg-blue-100 text-blue-700",
+
+  READY: "bg-amber-100 text-amber-700",
+
+  IN_PROGRESS: "bg-sky-100 text-sky-700",
+
+  COMPLETED: "bg-green-100 text-green-700",
+
+  CORRECTING: "bg-orange-100 text-orange-700",
+
+  CANCELLED: "bg-red-100 text-red-700",
+
+  DELETED: "bg-zinc-200 text-zinc-700",
+
+  REJECTED: "bg-rose-100 text-rose-700",
 };
 
 export const STATUS_LABEL = {
-  active: "Đang hiệu lực",
-  pending: "Chờ duyệt",
-  expired: "Đã hết hạn",
-  draft: "Bản nháp",
   DRAFT: "Bản nháp",
-  ACTIVE: "Đang hiệu lực",
-  PENDING: "Chờ duyệt",
-  EXPIRED: "Đã hết hạn",
+  CONFIRM: "Đã xác nhận",
+  READY: "Sẵn sàng chờ ký",
+  IN_PROGRESS: "Đang thực hiện",
+  COMPLETED: "Đã hoàn thành",
+  CORRECTING: "Đang chỉnh sửa",
+  CANCELLED: "Đã hủy",
+  DELETED: "Đã xóa",
+  REJECTED: "Đã từ chối",
+  //   DRAFT,
+  //   CONFIRM,
+  //   READY,
+  //   IN_PROGRESS,
+  //   COMPLETED,
+  //   CORRECTING,
+  //   CANCELLED,
+  //   DELETED,
+  //   REJECTED
 };
 
 export const PAYMENT_LABEL = {

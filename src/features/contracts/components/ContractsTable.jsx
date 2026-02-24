@@ -8,8 +8,13 @@ import {
   Edit,
   Trash2,
 } from "lucide-react";
-import { formatDateVi, getDaysRemaining } from "../utils/contract.format";
-import { STATUS_BADGE, STATUS_LABEL, PAYMENT_LABEL } from "../utils/contract.constants";
+import { LoadingSpinner } from "../../../components/shared/Loading";
+import { formatDateVi } from "../utils/contract.format";
+import {
+  STATUS_BADGE,
+  STATUS_LABEL,
+  PAYMENT_LABEL,
+} from "../utils/contract.constants";
 
 export default function ContractsTable({
   items,
@@ -24,9 +29,12 @@ export default function ContractsTable({
         <div className="p-6 border-b border-gray-200">
           <h3 className="text-lg font-semibold">Danh Sách Hợp Đồng</h3>
         </div>
-        <div className="p-12 text-center">
-          <div className="w-10 h-10 border-2 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Đang tải danh sách hợp đồng...</p>
+        <div className="p-12 flex flex-col items-center justify-center gap-3">
+          <LoadingSpinner
+            size="lg"
+            showLabel
+            label="Đang tải danh sách hợp đồng..."
+          />
         </div>
       </div>
     );
@@ -35,7 +43,9 @@ export default function ContractsTable({
   return (
     <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
       <div className="p-6 border-b border-gray-200">
-        <h3 className="text-lg font-semibold">Danh Sách Hợp Đồng ({items.length})</h3>
+        <h3 className="text-lg font-semibold">
+          Danh Sách Hợp Đồng ({items.length})
+        </h3>
       </div>
 
       <div className="overflow-x-auto">
@@ -48,9 +58,9 @@ export default function ContractsTable({
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Khách thuê
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Bất động sản
-              </th>
+              {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Bất động sản */}
+              {/* </th> */}
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Thời hạn
               </th>
@@ -71,7 +81,6 @@ export default function ContractsTable({
 
           <tbody className="bg-white divide-y divide-gray-200">
             {items.map((contract) => {
-              const daysRemaining = getDaysRemaining(contract.endDate);
               return (
                 <tr key={contract.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -86,19 +95,25 @@ export default function ContractsTable({
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-900">{contract.tenant}</span>
+                      <span className="text-sm text-gray-900">
+                        {contract.tenant}
+                      </span>
                     </div>
                   </td>
 
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  {/* <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <Building2 className="w-4 h-4 text-gray-400" />
                       <div>
-                        <div className="text-sm text-gray-900">{contract.property}</div>
-                        <div className="text-xs text-gray-500">{contract.unit}</div>
+                        <div className="text-sm text-gray-900">
+                          {contract.property}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {contract.unit}
+                        </div>
                       </div>
                     </div>
-                  </td>
+                  </td> */}
 
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
@@ -106,15 +121,6 @@ export default function ContractsTable({
                         <Calendar className="w-3 h-3 text-gray-400" />
                         {formatDateVi(contract.startDate)}
                       </div>
-                      <div className="flex items-center gap-1 text-gray-500">
-                        <Calendar className="w-3 h-3 text-gray-400" />
-                        {formatDateVi(contract.endDate)}
-                      </div>
-                      {(contract.status ?? "").toLowerCase() === "active" && contract.endDate && (
-                        <div className="text-xs text-amber-600 mt-1">
-                          Còn {daysRemaining} ngày
-                        </div>
-                      )}
                     </div>
                   </td>
 
@@ -129,10 +135,13 @@ export default function ContractsTable({
 
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-sm text-gray-600">
-                      {PAYMENT_LABEL[contract.paymentType] ?? contract.paymentType}
+                      {PAYMENT_LABEL[contract.paymentType] ??
+                        contract.paymentType}
                     </span>
                     {contract.autoRenew && (
-                      <div className="text-xs text-green-600 mt-1">Tự động gia hạn</div>
+                      <div className="text-xs text-green-600 mt-1">
+                        Tự động gia hạn
+                      </div>
                     )}
                   </td>
 

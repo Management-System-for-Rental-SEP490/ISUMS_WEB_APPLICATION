@@ -1,18 +1,16 @@
-import React from "react";
 import {
-  Building2,
-  Home,
-  Zap,
-  Users,
-  FileText,
   Bell,
-  Settings,
-  LogOut,
-  Paperclip,
-  Building,
+  Building2,
   ChevronLeft,
   ChevronRight,
+  FileText,
+  Home,
+  LogOut,
+  Paperclip,
+  Settings,
+  Users,
   X,
+  Zap,
 } from "lucide-react";
 
 export default function Sidebar({
@@ -22,7 +20,6 @@ export default function Sidebar({
   activeMenu,
   setActiveMenu,
 }) {
-  // Hàm xử lý khi click vào menu
   const handleNavClick = (e, menuId) => {
     e.preventDefault();
     setActiveMenu(menuId);
@@ -40,40 +37,46 @@ export default function Sidebar({
   return (
     <aside
       className={[
-        "bg-slate-900 text-white fixed lg:sticky top-0 h-screen z-40",
+        "bg-slate-900 text-white fixed left-0 inset-y-0 z-40", // ✅ dính sát top/bottom
+        "lg:sticky lg:top-0", // desktop sticky
         "transition-all duration-300 ease-in-out",
-        // Mobile: slide in/out
-        isOpen ? "translate-x-0" : "-translate-x-full",
+        isOpen ? "translate-x-0 w-64" : "-translate-x-full w-64",
         "lg:translate-x-0",
-        // Width: desktop expanded/collapsed
-        "w-64",
-        isOpen ? "lg:w-64" : "lg:w-20",
+        !isOpen ? "lg:w-20" : "lg:w-64",
       ].join(" ")}
       aria-label="Sidebar"
     >
-      <div
-        className={`flex flex-col h-full ${isOpen ? "w-64" : "lg:w-20 w-64"} overflow-hidden`}
-      >
+      <div className="h-full flex flex-col overflow-hidden">
+        {/* Header */}
         <div
-          className={`p-4 border-b border-slate-800 ${isOpen ? "" : "lg:px-2"}`}
+          className={[
+            "p-4 border-b border-slate-800",
+            !isOpen ? "lg:px-2" : "",
+          ].join(" ")}
         >
           <div
-            className={`flex items-center ${isOpen ? "justify-between" : "lg:flex-col lg:gap-2 justify-center"} gap-3`}
+            className={[
+              "flex items-center gap-3",
+              isOpen
+                ? "justify-between"
+                : "lg:flex-col lg:gap-2 justify-center",
+            ].join(" ")}
           >
             <div
-              className={`flex items-center gap-3 ${isOpen ? "" : "lg:flex-col"}`}
+              className={[
+                "flex items-center gap-3",
+                !isOpen ? "lg:flex-col" : "",
+              ].join(" ")}
             >
               <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/20">
-                <Building className="w-6 h-6 text-white" />
+                <Building2 className="w-6 h-6 text-white" />
               </div>
               {isOpen && (
                 <div>
                   <h1 className="font-bold text-base tracking-wide">
                     SmartUtil
                   </h1>
-                  <p className="text-xs text-slate-400">
-                    Quản lý tiện ích IoT
-                  </p>
+                  <p className="text-xs text-slate-400">Quản lý tiện ích IoT</p>
                 </div>
               )}
             </div>
@@ -81,18 +84,13 @@ export default function Sidebar({
             <button
               type="button"
               onClick={onToggle}
-              className={[
-                "p-2 rounded-lg hover:bg-slate-800 transition flex-shrink-0",
-                "flex items-center justify-center",
-              ].join(" ")}
+              className="p-2 rounded-lg hover:bg-slate-800 transition flex-shrink-0 flex items-center justify-center"
               aria-label={isOpen ? "Thu nhỏ menu" : "Mở rộng menu"}
               title={isOpen ? "Thu nhỏ menu" : "Mở rộng menu"}
             >
-              {/* Mobile: đóng drawer */}
               <span className="lg:hidden">
                 <X className="w-5 h-5 text-slate-200" />
               </span>
-              {/* Desktop: collapse/expand */}
               <span className="hidden lg:block">
                 {isOpen ? (
                   <ChevronLeft className="w-5 h-5 text-slate-200" />
@@ -104,12 +102,14 @@ export default function Sidebar({
           </div>
         </div>
 
+        {/* Nav */}
         <nav className="flex-1 py-4 overflow-y-auto">
           {isOpen && (
             <p className="px-6 text-xs font-semibold text-slate-500 uppercase mb-3">
               Menu Chính
             </p>
           )}
+
           {menuItems.map((item) => (
             <a
               key={item.id}
@@ -136,6 +136,7 @@ export default function Sidebar({
               Hệ Thống
             </p>
           )}
+
           <a
             href="#"
             onClick={(e) => handleNavClick(e, "notifications")}
@@ -158,6 +159,7 @@ export default function Sidebar({
               <span className="absolute lg:right-2 lg:top-3 right-4 top-3 w-2 h-2 bg-red-500 rounded-full" />
             )}
           </a>
+
           <a
             href="#"
             onClick={(e) => handleNavClick(e, "settings")}
@@ -175,10 +177,15 @@ export default function Sidebar({
           </a>
         </nav>
 
+        {/* Footer */}
         <div
-          className={`p-4 border-t border-slate-800 ${isOpen ? "" : "lg:px-2"}`}
+          className={[
+            "p-4 border-t border-slate-800",
+            !isOpen ? "lg:px-2" : "",
+          ].join(" ")}
         >
           <button
+            type="button"
             onClick={onLogout}
             className={[
               "flex items-center gap-3 py-3 text-slate-300 hover:bg-slate-800/70 rounded-lg w-full transition",
