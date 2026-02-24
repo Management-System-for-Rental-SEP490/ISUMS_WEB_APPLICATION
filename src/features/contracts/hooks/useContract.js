@@ -22,7 +22,6 @@ export function useContracts() {
       const msg = err?.message ?? String(err);
       setError(msg);
       setContracts([]);
-      toast.error(`Không thể tải danh sách hợp đồng: ${msg}`);
     } finally {
       setLoading(false);
     }

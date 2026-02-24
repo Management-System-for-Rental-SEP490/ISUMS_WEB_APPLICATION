@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import { useContracts } from "../../../features/contracts/hooks/useContract";
 import ContractsListView from "./views/ContractListView";
 import ContractCreateView from "./views/ContractCreateView";
@@ -42,9 +43,15 @@ export default function ContractsPage({ onNavigateMenu }) {
 
   const goEdit = useCallback(
     (id) => {
+      const contract = contracts.find((c) => c.id === id);
+      const status = (contract?.status ?? "").toUpperCase();
+      if (status !== "DRAFT" && status !== "READY") {
+        toast.warning("Hợp đồng đã xác nhận không thể sửa");
+        return;
+      }
       navigate(`/contracts/${id}/edit`);
     },
-    [navigate],
+    [contracts, navigate],
   );
 
   const handleDelete = useCallback(
