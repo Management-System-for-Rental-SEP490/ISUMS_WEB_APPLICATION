@@ -217,7 +217,8 @@ export default function ContractDetailStandalone() {
 
   const html = contract?.html ?? "";
   const normalizedStatus = (status ?? "").toUpperCase();
-  const canEditOrConfirm = normalizedStatus === "DRAFT" || normalizedStatus === "READY";
+  const canEditOrConfirm =
+    normalizedStatus === "DRAFT" || normalizedStatus === "READY";
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
@@ -234,9 +235,7 @@ export default function ContractDetailStandalone() {
                 <h1 className="text-sm font-bold text-slate-900 whitespace-nowrap">
                   Hợp đồng
                 </h1>
-                {status && status !== "null" && (
-                  <StatusBadge status={status} />
-                )}
+                {status && status !== "null" && <StatusBadge status={status} />}
               </div>
               <div className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-400 font-mono truncate">
                 <Icons.Hash />
@@ -290,11 +289,7 @@ export default function ContractDetailStandalone() {
         {loading && (
           <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-sm px-12 py-12 flex flex-col items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-slate-100 animate-pulse" />
-            <LoadingSpinner
-              size="lg"
-              showLabel
-              label="Đang tải hợp đồng..."
-            />
+            <LoadingSpinner size="lg" showLabel label="Đang tải hợp đồng..." />
           </div>
         )}
 
@@ -328,7 +323,6 @@ export default function ContractDetailStandalone() {
                 {["bg-red-400", "bg-amber-300", "bg-emerald-400"].map(
                   (c, idx) => (
                     <span
-                      // eslint-disable-next-line react/no-array-index-key
                       key={idx}
                       className={`h-2.5 w-2.5 rounded-full ${c}`}
                     />

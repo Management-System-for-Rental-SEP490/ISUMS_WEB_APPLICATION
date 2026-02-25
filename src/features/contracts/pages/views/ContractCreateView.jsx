@@ -2,7 +2,11 @@ import React from "react";
 import Breadcrumbs from "../../../../components/shared/Breadcrumbs";
 import CreateContract from "../CreateContract";
 
-export default function ContractCreateView({ onNavigateMenu, onBack, onCreated }) {
+export default function ContractCreateView({
+  onNavigateMenu,
+  onBack,
+  onCreated,
+}) {
   return (
     <div className="space-y-4">
       <Breadcrumbs
