@@ -162,52 +162,126 @@ export default function Dashboard() {
       />
 
       <div className="flex-1 flex flex-col min-h-screen">
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-30 px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            {/* Toggle chỉ dành cho mobile để header gọn hơn */}
-            <button
-              type="button"
-              onClick={() => setIsSidebarOpen((v) => !v)}
-              className="lg:hidden p-2 hover:bg-gray-100 rounded-lg"
-              aria-label={isSidebarOpen ? "Đóng menu" : "Mở menu"}
-            >
-              {isSidebarOpen ? (
-                <X className="w-6 h-6 text-gray-600" />
-              ) : (
-                <Menu className="w-6 h-6 text-gray-600" />
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-30 px-6 py-3.5 flex items-center gap-4 justify-between">
+          {/* LEFT: Toggle + Breadcrumb */}
+          <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
+            {/* Divider */}
+            <div className="hidden md:block h-5 w-px bg-gray-200" />
+
+            {/* Breadcrumb */}
+            <nav className="hidden md:flex items-center gap-1.5 text-sm">
+              <button
+                type="button"
+                onClick={() => setActiveMenu("dashboard")}
+                className="text-gray-400 hover:text-teal-600 transition font-medium"
+              >
+                Trang chủ
+              </button>
+              {activeMenu !== "dashboard" && (
+                <>
+                  <span className="text-gray-300">›</span>
+                  <span className="text-gray-700 font-semibold">
+                    {currentTitle}
+                  </span>
+                </>
               )}
-            </button>
-            <h1 className="text-xl font-bold text-gray-900">{currentTitle}</h1>
+            </nav>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center bg-gray-100 rounded-xl px-4 py-2.5 w-72 border border-gray-200">
-              <Search className="w-5 h-5 text-gray-400 mr-2" />
-              <input
-                type="text"
-                placeholder="Tìm kiếm..."
-                className="bg-transparent outline-none text-sm w-full"
-              />
-            </div>
+          {/* CENTER: Search */}
+          <div className="flex-1 max-w-xl flex items-center bg-gray-50 rounded-xl px-4 py-2 border border-gray-200 focus-within:border-teal-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-teal-500/10 transition-all">
+            <Search className="w-4 h-4 text-gray-400 mr-2.5 flex-shrink-0" />
+            <input
+              type="text"
+              placeholder="Tìm kiếm hợp đồng, khách thuê, bất động sản..."
+              className="bg-transparent outline-none text-sm w-full text-gray-700 placeholder-gray-400"
+            />
+            <kbd className="hidden lg:flex items-center gap-0.5 ml-2 px-1.5 py-0.5 text-xs text-gray-400 border border-gray-200 rounded font-mono flex-shrink-0">
+              ⌘K
+            </kbd>
+          </div>
+
+          {/* RIGHT: Actions + User */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Location */}
             <button
               type="button"
-              className="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition"
+              className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 hover:border-teal-300 transition"
             >
-              <MapPin className="w-4 h-4 text-teal-600" />
-              HCMC
+              <MapPin className="w-3.5 h-3.5 text-teal-600" />
+              TP. HCM
             </button>
+
+            {/* Divider */}
+            <div className="hidden lg:block h-5 w-px bg-gray-200 mx-1" />
+
+            {/* Notifications bell */}
+            <button
+              type="button"
+              onClick={() => setActiveMenu("notifications")}
+              className="relative p-2 rounded-lg hover:bg-gray-100 transition"
+              aria-label="Thông báo"
+            >
+              <svg
+                className="w-5 h-5 text-gray-500"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.8}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                />
+              </svg>
+              {/* Badge */}
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
+            </button>
+
+            {/* Quick add */}
+            <button
+              type="button"
+              className="hidden md:flex items-center gap-1.5 px-3.5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-semibold transition shadow-sm"
+            >
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              Thêm mới
+            </button>
+
+            {/* Divider */}
+            <div className="h-5 w-px bg-gray-200 mx-1" />
 
             {/* User Menu Dropdown */}
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center gap-2 hover:opacity-80 transition"
+                className="flex items-center gap-2.5 pl-1 pr-2 py-1 rounded-lg hover:bg-gray-100 transition"
               >
-                <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-semibold shadow-sm">
+                <div className="w-8 h-8 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0">
                   A
                 </div>
-                <ChevronDown className="w-4 h-4 text-gray-600 hidden md:block" />
+                <div className="hidden md:block text-left">
+                  <p className="text-xs font-semibold text-gray-800 leading-tight">
+                    {keycloak?.tokenParsed?.name || "Admin"}
+                  </p>
+                  <p className="text-[10px] text-gray-400 leading-tight">
+                    Quản trị viên
+                  </p>
+                </div>
+                <ChevronDown className="w-3.5 h-3.5 text-gray-400 hidden md:block" />
               </button>
 
               {isUserMenuOpen && (
@@ -218,40 +292,80 @@ export default function Dashboard() {
                     onClick={() => setIsUserMenuOpen(false)}
                     aria-label="Close menu"
                   />
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-20">
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-20">
                     <div className="px-4 py-3 border-b border-gray-100">
-                      <p className="text-sm font-semibold text-gray-900">
-                        {keycloak?.tokenParsed?.name || "Admin User"}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {keycloak?.tokenParsed?.email || "admin@smartutil.vn"}
-                      </p>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                          A
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {keycloak?.tokenParsed?.name || "Admin User"}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {keycloak?.tokenParsed?.email ||
+                              "admin@smartutil.vn"}
+                          </p>
+                        </div>
+                      </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsUserMenuOpen(false);
-                        setActiveMenu("settings");
-                      }}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
-                    >
-                      <User className="w-4 h-4" />
-                      Thông tin tài khoản
-                    </button>
+                    <div className="py-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          setActiveMenu("settings");
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                      >
+                        <User className="w-4 h-4 text-gray-400" />
+                        Thông tin tài khoản
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          setActiveMenu("settings");
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                      >
+                        <svg
+                          className="w-4 h-4 text-gray-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={1.8}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                        </svg>
+                        Cài đặt
+                      </button>
+                    </div>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsUserMenuOpen(false);
-                        authActions.logout();
-                        navigate("/login");
-                      }}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      Đăng xuất
-                    </button>
+                    <div className="border-t border-gray-100 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          authActions.logout();
+                          navigate("/login");
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Đăng xuất
+                      </button>
+                    </div>
                   </div>
                 </>
               )}

@@ -24,13 +24,6 @@ export default function ContractsListView({
 }) {
   return (
     <div className="space-y-6">
-      <Breadcrumbs
-        items={[
-          { label: "Trang chủ", onClick: () => onNavigateMenu?.("dashboard") },
-          { label: "Quản lý hợp đồng" },
-        ]}
-      />
-
       <ContractsHeader total={contracts.length} onCreate={onCreate} />
       <ContractsStats stats={stats} />
 

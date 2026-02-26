@@ -15,7 +15,7 @@ export default function ContractsHeader({ total, onCreate }) {
       <div className="space-y-1">
         <div className="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-1 border border-teal-100 shadow-xs">
           <span className="h-2 w-2 rounded-full bg-teal-500 shadow-[0_0_0_4px_rgba(45,212,191,0.35)]" />
-          <span className="text-xs font-medium text-teal-700">T</span>
+          <span className="text-xs font-medium text-teal-700">ISUMS</span>
         </div>
         <h2 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight mt-1">
           Quản Lý Hợp Đồng
