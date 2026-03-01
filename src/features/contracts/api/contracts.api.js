@@ -119,3 +119,35 @@ export async function confirmContract(id) {
     throw new Error(getErrorMessage(error));
   }
 }
+
+/**
+ * Get VNPT e-contract document detail (processId, signingPage, position…)
+ * @param {string} documentId - VNPT document ID (from contract.documentId)
+ * @returns {Promise<Object>} VNPT document data including waitingProcess
+ * @throws {Error} If request fails
+ */
+export async function getVnptDocument(documentId) {
+  try {
+    const response = await api.get(
+      CONTRACTS_ENDPOINTS.GET_VNPT_DOCUMENT(documentId)
+    );
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Submit admin signature with OTP to sign contract
+ * @param {Object} payload - Signing payload
+ * @returns {Promise<Object>} Signing result
+ * @throws {Error} If request fails
+ */
+export async function adminSignEcontract(payload) {
+  try {
+    const response = await api.post(CONTRACTS_ENDPOINTS.ADMIN_SIGN, payload);
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}

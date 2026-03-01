@@ -3,14 +3,9 @@
  * Centralized endpoint definitions for the application
  */
 
-import { id } from "zod/v4/locales";
-
 // Auth endpoints
 export const AUTH_ENDPOINTS = {
-  LOGIN: "/auth/login",
-  LOGOUT: "/auth/logout",
-  REFRESH: "/auth/refresh",
-  PROFILE: "/auth/profile",
+  GET: "users/{email}",
 };
 
 // Houses endpoints
@@ -28,7 +23,9 @@ export const CONTRACTS_ENDPOINTS = {
   CREATE: "/econtracts",
   UPDATE: (id) => `/econtracts/${id}`,
   DELETE: (id) => `/econtracts/${id}`,
-  CONFIRM: (id) => `/econtracts/confirm/${id}`, // Update contract after edit to send tenant to sign
+  CONFIRM: (id) => `/econtracts/confirm/${id}`,
+  GET_VNPT_DOCUMENT: (documentId) => `/econtracts/vnpt-document/${documentId}`,
+  ADMIN_SIGN: "/econtracts/sign-admin",
 };
 
 // Tenants endpoints

@@ -7,6 +7,7 @@ import {
   Home,
   LogOut,
   Paperclip,
+  PenLine,
   Settings,
   Users,
   X,
@@ -31,6 +32,7 @@ export default function Sidebar({
     { id: "utilities", label: "Tiện Ích", icon: Zap },
     { id: "tenants", label: "Khách Thuê", icon: Users },
     { id: "contracts", label: "Hợp Đồng", icon: FileText },
+    { id: "contracts-sign", label: "Hợp Đồng Cần Ký", icon: PenLine },
     { id: "reports", label: "Báo Cáo", icon: Paperclip },
   ];
 

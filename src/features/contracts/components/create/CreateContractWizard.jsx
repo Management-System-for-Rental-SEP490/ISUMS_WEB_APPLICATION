@@ -71,6 +71,8 @@ export default function CreateContractWizard({
       newErrors.email = "Thông tin không được trống";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       newErrors.email = "Email không hợp lệ";
+    } else if (!currentForm.emailChecked) {
+      newErrors.email = "Vui lòng bấm “Kiểm tra” Gmail trước khi tiếp tục";
     }
 
     const identityNumber = safeTrim(currentForm.identityNumber);

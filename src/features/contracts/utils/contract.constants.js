@@ -5,7 +5,7 @@ export const STATUS_BADGE = {
 
   READY: "bg-amber-100 text-amber-700",
 
-  IN_PROGRESS: "bg-sky-100 text-sky-700",
+  IN_PROGRESS: "bg-yellow-100 text-yellow-700",
 
   COMPLETED: "bg-green-100 text-green-700",
 
@@ -20,23 +20,13 @@ export const STATUS_BADGE = {
 
 export const STATUS_LABEL = {
   DRAFT: "Bản nháp",
-  CONFIRM: "Đã xác nhận",
-  READY: "Sẵn sàng chờ ký",
-  IN_PROGRESS: "Đang thực hiện",
-  COMPLETED: "Đã hoàn thành",
-  CORRECTING: "Đang chỉnh sửa",
+  READY: "Đang chờ chủ nhà ký",
+  IN_PROGRESS: "Đang chờ khách hàng ký",
+  CONFIRM: "Khách hàng đã xác nhận", // Chờ khách hàng ký
+  COMPLETED: "Đã hoàn thành", // Khách hảng ký thành công
+  REJECTED_BY_TENANT: "Đã bị từ chối bởi khách hàng", // Khách hàng từ chối ký
   CANCELLED: "Đã hủy",
-  DELETED: "Đã xóa",
   REJECTED: "Đã từ chối",
-  //   DRAFT,
-  //   CONFIRM,
-  //   READY,
-  //   IN_PROGRESS,
-  //   COMPLETED,
-  //   CORRECTING,
-  //   CANCELLED,
-  //   DELETED,
-  //   REJECTED
 };
 
 export const PAYMENT_LABEL = {

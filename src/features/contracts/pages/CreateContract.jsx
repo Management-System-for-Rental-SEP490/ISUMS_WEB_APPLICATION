@@ -8,6 +8,7 @@ import { LoadingOverlay } from "../../../components/shared/Loading";
 const getInitialForm = (todayISO) => ({
   name: "",
   email: "",
+  emailChecked: false,
   phoneNumber: "",
   identityNumber: "",
   houseId: "",
