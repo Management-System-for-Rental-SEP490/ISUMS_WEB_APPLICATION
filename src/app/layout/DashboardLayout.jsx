@@ -8,6 +8,7 @@ import Houses from "../../features/houses/pages/Houses";
 import Utilities from "./Utilities";
 import Tenants from "../../features/tenants/pages/Tenants";
 import ContractsPage from "../../features/contracts/pages/ContractsPage";
+import ContractsPendingSignPage from "../../features/contracts/pages/ContractsPendingSignPage";
 import Reports from "../../features/reports/pages/Reports";
 import Notifications from "../../features/notifications/pages/Notifications";
 import Settings from "../../features/settings/pages/Settings";
@@ -60,6 +61,7 @@ export default function Dashboard() {
     utilities: "Tiện ích",
     tenants: "Khách thuê",
     contracts: "Hợp đồng",
+    "contracts-sign": "Hợp Đồng Cần Ký",
     reports: "Báo cáo",
     notifications: "Thông báo",
     settings: "Cài đặt",
@@ -429,6 +431,7 @@ export default function Dashboard() {
           {activeMenu === "contracts" && (
             <ContractsPage onNavigateMenu={setActiveMenu} />
           )}
+          {activeMenu === "contracts-sign" && <ContractsPendingSignPage />}
           {activeMenu === "reports" && <Reports />}
           {activeMenu === "notifications" && <Notifications />}
           {activeMenu === "settings" && <Settings />}
