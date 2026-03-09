@@ -9,6 +9,20 @@ import { AUTH_ENDPOINTS } from "../../../lib/api-endpoints";
 import { extractResponseData, getErrorMessage } from "../../../lib/api-helpers";
 
 /**
+ * Get current logged-in user info including roles from backend
+ * @returns {Promise<Object>} { id, name, email, roles: string[], ... }
+ * @throws {Error} If request fails
+ */
+export async function getMe() {
+  try {
+    const response = await api.get(AUTH_ENDPOINTS.ME);
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
  * Get current user profile
  * @returns {Promise<Object>} User profile data
  * @throws {Error} If request fails

@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
-import keycloak, { getKeycloakRoles } from "../../../keycloak";
+import keycloak from "../../../keycloak";
+import { getMe } from "../api/auth.api";
 
 function hasEnv() {
   return (
@@ -59,18 +60,34 @@ export const authActions = {
           responseMode: "query",
         });
         cleanupCallbackUrl();
-        const roles = authenticated ? getKeycloakRoles() : [];
-        setState({
-          isAuthenticated: Boolean(authenticated),
-          roles,
-          profile: authenticated
-            ? {
-                username: keycloak?.tokenParsed?.preferred_username,
+
+        if (authenticated) {
+          // Lấy roles + profile từ backend API thay vì token
+          try {
+            const me = await getMe();
+            setState({
+              isAuthenticated: true,
+              roles: Array.isArray(me?.roles) ? me.roles : [],
+              profile: {
+                id:    me?.id    ?? null,
+                name:  me?.name  ?? keycloak?.tokenParsed?.name,
+                email: me?.email ?? keycloak?.tokenParsed?.email,
+              },
+            });
+          } catch {
+            // Fallback: vẫn cho vào nhưng không có role
+            setState({
+              isAuthenticated: true,
+              roles: [],
+              profile: {
+                name:  keycloak?.tokenParsed?.name,
                 email: keycloak?.tokenParsed?.email,
-                name: keycloak?.tokenParsed?.name,
-              }
-            : null,
-        });
+              },
+            });
+          }
+        } else {
+          setState({ isAuthenticated: false, roles: [], profile: null });
+        }
 
         return Boolean(authenticated);
       } catch (e) {

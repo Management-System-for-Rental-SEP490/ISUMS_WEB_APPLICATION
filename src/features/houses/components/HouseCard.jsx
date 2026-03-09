@@ -1,87 +1,171 @@
-import { Building2, MapPin } from "lucide-react";
+import { Bath, Bed, Heart, MapPin, Maximize2, Pencil } from "lucide-react";
+import { AREA_TYPE_CONFIG } from "./HouseDetailModal";
 
 const STATUS_CONFIG = {
-  AVAILABLE: {
-    label: "Còn trống",
-    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  },
-  RENTED: {
-    label: "Đã thuê",
-    className: "bg-amber-50 text-amber-700 border-amber-200",
-  },
-  MAINTENANCE: {
-    label: "Bảo trì",
-    className: "bg-slate-100 text-slate-600 border-slate-200",
-  },
-  default: {
-    label: "—",
-    className: "bg-gray-50 text-gray-600 border-gray-200",
-  },
+  AVAILABLE:   { label: "CÒN TRỐNG", bg: "bg-emerald-500" },
+  RENTED:      { label: "ĐÃ THUÊ",   bg: "bg-orange-500" },
+  MAINTENANCE: { label: "BẢO TRÌ",   bg: "bg-slate-500"  },
+  default:     { label: "—",         bg: "bg-gray-400"   },
 };
 
-export default function HouseCard({ house }) {
-  const statusConfig = STATUS_CONFIG[house?.status] ?? STATUS_CONFIG.default;
-  const displayName = house?.name ?? house?.title ?? "Chưa đặt tên";
-  const address = house?.address ?? "—";
-  const description = house?.description ?? "";
-  const rentPrice = house?.rentPrice ?? house?.rent;
-  const unit = house?.unit ? ` • ${house.unit}` : "";
+function formatPrice(price) {
+  if (!price || price === 0) return null;
+  if (price >= 1_000_000) {
+    const m = price / 1_000_000;
+    return m % 1 === 0 ? `${m}tr` : `${m.toFixed(1)}tr`;
+  }
+  if (price >= 1_000) return `${Math.round(price / 1_000)}k`;
+  return price.toLocaleString("vi-VN");
+}
+
+export default function HouseCard({ house, onView, onEdit }) {
+  const cfg      = STATUS_CONFIG[house?.status] ?? STATUS_CONFIG.default;
+  const name     = house?.name ?? house?.title ?? "Chưa đặt tên";
+  const address  = house?.address ?? "";
+  const priceStr = formatPrice(house?.rentPrice ?? house?.rent);
+  const bedrooms  = house?.bedrooms  ?? house?.bedroom  ?? null;
+  const bathrooms = house?.bathrooms ?? house?.bathroom ?? null;
+  const area      = house?.area      ?? house?.acreage  ?? null;
+  const hasSpecs  = bedrooms != null || bathrooms != null || area != null;
+
+  // functional areas chips
+  const areas = Array.isArray(house?.functionalAreas) ? house.functionalAreas : [];
+  const typeCounts = areas.reduce((acc, a) => {
+    const k = a.areaType ?? "default";
+    acc[k] = (acc[k] ?? 0) + 1;
+    return acc;
+  }, {});
+  const typeEntries = Object.entries(typeCounts);
+  const visibleChips = typeEntries.slice(0, 3);
+  const extraCount   = typeEntries.length - visibleChips.length;
 
   return (
-    <div className="group relative bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md hover:border-teal-200 transition-all duration-200">
-      {/* Image placeholder / header area */}
-      {/* <div className="aspect-[16/9] bg-gradient-to-br from-teal-50 to-cyan-50 flex items-center justify-center">
-        <div className="w-16 h-16 rounded-2xl bg-white/80 backdrop-blur flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-          <Building2 className="w-8 h-8 text-teal-600" />
-        </div>
-      </div> */}
-
-      {/* Content */}
-      <div className="p-5">
-        <div className="flex items-start justify-between gap-3 mb-2">
-          <h3 className="text-lg font-semibold text-gray-900 leading-tight line-clamp-2">
-            {displayName}
-          </h3>
-          <span
-            className={`shrink-0 px-2.5 py-1 text-xs font-medium rounded-lg border ${statusConfig.className}`}
-          >
-            {statusConfig.label}
-          </span>
-        </div>
-
-        {address && (
-          <div className="flex items-start gap-2 text-gray-600 text-sm mb-2">
-            <MapPin className="w-4 h-4 shrink-0 mt-0.5 text-gray-400" />
-            <p className="line-clamp-2">
-              {address}
-              {unit}
-            </p>
+    <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-200 border border-slate-100 group flex flex-col">
+      {/* Image */}
+      <div className="relative aspect-[4/3] overflow-hidden flex-shrink-0">
+        {house?.imageUrl ? (
+          <img
+            src={house.imageUrl}
+            alt={name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-teal-50 to-cyan-100">
+            <svg
+              className="w-16 h-16 text-teal-200"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1}
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 21V12h6v9" />
+            </svg>
           </div>
         )}
 
-        {description && (
-          <p className="text-sm text-gray-500 line-clamp-2 mb-3">
-            {description}
-          </p>
-        )}
+        {/* Status badge */}
+        <span className={`absolute top-3 left-3 px-3 py-1 text-[11px] font-bold rounded-full text-white ${cfg.bg}`}>
+          {cfg.label}
+        </span>
 
-        {rentPrice != null && rentPrice > 0 && (
-          <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
-            <span className="text-sm text-gray-500">Giá thuê:</span>
-            <span className="text-base font-semibold text-teal-700">
-              ₫{Number(rentPrice).toLocaleString("vi-VN")}
-              <span className="text-xs font-normal text-gray-500">/tháng</span>
-            </span>
-          </div>
-        )}
-
+        {/* Heart */}
         <button
           type="button"
-          className="mt-4 w-full py-2 px-4 text-sm font-medium text-teal-600 border border-teal-200 rounded-lg hover:bg-teal-50 transition-colors"
-          onClick={() => console.log("TODO: view house", house?.id)}
+          className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white shadow-sm transition"
         >
-          Xem chi tiết
+          <Heart className="w-4 h-4 text-slate-400 hover:text-rose-500 transition" />
         </button>
+      </div>
+
+      {/* Body */}
+      <div className="p-4 flex flex-col flex-1">
+        {/* Name + Price */}
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <h3 className="text-sm font-semibold text-slate-800 leading-snug line-clamp-2 flex-1">
+            {name}
+          </h3>
+          {priceStr && (
+            <p className="shrink-0 text-right whitespace-nowrap">
+              <span className="text-base font-bold text-teal-600">{priceStr}</span>
+              <span className="text-xs text-slate-400">/th</span>
+            </p>
+          )}
+        </div>
+
+        {/* Address */}
+        {address && (
+          <div className="flex items-start gap-1.5 text-xs text-slate-500 mb-3">
+            <MapPin className="w-3.5 h-3.5 shrink-0 mt-0.5 text-slate-400" />
+            <span className="line-clamp-2">{address}</span>
+          </div>
+        )}
+
+        {/* Specs row */}
+        {hasSpecs && (
+          <div className="flex items-center gap-4 text-xs text-slate-600 py-3 border-t border-slate-100 mb-3">
+            {bedrooms != null && (
+              <div className="flex items-center gap-1.5">
+                <Bed className="w-3.5 h-3.5 text-slate-400" />
+                <span className="font-semibold">{String(bedrooms).padStart(2, "0")}</span>
+              </div>
+            )}
+            {bathrooms != null && (
+              <div className="flex items-center gap-1.5">
+                <Bath className="w-3.5 h-3.5 text-slate-400" />
+                <span className="font-semibold">{String(bathrooms).padStart(2, "0")}</span>
+              </div>
+            )}
+            {area != null && (
+              <div className="flex items-center gap-1.5">
+                <Maximize2 className="w-3.5 h-3.5 text-slate-400" />
+                <span className="font-semibold">{area}m²</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Area chips */}
+        {visibleChips.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 py-3 border-t border-slate-100">
+            {visibleChips.map(([type, count]) => {
+              const cfg = AREA_TYPE_CONFIG[type] ?? AREA_TYPE_CONFIG.default;
+              const { Icon } = cfg;
+              return (
+                <span
+                  key={type}
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full border ${cfg.bg} ${cfg.text} ${cfg.border}`}
+                >
+                  <Icon className="w-3 h-3" />
+                  {count > 1 ? `${count} ` : ""}{cfg.label}
+                </span>
+              );
+            })}
+            {extraCount > 0 && (
+              <span className="inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded-full border bg-slate-50 text-slate-500 border-slate-200">
+                +{extraCount}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className={`flex items-center gap-2 mt-auto pt-3 ${visibleChips.length === 0 ? "border-t border-slate-100" : ""}`}>
+          <button
+            type="button"
+            onClick={() => onView?.(house)}
+            className="flex-1 py-2 text-sm font-medium text-slate-700 border border-slate-200 rounded-xl hover:bg-slate-50 transition"
+          >
+            Xem chi tiết
+          </button>
+          <button
+            type="button"
+            onClick={() => onEdit?.(house)}
+            className="w-9 h-9 flex items-center justify-center bg-teal-50 hover:bg-teal-100 text-teal-600 rounded-xl transition shrink-0"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -9,5 +9,6 @@ export function mapHouseToHouseCard(house) {
     status: house?.status ?? "",
     unit: house?.unit ?? "",
     rentPrice: house?.rentPrice ?? house?.rent ?? null,
+    functionalAreas: Array.isArray(house?.functionalAreas) ? house.functionalAreas : [],
   };
 }

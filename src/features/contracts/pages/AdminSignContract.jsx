@@ -66,6 +66,8 @@ export default function AdminSignContract() {
   const [chosenPosition, setChosenPosition] = useState(null); // { signingPosition, page }
   const [confirming, setConfirming] = useState(false); // first API call (otp null)
   const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpSent, setOtpSent] = useState(false); // true once OTP has been dispatched successfully
+  const [otpEmail, setOtpEmail] = useState(null); // email OTP was sent to
   const [signing, setSigning] = useState(false); // second API call (with OTP)
 
   const iframeWrapperRef = useRef(null);
@@ -79,8 +81,8 @@ export default function AdminSignContract() {
       try {
         const raw = await getContractById(id);
         const mapped = mapContractFromApi(raw);
-        if ((mapped?.status ?? "") !== "READY") {
-          toast.error("Hợp đồng không ở trạng thái sẵn sàng để ký.");
+        if ((mapped?.status ?? "") !== "CONFIRM_BY_LANDLORD") {
+          toast.error("Hợp đồng chưa được chủ nhà xác nhận để ký.");
           navigate(`/contracts/${id}`, { replace: true });
           return;
         }
@@ -111,7 +113,7 @@ export default function AdminSignContract() {
       setSigningSession({ processId, signingPage });
       setShowSigModal(true);
     } catch (err) {
-      toast.error(err?.message ?? "Không thể khởi tạo phiên ký.");
+      toast.error("Bạn yêu cầu quá nhiều lần - vui lòng thử lại sau.");
     } finally {
       setInitiating(false);
     }
@@ -121,6 +123,7 @@ export default function AdminSignContract() {
   const handleSignatureCreated = ({ signatureImage, displayMode }) => {
     setSignatureData({ signatureImage, displayMode });
     setChosenPosition(null);
+    setOtpSent(false);
     setShowOtpModal(false);
     setShowSigModal(false);
   };
@@ -139,7 +142,7 @@ export default function AdminSignContract() {
   const buildPayload = (otp, posOverride = null) => {
     const pos = posOverride ?? chosenPosition;
     const [llx, lly, urx, ury] = pos.signingPosition.split(",").map(Number);
-    const adjustedPosition = `${llx - 25},${lly + 265},${urx - 25},${ury + 265}`;
+    const adjustedPosition = `${llx},${lly + 265},${urx},${ury + 265}`;
     return {
       processId: signingSession.processId,
       otp: otp ?? null,
@@ -166,11 +169,30 @@ export default function AdminSignContract() {
     if (!signingSession || !signatureData) return;
     setConfirming(true);
     try {
-      await adminSignEcontract(buildPayload(null, newPos));
+      const res = await adminSignEcontract(buildPayload(null, newPos));
+      setOtpEmail(res?.data?.receiveOtpEmail ?? null);
+      setOtpSent(true);
       setShowOtpModal(true);
     } catch (err) {
       const msg =
         err?.response?.data?.message || err?.message || "Xác nhận ký thất bại.";
+      toast.error(msg);
+    } finally {
+      setConfirming(false);
+    }
+  };
+
+  // Resend OTP: re-call first API (no otp) then reopen modal
+  const handleResendOtp = async () => {
+    if (!chosenPosition || !signingSession || !signatureData) return;
+    setConfirming(true);
+    try {
+      const res = await adminSignEcontract(buildPayload(null));
+      setOtpEmail(res?.data?.receiveOtpEmail ?? null);
+      setShowOtpModal(true);
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message || err?.message || "Gửi lại OTP thất bại.";
       toast.error(msg);
     } finally {
       setConfirming(false);
@@ -460,7 +482,7 @@ export default function AdminSignContract() {
                   {chosenPosition && (
                     <button
                       type="button"
-                      onClick={() => setChosenPosition(null)}
+                      onClick={() => { setChosenPosition(null); setOtpSent(false); }}
                       className="text-xs text-slate-400 hover:text-teal-600 underline underline-offset-2 transition mt-1.5 pl-9 block"
                     >
                       Chọn lại vị trí
@@ -491,8 +513,35 @@ export default function AdminSignContract() {
                       ? "OTP đã gửi — kiểm tra email để nhập mã"
                       : confirming
                         ? "Đang gửi OTP..."
-                        : "Tự động gửi OTP sau khi xác nhận vị trí"}
+                        : otpSent
+                          ? "Modal đã đóng — mở lại hoặc gửi mã mới"
+                          : "Tự động gửi OTP sau khi xác nhận vị trí"}
                   </p>
+
+                  {/* Buttons to reopen or resend OTP after modal was closed */}
+                  {otpSent && !showOtpModal && !confirming && (
+                    <div className="pl-9 mt-2.5 flex flex-col gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setShowOtpModal(true)}
+                        className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border border-teal-200 bg-teal-50 text-teal-700 text-xs font-semibold hover:bg-teal-100 transition"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        Mở lại nhập OTP
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleResendOtp}
+                        disabled={confirming}
+                        className="w-full text-xs text-slate-400 hover:text-teal-600 underline underline-offset-2 transition text-center py-1 disabled:opacity-50"
+                      >
+                        Gửi lại OTP mới
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -575,7 +624,9 @@ export default function AdminSignContract() {
         open={showOtpModal}
         onClose={() => setShowOtpModal(false)}
         onSubmit={handleFinalSign}
+        onResend={handleResendOtp}
         loading={signing}
+        otpEmail={otpEmail}
       />
     </div>
   );

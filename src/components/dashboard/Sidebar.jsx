@@ -1,6 +1,9 @@
+import { useState } from "react";
+import { useAuthStore } from "../../features/auth/store/auth.store";
 import {
   Bell,
   Building2,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   FileText,
@@ -21,26 +24,43 @@ export default function Sidebar({
   activeMenu,
   setActiveMenu,
 }) {
+  const [contractsOpen, setContractsOpen] = useState(
+    activeMenu === "contracts" || activeMenu === "contracts-sign"
+  );
+  const roles      = useAuthStore((s) => s.roles ?? []);
+  const isAdmin    = roles.includes("ADMIN");
+  const isLandlord = roles.includes("LANDLORD");
+  const canSeePendingSign = isAdmin || isLandlord;
+
   const handleNavClick = (e, menuId) => {
     e.preventDefault();
     setActiveMenu(menuId);
   };
 
-  const menuItems = [
+  const handleContractsToggle = (e) => {
+    e.preventDefault();
+    if (!isOpen) {
+      setActiveMenu("contracts");
+    } else {
+      setContractsOpen((prev) => !prev);
+    }
+  };
+
+  const topMenuItems = [
     { id: "dashboard", label: "Bảng Điều Khiển", icon: Home },
     { id: "houses", label: "Bất Động Sản", icon: Building2 },
     { id: "utilities", label: "Tiện Ích", icon: Zap },
     { id: "tenants", label: "Khách Thuê", icon: Users },
-    { id: "contracts", label: "Hợp Đồng", icon: FileText },
-    { id: "contracts-sign", label: "Hợp Đồng Cần Ký", icon: PenLine },
-    { id: "reports", label: "Báo Cáo", icon: Paperclip },
   ];
+
+  const isContractsActive =
+    activeMenu === "contracts" || activeMenu === "contracts-sign";
 
   return (
     <aside
       className={[
         "bg-slate-900 text-white fixed left-0 inset-y-0 z-40", // ✅ dính sát top/bottom
-        "lg:sticky lg:top-0", // desktop sticky
+        "lg:sticky lg:top-0 lg:h-screen", // desktop sticky + fixed height
         "transition-all duration-300 ease-in-out",
         isOpen ? "translate-x-0 w-64" : "-translate-x-full w-64",
         "lg:translate-x-0",
@@ -112,7 +132,7 @@ export default function Sidebar({
             </p>
           )}
 
-          {menuItems.map((item) => (
+          {topMenuItems.map((item) => (
             <a
               key={item.id}
               href="#"
@@ -132,6 +152,83 @@ export default function Sidebar({
               )}
             </a>
           ))}
+
+          {/* Contracts group */}
+          <a
+            href="#"
+            onClick={handleContractsToggle}
+            className={[
+              "flex items-center gap-3 py-3 transition rounded-lg",
+              isOpen ? "px-6" : "lg:px-0 lg:justify-center px-6",
+              isContractsActive
+                ? "bg-slate-800/90 text-white border border-slate-700"
+                : "text-slate-300 hover:bg-slate-800/70",
+            ].join(" ")}
+            title={!isOpen ? "Hợp Đồng" : undefined}
+          >
+            <FileText className="w-5 h-5 flex-shrink-0" />
+            {isOpen && (
+              <>
+                <span className="text-sm font-medium flex-1">Hợp Đồng</span>
+                <ChevronDown
+                  className={[
+                    "w-4 h-4 transition-transform duration-200",
+                    contractsOpen ? "rotate-180" : "",
+                  ].join(" ")}
+                />
+              </>
+            )}
+          </a>
+
+          {isOpen && contractsOpen && (
+            <div className="ml-4 border-l border-slate-700 pl-2">
+              <a
+                href="#"
+                onClick={(e) => handleNavClick(e, "contracts")}
+                className={[
+                  "flex items-center gap-3 py-2.5 px-4 transition rounded-lg",
+                  activeMenu === "contracts"
+                    ? "bg-slate-800/90 text-white border border-slate-700"
+                    : "text-slate-400 hover:bg-slate-800/70 hover:text-white",
+                ].join(" ")}
+              >
+                <FileText className="w-4 h-4 flex-shrink-0" />
+                <span className="text-sm">Quản lý hợp đồng</span>
+              </a>
+              {canSeePendingSign && (
+                <a
+                  href="#"
+                  onClick={(e) => handleNavClick(e, "contracts-sign")}
+                  className={[
+                    "flex items-center gap-3 py-2.5 px-4 transition rounded-lg",
+                    activeMenu === "contracts-sign"
+                      ? "bg-slate-800/90 text-white border border-slate-700"
+                      : "text-slate-400 hover:bg-slate-800/70 hover:text-white",
+                  ].join(" ")}
+                >
+                  <PenLine className="w-4 h-4 flex-shrink-0" />
+                  <span className="text-sm">Hợp đồng chờ ký</span>
+                </a>
+              )}
+            </div>
+          )}
+
+          {/* Reports */}
+          <a
+            href="#"
+            onClick={(e) => handleNavClick(e, "reports")}
+            className={[
+              "flex items-center gap-3 py-3 transition rounded-lg",
+              isOpen ? "px-6" : "lg:px-0 lg:justify-center px-6",
+              activeMenu === "reports"
+                ? "bg-slate-800/90 text-white border border-slate-700"
+                : "text-slate-300 hover:bg-slate-800/70",
+            ].join(" ")}
+            title={!isOpen ? "Báo Cáo" : undefined}
+          >
+            <Paperclip className="w-5 h-5 flex-shrink-0" />
+            {isOpen && <span className="text-sm font-medium">Báo Cáo</span>}
+          </a>
 
           {isOpen && (
             <p className="px-6 text-xs font-semibold text-slate-500 uppercase mt-6 mb-3">
