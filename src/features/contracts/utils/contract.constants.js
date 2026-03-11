@@ -1,32 +1,28 @@
 export const STATUS_BADGE = {
-  DRAFT: "bg-gray-100 text-gray-700",
-
-  CONFIRM: "bg-blue-100 text-blue-700",
-
-  READY: "bg-amber-100 text-amber-700",
-
-  IN_PROGRESS: "bg-yellow-100 text-yellow-700",
-
-  COMPLETED: "bg-green-100 text-green-700",
-
-  CORRECTING: "bg-orange-100 text-orange-700",
-
-  CANCELLED: "bg-red-100 text-red-700",
-
-  DELETED: "bg-zinc-200 text-zinc-700",
-
-  REJECTED: "bg-rose-100 text-rose-700",
+  DRAFT: "bg-slate-100 text-slate-600 border border-slate-200",
+  READY: "bg-blue-50 text-blue-700 border border-blue-200",
+  CONFIRM_BY_LANDLORD: "bg-violet-50 text-violet-700 border border-violet-200",
+  IN_PROGRESS: "bg-amber-50 text-amber-700 border border-amber-200",
+  CONFIRM_BY_TENANT: "bg-cyan-50 text-cyan-700 border border-cyan-200",
+  COMPLETED: "bg-emerald-50 text-emerald-700 border border-emerald-200",
+  CORRECTING: "bg-orange-50 text-orange-700 border border-orange-200",
+  REJECTED_BY_TENANT: "bg-red-50 text-red-600 border border-red-200",
+  REJECTED_BY_LANDLORD: "bg-rose-50 text-rose-700 border border-rose-200",
+  CANCELLED: "bg-zinc-100 text-zinc-600 border border-zinc-200",
+  DELETED: "bg-zinc-50 text-zinc-400 border border-zinc-200",
 };
 
 export const STATUS_LABEL = {
   DRAFT: "Bản nháp",
-  READY: "Đang chờ chủ nhà ký",
+  READY: "Chờ chủ nhà xác nhận",
+  CONFIRM_BY_LANDLORD: "Chủ nhà đã xác nhận, chờ ký",
   IN_PROGRESS: "Đang chờ khách hàng ký",
-  CONFIRM: "Khách hàng đã xác nhận", // Chờ khách hàng ký
-  COMPLETED: "Đã hoàn thành", // Khách hảng ký thành công
-  REJECTED_BY_TENANT: "Đã bị từ chối bởi khách hàng", // Khách hàng từ chối ký
-  CANCELLED: "Đã hủy",
-  REJECTED: "Đã từ chối",
+  CONFIRM_BY_TENANT: "Khách hàng đã đồng ý ký",
+  COMPLETED: "Đã hoàn thành",
+  CORRECTING: "Đang sửa",
+  CANCELLED: "Đã huỷ",
+  REJECTED_BY_TENANT: "Khách hàng từ chối ký",
+  REJECTED_BY_LANDLORD: "Chủ nhà từ chối ký",
 };
 
 export const PAYMENT_LABEL = {

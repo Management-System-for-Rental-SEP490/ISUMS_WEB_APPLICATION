@@ -22,8 +22,7 @@ function mergeImages(leftDataUrl, rightDataUrl) {
       offscreen.width = W;
       offscreen.height = H;
       const ctx = offscreen.getContext("2d");
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, W, H);
+      // Không fill background → PNG có nền trong suốt
       // Left image (fit within half width, full height, centered)
       const scale1 = Math.min(half / img1.naturalWidth, H / img1.naturalHeight);
       const w1 = img1.naturalWidth * scale1;
@@ -96,8 +95,8 @@ export default function SignatureModal({ open, onClose, onSubmit }) {
     canvas.height = rect.height * dpr;
     const ctx = canvas.getContext("2d");
     ctx.scale(dpr, dpr);
-    ctx.fillStyle = "#f8fafc";
-    ctx.fillRect(0, 0, rect.width, rect.height);
+    // Không fill background canvas → PNG xuất ra có nền trong suốt
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
   }, [displayMode, open]);
 
   const getCanvasPos = (e, canvas) => {
@@ -151,8 +150,6 @@ export default function SignatureModal({ open, onClose, onSubmit }) {
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#f8fafc";
-    ctx.fillRect(0, 0, (rect.width / dpr) * dpr, (rect.height / dpr) * dpr);
     setCanvasData(null);
   };
 

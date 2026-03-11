@@ -63,17 +63,18 @@ export default function StepGeneralInfo({ form, update, errors = {} }) {
           const iso = String(dateOfIssue).slice(0, 10);
           update("dateOfIssue")({ target: { value: iso } });
         }
-
+        update("isNewAccount")({ target: { value: false } });
         setEmailLookupError("");
       } else {
+        update("isNewAccount")({ target: { value: true } });
         setEmailLookupError(
           "Email chưa được đăng ký trong hệ thống. Bạn có thể nhập thông tin thủ công.",
         );
       }
     } catch (err) {
+      update("isNewAccount")({ target: { value: true } });
       setEmailLookupError(
-        err?.message ||
-          "Không thể kiểm tra email. Vui lòng thử lại hoặc nhập thông tin thủ công.",
+        "Không thể kiểm tra email. Vui lòng thử lại hoặc nhập thông tin thủ công.",
       );
     } finally {
       setCheckingEmail(false);

@@ -61,12 +61,12 @@ export default function ContractsTable({
               {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Bất động sản */}
               {/* </th> */}
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Thời hạn
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Tiền thuê
-              </th>
+              </th> */}
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Thanh toán
               </th>
@@ -115,7 +115,7 @@ export default function ContractsTable({
                     </div>
                   </td> */}
 
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  {/* <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
                       <div className="flex items-center gap-1 mb-1">
                         <Calendar className="w-3 h-3 text-gray-400" />
@@ -131,7 +131,7 @@ export default function ContractsTable({
                     <div className="text-xs text-gray-500">
                       Cọc: ₫{((contract.deposit || 0) / 1000000).toFixed(0)}M
                     </div>
-                  </td>
+                  </td> */}
 
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-sm text-gray-600">

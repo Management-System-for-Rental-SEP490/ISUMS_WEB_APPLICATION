@@ -17,6 +17,7 @@ import {
  */
 function transformContractPayload(payload) {
   return {
+    isNewAccount: Boolean(payload.isNewAccount ?? false),
     name: payload.name?.trim() || "",
     email: payload.email?.trim() || "",
     phoneNumber: payload.phoneNumber?.trim() || "",
@@ -111,7 +112,27 @@ export async function deleteContract(id) {
     throw new Error(getErrorMessage(error));
   }
 }
-export async function confirmContract(id) {
+/**
+ * Mark contract as READY — manager/admin xác nhận hợp đồng để gửi cho khách thuê
+ * @param {string} id - Contract ID
+ * @returns {Promise<Object>}
+ */
+export async function readyContract(id) {
+  try {
+    const response = await api.put(CONTRACTS_ENDPOINTS.READY(id));
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Confirm by admin — chủ nhà (LANDLORD) xem hợp đồng READY và xác nhận,
+ * sau đó bắt đầu bước ký chính thức
+ * @param {string} id - Contract ID
+ * @returns {Promise<Object>}
+ */
+export async function confirmByAdmin(id) {
   try {
     const response = await api.put(CONTRACTS_ENDPOINTS.CONFIRM(id));
     return extractResponseData(response);
@@ -129,7 +150,7 @@ export async function confirmContract(id) {
 export async function getVnptDocument(documentId) {
   try {
     const response = await api.get(
-      CONTRACTS_ENDPOINTS.GET_VNPT_DOCUMENT(documentId)
+      CONTRACTS_ENDPOINTS.GET_VNPT_DOCUMENT(documentId),
     );
     return extractResponseData(response);
   } catch (error) {

@@ -6,7 +6,7 @@ import ChartSection from "../../components/dashboard/ChartSection";
 import StatsCard from "../../components/dashboard/StatsCard";
 import Houses from "../../features/houses/pages/Houses";
 import Utilities from "./Utilities";
-import Tenants from "../../features/tenants/pages/Tenants";
+import UsersPage from "../../features/tenants/pages/UsersPage";
 import ContractsPage from "../../features/contracts/pages/ContractsPage";
 import ContractsPendingSignPage from "../../features/contracts/pages/ContractsPendingSignPage";
 import Reports from "../../features/reports/pages/Reports";
@@ -59,7 +59,7 @@ export default function Dashboard() {
     dashboard: "Dashboard",
     houses: "Bất động sản",
     utilities: "Tiện ích",
-    tenants: "Khách thuê",
+    users: "Người Dùng",
     contracts: "Hợp đồng",
     "contracts-sign": "Hợp Đồng Cần Ký",
     reports: "Báo cáo",
@@ -427,7 +427,7 @@ export default function Dashboard() {
 
           {activeMenu === "houses" && <Houses />}
           {activeMenu === "utilities" && <Utilities />}
-          {activeMenu === "tenants" && <Tenants />}
+          {activeMenu === "users" && <UsersPage />}
           {activeMenu === "contracts" && (
             <ContractsPage onNavigateMenu={setActiveMenu} />
           )}

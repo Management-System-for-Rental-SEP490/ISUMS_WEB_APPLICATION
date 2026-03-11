@@ -22,7 +22,10 @@ function OtpInput({ value, onChange }) {
 
   const handlePaste = (e) => {
     e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    const pasted = e.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, 6);
     onChange(pasted.padEnd(6, "").slice(0, 6));
     inputRefs.current[Math.min(pasted.length, 5)]?.focus();
   };
@@ -46,12 +49,47 @@ function OtpInput({ value, onChange }) {
   );
 }
 
-export default function OtpModal({ open, onClose, onSubmit, loading }) {
+const RESEND_COOLDOWN = 60;
+
+function maskEmail(email) {
+  if (!email) return "";
+  const [local, domain] = email.split("@");
+  if (!domain) return email;
+  const visibleStart = Math.min(3, Math.floor(local.length / 2));
+  const visibleEnd = local.length > 5 ? 2 : 0;
+  return (
+    local.slice(0, visibleStart) +
+    "****" +
+    (visibleEnd > 0 ? local.slice(-visibleEnd) : "") +
+    "@" +
+    domain
+  );
+}
+
+export default function OtpModal({
+  open,
+  onClose,
+  onSubmit,
+  onResend,
+  loading,
+  otpEmail,
+}) {
   const [otp, setOtp] = useState("");
+  const [cooldown, setCooldown] = useState(0);
+  const [resending, setResending] = useState(false);
 
   useEffect(() => {
-    if (open) setOtp("");
+    if (open) {
+      setOtp("");
+      setCooldown(RESEND_COOLDOWN);
+    }
   }, [open]);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [cooldown]);
 
   const handleSubmit = () => {
     if (otp.length !== 6) {
@@ -59,6 +97,18 @@ export default function OtpModal({ open, onClose, onSubmit, loading }) {
       return;
     }
     onSubmit(otp);
+  };
+
+  const handleResend = async () => {
+    if (!onResend || resending || cooldown > 0) return;
+    setResending(true);
+    try {
+      await onResend();
+      setOtp("");
+      setCooldown(RESEND_COOLDOWN);
+    } finally {
+      setResending(false);
+    }
   };
 
   if (!open) return null;
@@ -75,8 +125,18 @@ export default function OtpModal({ open, onClose, onSubmit, loading }) {
               onClick={onClose}
               className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 transition"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           )}
@@ -101,11 +161,41 @@ export default function OtpModal({ open, onClose, onSubmit, loading }) {
             </div>
             <p className="text-sm font-semibold text-slate-700">Nhập mã OTP</p>
             <p className="text-xs text-slate-500 mt-1">
-              Mã OTP đã được gửi đến email của bạn
+              {otpEmail ? (
+                <>
+                  Mã OTP đã được gửi về gmail{" "}
+                  <span className="font-semibold text-slate-700">
+                    "{maskEmail(otpEmail)}"
+                  </span>
+                </>
+              ) : (
+                "Mã OTP đã được gửi đến email của bạn"
+              )}
             </p>
           </div>
 
           <OtpInput value={otp} onChange={setOtp} />
+
+          {/* Resend OTP */}
+          <div className="text-center -mt-1">
+            {cooldown > 0 ? (
+              <p className="text-xs text-slate-400">
+                Gửi lại sau{" "}
+                <span className="font-semibold text-slate-600">
+                  {cooldown}s
+                </span>
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resending || loading}
+                className="text-xs text-teal-600 hover:text-teal-800 font-medium underline underline-offset-2 transition disabled:opacity-50"
+              >
+                {resending ? "Đang gửi lại..." : "Gửi lại OTP"}
+              </button>
+            )}
+          </div>
 
           <div className="flex gap-2 pt-1">
             <button
@@ -124,9 +214,24 @@ export default function OtpModal({ open, onClose, onSubmit, loading }) {
             >
               {loading ? (
                 <>
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  <svg
+                    className="w-4 h-4 animate-spin"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
                   </svg>
                   Đang ký...
                 </>
