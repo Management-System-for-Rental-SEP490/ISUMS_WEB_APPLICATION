@@ -74,8 +74,7 @@ export default function StepGeneralInfo({ form, update, errors = {} }) {
     } catch (err) {
       update("isNewAccount")({ target: { value: true } });
       setEmailLookupError(
-        err?.message ||
-          "Không thể kiểm tra email. Vui lòng thử lại hoặc nhập thông tin thủ công.",
+        "Không thể kiểm tra email. Vui lòng thử lại hoặc nhập thông tin thủ công.",
       );
     } finally {
       setCheckingEmail(false);
@@ -187,15 +186,10 @@ export default function StepGeneralInfo({ form, update, errors = {} }) {
 
           {showTenantFields && (
             <>
-              {emailLookupUser ? (
+              {emailLookupUser && (
                 <div className="md:col-span-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
                   Đã tìm thấy thông tin trong hệ thống và tự điền một số trường.
                   Bạn có thể chỉnh sửa lại nếu cần.
-                </div>
-              ) : (
-                <div className="md:col-span-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-                  Thông tin người dùng chưa có trong hệ thống. Vui lòng nhập thủ
-                  công các trường bên dưới.
                 </div>
               )}
 

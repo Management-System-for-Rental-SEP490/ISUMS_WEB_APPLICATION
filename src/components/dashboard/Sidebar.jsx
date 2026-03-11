@@ -50,7 +50,7 @@ export default function Sidebar({
     { id: "dashboard", label: "Bảng Điều Khiển", icon: Home },
     { id: "houses", label: "Bất Động Sản", icon: Building2 },
     { id: "utilities", label: "Tiện Ích", icon: Zap },
-    { id: "tenants", label: "Khách Thuê", icon: Users },
+    { id: "users", label: "Người Dùng", icon: Users },
   ];
 
   const isContractsActive =

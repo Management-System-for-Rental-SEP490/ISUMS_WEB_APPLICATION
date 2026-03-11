@@ -32,6 +32,12 @@ export const CONTRACTS_ENDPOINTS = {
   ADMIN_SIGN: "/econtracts/sign-admin",
 };
 
+// Users endpoints
+export const USERS_ENDPOINTS = {
+  BASE: "/users",
+  BY_ID: (id) => `/users/${id}`,
+};
+
 // Tenants endpoints
 export const TENANTS_ENDPOINTS = {
   BASE: "/tenants",
