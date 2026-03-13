@@ -1,6 +1,6 @@
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { LoadingSpinner } from "../../../../components/shared/Loading";
 import { getUserByEmail } from "../../../../services/authService";
 
@@ -12,6 +12,19 @@ export default function StepGeneralInfo({ form, update, errors = {} }) {
   const [checkingEmail, setCheckingEmail] = useState(false);
   const [emailLookupUser, setEmailLookupUser] = useState(null);
   const [emailLookupError, setEmailLookupError] = useState("");
+  const startDateValue = useMemo(
+    () => (form.startDate ? dayjs(form.startDate, "YYYY-MM-DD") : null),
+    [form.startDate],
+  );
+  const endDateValue = useMemo(
+    () => (form.endDate ? dayjs(form.endDate, "YYYY-MM-DD") : null),
+    [form.endDate],
+  );
+  const dateOfIssueValue = useMemo(
+    () => (form.dateOfIssue ? dayjs(form.dateOfIssue, "YYYY-MM-DD") : null),
+    [form.dateOfIssue],
+  );
+
   const [showTenantFields, setShowTenantFields] = useState(() => {
     const hasTenantInfo =
       !!form?.emailChecked ||
@@ -73,9 +86,13 @@ export default function StepGeneralInfo({ form, update, errors = {} }) {
       }
     } catch (err) {
       update("isNewAccount")({ target: { value: true } });
-      setEmailLookupError(
-        "Không thể kiểm tra email. Vui lòng thử lại hoặc nhập thông tin thủ công.",
-      );
+      if (err?.status === 404) {
+        setEmailLookupError("Người dùng chưa được đăng ký trong hệ thống.");
+      } else {
+        setEmailLookupError(
+          "Không thể kiểm tra email. Vui lòng thử lại hoặc nhập thông tin thủ công.",
+        );
+      }
     } finally {
       setCheckingEmail(false);
       update("emailChecked")({ target: { value: true } });
@@ -100,9 +117,7 @@ export default function StepGeneralInfo({ form, update, errors = {} }) {
             <label className={labelClass}>Ngày bắt đầu *</label>
             <DatePicker
               className={`w-full ${errors.startDate ? "border-red-500" : ""}`}
-              value={
-                form.startDate ? dayjs(form.startDate, "YYYY-MM-DD") : null
-              }
+              value={startDateValue}
               format="DD/MM/YYYY"
               placeholder="Chọn ngày bắt đầu"
               status={errors.startDate ? "error" : ""}
@@ -120,7 +135,7 @@ export default function StepGeneralInfo({ form, update, errors = {} }) {
             <label className={labelClass}>Ngày kết thúc *</label>
             <DatePicker
               className={`w-full ${errors.endDate ? "border-red-500" : ""}`}
-              value={form.endDate ? dayjs(form.endDate, "YYYY-MM-DD") : null}
+              value={endDateValue}
               format="DD/MM/YYYY"
               placeholder="Chọn ngày kết thúc"
               status={errors.endDate ? "error" : ""}
@@ -250,11 +265,7 @@ export default function StepGeneralInfo({ form, update, errors = {} }) {
                   className={`w-full ${inputClass} ${
                     errors.dateOfIssue ? "border-red-500" : ""
                   }`}
-                  value={
-                    form.dateOfIssue
-                      ? dayjs(form.dateOfIssue, "YYYY-MM-DD")
-                      : null
-                  }
+                  value={dateOfIssueValue}
                   format="DD/MM/YYYY"
                   placeholder="Chọn ngày"
                   onChange={(_, dateString) => {

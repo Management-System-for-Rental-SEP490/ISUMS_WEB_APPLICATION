@@ -50,14 +50,16 @@ export default function UsersTable({ users, loading, searchTerm }) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-slate-100 bg-slate-50">
+                <th className="text-center px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide w-12">STT</th>
                 <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Người dùng</th>
                 <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Email</th>
                 <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Số điện thoại</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {users.map((user) => (
+              {users.map((user, idx) => (
                 <tr key={user.id} className="hover:bg-slate-50/60 transition">
+                  <td className="px-4 py-3.5 text-center text-xs font-medium text-slate-400">{idx + 1}</td>
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-3">
                       <Avatar name={user.displayName} />

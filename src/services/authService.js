@@ -8,6 +8,9 @@ export async function getUserByEmail(email) {
     );
     return response.data;
   } catch (error) {
-    throw new Error(getErrorMessage(error));
+    const status = error?.response?.status;
+    const err = new Error(getErrorMessage(error));
+    err.status = status;
+    throw err;
   }
 }

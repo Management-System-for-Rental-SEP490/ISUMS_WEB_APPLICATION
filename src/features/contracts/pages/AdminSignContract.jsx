@@ -64,7 +64,9 @@ export default function AdminSignContract() {
       }
     };
     if (id) fetchData();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [id, navigate]);
 
   // ─── Auto-scroll to signing page ─────────────────────────────────────────────
@@ -106,7 +108,10 @@ export default function AdminSignContract() {
   };
 
   const handleRejectClick = async () => {
-    if (signingSession) { setShowRejectBox(true); return; }
+    if (signingSession) {
+      setShowRejectBox(true);
+      return;
+    }
     setInitiating(true);
     try {
       await ensureSigningSession();
@@ -176,7 +181,9 @@ export default function AdminSignContract() {
       setOtpSent(true);
       setShowOtpModal(true);
     } catch (err) {
-      toast.error(err?.response?.data?.message || err?.message || "Xác nhận ký thất bại.");
+      toast.error(
+        err?.response?.data?.message || err?.message || "Xác nhận ký thất bại.",
+      );
     } finally {
       setConfirming(false);
     }
@@ -190,7 +197,9 @@ export default function AdminSignContract() {
       setOtpEmail(res?.data?.receiveOtpEmail ?? null);
       setShowOtpModal(true);
     } catch (err) {
-      toast.error(err?.response?.data?.message || err?.message || "Gửi lại OTP thất bại.");
+      toast.error(
+        err?.response?.data?.message || err?.message || "Gửi lại OTP thất bại.",
+      );
     } finally {
       setConfirming(false);
     }
@@ -204,21 +213,32 @@ export default function AdminSignContract() {
       setShowOtpModal(false);
       navigate(`/contracts/${id}`);
     } catch (err) {
-      toast.error(err?.response?.data?.message || err?.message || "Ký hợp đồng thất bại.");
+      if (err?.response?.status === 500) {
+        toast.error("OTP không đúng, vui lòng thử lại.");
+      } else {
+        toast.error(
+          err?.response?.data?.message || err?.message || "Ký hợp đồng thất bại.",
+        );
+      }
     } finally {
       setSigning(false);
     }
   };
 
   const handleReject = async () => {
-    if (!rejectReason.trim()) { toast.error("Vui lòng nhập lý do từ chối ký."); return; }
+    if (!rejectReason.trim()) {
+      toast.error("Vui lòng nhập lý do từ chối ký.");
+      return;
+    }
     setRejecting(true);
     try {
       await adminSignEcontract(buildRejectPayload());
       toast.success("Đã từ chối ký hợp đồng.");
       navigate("/contracts");
     } catch (err) {
-      toast.error(err?.response?.data?.message || err?.message || "Từ chối ký thất bại.");
+      toast.error(
+        err?.response?.data?.message || err?.message || "Từ chối ký thất bại.",
+      );
     } finally {
       setRejecting(false);
     }
@@ -229,24 +249,39 @@ export default function AdminSignContract() {
   // ─── Render ───────────────────────────────────────────────────────────────────
   return (
     <div className="h-screen bg-slate-100 font-sans flex flex-col overflow-hidden">
-
       {/* Header */}
       <header className="bg-white border-b border-slate-200 shadow-sm z-30 flex-shrink-0">
         <div className="h-14 px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center flex-shrink-0">
-              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              <svg
+                className="w-4 h-4 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                />
               </svg>
             </div>
             <div>
-              <div className="text-sm font-extrabold text-slate-800 uppercase tracking-wide">ISUMS</div>
-              <div className="text-[10px] text-slate-400 uppercase tracking-widest">Ký hợp đồng điện tử</div>
+              <div className="text-sm font-extrabold text-slate-800 uppercase tracking-wide">
+                ISUMS
+              </div>
+              <div className="text-[10px] text-slate-400 uppercase tracking-widest">
+                Ký hợp đồng điện tử
+              </div>
             </div>
           </div>
           {contract && (
             <div className="text-right">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wide font-medium">Mã hợp đồng</div>
+              <div className="text-[10px] text-slate-400 uppercase tracking-wide font-medium">
+                Mã hợp đồng
+              </div>
               <div className="text-sm font-mono font-bold text-slate-700">
                 #{contract.contractNumber ?? contract.name ?? id}
               </div>
@@ -257,7 +292,13 @@ export default function AdminSignContract() {
 
       <LoadingOverlay
         open={confirming || signing || rejecting}
-        label={confirming ? "Đang gửi yêu cầu ký..." : rejecting ? "Đang gửi từ chối ký..." : "Đang ký hợp đồng..."}
+        label={
+          confirming
+            ? "Đang gửi yêu cầu ký..."
+            : rejecting
+              ? "Đang gửi từ chối ký..."
+              : "Đang ký hợp đồng..."
+        }
       />
 
       {/* Loading */}
@@ -274,8 +315,18 @@ export default function AdminSignContract() {
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="bg-white rounded-xl border border-red-200 px-6 py-4 flex items-center gap-3 shadow-sm">
             <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center text-red-600 shrink-0">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
               </svg>
             </div>
             <p className="text-sm font-semibold text-red-600">{error}</p>
@@ -286,7 +337,6 @@ export default function AdminSignContract() {
       {/* 3-column layout */}
       {!loading && contract && (
         <div className="flex flex-1 overflow-hidden">
-
           <SigningProgressSidebar
             signatureData={signatureData}
             signingSession={signingSession}
@@ -294,7 +344,10 @@ export default function AdminSignContract() {
             showOtpModal={showOtpModal}
             otpSent={otpSent}
             confirming={confirming}
-            onResetPosition={() => { setChosenPosition(null); setOtpSent(false); }}
+            onResetPosition={() => {
+              setChosenPosition(null);
+              setOtpSent(false);
+            }}
             onReopenOtp={() => setShowOtpModal(true)}
           />
 
@@ -302,8 +355,18 @@ export default function AdminSignContract() {
           <main className="flex-1 overflow-auto bg-slate-100 p-5">
             {showDragBox && (
               <div className="mb-3 flex items-center justify-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-medium text-amber-700">
-                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
+                <svg
+                  className="w-3.5 h-3.5 flex-shrink-0"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"
+                  />
                 </svg>
                 Kéo ô chữ ký vào vị trí mong muốn trên hợp đồng
               </div>
@@ -319,9 +382,13 @@ export default function AdminSignContract() {
                   style={{ minHeight: "1200px" }}
                   onLoad={(e) => {
                     try {
-                      const h = e.target.contentWindow.document.documentElement.scrollHeight;
+                      const h =
+                        e.target.contentWindow.document.documentElement
+                          .scrollHeight;
                       if (h > 0) e.target.style.height = h + 200 + "px";
-                    } catch { /* ignore cross-origin */ }
+                    } catch {
+                      /* ignore cross-origin */
+                    }
                   }}
                 />
                 {showDragBox && (
@@ -351,7 +418,10 @@ export default function AdminSignContract() {
             onRejectClick={handleRejectClick}
             onRejectReasonChange={setRejectReason}
             onRejectConfirm={handleReject}
-            onRejectCancel={() => { setShowRejectBox(false); setRejectReason(""); }}
+            onRejectCancel={() => {
+              setShowRejectBox(false);
+              setRejectReason("");
+            }}
             onExit={() => navigate(-1)}
             onOpenSignatureModal={() => setShowSigModal(true)}
             onReopenOtp={() => setShowOtpModal(true)}

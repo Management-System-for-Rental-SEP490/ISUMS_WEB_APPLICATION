@@ -2,10 +2,10 @@ import { Bath, Bed, Heart, MapPin, Maximize2, Pencil } from "lucide-react";
 import { AREA_TYPE_CONFIG } from "./HouseDetailModal";
 
 const STATUS_CONFIG = {
-  AVAILABLE:   { label: "CÒN TRỐNG", bg: "bg-emerald-500" },
-  RENTED:      { label: "ĐÃ THUÊ",   bg: "bg-orange-500" },
-  MAINTENANCE: { label: "BẢO TRÌ",   bg: "bg-slate-500"  },
-  default:     { label: "—",         bg: "bg-gray-400"   },
+  AVAILABLE: { label: "CHƯA CÓ KHÁCH THUÊ", bg: "bg-emerald-500" },
+  RENTED: { label: "ĐÃ THUÊ", bg: "bg-orange-500" },
+  MAINTENANCE: { label: "BẢO TRÌ", bg: "bg-slate-500" },
+  default: { label: "—", bg: "bg-gray-400" },
 };
 
 function formatPrice(price) {
@@ -19,17 +19,19 @@ function formatPrice(price) {
 }
 
 export default function HouseCard({ house, onView, onEdit }) {
-  const cfg      = STATUS_CONFIG[house?.status] ?? STATUS_CONFIG.default;
-  const name     = house?.name ?? house?.title ?? "Chưa đặt tên";
-  const address  = house?.address ?? "";
+  const cfg = STATUS_CONFIG[house?.status] ?? STATUS_CONFIG.default;
+  const name = house?.name ?? house?.title ?? "Chưa đặt tên";
+  const address = house?.address ?? "";
   const priceStr = formatPrice(house?.rentPrice ?? house?.rent);
-  const bedrooms  = house?.bedrooms  ?? house?.bedroom  ?? null;
+  const bedrooms = house?.bedrooms ?? house?.bedroom ?? null;
   const bathrooms = house?.bathrooms ?? house?.bathroom ?? null;
-  const area      = house?.area      ?? house?.acreage  ?? null;
-  const hasSpecs  = bedrooms != null || bathrooms != null || area != null;
+  const area = house?.area ?? house?.acreage ?? null;
+  const hasSpecs = bedrooms != null || bathrooms != null || area != null;
 
   // functional areas chips
-  const areas = Array.isArray(house?.functionalAreas) ? house.functionalAreas : [];
+  const areas = Array.isArray(house?.functionalAreas)
+    ? house.functionalAreas
+    : [];
   const typeCounts = areas.reduce((acc, a) => {
     const k = a.areaType ?? "default";
     acc[k] = (acc[k] ?? 0) + 1;
@@ -37,7 +39,7 @@ export default function HouseCard({ house, onView, onEdit }) {
   }, {});
   const typeEntries = Object.entries(typeCounts);
   const visibleChips = typeEntries.slice(0, 3);
-  const extraCount   = typeEntries.length - visibleChips.length;
+  const extraCount = typeEntries.length - visibleChips.length;
 
   return (
     <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-200 border border-slate-100 group flex flex-col">
@@ -58,14 +60,24 @@ export default function HouseCard({ house, onView, onEdit }) {
               stroke="currentColor"
               strokeWidth={1}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 21V12h6v9" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 21V12h6v9"
+              />
             </svg>
           </div>
         )}
 
         {/* Status badge */}
-        <span className={`absolute top-3 left-3 px-3 py-1 text-[11px] font-bold rounded-full text-white ${cfg.bg}`}>
+        <span
+          className={`absolute top-3 left-3 px-3 py-1 text-[11px] font-bold rounded-full text-white ${cfg.bg}`}
+        >
           {cfg.label}
         </span>
 
@@ -87,7 +99,9 @@ export default function HouseCard({ house, onView, onEdit }) {
           </h3>
           {priceStr && (
             <p className="shrink-0 text-right whitespace-nowrap">
-              <span className="text-base font-bold text-teal-600">{priceStr}</span>
+              <span className="text-base font-bold text-teal-600">
+                {priceStr}
+              </span>
               <span className="text-xs text-slate-400">/th</span>
             </p>
           )}
@@ -107,13 +121,17 @@ export default function HouseCard({ house, onView, onEdit }) {
             {bedrooms != null && (
               <div className="flex items-center gap-1.5">
                 <Bed className="w-3.5 h-3.5 text-slate-400" />
-                <span className="font-semibold">{String(bedrooms).padStart(2, "0")}</span>
+                <span className="font-semibold">
+                  {String(bedrooms).padStart(2, "0")}
+                </span>
               </div>
             )}
             {bathrooms != null && (
               <div className="flex items-center gap-1.5">
                 <Bath className="w-3.5 h-3.5 text-slate-400" />
-                <span className="font-semibold">{String(bathrooms).padStart(2, "0")}</span>
+                <span className="font-semibold">
+                  {String(bathrooms).padStart(2, "0")}
+                </span>
               </div>
             )}
             {area != null && (
@@ -137,7 +155,8 @@ export default function HouseCard({ house, onView, onEdit }) {
                   className={`inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full border ${cfg.bg} ${cfg.text} ${cfg.border}`}
                 >
                   <Icon className="w-3 h-3" />
-                  {count > 1 ? `${count} ` : ""}{cfg.label}
+                  {count > 1 ? `${count} ` : ""}
+                  {cfg.label}
                 </span>
               );
             })}
@@ -150,7 +169,9 @@ export default function HouseCard({ house, onView, onEdit }) {
         )}
 
         {/* Actions */}
-        <div className={`flex items-center gap-2 mt-auto pt-3 ${visibleChips.length === 0 ? "border-t border-slate-100" : ""}`}>
+        <div
+          className={`flex items-center gap-2 mt-auto pt-3 ${visibleChips.length === 0 ? "border-t border-slate-100" : ""}`}
+        >
           <button
             type="button"
             onClick={() => onView?.(house)}
