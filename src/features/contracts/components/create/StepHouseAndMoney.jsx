@@ -1,6 +1,6 @@
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
-import React from "react";
+import React, { useMemo } from "react";
 
 const inputClass =
   "w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500";
@@ -12,6 +12,15 @@ export default function StepHouseAndMoney({
   houses,
   errors = {},
 }) {
+  const depositDateValue = useMemo(
+    () => (form.depositDate ? dayjs(form.depositDate, "YYYY-MM-DD") : null),
+    [form.depositDate],
+  );
+  const handoverDateValue = useMemo(
+    () => (form.handoverDate ? dayjs(form.handoverDate, "YYYY-MM-DD") : null),
+    [form.handoverDate],
+  );
+
   return (
     <div className="space-y-6">
       {/* Nhà cho thuê */}
@@ -19,7 +28,7 @@ export default function StepHouseAndMoney({
         <h3 className="text-lg font-semibold mb-4">Nhà cho thuê</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
-            <label className={labelClass}>Mã nhà (houseId) *</label>
+            <label className={labelClass}>Mã nhà</label>
             {Array.isArray(houses) && houses.length > 0 ? (
               <select
                 value={form.houseId ?? ""}
@@ -113,9 +122,7 @@ export default function StepHouseAndMoney({
 
             <DatePicker
               className={`w-full ${errors.depositDate ? "border-red-500" : ""}`}
-              value={
-                form.depositDate ? dayjs(form.depositDate, "YYYY-MM-DD") : null
-              }
+              value={depositDateValue}
               format="DD/MM/YYYY"
               placeholder="Chọn ngày đặt cọc"
               status={errors.depositDate ? "error" : ""}
@@ -136,11 +143,7 @@ export default function StepHouseAndMoney({
 
             <DatePicker
               className={`w-full ${errors.handoverDate ? "border-red-500" : ""}`}
-              value={
-                form.handoverDate
-                  ? dayjs(form.handoverDate, "YYYY-MM-DD")
-                  : null
-              }
+              value={handoverDateValue}
               format="DD/MM/YYYY"
               placeholder="Chọn ngày bàn giao"
               status={errors.handoverDate ? "error" : ""}

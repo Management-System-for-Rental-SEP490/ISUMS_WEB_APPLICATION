@@ -3,6 +3,7 @@ import { useAuthStore } from "../../features/auth/store/auth.store";
 import {
   Bell,
   Building2,
+  CalendarDays,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -16,6 +17,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
+import logo from "../../assets/logo.jpg";
 
 export default function Sidebar({
   isOpen,
@@ -25,10 +27,10 @@ export default function Sidebar({
   setActiveMenu,
 }) {
   const [contractsOpen, setContractsOpen] = useState(
-    activeMenu === "contracts" || activeMenu === "contracts-sign"
+    activeMenu === "contracts" || activeMenu === "contracts-sign",
   );
-  const roles      = useAuthStore((s) => s.roles ?? []);
-  const isAdmin    = roles.includes("ADMIN");
+  const roles = useAuthStore((s) => s.roles ?? []);
+  const isAdmin = roles.includes("ADMIN");
   const isLandlord = roles.includes("LANDLORD");
   const canSeePendingSign = isAdmin || isLandlord;
 
@@ -47,20 +49,25 @@ export default function Sidebar({
   };
 
   const topMenuItems = [
-    { id: "dashboard", label: "Bảng Điều Khiển", icon: Home },
-    { id: "houses", label: "Bất Động Sản", icon: Building2 },
-    { id: "utilities", label: "Tiện Ích", icon: Zap },
-    { id: "users", label: "Người Dùng", icon: Users },
+    { id: "dashboard",    label: "Bảng Điều Khiển",  icon: Home },
+    { id: "houses",       label: "Bất Động Sản",      icon: Building2 },
+    { id: "utilities",    label: "Tiện Ích",           icon: Zap },
+    { id: "users",        label: "Người Dùng",         icon: Users },
+    { id: "maintenance",  label: "Lịch Sửa Chữa",     icon: CalendarDays },
   ];
 
   const isContractsActive =
     activeMenu === "contracts" || activeMenu === "contracts-sign";
 
+  const activeItemCls = "bg-teal-500 text-white shadow-sm shadow-teal-200";
+  const inactiveItemCls =
+    "text-slate-600 hover:bg-slate-100 hover:text-slate-900";
+
   return (
     <aside
       className={[
-        "bg-slate-900 text-white fixed left-0 inset-y-0 z-40", // ✅ dính sát top/bottom
-        "lg:sticky lg:top-0 lg:h-screen", // desktop sticky + fixed height
+        "bg-white border-r border-slate-200 text-slate-800 fixed left-0 inset-y-0 z-40",
+        "lg:sticky lg:top-0 lg:h-screen",
         "transition-all duration-300 ease-in-out",
         isOpen ? "translate-x-0 w-64" : "-translate-x-full w-64",
         "lg:translate-x-0",
@@ -69,10 +76,10 @@ export default function Sidebar({
       aria-label="Sidebar"
     >
       <div className="h-full flex flex-col overflow-hidden">
-        {/* Header */}
+        {/* ── Header ─────────────────────────────────────────── */}
         <div
           className={[
-            "p-4 border-b border-slate-800",
+            "px-4 py-4 border-b border-slate-100",
             !isOpen ? "lg:px-2" : "",
           ].join(" ")}
         >
@@ -86,19 +93,25 @@ export default function Sidebar({
           >
             <div
               className={[
-                "flex items-center gap-3",
+                "flex items-center gap-2.5 min-w-0",
                 !isOpen ? "lg:flex-col" : "",
               ].join(" ")}
             >
-              <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-emerald-500/20">
-                <Building2 className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 shadow-md ring-2 ring-teal-200">
+                <img
+                  src={logo}
+                  alt="ISUMS Logo"
+                  className="w-full h-full object-cover"
+                />
               </div>
               {isOpen && (
-                <div>
-                  <h1 className="font-bold text-base tracking-wide">
-                    SmartUtil
+                <div className="min-w-0">
+                  <h1 className="font-extrabold text-base text-teal-700 leading-tight tracking-wide truncate">
+                    ISUMS
                   </h1>
-                  <p className="text-xs text-slate-400">Quản lý tiện ích IoT</p>
+                  <p className="text-[10px] font-medium text-slate-400 leading-snug whitespace-normal">
+                    Hệ thống nhà cho thuê<br />thông minh
+                  </p>
                 </div>
               )}
             </div>
@@ -106,28 +119,28 @@ export default function Sidebar({
             <button
               type="button"
               onClick={onToggle}
-              className="p-2 rounded-lg hover:bg-slate-800 transition flex-shrink-0 flex items-center justify-center"
+              className="p-1.5 rounded-lg hover:bg-slate-100 transition flex-shrink-0 flex items-center justify-center text-slate-400 hover:text-slate-600"
               aria-label={isOpen ? "Thu nhỏ menu" : "Mở rộng menu"}
               title={isOpen ? "Thu nhỏ menu" : "Mở rộng menu"}
             >
               <span className="lg:hidden">
-                <X className="w-5 h-5 text-slate-200" />
+                <X className="w-4 h-4" />
               </span>
               <span className="hidden lg:block">
                 {isOpen ? (
-                  <ChevronLeft className="w-5 h-5 text-slate-200" />
+                  <ChevronLeft className="w-4 h-4" />
                 ) : (
-                  <ChevronRight className="w-5 h-5 text-slate-200" />
+                  <ChevronRight className="w-4 h-4" />
                 )}
               </span>
             </button>
           </div>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 py-4 overflow-y-auto">
+        {/* ── Nav ────────────────────────────────────────────── */}
+        <nav className="flex-1 py-3 overflow-y-auto px-3 space-y-0.5">
           {isOpen && (
-            <p className="px-6 text-xs font-semibold text-slate-500 uppercase mb-3">
+            <p className="px-2 text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2">
               Menu Chính
             </p>
           )}
@@ -138,15 +151,13 @@ export default function Sidebar({
               href="#"
               onClick={(e) => handleNavClick(e, item.id)}
               className={[
-                "flex items-center gap-3 py-3 transition rounded-lg",
-                isOpen ? "px-6" : "lg:px-0 lg:justify-center px-6",
-                activeMenu === item.id
-                  ? "bg-slate-800/90 text-white border border-slate-700"
-                  : "text-slate-300 hover:bg-slate-800/70",
+                "flex items-center gap-3 py-2.5 px-3 transition rounded-xl",
+                !isOpen && "lg:justify-center",
+                activeMenu === item.id ? activeItemCls : inactiveItemCls,
               ].join(" ")}
               title={!isOpen ? item.label : undefined}
             >
-              <item.icon className="w-5 h-5 flex-shrink-0" />
+              <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
               {isOpen && (
                 <span className="text-sm font-medium">{item.label}</span>
               )}
@@ -158,21 +169,20 @@ export default function Sidebar({
             href="#"
             onClick={handleContractsToggle}
             className={[
-              "flex items-center gap-3 py-3 transition rounded-lg",
-              isOpen ? "px-6" : "lg:px-0 lg:justify-center px-6",
-              isContractsActive
-                ? "bg-slate-800/90 text-white border border-slate-700"
-                : "text-slate-300 hover:bg-slate-800/70",
+              "flex items-center gap-3 py-2.5 px-3 transition rounded-xl",
+              !isOpen && "lg:justify-center",
+              isContractsActive ? activeItemCls : inactiveItemCls,
             ].join(" ")}
             title={!isOpen ? "Hợp Đồng" : undefined}
           >
-            <FileText className="w-5 h-5 flex-shrink-0" />
+            <FileText className="w-[18px] h-[18px] flex-shrink-0" />
             {isOpen && (
               <>
                 <span className="text-sm font-medium flex-1">Hợp Đồng</span>
                 <ChevronDown
                   className={[
                     "w-4 h-4 transition-transform duration-200",
+                    isContractsActive ? "text-white/70" : "text-slate-400",
                     contractsOpen ? "rotate-180" : "",
                   ].join(" ")}
                 />
@@ -181,33 +191,33 @@ export default function Sidebar({
           </a>
 
           {isOpen && contractsOpen && (
-            <div className="ml-4 border-l border-slate-700 pl-2">
+            <div className="ml-4 border-l-2 border-teal-100 pl-2 space-y-0.5">
               <a
                 href="#"
                 onClick={(e) => handleNavClick(e, "contracts")}
                 className={[
-                  "flex items-center gap-3 py-2.5 px-4 transition rounded-lg",
+                  "flex items-center gap-3 py-2 px-3 transition rounded-xl text-sm",
                   activeMenu === "contracts"
-                    ? "bg-slate-800/90 text-white border border-slate-700"
-                    : "text-slate-400 hover:bg-slate-800/70 hover:text-white",
+                    ? "bg-teal-50 text-teal-700 font-semibold"
+                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-800",
                 ].join(" ")}
               >
                 <FileText className="w-4 h-4 flex-shrink-0" />
-                <span className="text-sm">Quản lý hợp đồng</span>
+                <span>Quản lý hợp đồng</span>
               </a>
               {canSeePendingSign && (
                 <a
                   href="#"
                   onClick={(e) => handleNavClick(e, "contracts-sign")}
                   className={[
-                    "flex items-center gap-3 py-2.5 px-4 transition rounded-lg",
+                    "flex items-center gap-3 py-2 px-3 transition rounded-xl text-sm",
                     activeMenu === "contracts-sign"
-                      ? "bg-slate-800/90 text-white border border-slate-700"
-                      : "text-slate-400 hover:bg-slate-800/70 hover:text-white",
+                      ? "bg-teal-50 text-teal-700 font-semibold"
+                      : "text-slate-500 hover:bg-slate-100 hover:text-slate-800",
                   ].join(" ")}
                 >
                   <PenLine className="w-4 h-4 flex-shrink-0" />
-                  <span className="text-sm">Hợp đồng chờ ký</span>
+                  <span>Hợp đồng cần xử lý</span>
                 </a>
               )}
             </div>
@@ -218,44 +228,43 @@ export default function Sidebar({
             href="#"
             onClick={(e) => handleNavClick(e, "reports")}
             className={[
-              "flex items-center gap-3 py-3 transition rounded-lg",
-              isOpen ? "px-6" : "lg:px-0 lg:justify-center px-6",
-              activeMenu === "reports"
-                ? "bg-slate-800/90 text-white border border-slate-700"
-                : "text-slate-300 hover:bg-slate-800/70",
+              "flex items-center gap-3 py-2.5 px-3 transition rounded-xl",
+              !isOpen && "lg:justify-center",
+              activeMenu === "reports" ? activeItemCls : inactiveItemCls,
             ].join(" ")}
             title={!isOpen ? "Báo Cáo" : undefined}
           >
-            <Paperclip className="w-5 h-5 flex-shrink-0" />
+            <Paperclip className="w-[18px] h-[18px] flex-shrink-0" />
             {isOpen && <span className="text-sm font-medium">Báo Cáo</span>}
           </a>
 
-          {isOpen && (
-            <p className="px-6 text-xs font-semibold text-slate-500 uppercase mt-6 mb-3">
+          {/* System section */}
+          {isOpen ? (
+            <p className="px-2 text-[10px] font-semibold text-slate-400 uppercase tracking-widest mt-5 mb-2">
               Hệ Thống
             </p>
+          ) : (
+            <div className="my-3 border-t border-slate-100 mx-1" />
           )}
 
           <a
             href="#"
             onClick={(e) => handleNavClick(e, "notifications")}
             className={[
-              "flex items-center gap-3 py-3 relative rounded-lg",
-              isOpen ? "px-6" : "lg:px-0 lg:justify-center px-6",
-              activeMenu === "notifications"
-                ? "bg-slate-800/90 text-white border border-slate-700"
-                : "text-slate-300 hover:bg-slate-800/70",
+              "flex items-center gap-3 py-2.5 px-3 relative rounded-xl transition",
+              !isOpen && "lg:justify-center",
+              activeMenu === "notifications" ? activeItemCls : inactiveItemCls,
             ].join(" ")}
             title={!isOpen ? "Thông báo" : undefined}
           >
-            <Bell className="w-5 h-5 flex-shrink-0" />
-            {isOpen && <span className="text-sm">Thông báo</span>}
+            <Bell className="w-[18px] h-[18px] flex-shrink-0" />
+            {isOpen && <span className="text-sm font-medium">Thông báo</span>}
             {isOpen ? (
-              <span className="absolute right-4 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold">
+              <span className="absolute right-3 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold">
                 4
               </span>
             ) : (
-              <span className="absolute lg:right-2 lg:top-3 right-4 top-3 w-2 h-2 bg-red-500 rounded-full" />
+              <span className="absolute lg:right-2 lg:top-2 right-4 top-3 w-2 h-2 bg-red-500 rounded-full" />
             )}
           </a>
 
@@ -263,23 +272,21 @@ export default function Sidebar({
             href="#"
             onClick={(e) => handleNavClick(e, "settings")}
             className={[
-              "flex items-center gap-3 py-3 rounded-lg",
-              isOpen ? "px-6" : "lg:px-0 lg:justify-center px-6",
-              activeMenu === "settings"
-                ? "bg-slate-800/90 text-white border border-slate-700"
-                : "text-slate-300 hover:bg-slate-800/70",
+              "flex items-center gap-3 py-2.5 px-3 rounded-xl transition",
+              !isOpen && "lg:justify-center",
+              activeMenu === "settings" ? activeItemCls : inactiveItemCls,
             ].join(" ")}
             title={!isOpen ? "Cài đặt" : undefined}
           >
-            <Settings className="w-5 h-5 flex-shrink-0" />
-            {isOpen && <span className="text-sm">Cài Đặt</span>}
+            <Settings className="w-[18px] h-[18px] flex-shrink-0" />
+            {isOpen && <span className="text-sm font-medium">Cài Đặt</span>}
           </a>
         </nav>
 
-        {/* Footer */}
+        {/* ── Footer ─────────────────────────────────────────── */}
         <div
           className={[
-            "p-4 border-t border-slate-800",
+            "px-3 py-3 border-t border-slate-100",
             !isOpen ? "lg:px-2" : "",
           ].join(" ")}
         >
@@ -287,13 +294,13 @@ export default function Sidebar({
             type="button"
             onClick={onLogout}
             className={[
-              "flex items-center gap-3 py-3 text-slate-300 hover:bg-slate-800/70 rounded-lg w-full transition",
-              isOpen ? "px-4" : "lg:px-0 lg:justify-center px-4",
+              "flex items-center gap-3 py-2.5 px-3 text-slate-500 hover:bg-red-50 hover:text-red-600 rounded-xl w-full transition",
+              !isOpen && "lg:justify-center",
             ].join(" ")}
             title={!isOpen ? "Đăng Xuất" : undefined}
           >
-            <LogOut className="w-5 h-5 flex-shrink-0" />
-            {isOpen && <span className="text-sm">Đăng Xuất</span>}
+            <LogOut className="w-[18px] h-[18px] flex-shrink-0" />
+            {isOpen && <span className="text-sm font-medium">Đăng Xuất</span>}
           </button>
         </div>
       </div>

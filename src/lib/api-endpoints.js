@@ -71,3 +71,13 @@ export const NOTIFICATIONS_ENDPOINTS = {
   MARK_READ: (id) => `/notifications/${id}/read`,
   MARK_ALL_READ: "/notifications/read-all",
 };
+
+// Maintenance endpoints
+export const MAINTENANCE_ENDPOINTS = {
+  SLOTS:      "/maintenance/slots",
+  SLOT_BY_ID: (id) => `/maintenance/slots/${id}`,
+  SLOT_JOBS:  (id) => `/maintenance/slots/${id}/jobs`,
+  JOB_BY_ID:  (id) => `/maintenance/jobs/${id}`,
+  BY_WEEK:    "/maintenance/slots/week",
+  BY_MONTH:   "/maintenance/slots/month",
+};

@@ -52,6 +52,9 @@ export default function ContractsTable({
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                STT
+              </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Số hợp đồng
               </th>
@@ -80,9 +83,10 @@ export default function ContractsTable({
           </thead>
 
           <tbody className="bg-white divide-y divide-gray-200">
-            {items.map((contract) => {
+            {items.map((contract, idx) => {
               return (
                 <tr key={contract.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-4 whitespace-nowrap text-center text-xs font-medium text-gray-400">{idx + 1}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4 text-gray-400" />

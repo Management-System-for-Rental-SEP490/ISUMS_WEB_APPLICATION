@@ -1,0 +1,111 @@
+/**
+ * Maintenance API Module
+ * Handles all API calls related to maintenance scheduling.
+ */
+
+import api from "../../../lib/axios";
+import { MAINTENANCE_ENDPOINTS } from "../../../lib/api-endpoints";
+import { extractResponseData, getErrorMessage } from "../../../lib/api-helpers";
+
+/**
+ * Get all slots within a date range (used by week view).
+ * @param {string} startDate - "YYYY-MM-DD"
+ * @param {string} endDate   - "YYYY-MM-DD"
+ * @returns {Promise<Array>} Raw slot list
+ */
+export async function getSlotsByWeek(startDate, endDate) {
+  try {
+    const response = await api.get(MAINTENANCE_ENDPOINTS.BY_WEEK, {
+      params: { startDate, endDate },
+    });
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Get all slots within a month (used by month view).
+ * @param {number} year  - e.g. 2024
+ * @param {number} month - 1-indexed (1=January … 12=December)
+ * @returns {Promise<Array>} Raw slot list
+ */
+export async function getSlotsByMonth(year, month) {
+  try {
+    const response = await api.get(MAINTENANCE_ENDPOINTS.BY_MONTH, {
+      params: { year, month },
+    });
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Get a single slot by ID (including its jobs).
+ * @param {string} id
+ * @returns {Promise<Object>} Raw slot with jobs
+ */
+export async function getSlotById(id) {
+  try {
+    const response = await api.get(MAINTENANCE_ENDPOINTS.SLOT_BY_ID(id));
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Create a new time slot.
+ * @param {{ scheduledDate: string, scheduledTime: string, propertyId?: string }} payload
+ * @returns {Promise<Object>} Created slot
+ */
+export async function createSlot(payload) {
+  try {
+    const response = await api.post(MAINTENANCE_ENDPOINTS.SLOTS, payload);
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Delete a time slot.
+ * @param {string} id
+ */
+export async function deleteSlot(id) {
+  try {
+    const response = await api.delete(MAINTENANCE_ENDPOINTS.SLOT_BY_ID(id));
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Update a maintenance job (title, assignee, status, note, etc.).
+ * @param {string} id
+ * @param {Object} payload
+ * @returns {Promise<Object>} Updated job
+ */
+export async function updateJob(id, payload) {
+  try {
+    const response = await api.put(MAINTENANCE_ENDPOINTS.JOB_BY_ID(id), payload);
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Delete a maintenance job.
+ * @param {string} id
+ */
+export async function deleteJob(id) {
+  try {
+    const response = await api.delete(MAINTENANCE_ENDPOINTS.JOB_BY_ID(id));
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}

@@ -9,6 +9,7 @@ import Utilities from "./Utilities";
 import UsersPage from "../../features/tenants/pages/UsersPage";
 import ContractsPage from "../../features/contracts/pages/ContractsPage";
 import ContractsPendingSignPage from "../../features/contracts/pages/ContractsPendingSignPage";
+import MaintenanceSchedulePage from "../../features/maintenance/pages/MaintenanceSchedulePage";
 import Reports from "../../features/reports/pages/Reports";
 import Notifications from "../../features/notifications/pages/Notifications";
 import Settings from "../../features/settings/pages/Settings";
@@ -62,6 +63,7 @@ export default function Dashboard() {
     users: "Người Dùng",
     contracts: "Hợp đồng",
     "contracts-sign": "Hợp Đồng Cần Ký",
+    maintenance: "Lịch Sửa Chữa",
     reports: "Báo cáo",
     notifications: "Thông báo",
     settings: "Cài đặt",
@@ -167,6 +169,16 @@ export default function Dashboard() {
         <header className="bg-white border-b border-gray-200 sticky top-0 z-30 px-6 py-3.5 flex items-center gap-4 justify-between">
           {/* LEFT: Toggle + Breadcrumb */}
           <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
+            {/* Hamburger — hiện trên màn hình nhỏ (< lg) */}
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen((v) => !v)}
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition text-gray-500 hover:text-gray-700"
+              aria-label="Mở menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
             {/* Divider */}
             <div className="hidden md:block h-5 w-px bg-gray-200" />
 
@@ -198,9 +210,6 @@ export default function Dashboard() {
               placeholder="Tìm kiếm hợp đồng, khách thuê, bất động sản..."
               className="bg-transparent outline-none text-sm w-full text-gray-700 placeholder-gray-400"
             />
-            <kbd className="hidden lg:flex items-center gap-0.5 ml-2 px-1.5 py-0.5 text-xs text-gray-400 border border-gray-200 rounded font-mono flex-shrink-0">
-              ⌘K
-            </kbd>
           </div>
 
           {/* RIGHT: Actions + User */}
@@ -432,6 +441,7 @@ export default function Dashboard() {
             <ContractsPage onNavigateMenu={setActiveMenu} />
           )}
           {activeMenu === "contracts-sign" && <ContractsPendingSignPage />}
+          {activeMenu === "maintenance" && <MaintenanceSchedulePage />}
           {activeMenu === "reports" && <Reports />}
           {activeMenu === "notifications" && <Notifications />}
           {activeMenu === "settings" && <Settings />}
