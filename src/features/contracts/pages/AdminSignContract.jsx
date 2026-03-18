@@ -102,8 +102,8 @@ export default function AdminSignContract() {
     try {
       await ensureSigningSession();
       setShowSigModal(true);
-    } catch {
-      toast.error("Bạn yêu cầu quá nhiều lần - vui lòng thử lại sau.");
+    } catch (err) {
+      toast.error(err?.message ?? "Không thể khởi tạo phiên ký. Vui lòng thử lại.");
     } finally {
       setInitiating(false);
     }
@@ -146,7 +146,7 @@ export default function AdminSignContract() {
         return raw.startsWith("data:") ? raw : `data:image/png;base64,${raw}`;
       })(),
       signingPage: pos.page,
-      signingPosition: `${llx - 20},${lly + 252},${urx - 20},${ury + 252}`,
+      signingPosition: `${llx - 20},${lly + 260},${urx - 20},${ury + 260}`,
       reason: "Admin ký hợp đồng",
       reject: false,
       confirmTermsConditions: true,
@@ -430,7 +430,7 @@ export default function AdminSignContract() {
               setShowRejectBox(false);
               setRejectReason("");
             }}
-            onExit={() => navigate(-1)}
+            onExit={() => navigate("/dashboard", { state: { menu: "contracts-sign" }, replace: true })}
             onOpenSignatureModal={() => setShowSigModal(true)}
             onReopenOtp={() => setShowOtpModal(true)}
             onResendOtp={handleResendOtp}
