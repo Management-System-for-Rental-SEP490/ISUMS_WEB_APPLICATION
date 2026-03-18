@@ -5,8 +5,10 @@
  */
 export function mapContractFromApi(item) {
   if (!item) return null;
-  const status = (item.status ?? "").toString().toLowerCase();
+  const status = (item.status ?? "").toString().toUpperCase();
   return {
+    ...item,        // raw fields trước
+    // override bằng giá trị đã chuẩn hóa
     id: item.id,
     contractNumber: item.name ?? item.contractNumber ?? item.id,
     tenant: extractTenantFromName(item.name) ?? item.name ?? "—",
@@ -16,12 +18,11 @@ export function mapContractFromApi(item) {
     endDate: item.endDate ?? item.endAt ?? null,
     rent: item.rentAmount ?? item.rent ?? 0,
     deposit: item.depositAmount ?? item.deposit ?? 0,
-    status,
+    status,         // luôn UPPERCASE, không bị ghi đè
     paymentType: item.paymentType ?? "monthly",
     autoRenew: item.autoRenew ?? false,
     html: item.html,
     createdAt: item.createdAt,
-    ...item,
   };
 }
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useAuthStore } from "../../auth/store/auth.store";
 import { toast } from "react-toastify";
 import {
   LoadingOverlay,
@@ -41,6 +42,7 @@ export default function AdminSignContract() {
   const [rejecting, setRejecting] = useState(false);
 
   const iframeWrapperRef = useRef(null);
+  const userName = useAuthStore((s) => s.profile?.name ?? "");
 
   // ─── Load contract ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -144,7 +146,7 @@ export default function AdminSignContract() {
         return raw.startsWith("data:") ? raw : `data:image/png;base64,${raw}`;
       })(),
       signingPage: pos.page,
-      signingPosition: `${llx - 12},${lly + 265},${urx - 12},${ury + 265}`,
+      signingPosition: `${llx - 20},${lly + 252},${urx - 20},${ury + 252}`,
       reason: "Admin ký hợp đồng",
       reject: false,
       confirmTermsConditions: true,
@@ -401,6 +403,7 @@ export default function AdminSignContract() {
                     onPositionSet={handlePositionSet}
                     signingPage={signingSession?.signingPage ?? 1}
                     signatureImage={signatureData.signatureImage}
+                    userName={userName}
                     disabled={false}
                   />
                 )}
@@ -411,6 +414,7 @@ export default function AdminSignContract() {
           <SigningActionsSidebar
             initiating={initiating}
             error={error}
+            userName={userName}
             showRejectBox={showRejectBox}
             rejectReason={rejectReason}
             rejecting={rejecting}
