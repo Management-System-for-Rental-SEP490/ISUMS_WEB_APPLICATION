@@ -144,7 +144,7 @@ export default function AdminSignContract() {
         return raw.startsWith("data:") ? raw : `data:image/png;base64,${raw}`;
       })(),
       signingPage: pos.page,
-      signingPosition: `${llx},${lly + 265},${urx},${ury + 265}`,
+      signingPosition: `${llx - 12},${lly + 265},${urx - 12},${ury + 265}`,
       reason: "Admin ký hợp đồng",
       reject: false,
       confirmTermsConditions: true,
@@ -209,7 +209,9 @@ export default function AdminSignContract() {
     setSigning(true);
     try {
       await adminSignEcontract(buildPayload(otp));
-      toast.success("Ký hợp đồng thành công!");
+      toast.success(
+        "Ký hợp đồng thành công! Hợp đồng sẽ được gửi đến gmail khách hàng để tiến hành ký.",
+      );
       setShowOtpModal(false);
       navigate(`/contracts/${id}`);
     } catch (err) {
@@ -217,7 +219,9 @@ export default function AdminSignContract() {
         toast.error("OTP không đúng, vui lòng thử lại.");
       } else {
         toast.error(
-          err?.response?.data?.message || err?.message || "Ký hợp đồng thất bại.",
+          err?.response?.data?.message ||
+            err?.message ||
+            "Ký hợp đồng thất bại.",
         );
       }
     } finally {

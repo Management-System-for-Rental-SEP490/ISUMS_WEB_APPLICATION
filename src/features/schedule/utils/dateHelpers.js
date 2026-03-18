@@ -1,5 +1,17 @@
 import { STATUS_CONFIG } from "../constants";
 
+/**
+ * Format a Date to "YYYY-MM-DD" using LOCAL time (not UTC).
+ * Avoids timezone shift from toISOString() which converts to UTC.
+ */
+export function localDateStr(d) {
+  return (
+    `${d.getFullYear()}-` +
+    `${String(d.getMonth() + 1).padStart(2, "0")}-` +
+    `${String(d.getDate()).padStart(2, "0")}`
+  );
+}
+
 export function getWeekDays(baseDate) {
   const day  = baseDate.getDay();
   const diff = day === 0 ? -6 : 1 - day;
@@ -70,23 +82,53 @@ export function minutesToTime(minutes) {
 
 /**
  * Generate an ordered array of time slot rows from a work template config.
- * @param {{ startTime: string, endTime: string, slotDurationMinutes: number, breakDurationMinutes: number }} template
+ * Skips the lunch break period (breakStart–breakEnd) if provided.
+ *
+ * @param {{
+ *   startTime: string,
+ *   endTime: string,
+ *   breakStart?: string | null,
+ *   breakEnd?: string | null,
+ *   slotDurationMinutes: number,
+ *   bufferMinutes: number,
+ * }} template
  * @returns {{ start: string, end: string, label: string }[]}
  *   e.g. [{ start: "08:00", end: "09:00", label: "08:00 – 09:00" }, ...]
  */
-export function buildTimeSlotsFromTemplate({ startTime, endTime, slotDurationMinutes, breakDurationMinutes }) {
-  const slots = [];
-  let current = timeToMinutes(startTime);
-  const end   = timeToMinutes(endTime);
+export function buildTimeSlotsFromTemplate({
+  startTime,
+  endTime,
+  breakStart = null,
+  breakEnd   = null,
+  slotDurationMinutes,
+  bufferMinutes,
+  // legacy fallback
+  breakDurationMinutes,
+}) {
+  const buffer     = bufferMinutes ?? breakDurationMinutes ?? 15;
+  const slots      = [];
+  let   current    = timeToMinutes(startTime);
+  const closeMin   = timeToMinutes(endTime);
+  const breakSt    = breakStart ? timeToMinutes(breakStart) : null;
+  const breakEn    = breakEnd   ? timeToMinutes(breakEnd)   : null;
 
-  while (current + slotDurationMinutes <= end) {
+  while (current + slotDurationMinutes <= closeMin) {
+    // If this slot would overlap with the break period, jump to breakEnd
+    if (breakSt !== null && breakEn !== null) {
+      const slotWouldEnd = current + slotDurationMinutes;
+      if (current < breakEn && slotWouldEnd > breakSt) {
+        current = breakEn;
+        continue;
+      }
+    }
+
     const slotEnd = current + slotDurationMinutes;
     slots.push({
       start: minutesToTime(current),
       end:   minutesToTime(slotEnd),
       label: `${minutesToTime(current)} – ${minutesToTime(slotEnd)}`,
     });
-    current = slotEnd + breakDurationMinutes;
+    current = slotEnd + buffer;
   }
 
   return slots;

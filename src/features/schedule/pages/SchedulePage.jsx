@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Download, Plus, RefreshCw } from "lucide-react";
 import { AVATARS } from "../constants";
-import { getWeekDays } from "../utils/dateHelpers";
+import { getWeekDays, localDateStr } from "../utils/dateHelpers";
 import { useWorkSchedule, useMonthSchedule } from "../hooks/useSchedule";
 import StatCard from "../components/StatCard";
 import AvatarCircle from "../components/AvatarCircle";
@@ -16,12 +16,12 @@ export default function SchedulePage() {
 
   /* ── Week data ── */
   const weekDays = getWeekDays(weekBase);
-  const startStr = weekDays[0].toISOString().split("T")[0];
-  const endStr   = weekDays[6].toISOString().split("T")[0];
+  const startStr = localDateStr(weekDays[0]);
+  const endStr   = localDateStr(weekDays[6]);
   const { slotGrid, template, timeSlots, loading: weekLoading, refetch: refetchWeek } = useWorkSchedule(startStr, endStr);
 
   /* ── Month data ── */
-  const { monthEvMap, loading: monthLoading, refetch: refetchMonth } = useMonthSchedule(monthYear.year, monthYear.month);
+  const { slotGrid: monthSlotGrid, loading: monthLoading, refetch: refetchMonth } = useMonthSchedule(monthYear.year, monthYear.month);
 
   /* ── Stats (derived from current week slotGrid) ── */
   const allSlots    = Object.values(slotGrid).flatMap((byTime) => Object.values(byTime).flat());
@@ -124,7 +124,7 @@ export default function SchedulePage() {
           month={monthYear.month}
           onPrev={prevMonth}
           onNext={nextMonth}
-          monthEvMap={monthEvMap}
+          slotGrid={monthSlotGrid}
           loading={monthLoading}
         />
       )}

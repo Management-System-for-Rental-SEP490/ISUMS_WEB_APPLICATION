@@ -74,10 +74,16 @@ export const NOTIFICATIONS_ENDPOINTS = {
 
 // Maintenance endpoints
 export const MAINTENANCE_ENDPOINTS = {
-  SLOTS:      "/maintenance/slots",
-  SLOT_BY_ID: (id) => `/maintenance/slots/${id}`,
-  SLOT_JOBS:  (id) => `/maintenance/slots/${id}/jobs`,
-  JOB_BY_ID:  (id) => `/maintenance/jobs/${id}`,
-  BY_WEEK:    "/maintenance/slots/week",
-  BY_MONTH:   "/maintenance/slots/month",
+  JOBS: "/maintenances/jobs",
+  JOBS_BY_ID: (jobId) => `/maintenances/jobs/${jobId}`,
+  // SLOT_JOBS: (id) => `/maintenance/slots/${id}/jobs`,
+  // JOB_BY_ID: (id) => `/maintenance/jobs/${id}`,
+  // BY_WEEK: "/maintenance/slots/week",
+  // BY_MONTH: "/maintenance/slots/month",
+};
+
+// Schedule endpoints
+export const SCHEDULE_ENDPOINTS = {
+  WORK_SLOTS_CURRENT: "/schedules/work_slots/current",
+  TEMPLATES_CURRENT: (date) => `/schedules/templates/current/${date}`,
 };

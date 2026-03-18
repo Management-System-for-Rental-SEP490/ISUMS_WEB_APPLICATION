@@ -1,165 +1,176 @@
-import { useState } from "react";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useState, useCallback } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DAY_NAMES_LONG } from "../constants";
-import { getWeekDays, isSameDay } from "../utils/dateHelpers";
+import { getWeekDays, isSameDay, localDateStr } from "../utils/dateHelpers";
+import SlotModal from "./SlotModal";
 
-/**
- * Status config for work slot chips inside time-grid cells.
- */
-const SLOT_STATUS_CFG = {
-  booked:    { pill: "bg-teal-100 text-teal-700 border border-teal-200",   dot: "bg-teal-500",  label: "Đã đặt"  },
-  cancelled: { pill: "bg-red-50  text-red-400  border border-red-200",    dot: "bg-red-400",   label: "Đã hủy"  },
+// ─── Status configs (chip only) ───────────────────────────────────────────────
+
+const CHIP_STATUS_CFG = {
+  booked: {
+    badge: "bg-teal-100 text-teal-700 border border-teal-200",
+    dot: "bg-teal-500",
+  },
+  cancelled: {
+    badge: "bg-red-50 text-red-400 border border-red-200",
+    dot: "bg-red-400",
+  },
 };
 
-function statusCfg(status) {
-  return SLOT_STATUS_CFG[status] ?? SLOT_STATUS_CFG.booked;
+function chipCfg(status) {
+  return CHIP_STATUS_CFG[status?.toLowerCase()] ?? CHIP_STATUS_CFG.booked;
 }
 
-/** Single chip shown inside a time-grid cell. */
-function SlotChip({ slot, onClick }) {
-  const cfg = statusCfg(slot.status);
+const JOB_TYPE_LABELS = {
+  MAINTENANCE: "Bảo trì",
+  ISSUE: "Sửa chữa",
+  INSPECTION: "Kiểm tra",
+  CLEANING: "Vệ sinh",
+  SUPPORT: "Hỗ trợ",
+};
+function jobTypeLabel(t) {
+  return JOB_TYPE_LABELS[t?.toUpperCase()] ?? t ?? "—";
+}
+
+function dominantStatus(slots) {
+  return slots.some((s) => s.status === "booked") ? "booked" : "cancelled";
+}
+
+// ─── GroupedSlotChip ──────────────────────────────────────────────────────────
+
+function GroupedSlotChip({ slots, onClick }) {
+  const dom = dominantStatus(slots);
+  const cfg = chipCfg(dom);
+  const bookedCount = slots.filter((s) => s.status === "booked").length;
+  const cancelledCount = slots.filter((s) => s.status === "cancelled").length;
+
   return (
     <button
       type="button"
-      onClick={() => onClick(slot)}
-      className={`w-full text-left rounded-md px-1.5 py-1 mb-1 text-[10px] font-semibold leading-tight transition hover:opacity-80 ${cfg.pill}`}
+      onClick={onClick}
+      className={`w-full text-left rounded-md px-2 py-1.5 text-[10px] font-semibold leading-tight transition hover:opacity-80 ${cfg.badge}`}
     >
-      <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1 align-middle ${cfg.dot}`} />
-      {slot.jobType}
+      <div className="flex items-center justify-between gap-1">
+        <div className="flex items-center gap-1 min-w-0">
+          <span
+            className={`inline-block w-1.5 h-1.5 rounded-full flex-shrink-0 ${cfg.dot}`}
+          />
+          <span className="truncate">{jobTypeLabel(slots[0]?.jobType)}</span>
+        </div>
+        <span className="flex-shrink-0 bg-white/60 rounded-full px-1.5 py-0.5 font-bold text-[9px] leading-none">
+          {slots.length}
+        </span>
+      </div>
+      {bookedCount > 0 && cancelledCount > 0 && (
+        <div className="mt-0.5 text-[9px] opacity-70">
+          {bookedCount} đặt · {cancelledCount} hủy
+        </div>
+      )}
     </button>
   );
 }
 
-/** Detail panel shown below the grid when a slot chip is clicked. */
-function SlotDetailPanel({ slot, onClose }) {
-  const cfg = statusCfg(slot.status);
-  return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 bg-slate-50">
-        <div className="flex items-center gap-2">
-          <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${cfg.pill}`}>
-            {cfg.label}
-          </span>
-          <span className="text-sm font-bold text-slate-800">{slot.jobType}</span>
-          <span className="text-xs text-slate-400">{slot.startTimeStr} – {slot.endTimeStr}</span>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="p-1.5 rounded-lg hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-
-      <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-        <div className="space-y-1.5">
-          <Row label="Loại công việc" value={slot.jobType} />
-          <Row label="Trạng thái"     value={cfg.label} />
-          <Row label="Thời gian"      value={`${slot.startTimeStr} – ${slot.endTimeStr}`} />
-          <Row label="Ngày"           value={slot.date} />
-        </div>
-        <div className="space-y-1.5">
-          <Row label="ID Nhân viên" value={slot.staffId} mono />
-          <Row label="ID Công việc" value={slot.jobId}   mono />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Row({ label, value, mono = false }) {
-  return (
-    <div className="flex items-start gap-2">
-      <span className="text-xs text-slate-400 w-28 flex-shrink-0">{label}</span>
-      <span className={`text-xs font-semibold text-slate-700 break-all ${mono ? "font-mono" : ""}`}>
-        {value ?? "—"}
-      </span>
-    </div>
-  );
-}
+// ─── WeekView ─────────────────────────────────────────────────────────────────
 
 /**
  * WeekView – time-grid calendar layout.
  *
  * Props:
- *   weekBase   {Date}     – any date in the target week
+ *   weekBase   {Date}
  *   onPrev     {Function}
  *   onNext     {Function}
- *   slotGrid   {Object}   – { "YYYY-MM-DD": { "HH:MM": [slot, ...] } }
- *   template   {Object}   – { workDays: number[], ... }  workDays = indices into weekDays (0=Mon)
- *   timeSlots  {Array}    – [{ start, end, label }, ...]  generated from template
- *   loading    {boolean}
+ *   slotGrid   { "YYYY-MM-DD": { "HH:MM": [slot, ...] } }
+ *   template   { workDays: number[], ... }
+ *   timeSlots  [{ start, end, label }, ...]
+ *   loading    boolean
  */
 export default function WeekView({
   weekBase,
   onPrev,
   onNext,
-  slotGrid  = {},
-  template  = { workDays: [0, 1, 2, 3, 4, 5] },
+  slotGrid = {},
+  template = { workDays: [0, 1, 2, 3, 4, 5] },
   timeSlots = [],
-  loading   = false,
+  loading = false,
 }) {
-  const today    = new Date();
+  const today = new Date();
   const weekDays = getWeekDays(weekBase);
 
-  // Only show days that belong to the working-day set defined in template
   const workingDays = weekDays
     .map((day, idx) => ({ day, idx }))
     .filter(({ idx }) => template.workDays.includes(idx));
 
-  const colCount  = workingDays.length;
-  const gridCols  = `72px repeat(${colCount}, minmax(0, 1fr))`;
+  const colCount = workingDays.length;
+  const gridCols = `72px repeat(${colCount}, minmax(0, 1fr))`;
 
-  const [activeSlot, setActiveSlot] = useState(null);
+  // activeCell: { dateKey, timeSlot: { start, end }, slots }
+  const [activeCell, setActiveCell] = useState(null);
+
+  const handleCellClick = useCallback((dateKey, ts, slots) => {
+    setActiveCell((prev) =>
+      prev?.dateKey === dateKey && prev?.timeSlot.start === ts.start
+        ? null
+        : { dateKey, timeSlot: ts, slots },
+    );
+  }, []);
+
+  const handleClose = useCallback(() => setActiveCell(null), []);
 
   const startFmt = `${weekDays[0].getDate()}/${weekDays[0].getMonth() + 1}`;
-  const endFmt   = `${weekDays[6].getDate()}/${weekDays[6].getMonth() + 1}/${weekDays[6].getFullYear()}`;
-
-  const handleChipClick = (slot) => {
-    setActiveSlot((prev) => (prev?.id === slot.id ? null : slot));
-  };
+  const endFmt = `${weekDays[6].getDate()}/${weekDays[6].getMonth() + 1}/${weekDays[6].getFullYear()}`;
 
   return (
-    <div className="space-y-3">
+    <div>
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-
         {/* ── Week navigation ── */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
-          <button type="button" onClick={onPrev}
-            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition">
+          <button
+            type="button"
+            onClick={onPrev}
+            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition"
+          >
             <ChevronLeft className="w-4 h-4" />
           </button>
-          <span className="text-sm font-semibold text-slate-700">{startFmt} – {endFmt}</span>
-          <button type="button" onClick={onNext}
-            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition">
+          <span className="text-sm font-semibold text-slate-700">
+            {startFmt} – {endFmt}
+          </span>
+          <button
+            type="button"
+            onClick={onNext}
+            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition"
+          >
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>
 
         <div className="overflow-x-auto">
           <div style={{ minWidth: `${72 + colCount * 110}px` }}>
-
             {/* ── Day header row ── */}
             <div
               className="grid border-b border-slate-100"
               style={{ gridTemplateColumns: gridCols }}
             >
-              {/* Empty corner above time labels */}
               <div className="border-r border-slate-100" />
-
               {workingDays.map(({ day, idx }) => {
                 const isToday = isSameDay(day, today);
                 return (
-                  <div key={idx}
-                    className={`py-3.5 text-center border-r border-slate-100 last:border-r-0 ${isToday ? "bg-teal-50/60" : ""}`}>
-                    <p className={`text-[11px] font-semibold uppercase tracking-wider ${isToday ? "text-teal-500" : "text-slate-400"}`}>
+                  <div
+                    key={idx}
+                    className={`py-3.5 text-center border-r border-slate-100 last:border-r-0 ${isToday ? "bg-teal-50/60" : ""}`}
+                  >
+                    <p
+                      className={`text-[11px] font-semibold uppercase tracking-wider ${isToday ? "text-teal-500" : "text-slate-400"}`}
+                    >
                       {DAY_NAMES_LONG[idx]}
                     </p>
-                    <p className={`text-xl font-bold mt-0.5 ${isToday ? "text-teal-600" : "text-slate-800"}`}>
+                    <p
+                      className={`text-xl font-bold mt-0.5 ${isToday ? "text-teal-600" : "text-slate-800"}`}
+                    >
                       {day.getDate()}
                     </p>
-                    {isToday && <div className="w-1.5 h-1.5 rounded-full bg-teal-500 mx-auto mt-1" />}
+                    {isToday && (
+                      <div className="w-1.5 h-1.5 rounded-full bg-teal-500 mx-auto mt-1" />
+                    )}
                   </div>
                 );
               })}
@@ -173,7 +184,9 @@ export default function WeekView({
                 ))}
               </div>
             ) : timeSlots.length === 0 ? (
-              <p className="text-center text-slate-400 text-sm py-8">Không có dữ liệu template</p>
+              <p className="text-center text-slate-400 text-sm py-8">
+                Không có dữ liệu template
+              </p>
             ) : (
               timeSlots.map((ts) => (
                 <div
@@ -183,29 +196,42 @@ export default function WeekView({
                 >
                   {/* Time label */}
                   <div className="border-r border-slate-100 px-2 py-2 flex flex-col items-end justify-start">
-                    <span className="text-[10px] font-bold text-slate-500 leading-tight">{ts.start}</span>
-                    <span className="text-[9px] text-slate-300 leading-tight">{ts.end}</span>
+                    <span className="text-[10px] font-bold text-slate-500 leading-tight">
+                      {ts.start}
+                    </span>
+                    <span className="text-[9px] text-slate-300 leading-tight">
+                      {ts.end}
+                    </span>
                   </div>
 
                   {/* Day cells */}
                   {workingDays.map(({ day, idx }) => {
-                    const isToday  = isSameDay(day, today);
-                    const dateKey  = day.toISOString().substring(0, 10);
+                    const isToday = isSameDay(day, today);
+                    const dateKey = localDateStr(day);
                     const cellSlots = slotGrid[dateKey]?.[ts.start] ?? [];
+                    const isActive =
+                      activeCell?.dateKey === dateKey &&
+                      activeCell?.timeSlot.start === ts.start;
 
                     return (
-                      <div key={idx}
-                        className={`border-r border-slate-100 last:border-r-0 px-1.5 py-1.5 min-h-[52px] ${
-                          isToday ? "bg-teal-50/20" : ""
+                      <div
+                        key={idx}
+                        className={`border-r border-slate-100 last:border-r-0 px-1.5 py-1.5 min-h-[52px] transition ${
+                          isActive
+                            ? "bg-teal-50/40 ring-1 ring-inset ring-teal-200"
+                            : isToday
+                              ? "bg-teal-50/20"
+                              : ""
                         }`}
                       >
-                        {cellSlots.map((slot) => (
-                          <SlotChip
-                            key={slot.id}
-                            slot={slot}
-                            onClick={handleChipClick}
+                        {cellSlots.length > 0 && (
+                          <GroupedSlotChip
+                            slots={cellSlots}
+                            onClick={() =>
+                              handleCellClick(dateKey, ts, cellSlots)
+                            }
                           />
-                        ))}
+                        )}
                       </div>
                     );
                   })}
@@ -216,11 +242,13 @@ export default function WeekView({
         </div>
       </div>
 
-      {/* ── Slot detail panel ── */}
-      {activeSlot && (
-        <SlotDetailPanel
-          slot={activeSlot}
-          onClose={() => setActiveSlot(null)}
+      {/* ── Slot modal portal ── */}
+      {activeCell && (
+        <SlotModal
+          dateStr={activeCell.dateKey}
+          timeSlot={activeCell.timeSlot}
+          slots={activeCell.slots}
+          onClose={handleClose}
         />
       )}
     </div>
