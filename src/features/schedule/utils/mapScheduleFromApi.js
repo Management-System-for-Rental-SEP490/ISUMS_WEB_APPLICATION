@@ -89,3 +89,49 @@ export function mapMonthSlotsToEvMap(rawSlots) {
 
   return map;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// New schedule API mappers
+// Raw shape: { id, staffId, jobId, jobType, startTime: "2026-03-13T13:00:00",
+//              endTime: "2026-03-13T14:00:00", status: "BOOKED" | "CANCELLED" }
+// ─────────────────────────────────────────────────────────────────────────────
+
+const WORK_SLOT_STATUS_MAP = {
+  BOOKED:    "booked",
+  CANCELLED: "cancelled",
+};
+
+/**
+ * Map a raw work slot from the schedule API to the UI shape.
+ * @param {Object} raw
+ * @returns {{ id, staffId, jobId, jobType, date, startTimeStr, endTimeStr, status }}
+ */
+export function mapWorkSlotFromApi(raw) {
+  return {
+    id:           raw.id,
+    staffId:      raw.staffId,
+    jobId:        raw.jobId,
+    jobType:      raw.jobType ?? "MAINTENANCE",
+    date:         raw.startTime.substring(0, 10),   // "YYYY-MM-DD"
+    startTimeStr: raw.startTime.substring(11, 16),  // "HH:MM"
+    endTimeStr:   raw.endTime.substring(11, 16),    // "HH:MM"
+    status:       WORK_SLOT_STATUS_MAP[raw.status] ?? "booked",
+  };
+}
+
+/**
+ * Build a 2-level grid from raw work slots: { "YYYY-MM-DD": { "HH:MM": [slot, ...] } }
+ * The outer key is the date, the inner key is the slot startTime string.
+ * @param {Array} rawSlots
+ * @returns {Object}
+ */
+export function buildWorkSlotGrid(rawSlots) {
+  const grid = {};
+  rawSlots.forEach((raw) => {
+    const slot = mapWorkSlotFromApi(raw);
+    if (!grid[slot.date]) grid[slot.date] = {};
+    if (!grid[slot.date][slot.startTimeStr]) grid[slot.date][slot.startTimeStr] = [];
+    grid[slot.date][slot.startTimeStr].push(slot);
+  });
+  return grid;
+}

@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { Download, Plus } from "lucide-react";
+import { Download, Plus, RefreshCw } from "lucide-react";
 import { AVATARS } from "../constants";
-import { getWeekDays } from "../utils/dateHelpers";
-import { useWeekSchedule, useMonthSchedule } from "../hooks/useMaintenance";
+import { getWeekDays, localDateStr } from "../utils/dateHelpers";
+import { useWorkSchedule, useMonthSchedule } from "../hooks/useSchedule";
 import StatCard from "../components/StatCard";
 import AvatarCircle from "../components/AvatarCircle";
 import WeekView from "../components/WeekView";
 import MonthView from "../components/MonthView";
 
-export default function MaintenanceSchedulePage() {
+export default function SchedulePage() {
   const today = new Date();
   const [viewMode,  setViewMode]  = useState("week");
   const [weekBase,  setWeekBase]  = useState(new Date(today));
@@ -16,17 +16,17 @@ export default function MaintenanceSchedulePage() {
 
   /* ── Week data ── */
   const weekDays = getWeekDays(weekBase);
-  const startStr = weekDays[0].toISOString().split("T")[0];
-  const endStr   = weekDays[6].toISOString().split("T")[0];
-  const { events, loading: weekLoading } = useWeekSchedule(startStr, endStr, weekDays);
+  const startStr = localDateStr(weekDays[0]);
+  const endStr   = localDateStr(weekDays[6]);
+  const { slotGrid, template, timeSlots, loading: weekLoading, refetch: refetchWeek } = useWorkSchedule(startStr, endStr);
 
   /* ── Month data ── */
-  const { monthEvMap, loading: monthLoading } = useMonthSchedule(monthYear.year, monthYear.month);
+  const { slotGrid: monthSlotGrid, loading: monthLoading, refetch: refetchMonth } = useMonthSchedule(monthYear.year, monthYear.month);
 
-  /* ── Stats (derived from current week) ── */
-  const allJobs     = Object.values(events).flatMap((slots) => slots.flatMap((s) => s.jobs));
-  const totalJobs   = allJobs.length;
-  const pendingJobs = allJobs.filter((j) => j.status === "pending" || j.status === "upcoming").length;
+  /* ── Stats (derived from current week slotGrid) ── */
+  const allSlots    = Object.values(slotGrid).flatMap((byTime) => Object.values(byTime).flat());
+  const totalJobs   = allSlots.length;
+  const pendingJobs = allSlots.filter((s) => s.status === "booked").length;
 
   /* ── Navigation ── */
   const prevWeek  = () => { const d = new Date(weekBase); d.setDate(d.getDate() - 7); setWeekBase(d); };
@@ -45,17 +45,17 @@ export default function MaintenanceSchedulePage() {
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
-          title="Tổng công việc trong tuần"
+          title="Tổng slot trong tuần"
           value={weekLoading ? "—" : String(totalJobs).padStart(2, "0")}
-          sub={<><span className="text-green-500">↗</span> +12% so với tuần trước</>}
+          sub={<><span className="text-green-500">↗</span> Tổng slot đã ghi nhận</>}
           subColor="text-green-600" iconBg="bg-teal-50" iconColor="text-teal-600"
           icon={<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>}
         />
         <StatCard
-          title="Công việc đang chờ"
+          title="Slot đã đặt (Booked)"
           value={weekLoading ? "—" : String(pendingJobs).padStart(2, "0")}
-          sub={<><span className="text-amber-500">●</span> 1 việc ưu tiên cao</>}
-          subColor="text-amber-600" iconBg="bg-amber-50" iconColor="text-amber-600"
+          sub={<><span className="text-teal-500">●</span> Đang được phân công</>}
+          subColor="text-teal-600" iconBg="bg-amber-50" iconColor="text-amber-600"
           icon={<svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
         />
         <StatCard
@@ -90,6 +90,15 @@ export default function MaintenanceSchedulePage() {
               +12
             </div>
           </div>
+          <button
+            type="button"
+            onClick={viewMode === "week" ? refetchWeek : refetchMonth}
+            disabled={viewMode === "week" ? weekLoading : monthLoading}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-sm font-semibold rounded-xl transition disabled:opacity-50"
+          >
+            <RefreshCw className={["w-4 h-4", (viewMode === "week" ? weekLoading : monthLoading) ? "animate-spin" : ""].join(" ")} />
+            Làm mới
+          </button>
           <button type="button"
             className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold rounded-xl transition shadow-sm">
             <Plus className="w-4 h-4" />
@@ -104,7 +113,9 @@ export default function MaintenanceSchedulePage() {
           weekBase={weekBase}
           onPrev={prevWeek}
           onNext={nextWeek}
-          events={events}
+          slotGrid={slotGrid}
+          template={template}
+          timeSlots={timeSlots}
           loading={weekLoading}
         />
       ) : (
@@ -113,7 +124,7 @@ export default function MaintenanceSchedulePage() {
           month={monthYear.month}
           onPrev={prevMonth}
           onNext={nextMonth}
-          monthEvMap={monthEvMap}
+          slotGrid={monthSlotGrid}
           loading={monthLoading}
         />
       )}
@@ -123,9 +134,8 @@ export default function MaintenanceSchedulePage() {
         <div className="flex items-center gap-4 text-xs text-slate-500 flex-wrap">
           <span className="font-semibold text-slate-600">Chú thích trạng thái:</span>
           {[
-            { dot: "bg-green-500", label: "Hoàn thành" },
-            { dot: "bg-teal-500",  label: "Đang thực hiện" },
-            { dot: "bg-amber-400", label: "Chờ xử lý / Sắp diễn ra" },
+            { dot: "bg-teal-500", label: "Đã đặt (Booked)" },
+            { dot: "bg-red-400",  label: "Đã hủy (Cancelled)" },
           ].map(({ dot, label }) => (
             <span key={label} className="flex items-center gap-1.5">
               <span className={`w-2.5 h-2.5 rounded-full ${dot}`} />

@@ -1,10 +1,8 @@
-/**
- * Maintenance API Module
- * Handles all API calls related to maintenance scheduling.
- */
-
 import api from "../../../lib/axios";
-import { MAINTENANCE_ENDPOINTS } from "../../../lib/api-endpoints";
+import {
+  MAINTENANCE_ENDPOINTS,
+  SCHEDULE_ENDPOINTS,
+} from "../../../lib/api-endpoints";
 import { extractResponseData, getErrorMessage } from "../../../lib/api-helpers";
 
 /**
@@ -18,6 +16,7 @@ export async function getSlotsByWeek(startDate, endDate) {
     const response = await api.get(MAINTENANCE_ENDPOINTS.BY_WEEK, {
       params: { startDate, endDate },
     });
+    console.log(response);
     return extractResponseData(response);
   } catch (error) {
     throw new Error(getErrorMessage(error));
@@ -90,7 +89,10 @@ export async function deleteSlot(id) {
  */
 export async function updateJob(id, payload) {
   try {
-    const response = await api.put(MAINTENANCE_ENDPOINTS.JOB_BY_ID(id), payload);
+    const response = await api.put(
+      MAINTENANCE_ENDPOINTS.JOBS_BY_ID(id),
+      payload,
+    );
     return extractResponseData(response);
   } catch (error) {
     throw new Error(getErrorMessage(error));
@@ -103,7 +105,54 @@ export async function updateJob(id, payload) {
  */
 export async function deleteJob(id) {
   try {
-    const response = await api.delete(MAINTENANCE_ENDPOINTS.JOB_BY_ID(id));
+    const response = await api.delete(MAINTENANCE_ENDPOINTS.JOBS_BY_ID(id));
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Get all work slots within a date range (new schedule API).
+ * @param {string} start - "YYYY-MM-DD"
+ * @param {string} end   - "YYYY-MM-DD"
+ * @returns {Promise<Array>} Raw work slot list
+ */
+export async function getWorkSlotsInRange(start, end) {
+  try {
+    const response = await api.get(SCHEDULE_ENDPOINTS.WORK_SLOTS_CURRENT, {
+      params: { start, end },
+    });
+    console.log("[schedule] getWorkSlotsInRange →", response.data);
+    return extractResponseData(response);
+  } catch (error) {
+    console.error("[schedule] getWorkSlotsInRange failed →", error);
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Get a maintenance job by ID.
+ * @param {string} jobId
+ * @returns {Promise<Object>} Job detail { id, planId, houseId, periodStartDate, dueDate, status }
+ */
+export async function getJobById(jobId) {
+  try {
+    const response = await api.get(MAINTENANCE_ENDPOINTS.JOBS_BY_ID(jobId));
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Get the work schedule template for a given date (working days + time slot config).
+ * @param {string} date - "YYYY-MM-DD"
+ * @returns {Promise<Object>} Template config
+ */
+export async function getWorkTemplate(date) {
+  try {
+    const response = await api.get(SCHEDULE_ENDPOINTS.TEMPLATES_CURRENT(date));
     return extractResponseData(response);
   } catch (error) {
     throw new Error(getErrorMessage(error));

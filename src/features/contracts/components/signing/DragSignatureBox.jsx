@@ -72,6 +72,7 @@ export default function DragSignatureBox({
   signingPage = 1,
   disabled = false,
   signatureImage,
+  userName = "",
 }) {
   const [pos, setPos] = useState(() => ({
     x: 40,
@@ -246,12 +247,29 @@ export default function DragSignatureBox({
         onTouchStart={handleStart}
       >
         {signatureImage ? (
-          <img
-            src={`data:image/png;base64,${signatureImage}`}
-            alt="Chữ ký"
-            className="w-full h-full object-contain p-1 pointer-events-none"
-            draggable={false}
-          />
+          <div className="flex w-full h-full">
+            {/* Nửa trái: chữ ký */}
+            <img
+              src={`data:image/png;base64,${signatureImage}`}
+              alt="Chữ ký"
+              className="w-1/2 h-full object-contain p-1 pointer-events-none"
+              draggable={false}
+            />
+            {/* Nửa phải: text căn trên */}
+            <div className="w-1/2 flex flex-col justify-start pt-1 pr-6 text-blue-600 leading-tight" style={{ fontSize: 12 }}>
+              <span className="font-medium">{userName}</span>
+              <span>
+                {new Date().toLocaleString("vi-VN", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                })}
+              </span>
+            </div>
+          </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-xs text-teal-600 font-semibold">
             Chữ ký

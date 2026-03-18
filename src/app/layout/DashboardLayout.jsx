@@ -9,7 +9,7 @@ import Utilities from "./Utilities";
 import UsersPage from "../../features/tenants/pages/UsersPage";
 import ContractsPage from "../../features/contracts/pages/ContractsPage";
 import ContractsPendingSignPage from "../../features/contracts/pages/ContractsPendingSignPage";
-import MaintenanceSchedulePage from "../../features/maintenance/pages/MaintenanceSchedulePage";
+import SchedulePage from "../../features/schedule/pages/SchedulePage";
 import Reports from "../../features/reports/pages/Reports";
 import Notifications from "../../features/notifications/pages/Notifications";
 import Settings from "../../features/settings/pages/Settings";
@@ -441,7 +441,7 @@ export default function Dashboard() {
             <ContractsPage onNavigateMenu={setActiveMenu} />
           )}
           {activeMenu === "contracts-sign" && <ContractsPendingSignPage />}
-          {activeMenu === "maintenance" && <MaintenanceSchedulePage />}
+          {activeMenu === "maintenance" && <SchedulePage />}
           {activeMenu === "reports" && <Reports />}
           {activeMenu === "notifications" && <Notifications />}
           {activeMenu === "settings" && <Settings />}
