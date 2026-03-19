@@ -152,7 +152,7 @@ export default function AdminSignContract() {
       confirmTermsConditions: true,
       showReason: false,
       fontSize: 9,
-      signatureText: "{{Name}}\n{{SignTime}}",
+      signatureText: "\n\n\n{{Name}}\n{{SignTime}}",
     };
   };
 
@@ -430,7 +430,12 @@ export default function AdminSignContract() {
               setShowRejectBox(false);
               setRejectReason("");
             }}
-            onExit={() => navigate(-1)}
+            onExit={() =>
+              navigate("/dashboard", {
+                state: { menu: "contracts-sign" },
+                replace: true,
+              })
+            }
             onOpenSignatureModal={() => setShowSigModal(true)}
             onReopenOtp={() => setShowOtpModal(true)}
             onResendOtp={handleResendOtp}
