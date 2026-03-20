@@ -115,11 +115,14 @@ export default function DragSignatureBox({
     e.preventDefault();
     e.stopPropagation();
     const { x, y } = getClientXY(e);
+    const rect = containerRef.current?.getBoundingClientRect();
     dragRef.current = {
       startMouseX: x,
       startMouseY: y,
       startBoxX: pos.x,
       startBoxY: pos.y,
+      startContainerLeft: rect?.left ?? 0,
+      startContainerTop: rect?.top ?? 0,
     };
     setIsDragging(true);
   };
@@ -131,18 +134,24 @@ export default function DragSignatureBox({
       if (!dragRef.current) return;
       e.preventDefault(); // chỉ preventDefault khi đang drag
       const { x, y } = getClientXY(e);
-      const { startMouseX, startMouseY, startBoxX, startBoxY } =
-        dragRef.current;
+      const {
+        startMouseX, startMouseY,
+        startBoxX, startBoxY,
+        startContainerLeft, startContainerTop,
+      } = dragRef.current;
       const rect = containerRef.current?.getBoundingClientRect();
       const cw = rect?.width ?? 800;
-      const ch = rect?.height ?? 1200;
+      const ch = containerRef.current?.scrollHeight ?? 1200;
+      // Bù trừ container dịch chuyển do scroll trong <main>
+      const containerLeftDelta = (rect?.left ?? startContainerLeft) - startContainerLeft;
+      const containerTopDelta  = (rect?.top  ?? startContainerTop)  - startContainerTop;
       const newX = Math.max(
         0,
-        Math.min(startBoxX + (x - startMouseX), cw - boxSize.w),
+        Math.min(startBoxX + (x - startMouseX) - containerLeftDelta, cw - boxSize.w),
       );
       const newY = Math.max(
         0,
-        Math.min(startBoxY + (y - startMouseY), ch - boxSize.h),
+        Math.min(startBoxY + (y - startMouseY) - containerTopDelta, ch - boxSize.h),
       );
       setPos({ x: newX, y: newY });
     };

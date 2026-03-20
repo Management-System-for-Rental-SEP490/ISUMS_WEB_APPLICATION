@@ -57,7 +57,10 @@ export default function CreateContract({ onCancel, onCreated }) {
       });
       toast.success("Tạo hợp đồng thành công!");
     } catch (err) {
-      const msg = err?.response?.data?.message || err?.message || "Không thể tạo hợp đồng";
+      const msg =
+        err?.response?.status === 500
+          ? "Tạo hợp đồng lỗi, vui lòng thử lại."
+          : err?.response?.data?.message || err?.message || "Không thể tạo hợp đồng";
       setError(msg);
       toast.error(msg);
     } finally {

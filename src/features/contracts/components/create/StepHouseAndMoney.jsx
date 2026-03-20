@@ -1,10 +1,17 @@
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { getHouseById } from "../../../houses/api/houses.api";
 
 const inputClass =
   "w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500";
 const labelClass = "block text-sm font-medium text-gray-700 mb-2";
+
+const STATUS_LABEL = {
+  AVAILABLE: { text: "Còn trống", color: "text-green-700 bg-green-50 border-green-200" },
+  OCCUPIED: { text: "Đang thuê", color: "text-blue-700 bg-blue-50 border-blue-200" },
+  MAINTENANCE: { text: "Đang sửa chữa", color: "text-amber-700 bg-amber-50 border-amber-200" },
+};
 
 export default function StepHouseAndMoney({
   form,
@@ -12,6 +19,30 @@ export default function StepHouseAndMoney({
   houses,
   errors = {},
 }) {
+  const [houseDetail, setHouseDetail] = useState(null);
+  const [loadingHouse, setLoadingHouse] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetch = async () => {
+      if (!form.houseId) {
+        setHouseDetail(null);
+        return;
+      }
+      setLoadingHouse(true);
+      try {
+        const data = await getHouseById(form.houseId);
+        if (!cancelled) setHouseDetail(data);
+      } catch {
+        if (!cancelled) setHouseDetail(null);
+      } finally {
+        if (!cancelled) setLoadingHouse(false);
+      }
+    };
+    fetch();
+    return () => { cancelled = true; };
+  }, [form.houseId]);
+
   const depositDateValue = useMemo(
     () => (form.depositDate ? dayjs(form.depositDate, "YYYY-MM-DD") : null),
     [form.depositDate],
@@ -49,7 +80,7 @@ export default function StepHouseAndMoney({
                 type="text"
                 value={form.houseId ?? ""}
                 onChange={update("houseId")}
-                placeholder="Nhập UUID nhà (VD: 70279423-989d-48dc-8f2e-9bd6508a6f4a)"
+                placeholder="Chọn nhà cho thuê"
                 className={`${inputClass} ${
                   errors.houseId ? "border-red-500 focus:ring-red-500" : ""
                 }`}
@@ -59,6 +90,41 @@ export default function StepHouseAndMoney({
               <p className="mt-1 text-xs text-red-600">{errors.houseId}</p>
             )}
           </div>
+
+          {/* House detail card */}
+          {loadingHouse && (
+            <div className="md:col-span-2 flex items-center gap-2 text-sm text-gray-500 py-2">
+              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              </svg>
+              Đang tải thông tin nhà...
+            </div>
+          )}
+          {!loadingHouse && houseDetail && (
+            <div className="md:col-span-2 rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">{houseDetail.name}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {[houseDetail.address, houseDetail.ward, houseDetail.commune, houseDetail.city]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </p>
+                </div>
+                {houseDetail.status && (
+                  <span className={`shrink-0 text-[11px] font-medium px-2 py-0.5 rounded border ${STATUS_LABEL[houseDetail.status]?.color ?? "text-slate-600 bg-slate-100 border-slate-200"}`}>
+                    {STATUS_LABEL[houseDetail.status]?.text ?? houseDetail.status}
+                  </span>
+                )}
+              </div>
+              {houseDetail.description && (
+                <p className="text-xs text-slate-600 leading-relaxed border-t border-slate-200 pt-3">
+                  {houseDetail.description}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
