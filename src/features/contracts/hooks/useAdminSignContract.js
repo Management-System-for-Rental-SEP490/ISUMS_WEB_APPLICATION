@@ -144,7 +144,7 @@ export function useAdminSignContract(id) {
         return raw.startsWith("data:") ? raw : `data:image/png;base64,${raw}`;
       })(),
       signingPage: pos.page,
-      signingPosition: `${llx - 16},${lly + 252},${urx - 16},${ury + 252}`,
+      signingPosition: `${llx - 16},${lly + 270},${urx - 16},${ury + 270}`,
       reason: "Admin ký hợp đồng",
       reject: false,
       confirmTermsConditions: true,

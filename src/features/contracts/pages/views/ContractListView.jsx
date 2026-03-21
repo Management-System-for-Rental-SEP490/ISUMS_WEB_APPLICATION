@@ -1,9 +1,9 @@
 import React from "react";
 import Breadcrumbs from "../../../../components/shared/Breadcrumbs";
-import ContractsHeader from "../../components/ContractsHeader";
-import ContractsStats from "../../components/ContractsStats";
-import ContractsFilters from "../../components/ContractsFilters";
-import ContractsTable from "../../components/ContractsTable";
+import ContractsHeader from "../../components/list/ContractsHeader";
+import ContractsStats from "../../components/list/ContractsStats";
+import ContractsFilters from "../../components/list/ContractsFilters";
+import ContractsTable from "../../components/list/ContractsTable";
 
 export default function ContractsListView({
   onNavigateMenu,

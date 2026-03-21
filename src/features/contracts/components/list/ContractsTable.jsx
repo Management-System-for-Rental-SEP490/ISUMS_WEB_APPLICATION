@@ -8,13 +8,13 @@ import {
   Edit,
   Trash2,
 } from "lucide-react";
-import { LoadingSpinner } from "../../../components/shared/Loading";
-import { formatDateVi } from "../utils/contract.format";
+import { LoadingSpinner } from "../../../../components/shared/Loading";
+import { formatDateVi } from "../../utils/contract.format";
 import {
   STATUS_BADGE,
   STATUS_LABEL,
   PAYMENT_LABEL,
-} from "../utils/contract.constants";
+} from "../../utils/contract.constants";
 
 export default function ContractsTable({
   items,
@@ -61,15 +61,6 @@ export default function ContractsTable({
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Khách thuê
               </th>
-              {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Bất động sản */}
-              {/* </th> */}
-              {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Thời hạn
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Tiền thuê
-              </th> */}
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Thanh toán
               </th>
@@ -104,38 +95,6 @@ export default function ContractsTable({
                       </span>
                     </div>
                   </td>
-
-                  {/* <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-gray-400" />
-                      <div>
-                        <div className="text-sm text-gray-900">
-                          {contract.property}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {contract.unit}
-                        </div>
-                      </div>
-                    </div>
-                  </td> */}
-
-                  {/* <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      <div className="flex items-center gap-1 mb-1">
-                        <Calendar className="w-3 h-3 text-gray-400" />
-                        {formatDateVi(contract.startDate)}
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">
-                      ₫{(contract.rent || 0).toLocaleString("vi-VN")}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Cọc: ₫{((contract.deposit || 0) / 1000000).toFixed(0)}M
-                    </div>
-                  </td> */}
 
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="text-sm text-gray-600">
