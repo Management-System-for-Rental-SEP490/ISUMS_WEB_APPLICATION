@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Editor } from "@tinymce/tinymce-react";
-import { CONTRACT_HTML_STYLES } from "../utils/contractHtml.utils";
+import { CONTRACT_HTML_STYLES } from "../../utils/contractHtml.utils";
 
 export default function ContractHtmlEditor({
   initialHtml,

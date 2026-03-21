@@ -9,9 +9,9 @@ export default function ContractsFilters({
 }) {
   const statuses = [
     { value: "all", label: "Toàn bộ" },
-    { value: "active", label: "Đang hiệu lực" },
-    { value: "pending", label: "Chờ duyệt" },
-    { value: "draft", label: "Bản nháp" },
+    { value: "IN_PROGRESS", label: "Chờ chủ nhà ký" },
+    { value: "CONFIRM_BY_LANDLORD", label: "Chờ chủ nhà đã xác nhận" },
+    { value: "READY", label: "Sẵn sàng" },
     { value: "expired", label: "Đã hết hạn" },
   ];
 
@@ -53,19 +53,19 @@ export default function ContractsFilters({
           <span className="hidden sm:inline text-slate-400">Gợi ý:</span>
           <button
             type="button"
-            onClick={() => onFilter("active")}
+            onClick={() => onFilter("CONFIRM_BY_LANDLORD")}
             className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 ${
-              filterStatus === "active"
+              filterStatus === "IN_PROGRESS"
                 ? "border-emerald-500/70 bg-emerald-50 text-emerald-700"
                 : "border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600"
             } transition-colors`}
           >
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            Đang hiệu lực
+            Chờ chủ nhà ký
           </button>
           <button
             type="button"
-            onClick={() => onFilter("pending")}
+            onClick={() => onFilter("READY")}
             className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 ${
               filterStatus === "pending"
                 ? "border-amber-500/70 bg-amber-50 text-amber-700"
@@ -73,7 +73,7 @@ export default function ContractsFilters({
             } transition-colors`}
           >
             <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-            Chờ duyệt
+            Chờ chủ nhà xác nhận
           </button>
           <button
             type="button"

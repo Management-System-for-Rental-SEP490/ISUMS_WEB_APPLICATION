@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from "react";
 import Breadcrumbs from "../../../../components/shared/Breadcrumbs";
-import ContractHtmlEditor from "../../components/ContractHtmlEditor";
+import ContractHtmlEditor from "../../components/editor/ContractHtmlEditor";
 import { updateContractHtml } from "../../api/contracts.api";
 import { extractBodyFromHtml, wrapBodyWithFullDocument } from "../../utils/contractHtml.utils";
 

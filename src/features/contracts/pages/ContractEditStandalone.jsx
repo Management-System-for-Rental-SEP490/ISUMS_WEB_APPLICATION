@@ -11,7 +11,7 @@ import {
   extractBodyFromHtml,
   wrapBodyWithFullDocument,
 } from "../utils/contractHtml.utils";
-import ContractHtmlEditor from "../components/ContractHtmlEditor";
+import ContractHtmlEditor from "../components/editor/ContractHtmlEditor";
 import Icons from "../components/standalone/ContractEditIcons";
 
 export default function ContractEditStandalone() {

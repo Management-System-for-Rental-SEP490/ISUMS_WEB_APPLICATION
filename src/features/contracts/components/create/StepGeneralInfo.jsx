@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 import React, { useMemo, useState } from "react";
 import { LoadingSpinner } from "../../../../components/shared/Loading";
 import { getUserByEmail } from "../../../../services/authService";
+import AddressPicker from "../../../../components/shared/AddressPicker";
 
 const inputClass =
   "w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500";
@@ -292,22 +293,11 @@ export default function StepGeneralInfo({ form, update, errors = {} }) {
                 />
               </div>
               <div className="md:col-span-2">
-                <label className={labelClass}>Địa chỉ thường trú *</label>
-                <input
+                <AddressPicker
                   value={form.tenantAddress ?? ""}
                   onChange={update("tenantAddress")}
-                  placeholder="123 Đường ABC, Quận 1, TP.HCM"
-                  className={`${inputClass} ${
-                    errors.tenantAddress
-                      ? "border-red-500 focus:ring-red-500"
-                      : ""
-                  }`}
+                  error={errors.tenantAddress}
                 />
-                {errors.tenantAddress && (
-                  <p className="mt-1 text-xs text-red-600">
-                    {errors.tenantAddress}
-                  </p>
-                )}
               </div>
             </>
           )}
