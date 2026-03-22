@@ -72,10 +72,10 @@ export default function UnauthorizedPage() {
             Đăng xuất và dùng tài khoản khác
           </button>
           <button
-            onClick={() => navigate(-1)}
+            onClick={handleLogout}
             className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-600 text-sm font-medium rounded-lg border border-slate-200 transition-colors"
           >
-            Quay lại
+            Quay lại trang đăng nhập
           </button>
         </div>
 

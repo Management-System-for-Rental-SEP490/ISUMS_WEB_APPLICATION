@@ -62,6 +62,9 @@ export const authActions = {
         cleanupCallbackUrl();
 
         if (authenticated) {
+          console.log("[Keycloak] ✅ Authenticated");
+          console.log("[Keycloak] token:", keycloak.token);
+          console.log("[Keycloak] tokenParsed:", keycloak.tokenParsed);
           // Lấy roles + profile từ backend API thay vì token
           try {
             const me = await getMe();

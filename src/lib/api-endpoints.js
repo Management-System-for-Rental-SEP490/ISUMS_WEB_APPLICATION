@@ -18,6 +18,8 @@ export const HOUSES_ENDPOINTS = {
   CREATE: "/houses",
   UPDATE: (id) => `/houses/${id}`,
   DELETE: (id) => `/houses/${id}`,
+  IMAGES: (id) => `/houses/${id}/images`,
+  REGIONS: "/houses/regions",
 };
 
 export const CONTRACTS_ENDPOINTS = {

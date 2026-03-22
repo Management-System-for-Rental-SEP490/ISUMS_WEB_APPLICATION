@@ -81,3 +81,50 @@ export async function deleteHouse(id) {
     throw new Error(getErrorMessage(error));
   }
 }
+
+/**
+ * Get all regions (khu vực quản lý)
+ * @returns {Promise<Array>} List of regions [{ id, name, description, managerId, technicalStaffIds }]
+ */
+export async function getRegions() {
+  try {
+    const response = await api.get(HOUSES_ENDPOINTS.REGIONS);
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Upload images for a house (multipart/form-data)
+ * @param {string} houseId - House ID
+ * @param {File[]} files - Array of File objects
+ * @returns {Promise<Object>}
+ * @throws {Error} If request fails
+ */
+export async function uploadHouseImages(houseId, files) {
+  try {
+    const formData = new FormData();
+    files.forEach((file) => formData.append("files", file));
+    const response = await api.post(HOUSES_ENDPOINTS.IMAGES(houseId), formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Get images of a house
+ * @param {string} id - House ID
+ * @returns {Promise<Array>} List of images [{id, url, createdAt}]
+ */
+export async function getHouseImages(id) {
+  try {
+    const response = await api.get(HOUSES_ENDPOINTS.IMAGES(id));
+    return extractResponseData(response);
+  } catch {
+    return [];
+  }
+}

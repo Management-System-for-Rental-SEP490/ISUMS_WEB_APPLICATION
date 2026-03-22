@@ -8,21 +8,27 @@
  * @param {Error} error - Axios error object
  * @returns {string} - User-friendly error message
  */
+const STATUS_MESSAGES = {
+  400: "Dữ liệu gửi lên không hợp lệ.",
+  401: "Phiên đăng nhập hết hạn, vui lòng đăng nhập lại.",
+  403: "Bạn không có quyền thực hiện thao tác này.",
+  404: "Không tìm thấy tài nguyên yêu cầu.",
+  409: "Dữ liệu đã tồn tại hoặc xung đột.",
+  422: "Dữ liệu không hợp lệ, vui lòng kiểm tra lại.",
+  500: "Lỗi máy chủ nội bộ, vui lòng thử lại sau.",
+  502: "Máy chủ tạm thời không khả dụng.",
+  503: "Dịch vụ đang bảo trì, vui lòng thử lại sau.",
+};
+
 export function getErrorMessage(error) {
   if (error.response) {
-    // Server responded with error status
-    const data = error.response.data;
-    return (
-      data?.message ||
-      data?.error ||
-      data?.msg ||
-      `Lỗi ${error.response.status}: ${error.response.statusText}`
-    );
+    const { status, data } = error.response;
+    // Ưu tiên message từ server nếu có, fallback về status message
+    const serverMsg = data?.message || data?.error || data?.msg;
+    return serverMsg || STATUS_MESSAGES[status] || `Lỗi ${status}: ${error.response.statusText}`;
   } else if (error.request) {
-    // Request made but no response
     return "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.";
   } else {
-    // Something else happened
     return error.message || "Đã xảy ra lỗi không xác định.";
   }
 }

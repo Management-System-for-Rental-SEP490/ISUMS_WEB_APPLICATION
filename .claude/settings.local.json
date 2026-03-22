@@ -5,7 +5,9 @@
       "WebFetch(domain:provinces.open-api.vn)",
       "WebSearch",
       "WebFetch(domain:github.com)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(xargs grep:*)",
+      "Bash(xargs ls:*)"
     ]
   }
 }
