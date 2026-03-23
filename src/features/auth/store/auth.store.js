@@ -62,7 +62,10 @@ export const authActions = {
         cleanupCallbackUrl();
 
         if (authenticated) {
-          // Lấy roles + profile từ backend API thay vì token
+          console.log("[Keycloak] ✅ Authenticated");
+          console.log("[Keycloak] token:", keycloak.token);
+          console.log("[Keycloak] tokenParsed:", keycloak.tokenParsed);
+
           try {
             const me = await getMe();
             setState({
@@ -75,7 +78,6 @@ export const authActions = {
               },
             });
           } catch {
-            // Fallback: vẫn cho vào nhưng không có role
             setState({
               isAuthenticated: true,
               roles: [],

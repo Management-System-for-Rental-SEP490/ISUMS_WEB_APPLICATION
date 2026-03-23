@@ -18,6 +18,8 @@ export const HOUSES_ENDPOINTS = {
   CREATE: "/houses",
   UPDATE: (id) => `/houses/${id}`,
   DELETE: (id) => `/houses/${id}`,
+  IMAGES: (id) => `/houses/${id}/images`,
+  REGIONS: "/houses/regions",
 };
 
 export const CONTRACTS_ENDPOINTS = {
@@ -74,6 +76,8 @@ export const NOTIFICATIONS_ENDPOINTS = {
 
 // Maintenance endpoints
 export const MAINTENANCE_ENDPOINTS = {
+  PLANS: "/maintenances/plans",
+  PLANS_BY_ID: (planId) => `/maintenances/plans/${planId}`,
   JOBS: "/maintenances/jobs",
   JOBS_BY_ID: (jobId) => `/maintenances/jobs/${jobId}`,
   // SLOT_JOBS: (id) => `/maintenance/slots/${id}/jobs`,

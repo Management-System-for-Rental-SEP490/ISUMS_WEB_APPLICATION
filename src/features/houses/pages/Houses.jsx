@@ -11,6 +11,7 @@ import {
 import { useHouses } from "../hooks/useHouses";
 import HouseCard from "../components/HouseCard";
 import HouseDetailModal from "../components/HouseDetailModal";
+import CreateHousePage from "./CreateHousePage";
 import { LoadingSpinner } from "../../../components/shared/Loading";
 
 const PAGE_SIZE = 9;
@@ -135,7 +136,8 @@ export default function Houses() {
   const [viewMode, setViewMode]         = useState("grid");
   const [currentPage, setCurrentPage]   = useState(1);
   const [selectedHouse, setSelectedHouse] = useState(null);
-  const { houses, loading, error } = useHouses();
+  const [showCreate, setShowCreate] = useState(false);
+  const { houses, loading, error, refetch } = useHouses();
 
   const list = Array.isArray(houses) ? houses : [];
 
@@ -160,6 +162,15 @@ export default function Houses() {
     setCurrentPage(1);
   };
 
+  if (showCreate) {
+    return (
+      <CreateHousePage
+        onBack={() => setShowCreate(false)}
+        onSubmit={() => { setShowCreate(false); refetch(); }}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -174,7 +185,7 @@ export default function Houses() {
         <button
           type="button"
           className="flex items-center gap-2 px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold rounded-xl shadow-sm transition"
-          onClick={() => console.log("TODO: open create")}
+          onClick={() => setShowCreate(true)}
         >
           <Plus className="w-4 h-4" />
           Thêm bất động sản

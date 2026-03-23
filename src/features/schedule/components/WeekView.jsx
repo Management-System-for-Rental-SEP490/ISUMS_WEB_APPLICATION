@@ -96,9 +96,11 @@ export default function WeekView({
   const today = new Date();
   const weekDays = getWeekDays(weekBase);
 
-  const workingDays = weekDays
-    .map((day, idx) => ({ day, idx }))
-    .filter(({ idx }) => template.workDays.includes(idx));
+  const workingDays = weekDays.map((day, idx) => ({
+    day,
+    idx,
+    isWorkDay: template.workDays.includes(idx),
+  }));
 
   const colCount = workingDays.length;
   const gridCols = `72px repeat(${colCount}, minmax(0, 1fr))`;
@@ -151,20 +153,26 @@ export default function WeekView({
               style={{ gridTemplateColumns: gridCols }}
             >
               <div className="border-r border-slate-100" />
-              {workingDays.map(({ day, idx }) => {
+              {workingDays.map(({ day, idx, isWorkDay }) => {
                 const isToday = isSameDay(day, today);
                 return (
                   <div
                     key={idx}
-                    className={`py-3.5 text-center border-r border-slate-100 last:border-r-0 ${isToday ? "bg-teal-50/60" : ""}`}
+                    className={`py-3.5 text-center border-r border-slate-100 last:border-r-0 ${
+                      isToday ? "bg-teal-50/60" : !isWorkDay ? "bg-slate-50" : ""
+                    }`}
                   >
                     <p
-                      className={`text-[11px] font-semibold uppercase tracking-wider ${isToday ? "text-teal-500" : "text-slate-400"}`}
+                      className={`text-[11px] font-semibold uppercase tracking-wider ${
+                        isToday ? "text-teal-500" : !isWorkDay ? "text-slate-300" : "text-slate-400"
+                      }`}
                     >
                       {DAY_NAMES_LONG[idx]}
                     </p>
                     <p
-                      className={`text-xl font-bold mt-0.5 ${isToday ? "text-teal-600" : "text-slate-800"}`}
+                      className={`text-xl font-bold mt-0.5 ${
+                        isToday ? "text-teal-600" : !isWorkDay ? "text-slate-300" : "text-slate-800"
+                      }`}
                     >
                       {day.getDate()}
                     </p>
@@ -205,7 +213,7 @@ export default function WeekView({
                   </div>
 
                   {/* Day cells */}
-                  {workingDays.map(({ day, idx }) => {
+                  {workingDays.map(({ day, idx, isWorkDay }) => {
                     const isToday = isSameDay(day, today);
                     const dateKey = localDateStr(day);
                     const cellSlots = slotGrid[dateKey]?.[ts.start] ?? [];
@@ -221,7 +229,9 @@ export default function WeekView({
                             ? "bg-teal-50/40 ring-1 ring-inset ring-teal-200"
                             : isToday
                               ? "bg-teal-50/20"
-                              : ""
+                              : !isWorkDay
+                                ? "bg-slate-50/70"
+                                : ""
                         }`}
                       >
                         {cellSlots.length > 0 && (
