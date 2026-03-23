@@ -132,6 +132,19 @@ export async function getWorkSlotsInRange(start, end) {
 }
 
 /**
+ * Get all maintenance plans.
+ * @returns {Promise<Array>} List of plans
+ */
+export async function getMaintenancePlans() {
+  try {
+    const response = await api.get(MAINTENANCE_ENDPOINTS.PLANS);
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
  * Get all maintenance jobs.
  * @returns {Promise<Array>} List of jobs { id, planId, houseId, periodStartDate, dueDate, status }
  */

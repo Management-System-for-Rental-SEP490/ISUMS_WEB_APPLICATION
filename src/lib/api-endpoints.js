@@ -76,6 +76,8 @@ export const NOTIFICATIONS_ENDPOINTS = {
 
 // Maintenance endpoints
 export const MAINTENANCE_ENDPOINTS = {
+  PLANS: "/maintenances/plans",
+  PLANS_BY_ID: (planId) => `/maintenances/plans/${planId}`,
   JOBS: "/maintenances/jobs",
   JOBS_BY_ID: (jobId) => `/maintenances/jobs/${jobId}`,
   // SLOT_JOBS: (id) => `/maintenance/slots/${id}/jobs`,
