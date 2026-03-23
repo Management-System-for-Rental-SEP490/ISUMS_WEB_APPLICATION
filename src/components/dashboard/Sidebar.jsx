@@ -32,8 +32,8 @@ export default function Sidebar({
   );
   const [maintenanceOpen, setMaintenanceOpen] = useState(
     activeMenu === "maintenance" ||
-    activeMenu === "maintenance-plans" ||
-    activeMenu === "maintenance-jobs",
+      activeMenu === "maintenance-plans" ||
+      activeMenu === "maintenance-jobs",
   );
   const roles = useAuthStore((s) => s.roles ?? []);
   const isAdmin = roles.includes("ADMIN");
@@ -55,10 +55,10 @@ export default function Sidebar({
   };
 
   const topMenuItems = [
-    { id: "dashboard", label: "Bảng Điều Khiển", icon: Home     },
-    { id: "houses",    label: "Bất Động Sản",     icon: Building2 },
-    { id: "utilities", label: "Tiện Ích",          icon: Zap      },
-    { id: "users",     label: "Người Dùng",        icon: Users    },
+    { id: "dashboard", label: "Bảng Điều Khiển", icon: Home },
+    { id: "houses", label: "Bất Động Sản", icon: Building2 },
+    { id: "utilities", label: "Tiện Ích", icon: Zap },
+    { id: "users", label: "Người Dùng", icon: Users },
   ];
 
   const isMaintenanceActive =
@@ -129,7 +129,9 @@ export default function Sidebar({
                     ISUMS
                   </h1>
                   <p className="text-[10px] font-medium text-slate-400 leading-snug whitespace-normal">
-                    Hệ thống nhà cho thuê<br />thông minh
+                    Hệ thống nhà cho thuê
+                    <br />
+                    thông minh
                   </p>
                 </div>
               )}
@@ -197,7 +199,9 @@ export default function Sidebar({
             <CalendarDays className="w-[18px] h-[18px] flex-shrink-0" />
             {isOpen && (
               <>
-                <span className="text-sm font-medium flex-1">Lịch Sửa Chữa</span>
+                <span className="text-sm font-medium flex-1">
+                  Lịch Sửa Chữa
+                </span>
                 <ChevronDown
                   className={[
                     "w-4 h-4 transition-transform duration-200",
@@ -248,7 +252,7 @@ export default function Sidebar({
                 ].join(" ")}
               >
                 <ClipboardList className="w-4 h-4 flex-shrink-0" />
-                <span>Công việc</span>
+                <span>Công việc bảo trì</span>
               </a>
             </div>
           )}

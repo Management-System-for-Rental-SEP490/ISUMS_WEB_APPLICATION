@@ -15,16 +15,18 @@ function formatDate(value) {
 
 function normalizePlan(raw) {
   return {
-    id:          raw.id,
-    name:        raw.name        ?? raw.planName      ?? "—",
-    houseName:   raw.houseName   ?? raw.house?.name   ?? raw.houseId ?? "—",
-    type:        raw.type        ?? raw.maintenanceType ?? "GENERAL",
-    cycle:       raw.cycle       ?? raw.cycleType     ?? raw.frequency ?? "MONTHLY",
-    status:      raw.status      ?? "INACTIVE",
-    nextRunDate: raw.nextRunDate ?? raw.nextScheduleDate
-                  ? formatDate(raw.nextRunDate ?? raw.nextScheduleDate)
-                  : "—",
-    jobCount:    raw.jobCount    ?? raw.totalJobs     ?? 0,
+    id:            raw.id,
+    name:          raw.name ?? raw.planName ?? "—",
+    houseName:     raw.houseName ?? raw.house?.name ?? raw.houseId ?? "—",
+    type:          raw.type ?? raw.maintenanceType ?? "GENERAL",
+    cycle:         raw.frequencyType ?? raw.cycle ?? raw.cycleType ?? raw.frequency ?? "MONTHLY",
+    status:        raw.isActive !== undefined
+                     ? (raw.isActive ? "ACTIVE" : "INACTIVE")
+                     : (raw.status ?? "INACTIVE"),
+    nextRunDate:   formatDate(raw.nextRunAt ?? raw.nextRunDate ?? raw.nextScheduleDate),
+    effectiveFrom: formatDate(raw.effectiveFrom),
+    effectiveTo:   formatDate(raw.effectiveTo),
+    jobCount:      raw.jobCount ?? raw.totalJobs ?? 0,
   };
 }
 
