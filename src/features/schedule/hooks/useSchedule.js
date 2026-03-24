@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 // import { toast } from "react-toastify";
 import { getWorkSlotsInRange, getWorkTemplate } from "../api/schedule.api";
 import { buildWorkSlotGrid } from "../utils/mapScheduleFromApi";
-import { buildTimeSlotsFromTemplate } from "../utils/dateHelpers";
 
 /**
  * Fallback template used only when the API call fails.
@@ -82,14 +81,13 @@ function mapTemplateFromApi(raw) {
  *
  * @param {string} startDateStr "YYYY-MM-DD"
  * @param {string} endDateStr   "YYYY-MM-DD"
- * @returns {{ slotGrid, template, timeSlots, loading, error, refetch }}
+ * @returns {{ slotGrid, template, loading, error, refetch }}
  */
 export function useWorkSchedule(startDateStr, endDateStr) {
-  const [slotGrid,   setSlotGrid]   = useState({});
-  const [template,   setTemplate]   = useState(DEFAULT_WORK_TEMPLATE);
-  const [timeSlots,  setTimeSlots]  = useState(() => buildTimeSlotsFromTemplate(DEFAULT_WORK_TEMPLATE));
-  const [loading,    setLoading]    = useState(true);
-  const [error,      setError]      = useState(null);
+  const [slotGrid,  setSlotGrid]  = useState({});
+  const [template,  setTemplate]  = useState(DEFAULT_WORK_TEMPLATE);
+  const [loading,   setLoading]   = useState(true);
+  const [error,     setError]     = useState(null);
 
   const fetch = useCallback(async () => {
     setLoading(true);
@@ -104,7 +102,6 @@ export function useWorkSchedule(startDateStr, endDateStr) {
 
       const tpl = rawTemplate ? mapTemplateFromApi(rawTemplate) : DEFAULT_WORK_TEMPLATE;
       setTemplate(tpl);
-      setTimeSlots(buildTimeSlotsFromTemplate(tpl));
     } catch (err) {
       setError(err.message);
     } finally {
@@ -116,7 +113,7 @@ export function useWorkSchedule(startDateStr, endDateStr) {
     fetch();
   }, [fetch]);
 
-  return { slotGrid, template, timeSlots, loading, error, refetch: fetch };
+  return { slotGrid, template, loading, error, refetch: fetch };
 }
 
 /**

@@ -3,6 +3,7 @@ import { ClipboardList, Plus, RefreshCw } from "lucide-react";
 import MaintenancePlanList from "../components/maintenance/MaintenancePlanList";
 import CreatePlanDrawer from "../components/maintenance/CreatePlanDrawer";
 import PlanJobsDrawer from "../components/maintenance/PlanJobsDrawer";
+import PlanDetailDrawer from "../components/maintenance/PlanDetailDrawer";
 import AssignStaffModal from "../components/maintenance/AssignStaffModal";
 import { getMaintenancePlans } from "../api/schedule.api";
 
@@ -15,16 +16,18 @@ function formatDate(value) {
 
 function normalizePlan(raw) {
   return {
-    id:          raw.id,
-    name:        raw.name        ?? raw.planName      ?? "—",
-    houseName:   raw.houseName   ?? raw.house?.name   ?? raw.houseId ?? "—",
-    type:        raw.type        ?? raw.maintenanceType ?? "GENERAL",
-    cycle:       raw.cycle       ?? raw.cycleType     ?? raw.frequency ?? "MONTHLY",
-    status:      raw.status      ?? "INACTIVE",
-    nextRunDate: raw.nextRunDate ?? raw.nextScheduleDate
-                  ? formatDate(raw.nextRunDate ?? raw.nextScheduleDate)
-                  : "—",
-    jobCount:    raw.jobCount    ?? raw.totalJobs     ?? 0,
+    id:            raw.id,
+    name:          raw.name ?? raw.planName ?? "—",
+    houseName:     raw.houseName ?? raw.house?.name ?? raw.houseId ?? "—",
+    type:          raw.type ?? raw.maintenanceType ?? "GENERAL",
+    cycle:         raw.frequencyType ?? raw.cycle ?? raw.cycleType ?? raw.frequency ?? "MONTHLY",
+    status:        raw.isActive !== undefined
+                     ? (raw.isActive ? "ACTIVE" : "INACTIVE")
+                     : (raw.status ?? "INACTIVE"),
+    nextRunDate:   formatDate(raw.nextRunAt ?? raw.nextRunDate ?? raw.nextScheduleDate),
+    effectiveFrom: formatDate(raw.effectiveFrom),
+    effectiveTo:   formatDate(raw.effectiveTo),
+    jobCount:      raw.jobCount ?? raw.totalJobs ?? 0,
   };
 }
 
@@ -35,6 +38,7 @@ export default function MaintenancePlansPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [selectedJob,  setSelectedJob]  = useState(null);
+  const [detailPlan,   setDetailPlan]   = useState(null);
 
   const fetchPlans = () => {
     setLoading(true);
@@ -48,7 +52,15 @@ export default function MaintenancePlansPage() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchPlans(); }, []);
+  useEffect(() => {
+    getMaintenancePlans()
+      .then((data) => {
+        const raw = Array.isArray(data) ? data : (data?.data ?? data?.items ?? []);
+        setPlans(raw.map(normalizePlan));
+      })
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
 
   const activeCount = plans.filter((p) => p.status === "ACTIVE").length;
 
@@ -142,7 +154,7 @@ export default function MaintenancePlansPage() {
         <MaintenancePlanList
           plans={plans}
           onViewJobs={(plan) => setSelectedPlan(plan)}
-          onEdit={() => {}}
+          onEdit={(plan) => setDetailPlan(plan)}
         />
       )}
 
@@ -161,6 +173,13 @@ export default function MaintenancePlansPage() {
         plan={selectedPlan}
         onClose={() => setSelectedPlan(null)}
         onAssignStaff={(job) => setSelectedJob(job)}
+      />
+
+      <PlanDetailDrawer
+        key={detailPlan?.id ?? "none"}
+        open={!!detailPlan}
+        planId={detailPlan?.id}
+        onClose={() => setDetailPlan(null)}
       />
 
       <AssignStaffModal
