@@ -1,4 +1,4 @@
-import { Calendar, ChevronRight, Clock, MoreVertical } from "lucide-react";
+import { Calendar, Clock, ChevronRight } from "lucide-react";
 
 const CYCLE_LABELS = {
   WEEKLY: "Hàng tuần",
@@ -43,13 +43,17 @@ const STATUS_CONFIG = {
 };
 
 
-export default function MaintenancePlanCard({ plan, onViewJobs, onEdit }) {
+export default function MaintenancePlanCard({ plan, onEdit }) {
   const type = TYPE_CONFIG[plan.type] ?? TYPE_CONFIG.GENERAL;
   const status = STATUS_CONFIG[plan.status] ?? { label: plan.status ?? "—", dot: "bg-slate-300", text: "text-slate-500" };
   const cycle = CYCLE_LABELS[plan.cycle] ?? plan.cycle;
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow">
+    <button
+      type="button"
+      onClick={onEdit}
+      className="w-full text-left bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-teal-300 transition-all cursor-pointer"
+    >
       {/* Header */}
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="flex-1 min-w-0">
@@ -62,13 +66,7 @@ export default function MaintenancePlanCard({ plan, onViewJobs, onEdit }) {
             {plan.name}
           </h4>
         </div>
-        <button
-          type="button"
-          onClick={onEdit}
-          className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition flex-shrink-0"
-        >
-          <MoreVertical className="w-4 h-4" />
-        </button>
+        <ChevronRight className="w-4 h-4 text-slate-300 flex-shrink-0 mt-1" />
       </div>
 
       {/* Effective period */}
@@ -96,22 +94,12 @@ export default function MaintenancePlanCard({ plan, onViewJobs, onEdit }) {
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between">
-        <span
-          className={`flex items-center gap-1.5 text-xs font-medium ${status.text}`}
-        >
+      <div className="flex items-center">
+        <span className={`flex items-center gap-1.5 text-xs font-medium ${status.text}`}>
           <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
           {status.label}
         </span>
-        <button
-          type="button"
-          onClick={onViewJobs}
-          className="flex items-center gap-1 text-xs font-semibold text-teal-600 hover:text-teal-700 transition"
-        >
-          {plan.jobCount} công việc
-          <ChevronRight className="w-3.5 h-3.5" />
-        </button>
       </div>
-    </div>
+    </button>
   );
 }

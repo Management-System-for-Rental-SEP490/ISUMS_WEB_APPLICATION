@@ -26,7 +26,6 @@ export default function SchedulePage() {
   const {
     slotGrid,
     template,
-    timeSlots,
     loading: weekLoading,
     refetch: refetchWeek,
   } = useWorkSchedule(startStr, endStr);
@@ -228,7 +227,6 @@ export default function SchedulePage() {
           onNext={nextWeek}
           slotGrid={slotGrid}
           template={template}
-          timeSlots={timeSlots}
           loading={weekLoading}
         />
       ) : (
@@ -254,8 +252,10 @@ export default function SchedulePage() {
             Chú thích trạng thái:
           </span>
           {[
-            { dot: "bg-teal-500", label: "Đã đặt (Booked)" },
-            { dot: "bg-red-400", label: "Đã hủy (Cancelled)" },
+            { dot: "bg-teal-500",   label: "Bảo trì" },
+            { dot: "bg-orange-500", label: "Sửa chữa" },
+            { dot: "bg-blue-500",   label: "Kiểm tra" },
+            { dot: "bg-purple-500", label: "Vệ sinh" },
           ].map(({ dot, label }) => (
             <span key={label} className="flex items-center gap-1.5">
               <span className={`w-2.5 h-2.5 rounded-full ${dot}`} />
