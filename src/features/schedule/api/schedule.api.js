@@ -3,7 +3,7 @@ import {
   MAINTENANCE_ENDPOINTS,
   SCHEDULE_ENDPOINTS,
 } from "../../../lib/api-endpoints";
-import { extractResponseData, getErrorMessage } from "../../../lib/api-helpers";
+import { extractResponseData, getErrorMessage, throwApiError } from "../../../lib/api-helpers";
 
 /**
  * Get all slots within a date range (used by week view).
@@ -184,7 +184,7 @@ export async function createWorkSlot(payload) {
     const response = await api.post(SCHEDULE_ENDPOINTS.WORK_SLOTS, payload);
     return extractResponseData(response);
   } catch (error) {
-    throw new Error(getErrorMessage(error));
+    throwApiError(error);
   }
 }
 

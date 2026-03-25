@@ -3,8 +3,6 @@
  * Centralized endpoint definitions for the application
  */
 
-import { id } from "zod/v4/locales";
-
 // Auth endpoints
 export const AUTH_ENDPOINTS = {
   GET: "users/{email}",
