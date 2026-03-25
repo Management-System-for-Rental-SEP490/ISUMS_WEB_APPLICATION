@@ -3,8 +3,6 @@
  * Centralized endpoint definitions for the application
  */
 
-import { id } from "zod/v4/locales";
-
 // Auth endpoints
 export const AUTH_ENDPOINTS = {
   GET: "users/{email}",
@@ -80,6 +78,7 @@ export const MAINTENANCE_ENDPOINTS = {
   PLANS_BY_ID: (planId) => `/maintenances/plans/${planId}`,
   JOBS: "/maintenances/jobs",
   JOBS_BY_ID: (jobId) => `/maintenances/jobs/${jobId}`,
+  JOBS_BY_STATUS: "/maintenances/jobs/status",
   // SLOT_JOBS: (id) => `/maintenance/slots/${id}/jobs`,
   // JOB_BY_ID: (id) => `/maintenance/jobs/${id}`,
   // BY_WEEK: "/maintenance/slots/week",
@@ -88,6 +87,7 @@ export const MAINTENANCE_ENDPOINTS = {
 
 // Schedule endpoints
 export const SCHEDULE_ENDPOINTS = {
+  WORK_SLOTS: "/schedules/work_slots",
   WORK_SLOTS_CURRENT: "/schedules/work_slots/current",
   TEMPLATES_CURRENT: (date) => `/schedules/templates/current/${date}`,
 };

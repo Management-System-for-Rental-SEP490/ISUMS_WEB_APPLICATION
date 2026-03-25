@@ -40,7 +40,7 @@ const DAY_NAME_TO_IDX = {
   MON: 0, TUE: 1, WED: 2, THU: 3, FRI: 4, SAT: 5, SUN: 6,
 };
 
-function mapTemplateFromApi(raw) {
+export function mapTemplateFromApi(raw) {
   // workingDays can be a comma-separated string "MON,TUE,..." or an array
   const daySource = raw.workingDays ?? raw.workDays;
   let workDays;

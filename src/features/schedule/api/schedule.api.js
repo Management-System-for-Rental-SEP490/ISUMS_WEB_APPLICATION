@@ -3,7 +3,7 @@ import {
   MAINTENANCE_ENDPOINTS,
   SCHEDULE_ENDPOINTS,
 } from "../../../lib/api-endpoints";
-import { extractResponseData, getErrorMessage } from "../../../lib/api-helpers";
+import { extractResponseData, getErrorMessage, throwApiError } from "../../../lib/api-helpers";
 
 /**
  * Get all slots within a date range (used by week view).
@@ -155,6 +155,36 @@ export async function getMaintenancePlans() {
     return extractResponseData(response);
   } catch (error) {
     throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Get maintenance jobs filtered by status.
+ * @param {string} status - e.g. "CREATED"
+ * @returns {Promise<Array>}
+ */
+export async function getMaintenanceJobsByStatus(status) {
+  try {
+    const response = await api.get(MAINTENANCE_ENDPOINTS.JOBS_BY_STATUS, {
+      params: { status },
+    });
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Create a new work slot.
+ * @param {{ staffId: string, jobId: string, jobType: string, startTime: string }} payload
+ * @returns {Promise<Object>} Created work slot
+ */
+export async function createWorkSlot(payload) {
+  try {
+    const response = await api.post(SCHEDULE_ENDPOINTS.WORK_SLOTS, payload);
+    return extractResponseData(response);
+  } catch (error) {
+    throwApiError(error);
   }
 }
 
