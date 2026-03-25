@@ -31,10 +31,9 @@ export default function Sidebar({
     activeMenu === "contracts" || activeMenu === "contracts-sign",
   );
   const [maintenanceOpen, setMaintenanceOpen] = useState(
-    activeMenu === "maintenance" ||
-      activeMenu === "maintenance-plans" ||
-      activeMenu === "maintenance-jobs",
+    ["maintenance", "maintenance-plans", "maintenance-jobs"].includes(activeMenu),
   );
+  const isMaintenanceActive = ["maintenance", "maintenance-plans", "maintenance-jobs"].includes(activeMenu);
   const roles = useAuthStore((s) => s.roles ?? []);
   const isAdmin = roles.includes("ADMIN");
   const isLandlord = roles.includes("LANDLORD");
@@ -43,6 +42,15 @@ export default function Sidebar({
   const handleNavClick = (e, menuId) => {
     e.preventDefault();
     setActiveMenu(menuId);
+  };
+
+  const handleMaintenanceToggle = (e) => {
+    e.preventDefault();
+    if (!isOpen) {
+      setActiveMenu("maintenance");
+    } else {
+      setMaintenanceOpen((prev) => !prev);
+    }
   };
 
   const handleContractsToggle = (e) => {
@@ -55,25 +63,11 @@ export default function Sidebar({
   };
 
   const topMenuItems = [
-    { id: "dashboard", label: "Bảng Điều Khiển", icon: Home },
-    { id: "houses", label: "Bất Động Sản", icon: Building2 },
-    { id: "utilities", label: "Tiện Ích", icon: Zap },
-    { id: "users", label: "Người Dùng", icon: Users },
+    { id: "dashboard",    label: "Bảng Điều Khiển",  icon: Home },
+    { id: "houses",       label: "Bất Động Sản",      icon: Building2 },
+    { id: "utilities",    label: "Tiện Ích",           icon: Zap },
+    { id: "users",        label: "Người Dùng",         icon: Users },
   ];
-
-  const isMaintenanceActive =
-    activeMenu === "maintenance" ||
-    activeMenu === "maintenance-plans" ||
-    activeMenu === "maintenance-jobs";
-
-  const handleMaintenanceToggle = (e) => {
-    e.preventDefault();
-    if (!isOpen) {
-      setActiveMenu("maintenance");
-    } else {
-      setMaintenanceOpen((prev) => !prev);
-    }
-  };
 
   const isContractsActive =
     activeMenu === "contracts" || activeMenu === "contracts-sign";
@@ -129,9 +123,7 @@ export default function Sidebar({
                     ISUMS
                   </h1>
                   <p className="text-[10px] font-medium text-slate-400 leading-snug whitespace-normal">
-                    Hệ thống nhà cho thuê
-                    <br />
-                    thông minh
+                    Hệ thống nhà cho thuê<br />thông minh
                   </p>
                 </div>
               )}
@@ -184,6 +176,7 @@ export default function Sidebar({
               )}
             </a>
           ))}
+
 
           {/* Maintenance group */}
           <a
@@ -252,7 +245,7 @@ export default function Sidebar({
                 ].join(" ")}
               >
                 <ClipboardList className="w-4 h-4 flex-shrink-0" />
-                <span>Công việc bảo trì</span>
+                <span>Danh sách công việc</span>
               </a>
             </div>
           )}

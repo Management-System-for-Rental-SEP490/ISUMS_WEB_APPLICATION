@@ -1,380 +1,243 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { X, Wrench, AlertTriangle, ChevronDown, Clock } from "lucide-react";
-import { DAY_NAMES_LONG, MONTH_NAMES } from "../constants";
+import { X, Wrench, AlertTriangle, Clock, CheckCircle2 } from "lucide-react";
+import { getMaintenanceJobsByStatus, createWorkSlot, getWorkTemplate } from "../api/schedule.api";
+import { buildTimeSlotsFromTemplate, localDateStr } from "../utils/dateHelpers";
+import { mapTemplateFromApi } from "../hooks/useSchedule";
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
+// staffId hardcoded — chưa tích hợp API nhân viên
+const HARDCODED_STAFF_ID = "11111111-1111-1111-1111-111111111111";
 
-const MOCK_STAFF = [
-  {
-    id: "1",
-    name: "Anh Tuấn",
-    status: "available",
-    statusLabel: "SẴN SÀNG",
-    avatar: "AT",
-    avatarBg: "bg-slate-600",
-  },
-  {
-    id: "2",
-    name: "Minh Hạnh",
-    status: "busy",
-    statusLabel: "Bận (1h)",
-    avatar: "MH",
-    avatarBg: "bg-slate-400",
-  },
-  {
-    id: "3",
-    name: "Trọng Nghĩa",
-    status: "available",
-    statusLabel: "Sẵn sàng",
-    avatar: "TN",
-    avatarBg: "bg-slate-700",
-  },
-];
+const DEFAULT_TEMPLATE = {
+  startTime: "08:00", endTime: "17:00",
+  breakStart: "12:00", breakEnd: "13:00",
+  slotDurationMinutes: 60, bufferMinutes: 15,
+};
 
-const MOCK_PROJECTS = [
-  {
-    id: "1",
-    name: "Vinhomes Central Park",
-    location: "Lô L4-2201 • Tầng 22",
-  },
-  { id: "2", name: "The Sun Avenue", location: "Block B • Tầng 10" },
-  { id: "3", name: "Masteri Thảo Điền", location: "T1 • Tầng 15" },
-];
-
-const MOCK_TIME_SLOTS = [
-  "08:00-09:00",
-  "09:15-10:15",
-  "10:30-11:30",
-  "13:00-14:00",
-];
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatDateBadge(date) {
-  const d = date instanceof Date ? date : new Date();
-  const dayIdx = (d.getDay() + 6) % 7;
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${DAY_NAMES_LONG[dayIdx]}, ${day} ${MONTH_NAMES[d.getMonth()]}`;
+function formatDateVN(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (isNaN(d)) return iso;
+  return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-// ─── CreateShiftModal ─────────────────────────────────────────────────────────
+export default function CreateShiftModal({ open, onClose, onCreated }) {
+  const today = new Date();
+  const [visible, setVisible]         = useState(false);
+  const [jobType]                     = useState("MAINTENANCE"); // ISSUE chưa có API
+  const [jobs, setJobs]               = useState([]);
+  const [jobsLoading, setJobsLoading] = useState(false);
+  const [timeSlots, setTimeSlots]     = useState([]);
+  const [selectedJobId, setSelectedJobId]       = useState(null);
+  const [selectedDate, setSelectedDate]         = useState(localDateStr(today));
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState(null);
+  const [submitting, setSubmitting]   = useState(false);
+  const [error, setError]             = useState(null);
 
-/**
- * Props:
- *   open      boolean
- *   onClose   () => void
- *   onSubmit  (data) => void   (optional)
- */
-export default function CreateShiftModal({ open, onClose, onSubmit }) {
-  const [visible, setVisible] = useState(false);
-
-  const [jobType, setJobType] = useState("maintenance"); // "maintenance" | "issue"
-  const [selectedStaffId, setSelectedStaffId] = useState("1");
-  const [selectedProjectId, setSelectedProjectId] = useState("1");
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState("09:15-10:15");
-  const [projectOpen, setProjectOpen] = useState(false);
-
-  // Animate in/out
+  // Animate in
   useEffect(() => {
-    if (open) {
-      const raf = requestAnimationFrame(() => setVisible(true));
-      return () => cancelAnimationFrame(raf);
-    }
+    if (open) requestAnimationFrame(() => setVisible(true));
   }, [open]);
 
-  // Close with animation
+  // Fetch jobs + template khi mở
+  useEffect(() => {
+    if (!open) return;
+    setSelectedJobId(null);
+    setSelectedTimeSlot(null);
+    setError(null);
+
+    setJobsLoading(true);
+    getMaintenanceJobsByStatus("CREATED")
+      .then((data) => setJobs(Array.isArray(data) ? data : (data?.data ?? [])))
+      .catch(() => setJobs([]))
+      .finally(() => setJobsLoading(false));
+
+    getWorkTemplate(localDateStr(today))
+      .then((raw) => setTimeSlots(buildTimeSlotsFromTemplate(raw ? mapTemplateFromApi(raw) : DEFAULT_TEMPLATE)))
+      .catch(() => setTimeSlots(buildTimeSlotsFromTemplate(DEFAULT_TEMPLATE)));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  // Escape key
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => { if (e.key === "Escape") handleClose(); };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   const handleClose = () => {
     setVisible(false);
     setTimeout(onClose, 200);
   };
 
-  // Escape key
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e) => {
-      if (e.key === "Escape") handleClose();
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
-  const handleSubmit = () => {
-    const project = MOCK_PROJECTS.find((p) => p.id === selectedProjectId);
-    const staff = MOCK_STAFF.find((s) => s.id === selectedStaffId);
-    const data = { jobType, staff, project, timeSlot: selectedTimeSlot };
-    onSubmit?.(data);
-    handleClose();
+  const handleSubmit = async () => {
+    if (!selectedJobId || !selectedTimeSlot || !selectedDate) return;
+    setError(null);
+    setSubmitting(true);
+    try {
+      await createWorkSlot({
+        staffId:   HARDCODED_STAFF_ID,
+        jobId:     selectedJobId,
+        jobType:   jobType,
+        startTime: `${selectedDate}T${selectedTimeSlot.start}:00`,
+      });
+      onCreated?.();
+      handleClose();
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  if (!open) return null;
+  const canSubmit = !!selectedJobId && !!selectedTimeSlot && !!selectedDate && !submitting;
 
-  const today = new Date();
-  const dateBadge = formatDateBadge(today);
-  const selectedProject = MOCK_PROJECTS.find((p) => p.id === selectedProjectId);
+  if (!open) return null;
 
   return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-200"
-      style={{
-        backgroundColor: "rgba(30,41,59,0.45)",
-        backdropFilter: "blur(3px)",
-        opacity: visible ? 1 : 0,
-      }}
+      style={{ backgroundColor: "rgba(30,41,59,0.45)", backdropFilter: "blur(3px)", opacity: visible ? 1 : 0 }}
       onClick={handleClose}
     >
-      {/* Modal card */}
       <div
-        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transition-all duration-200 ease-out"
-        style={{
-          transform: visible
-            ? "translateY(0) scale(1)"
-            : "translateY(24px) scale(0.96)",
-          opacity: visible ? 1 : 0,
-        }}
+        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden transition-all duration-200 ease-out"
+        style={{ transform: visible ? "translateY(0) scale(1)" : "translateY(24px) scale(0.96)", opacity: visible ? 1 : 0 }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* ── Header ── */}
-        <div className="px-6 pt-6 pb-4 border-b border-slate-100">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h3 className="text-[17px] font-bold text-slate-800 leading-tight">
-                Tạo ca làm việc mới
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Thiết lập thông tin điều phối công việc IoT
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={handleClose}
-              className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition flex-shrink-0"
-            >
-              <X className="w-4 h-4" />
-            </button>
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-[17px] font-bold text-slate-800 leading-tight">Tạo ca làm việc mới</h3>
+            <p className="text-xs text-slate-400 mt-0.5">Phân công công việc bảo trì cho nhân viên</p>
           </div>
+          <button type="button" onClick={handleClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 transition">
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
-        {/* ── Body ── */}
-        <div className="px-6 py-5 space-y-5">
-
+        <div className="px-6 py-5 space-y-5 overflow-y-auto max-h-[70vh]">
           {/* Loại công việc */}
           <div>
-            <p className="text-[13px] font-semibold text-slate-700 mb-2.5">
-              Loại công việc
-            </p>
+            <p className="text-[13px] font-semibold text-slate-700 mb-2.5">Loại công việc</p>
             <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setJobType("maintenance")}
-                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-sm font-semibold transition
-                  ${
-                    jobType === "maintenance"
-                      ? "bg-slate-800 text-white border-slate-800 shadow-sm"
-                      : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
-                  }`}
-              >
-                <Wrench className="w-3.5 h-3.5" />
-                Bảo trì
-              </button>
-              <button
-                type="button"
-                onClick={() => setJobType("issue")}
-                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-sm font-semibold transition
-                  ${
-                    jobType === "issue"
-                      ? "bg-slate-800 text-white border-slate-800 shadow-sm"
-                      : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
-                  }`}
-              >
-                <AlertTriangle className="w-3.5 h-3.5" />
-                Xử lý vấn đề
-              </button>
+              <div className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border bg-slate-800 text-white border-slate-800 text-sm font-semibold">
+                <Wrench className="w-3.5 h-3.5" /> Bảo trì
+              </div>
+              <div className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-300 text-sm font-semibold cursor-not-allowed select-none">
+                <AlertTriangle className="w-3.5 h-3.5" /> Sửa chữa
+                <span className="text-[9px] bg-slate-200 text-slate-400 px-1.5 py-0.5 rounded-full">Sắp có</span>
+              </div>
             </div>
           </div>
 
-          {/* Nhân viên thực hiện */}
+          {/* Chọn công việc */}
+          <div>
+            <p className="text-[13px] font-semibold text-slate-700 mb-2.5">
+              Công việc cần thực hiện
+              <span className="ml-1.5 text-[11px] font-normal text-slate-400">(trạng thái: Chờ xếp lịch)</span>
+            </p>
+            {jobsLoading ? (
+              <div className="space-y-2">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-14 bg-slate-100 rounded-xl animate-pulse" />
+                ))}
+              </div>
+            ) : jobs.length === 0 ? (
+              <p className="text-xs text-slate-400 text-center py-4">Không có công việc nào cần xếp lịch</p>
+            ) : (
+              <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                {jobs.map((job) => {
+                  const isSelected = selectedJobId === job.id;
+                  return (
+                    <button
+                      key={job.id}
+                      type="button"
+                      onClick={() => setSelectedJobId(job.id)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition
+                        ${isSelected ? "border-teal-400 bg-teal-50 shadow-sm" : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"}`}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[12px] font-semibold text-slate-700 truncate">
+                          Kỳ: {formatDateVN(job.periodStartDate)} → {formatDateVN(job.dueDate)}
+                        </p>
+                      </div>
+                      {isSelected && <CheckCircle2 className="w-4 h-4 text-teal-500 flex-shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Ngày làm việc */}
+          <div>
+            <p className="text-[13px] font-semibold text-slate-700 mb-2.5">Ngày làm việc</p>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition"
+            />
+          </div>
+
+          {/* Khung giờ */}
           <div>
             <div className="flex items-center justify-between mb-2.5">
-              <p className="text-[13px] font-semibold text-slate-700">
-                Nhân viên thực hiện
-              </p>
-              <button
-                type="button"
-                className="text-[11px] font-bold text-teal-600 hover:text-teal-700 uppercase tracking-wide transition"
-              >
-                XEM TẤT CẢ
-              </button>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {MOCK_STAFF.map((staff) => {
-                const isSelected = selectedStaffId === staff.id;
-                const isAvailable = staff.status === "available";
-                return (
-                  <button
-                    key={staff.id}
-                    type="button"
-                    onClick={() => setSelectedStaffId(staff.id)}
-                    className={`relative flex flex-col items-center gap-2 py-3 px-2 rounded-xl border text-center transition
-                      ${
-                        isSelected
-                          ? "border-teal-400 bg-teal-50/50 shadow-sm"
-                          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
-                      }`}
-                  >
-                    {/* Avatar */}
-                    <div className="relative">
-                      <div
-                        className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-bold ${staff.avatarBg}`}
-                      >
-                        {staff.avatar}
-                      </div>
-                      {/* Status dot */}
-                      {isSelected && (
-                        <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-teal-500 border-2 border-white flex items-center justify-center">
-                          <svg
-                            className="w-2 h-2 text-white"
-                            viewBox="0 0 8 8"
-                            fill="none"
-                          >
-                            <path
-                              d="M1.5 4L3.2 5.7L6.5 2.5"
-                              stroke="currentColor"
-                              strokeWidth="1.4"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-[12px] font-semibold text-slate-700 leading-tight">
-                        {staff.name}
-                      </p>
-                      <p
-                        className={`text-[10px] font-semibold mt-0.5 ${
-                          isAvailable && isSelected
-                            ? "text-teal-600"
-                            : isAvailable
-                              ? "text-slate-500"
-                              : "text-amber-500"
-                        }`}
-                      >
-                        {staff.statusLabel}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Dự án & Vị trí */}
-          <div>
-            <p className="text-[13px] font-semibold text-slate-700 mb-2.5">
-              Dự án &amp; Vị trí
-            </p>
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setProjectOpen((v) => !v)}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-l-4 border border-teal-400 bg-white hover:bg-slate-50 transition text-left shadow-sm"
-              >
-                <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-                  <svg
-                    className="w-4 h-4 text-slate-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={1.8}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0H5m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 8v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                    />
-                  </svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-bold text-slate-800 truncate">
-                    {selectedProject?.name}
-                  </p>
-                  <p className="text-[11px] text-slate-400 mt-0.5 truncate">
-                    {selectedProject?.location}
-                  </p>
-                </div>
-                <ChevronDown
-                  className={`w-4 h-4 text-slate-400 flex-shrink-0 transition-transform ${projectOpen ? "rotate-180" : ""}`}
-                />
-              </button>
-
-              {/* Dropdown */}
-              {projectOpen && (
-                <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
-                  {MOCK_PROJECTS.map((project) => (
-                    <button
-                      key={project.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedProjectId(project.id);
-                        setProjectOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition hover:bg-slate-50
-                        ${project.id === selectedProjectId ? "bg-teal-50" : ""}`}
-                    >
-                      <div>
-                        <p className="text-[13px] font-semibold text-slate-800">
-                          {project.name}
-                        </p>
-                        <p className="text-[11px] text-slate-400 mt-0.5">
-                          {project.location}
-                        </p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+              <p className="text-[13px] font-semibold text-slate-700">Khung giờ làm việc</p>
+              {timeSlots.length > 0 && (
+                <span className="text-[11px] font-semibold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-lg">
+                  {timeSlots.length} khung giờ trống
+                </span>
               )}
             </div>
+            {timeSlots.length === 0 ? (
+              <p className="text-xs text-slate-400">Đang tải khung giờ...</p>
+            ) : (
+              <div className="space-y-3">
+                {[
+                  { label: "Sáng", slots: timeSlots.filter((s) => parseInt(s.start) < 12) },
+                  { label: "Chiều", slots: timeSlots.filter((s) => parseInt(s.start) >= 12) },
+                ].filter((g) => g.slots.length > 0).map(({ label, slots }) => (
+                  <div key={label}>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-1.5">{label}</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {slots.map((slot) => {
+                        const isSelected = selectedTimeSlot?.start === slot.start;
+                        return (
+                          <button
+                            key={slot.start}
+                            type="button"
+                            onClick={() => setSelectedTimeSlot(slot)}
+                            className={`flex flex-col items-center py-2.5 rounded-xl border text-center transition
+                              ${isSelected ? "border-teal-500 bg-teal-600 text-white shadow-sm" : "border-slate-200 text-slate-600 bg-white hover:border-teal-300 hover:bg-teal-50"}`}
+                          >
+                            <span className={`text-[11px] font-bold ${isSelected ? "text-white" : "text-teal-600"}`}>
+                              {slot.start}
+                            </span>
+                            <span className={`text-[10px] mt-0.5 ${isSelected ? "text-teal-100" : "text-slate-400"}`}>
+                              – {slot.end}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Khung giờ làm việc */}
-          <div>
-            <div className="flex items-center justify-between mb-2.5">
-              <p className="text-[13px] font-semibold text-slate-700">
-                Khung giờ làm việc
-              </p>
-              <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">
-                {dateBadge}
-              </span>
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              {MOCK_TIME_SLOTS.map((slot) => {
-                const isSelected = selectedTimeSlot === slot;
-                return (
-                  <button
-                    key={slot}
-                    type="button"
-                    onClick={() => setSelectedTimeSlot(slot)}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-semibold border transition
-                      ${
-                        isSelected
-                          ? "border-teal-600 text-teal-700 bg-white shadow-sm"
-                          : "border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:bg-slate-50"
-                      }`}
-                  >
-                    <Clock className="w-3 h-3" />
-                    {slot}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          {/* Error */}
+          {error && (
+            <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">{error}</p>
+          )}
         </div>
 
-        {/* ── Footer ── */}
-        <div className="px-6 pb-6 pt-2 flex gap-3">
+        {/* Footer */}
+        <div className="px-6 pb-6 pt-2 flex gap-3 border-t border-slate-100">
           <button
             type="button"
             onClick={handleClose}
@@ -385,9 +248,10 @@ export default function CreateShiftModal({ open, onClose, onSubmit }) {
           <button
             type="button"
             onClick={handleSubmit}
-            className="flex-[2] py-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold transition shadow-sm"
+            disabled={!canSubmit}
+            className="flex-[2] py-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Tạo ca làm việc
+            {submitting ? "Đang tạo..." : "Tạo ca làm việc"}
           </button>
         </div>
       </div>
