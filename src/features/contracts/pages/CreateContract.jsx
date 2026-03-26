@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import CreateContractWizard from "../components/create/CreateContractWizard";
 import { useHouses } from "../../houses/hooks/useHouses";
 import { createContract } from "../api/contracts.api";
@@ -13,15 +13,35 @@ const getInitialForm = (todayISO) => ({
   identityNumber: "",
   houseId: "",
   dateOfIssue: "",
-  placeOfIssue: "",
+  placeOfIssue: "Cục Cảnh sát QLHC về TTXH",
   tenantAddress: "",
   startDate: todayISO,
   endDate: "",
   rentAmount: "",
   payDate: 5,
+  payCycle: "monthly",
   depositAmount: "",
   depositDate: "",
+  depositRefundDays: 30,
   handoverDate: "",
+  lateDays: 3,
+  latePenaltyPercent: 5,
+  maxLateDays: 10,
+  cureDays: 7,
+  earlyTerminationPenalty: "",
+  landlordBreachCompensation: "",
+  renewNoticeDays: 30,
+  landlordNoticeDays: 30,
+  forceMajeureNoticeHours: 24,
+  disputeDays: 30,
+  disputeForum: "",
+  copies: 2,
+  eachKeep: 1,
+  purpose: "",
+  area: "",
+  structure: "",
+  ownershipDocs: "",
+  taxFeeNote: "",
 });
 
 export default function CreateContract({ onCancel, onCreated }) {
@@ -74,7 +94,7 @@ export default function CreateContract({ onCancel, onCreated }) {
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-1">Tạo Hợp Đồng</h2>
         <p className="text-gray-600">
-          Bước 1: Thông tin chung — Bước 2: Nhà và tiền
+          Bước 1: Người thuê — Bước 2: Nhà & chi phí — Bước 3: Điều khoản
         </p>
       </div>
       {error && (
