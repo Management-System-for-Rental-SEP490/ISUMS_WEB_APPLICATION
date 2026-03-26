@@ -368,202 +368,145 @@ function DetailView({
     STATUS_LABELS[statusKey] ?? slot.status?.toUpperCase() ?? "ĐÃ ĐẶT";
 
   return (
-    <div className="flex flex-col max-h-[90vh]">
-      {/* ── Teal header ── */}
-      <div className="relative px-5 pt-5 pb-6 bg-gradient-to-br from-teal-500 to-teal-700">
-        {/* Back + Close */}
-        <div className="absolute top-3 left-3">
-          <button
-            type="button"
-            onClick={onBack}
-            className="p-1.5 rounded-lg hover:bg-white/20 text-white/80 hover:text-white transition"
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-        </div>
+    <div className="flex flex-col max-h-[90vh] overflow-y-auto bg-white">
+      {/* ── Top bar: back + close ── */}
+      <div className="flex items-center justify-between px-4 pt-4 pb-1">
+        <button
+          type="button"
+          onClick={onBack}
+          className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition"
+        >
+          <ArrowLeft className="w-4 h-4 text-slate-500" />
+        </button>
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-3 right-3 p-1.5 rounded-lg hover:bg-white/20 text-white/80 hover:text-white transition"
+          className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition"
         >
-          <X className="w-4 h-4" />
+          <X className="w-4 h-4 text-slate-500" />
         </button>
+      </div>
 
-        {/* Avatar + name */}
-        <div className="flex items-center gap-4 mt-3">
-          <div className="relative flex-shrink-0">
-            <div className="w-16 h-16 rounded-2xl bg-white/20 border-2 border-white/40 flex items-center justify-center overflow-hidden">
-              {avatarText ? (
-                <span className="text-2xl font-bold text-white">
-                  {avatarText}
-                </span>
-              ) : (
-                <User className="w-8 h-8 text-white/70" />
-              )}
-            </div>
-            <span
-              className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-teal-600 ${cfg.dot}`}
-            />
-          </div>
-
-          <div className="flex-1 min-w-0">
-            {staffLoading ? (
-              <>
-                <Skeleton className="h-5 w-36 mb-2 bg-white/20" />
-                <Skeleton className="h-3.5 w-24 bg-white/20" />
-              </>
+      {/* ── Avatar + name ── */}
+      <div className="px-6 pt-2 pb-5 text-center">
+        <div className="relative inline-block">
+          <div className="w-20 h-20 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center mx-auto overflow-hidden">
+            {avatarText ? (
+              <span className="text-2xl font-bold text-slate-600">{avatarText}</span>
             ) : (
-              <>
-                <h3 className="text-lg font-bold text-white leading-tight truncate">
-                  {staffName ?? "Nhân viên"}
-                </h3>
-                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                  <span className="text-[11px] font-semibold text-white/70 bg-white/15 px-2 py-0.5 rounded-full">
-                    ID: {slot.staffId ? slot.staffId.slice(-8) : "—"}
-                  </span>
-                  <span className="text-[11px] font-bold text-teal-900 bg-white px-2 py-0.5 rounded-full uppercase tracking-wide">
-                    {slot.jobType ?? "—"}
-                  </span>
-                </div>
-              </>
+              <User className="w-10 h-10 text-slate-400" />
             )}
           </div>
+          <span className={`absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${cfg.dot}`} />
+        </div>
+
+        {staffLoading ? (
+          <Skeleton className="h-5 w-36 mx-auto mt-3 mb-1" />
+        ) : (
+          <h3 className="text-lg font-bold text-slate-800 mt-3 leading-tight">
+            {staffName ?? "Nhân viên"}
+          </h3>
+        )}
+        <p className="text-sm text-slate-400 mt-0.5">
+          ID: {slot.staffId ? slot.staffId.slice(-8).toUpperCase() : "—"}
+        </p>
+
+        <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
+          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wide">
+            {jobTypeLabel(slot.jobType)}
+          </span>
+          <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${cfg.badge}`}>
+            {cfg.label}
+          </span>
         </div>
       </div>
 
-      {/* ── Scrollable body ── */}
-      <div className="overflow-y-auto flex-1 bg-slate-50">
-        {/* Status banner */}
-        <div className="mx-4 mt-4 mb-4 bg-white rounded-xl border border-slate-200 shadow-sm px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span
-              className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${cfg.dot}`}
-            />
-            <span className={`text-sm font-bold tracking-wide ${cfg.text}`}>
-              TRẠNG THÁI: {statusLabel}
-            </span>
+      {/* ── Info cards ── */}
+      <div className="px-5 space-y-3 pb-4">
+        {/* Time */}
+        <div className="bg-slate-50 rounded-2xl p-4 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center flex-shrink-0">
+            <Clock className="w-5 h-5 text-slate-500" />
           </div>
-          <span className="text-[11px] text-slate-400 font-medium">
-            {slot.startTimeStr}
-          </span>
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              Thời gian làm việc
+            </p>
+            <p className="text-base font-bold text-slate-800 mt-0.5">
+              {slot.startTimeStr} - {slot.endTimeStr}
+            </p>
+            <p className="text-xs text-slate-400 mt-0.5">{formatDateVN(slot.date ?? "")}</p>
+          </div>
         </div>
 
-        <div className="px-4 space-y-0 bg-white mx-4 mb-4 rounded-xl border border-slate-100 shadow-sm divide-y divide-slate-100">
-          {/* Work schedule */}
-          <div className="flex items-start gap-3 py-4">
-            <div className="w-9 h-9 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center flex-shrink-0">
-              <Clock className="w-4 h-4 text-teal-600" />
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-                Lịch làm việc
-              </p>
-              <p className="text-[17px] font-bold text-slate-800 leading-tight">
-                {slot.startTimeStr} - {slot.endTimeStr}
-              </p>
-              <p className="text-[12px] text-slate-400 mt-0.5">
-                {formatDateVN(slot.date ?? "")}
-              </p>
-            </div>
-          </div>
-
-          {/* Property location */}
-          <div className="flex items-start gap-3 py-4">
-            <div className="w-9 h-9 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center flex-shrink-0">
-              <MapPin className="w-4 h-4 text-rose-500" />
+        {/* Location */}
+        <div className="bg-slate-50 rounded-2xl p-4">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center flex-shrink-0">
+              <Briefcase className="w-5 h-5 text-slate-500" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-                Vị trí bất động sản
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Cơ sở vận hành
               </p>
               {houseLoading ? (
-                <>
-                  <Skeleton className="h-4 w-40 mb-1.5" />
-                  <Skeleton className="h-3 w-52" />
-                </>
-              ) : house ? (
-                <>
-                  <p className="text-[14px] font-bold text-slate-800 leading-tight">
-                    {house.name}
-                  </p>
-                  {houseAddress && (
-                    <p className="text-[12px] text-slate-400 mt-0.5 leading-relaxed">
-                      {houseAddress}
-                    </p>
-                  )}
-                </>
+                <Skeleton className="h-4 w-32 mt-1" />
               ) : (
-                <p className="text-[13px] text-slate-400">—</p>
+                <p className="text-sm font-bold text-slate-800 mt-0.5 truncate">
+                  {house?.name ?? "—"}
+                </p>
               )}
             </div>
           </div>
-
-          {/* Task description */}
-          {(house?.description || job?.periodStartDate) && (
-            <div className="flex items-start gap-3 py-4">
-              <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center flex-shrink-0">
-                <Briefcase className="w-4 h-4 text-amber-500" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
-                  Mô tả công việc
-                </p>
-                {house?.description ? (
-                  <div className="border-l-2 border-teal-400 pl-3">
-                    <p className="text-[13px] text-slate-600 leading-relaxed">
-                      {house.description}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="border-l-2 border-teal-400 pl-3">
-                    <p className="text-[13px] text-slate-500">
-                      {jobTypeLabel(slot.jobType)} · Chu kỳ:{" "}
-                      {formatISODate(job?.periodStartDate)} →{" "}
-                      {formatISODate(job?.dueDate)}
-                    </p>
-                  </div>
-                )}
-              </div>
+          {(houseLoading || houseAddress) && (
+            <div className="flex items-start gap-2 mt-3 pl-14">
+              <MapPin className="w-3.5 h-3.5 text-slate-400 mt-0.5 flex-shrink-0" />
+              {houseLoading ? (
+                <Skeleton className="h-3 w-48" />
+              ) : (
+                <p className="text-xs text-slate-400 leading-relaxed">{houseAddress}</p>
+              )}
             </div>
           )}
         </div>
 
-        {/* Action buttons */}
-        <div className="px-4 pb-4 space-y-2">
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-700 text-sm font-semibold transition"
-            >
-              <Phone className="w-4 h-4" />
-              Liên hệ
-            </button>
-            <button
-              type="button"
-              className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-sm font-semibold transition"
-            >
-              <Clock className="w-4 h-4" />
-              Lịch sử ca làm việc
-            </button>
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-slate-50 rounded-2xl p-4 text-center">
+            <p className="text-xs text-slate-400">Hoàn thành tháng</p>
+            <p className="text-xl font-bold text-slate-800 mt-1">— <span className="text-sm font-semibold text-slate-400">ca</span></p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-sm font-bold transition shadow-sm"
-          >
-            <X className="w-4 h-4" />
-            Đóng
-          </button>
+          <div className="bg-slate-50 rounded-2xl p-4 text-center">
+            <p className="text-xs text-slate-400">Đánh giá</p>
+            <p className="text-xl font-bold text-slate-800 mt-1">— <span className="text-amber-400 text-base">★</span></p>
+          </div>
         </div>
+      </div>
 
-        {/* Footer branding */}
-        <div className="pb-4 flex items-center justify-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-slate-300 inline-block" />
-          <span className="w-2 h-2 rounded-full bg-teal-400 inline-block" />
-          <span className="text-[10px] text-slate-400 font-semibold tracking-widest uppercase ml-1">
-            ISUMS · Powered by HCMC IOT
-          </span>
-        </div>
+      {/* ── Action buttons ── */}
+      <div className="px-5 pb-5 space-y-2.5">
+        <button
+          type="button"
+          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold transition shadow-sm"
+        >
+          <Phone className="w-4 h-4" />
+          Liên hệ
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-sm font-semibold transition"
+        >
+          <Clock className="w-4 h-4" />
+          Lịch sử ca làm việc
+        </button>
+      </div>
+
+      {/* ── Footer ── */}
+      <div className="pb-5 text-center">
+        <p className="text-[10px] text-slate-400 font-semibold tracking-widest uppercase">
+          Powered by <span className="text-slate-600">ISUMS Property Management</span>
+        </p>
       </div>
     </div>
   );

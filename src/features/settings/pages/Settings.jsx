@@ -15,8 +15,20 @@ import {
 import keycloak from "../../../keycloak";
 import { useAuthStore } from "../../auth/store/auth.store";
 
+const ROLE_LABELS = {
+  LANDLORD: "Chủ nhà",
+  MANAGER: "Quản lý",
+};
+
+function getRoleLabel(roles = []) {
+  for (const role of roles) {
+    if (ROLE_LABELS[role]) return ROLE_LABELS[role];
+  }
+  return roles[0] ?? "Người dùng";
+}
+
 export default function Settings() {
-  const { profile } = useAuthStore();
+  const { profile, roles } = useAuthStore();
   const [activeTab, setActiveTab] = useState("profile");
   const getUserInfo = () => {
     const token = keycloak?.tokenParsed;
@@ -24,7 +36,7 @@ export default function Settings() {
       name: token?.name || profile?.name || "Chưa có tên",
       email: token?.email || profile?.email || "Chưa có email",
       phone: token?.phone_number || token?.phone || "Chưa có SĐT",
-      position: token?.position || token?.job_title || "Quản trị viên",
+      position: token?.position || token?.job_title || getRoleLabel(roles),
       username: token?.preferred_username || "admin",
       avatar: (token?.name || profile?.name || "A").charAt(0).toUpperCase(),
     };

@@ -7,6 +7,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ClipboardList,
   FileText,
   Home,
   LogOut,
@@ -29,6 +30,10 @@ export default function Sidebar({
   const [contractsOpen, setContractsOpen] = useState(
     activeMenu === "contracts" || activeMenu === "contracts-sign",
   );
+  const [maintenanceOpen, setMaintenanceOpen] = useState(
+    ["maintenance", "maintenance-plans", "maintenance-jobs"].includes(activeMenu),
+  );
+  const isMaintenanceActive = ["maintenance", "maintenance-plans", "maintenance-jobs"].includes(activeMenu);
   const roles = useAuthStore((s) => s.roles ?? []);
   const isAdmin = roles.includes("ADMIN");
   const isLandlord = roles.includes("LANDLORD");
@@ -37,6 +42,15 @@ export default function Sidebar({
   const handleNavClick = (e, menuId) => {
     e.preventDefault();
     setActiveMenu(menuId);
+  };
+
+  const handleMaintenanceToggle = (e) => {
+    e.preventDefault();
+    if (!isOpen) {
+      setActiveMenu("maintenance");
+    } else {
+      setMaintenanceOpen((prev) => !prev);
+    }
   };
 
   const handleContractsToggle = (e) => {
@@ -53,7 +67,6 @@ export default function Sidebar({
     { id: "houses",       label: "Bất Động Sản",      icon: Building2 },
     { id: "utilities",    label: "Tiện Ích",           icon: Zap },
     { id: "users",        label: "Người Dùng",         icon: Users },
-    { id: "maintenance",  label: "Lịch Sửa Chữa",     icon: CalendarDays },
   ];
 
   const isContractsActive =
@@ -163,6 +176,79 @@ export default function Sidebar({
               )}
             </a>
           ))}
+
+
+          {/* Maintenance group */}
+          <a
+            href="#"
+            onClick={handleMaintenanceToggle}
+            className={[
+              "flex items-center gap-3 py-2.5 px-3 transition rounded-xl",
+              !isOpen && "lg:justify-center",
+              isMaintenanceActive ? activeItemCls : inactiveItemCls,
+            ].join(" ")}
+            title={!isOpen ? "Lịch Sửa Chữa" : undefined}
+          >
+            <CalendarDays className="w-[18px] h-[18px] flex-shrink-0" />
+            {isOpen && (
+              <>
+                <span className="text-sm font-medium flex-1">
+                  Lịch Sửa Chữa
+                </span>
+                <ChevronDown
+                  className={[
+                    "w-4 h-4 transition-transform duration-200",
+                    isMaintenanceActive ? "text-white/70" : "text-slate-400",
+                    maintenanceOpen ? "rotate-180" : "",
+                  ].join(" ")}
+                />
+              </>
+            )}
+          </a>
+
+          {isOpen && maintenanceOpen && (
+            <div className="ml-4 border-l-2 border-teal-100 pl-2 space-y-0.5">
+              <a
+                href="#"
+                onClick={(e) => handleNavClick(e, "maintenance")}
+                className={[
+                  "flex items-center gap-3 py-2 px-3 transition rounded-xl text-sm",
+                  activeMenu === "maintenance"
+                    ? "bg-teal-50 text-teal-700 font-semibold"
+                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-800",
+                ].join(" ")}
+              >
+                <CalendarDays className="w-4 h-4 flex-shrink-0" />
+                <span>Lịch làm việc</span>
+              </a>
+              <a
+                href="#"
+                onClick={(e) => handleNavClick(e, "maintenance-plans")}
+                className={[
+                  "flex items-center gap-3 py-2 px-3 transition rounded-xl text-sm",
+                  activeMenu === "maintenance-plans"
+                    ? "bg-teal-50 text-teal-700 font-semibold"
+                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-800",
+                ].join(" ")}
+              >
+                <ClipboardList className="w-4 h-4 flex-shrink-0" />
+                <span>Kế hoạch bảo trì</span>
+              </a>
+              <a
+                href="#"
+                onClick={(e) => handleNavClick(e, "maintenance-jobs")}
+                className={[
+                  "flex items-center gap-3 py-2 px-3 transition rounded-xl text-sm",
+                  activeMenu === "maintenance-jobs"
+                    ? "bg-teal-50 text-teal-700 font-semibold"
+                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-800",
+                ].join(" ")}
+              >
+                <ClipboardList className="w-4 h-4 flex-shrink-0" />
+                <span>Danh sách công việc</span>
+              </a>
+            </div>
+          )}
 
           {/* Contracts group */}
           <a

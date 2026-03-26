@@ -10,10 +10,24 @@ import UsersPage from "../../features/tenants/pages/UsersPage";
 import ContractsPage from "../../features/contracts/pages/ContractsPage";
 import ContractsPendingSignPage from "../../features/contracts/pages/ContractsPendingSignPage";
 import SchedulePage from "../../features/schedule/pages/SchedulePage";
+import MaintenancePlansPage from "../../features/schedule/pages/MaintenancePlansPage";
+import MaintenanceJobsPage from "../../features/schedule/pages/MaintenanceJobsPage";
 import Reports from "../../features/reports/pages/Reports";
 import Notifications from "../../features/notifications/pages/Notifications";
 import Settings from "../../features/settings/pages/Settings";
-import { authActions } from "../../features/auth/store/auth.store";
+import { authActions, useAuthStore } from "../../features/auth/store/auth.store";
+
+const ROLE_LABELS = {
+  LANDLORD: "Chủ nhà",
+  MANAGER: "Quản lý",
+};
+
+function getRoleLabel(roles = []) {
+  for (const role of roles) {
+    if (ROLE_LABELS[role]) return ROLE_LABELS[role];
+  }
+  return roles[0] ?? "Người dùng";
+}
 import {
   Search,
   Menu,
@@ -49,6 +63,8 @@ export default function Dashboard() {
     () => location.state?.menu ?? "dashboard",
   );
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const roles = useAuthStore((s) => s.roles ?? []);
+  const roleLabel = getRoleLabel(roles);
 
   useEffect(() => {
     if (location.state?.menu) {
@@ -63,7 +79,9 @@ export default function Dashboard() {
     users: "Người Dùng",
     contracts: "Hợp đồng",
     "contracts-sign": "Hợp Đồng Cần Ký",
-    maintenance: "Lịch Sửa Chữa",
+    maintenance: "Lịch Làm Việc",
+    "maintenance-plans": "Kế Hoạch Bảo Trì",
+    "maintenance-jobs":  "Công Việc Bảo Trì",
     reports: "Báo cáo",
     notifications: "Thông báo",
     settings: "Cài đặt",
@@ -289,7 +307,7 @@ export default function Dashboard() {
                     {keycloak?.tokenParsed?.name || "Admin"}
                   </p>
                   <p className="text-[10px] text-gray-400 leading-tight">
-                    Quản trị viên
+                    {roleLabel}
                   </p>
                 </div>
                 <ChevronDown className="w-3.5 h-3.5 text-gray-400 hidden md:block" />
@@ -442,6 +460,8 @@ export default function Dashboard() {
           )}
           {activeMenu === "contracts-sign" && <ContractsPendingSignPage />}
           {activeMenu === "maintenance" && <SchedulePage />}
+          {activeMenu === "maintenance-plans" && <MaintenancePlansPage />}
+          {activeMenu === "maintenance-jobs"  && <MaintenanceJobsPage />}
           {activeMenu === "reports" && <Reports />}
           {activeMenu === "notifications" && <Notifications />}
           {activeMenu === "settings" && <Settings />}

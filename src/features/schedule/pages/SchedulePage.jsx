@@ -7,10 +7,12 @@ import StatCard from "../components/StatCard";
 import AvatarCircle from "../components/AvatarCircle";
 import WeekView from "../components/WeekView";
 import MonthView from "../components/MonthView";
+import CreateShiftModal from "../components/CreateShiftModal";
 
 export default function SchedulePage() {
   const today = new Date();
-  const [viewMode,  setViewMode]  = useState("week");
+  const [viewMode,       setViewMode]       = useState("week");
+  const [createShiftOpen, setCreateShiftOpen] = useState(false);
   const [weekBase,  setWeekBase]  = useState(new Date(today));
   const [monthYear, setMonthYear] = useState({ year: today.getFullYear(), month: today.getMonth() });
 
@@ -100,9 +102,10 @@ export default function SchedulePage() {
             Làm mới
           </button>
           <button type="button"
+            onClick={() => setCreateShiftOpen(true)}
             className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold rounded-xl transition shadow-sm">
             <Plus className="w-4 h-4" />
-            Tạo slot mới
+            Tạo ca làm việc mới
           </button>
         </div>
       </div>
@@ -128,6 +131,12 @@ export default function SchedulePage() {
           loading={monthLoading}
         />
       )}
+
+      <CreateShiftModal
+        open={createShiftOpen}
+        onClose={() => setCreateShiftOpen(false)}
+        onCreated={refetchWeek}
+      />
 
       {/* Legend + Export */}
       <div className="flex items-center justify-between flex-wrap gap-3">

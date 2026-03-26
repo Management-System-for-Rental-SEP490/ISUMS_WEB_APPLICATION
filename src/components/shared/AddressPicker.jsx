@@ -18,12 +18,13 @@ const PinIcon = () => (
  * Component chọn địa chỉ Việt Nam (tỉnh/thành → phường/xã → số nhà)
  *
  * Props:
- *   value    — string địa chỉ đầy đủ hiện tại (để reset khi form clear)
- *   onChange — (e: { target: { value: string } }) => void
- *   error    — string | undefined
- *   label    — string (mặc định "Địa chỉ thường trú")
+ *   value         — string địa chỉ đầy đủ hiện tại (để reset khi form clear)
+ *   onChange      — (e: { target: { value: string } }) => void   — full string
+ *   onPartsChange — ({ street, ward, city }) => void             — từng phần riêng
+ *   error         — string | undefined
+ *   label         — string (mặc định "Địa chỉ thường trú")
  */
-export default function AddressPicker({ value, onChange, error, label = "Địa chỉ thường trú" }) {
+export default function AddressPicker({ value, onChange, onPartsChange, error, label = "Địa chỉ thường trú" }) {
   const {
     provinces, wards,
     loadingProvinces, loadingWards,
@@ -34,7 +35,8 @@ export default function AddressPicker({ value, onChange, error, label = "Địa 
 
   const [street, setStreet] = useState("");
   const onChangeRef = useRef(onChange);
-  useEffect(() => { onChangeRef.current = onChange; });
+  const onPartsRef  = useRef(onPartsChange);
+  useEffect(() => { onChangeRef.current = onChange; onPartsRef.current = onPartsChange; });
 
   // Reset nội bộ khi form clear (value trở về "" hoặc undefined)
   useEffect(() => {
@@ -45,6 +47,7 @@ export default function AddressPicker({ value, onChange, error, label = "Địa 
   const emit = (s, ward, province) => {
     const parts = [s.trim(), ward?.name, province?.name].filter(Boolean);
     onChangeRef.current?.({ target: { value: parts.join(", ") } });
+    onPartsRef.current?.({ street: s.trim(), ward: ward?.name ?? "", city: province?.name ?? "" });
   };
 
   const handleProvinceChange = (e) => {
