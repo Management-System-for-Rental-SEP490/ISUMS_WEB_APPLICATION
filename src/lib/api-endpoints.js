@@ -76,6 +76,7 @@ export const NOTIFICATIONS_ENDPOINTS = {
 export const MAINTENANCE_ENDPOINTS = {
   PLANS: "/maintenances/plans",
   PLANS_BY_ID: (planId) => `/maintenances/plans/${planId}`,
+  PLANS_HOUSES: (planId) => `/maintenances/plans/houses/${planId}`,
   JOBS: "/maintenances/jobs",
   JOBS_BY_ID: (jobId) => `/maintenances/jobs/${jobId}`,
   JOBS_BY_STATUS: "/maintenances/jobs/status",
@@ -90,4 +91,10 @@ export const SCHEDULE_ENDPOINTS = {
   WORK_SLOTS: "/schedules/work_slots",
   WORK_SLOTS_CURRENT: "/schedules/work_slots/current",
   TEMPLATES_CURRENT: (date) => `/schedules/templates/current/${date}`,
+};
+export const ISSSUE_ENDPOINTS = {
+  BASE: "/issues",
+  ISSUE_BY_ID: (id) => `/issues/${id}`,
+  CREATE: "/issues",
+  ISSUES: "/issues",
 };

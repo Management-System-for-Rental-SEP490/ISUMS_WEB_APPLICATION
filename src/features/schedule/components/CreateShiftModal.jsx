@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, Wrench, AlertTriangle, Clock, CheckCircle2 } from "lucide-react";
+import { DatePicker } from "antd";
+import dayjs from "dayjs";
 import {
   getMaintenanceJobsByStatus,
   createWorkSlot,
@@ -33,6 +35,7 @@ function formatDateVN(iso) {
 
 export default function CreateShiftModal({ open, onClose, onCreated }) {
   const today = new Date();
+  const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const [jobType] = useState("MAINTENANCE"); // ISSUE chưa có API
   const [jobs, setJobs] = useState([]);
@@ -44,9 +47,16 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-  // Animate in
+  // Mount + animate
   useEffect(() => {
-    if (open) requestAnimationFrame(() => setVisible(true));
+    if (open) {
+      setMounted(true);
+      requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
+    } else {
+      setVisible(false);
+      const t = setTimeout(() => setMounted(false), 300);
+      return () => clearTimeout(t);
+    }
   }, [open]);
 
   // Fetch jobs + template khi mở
@@ -87,7 +97,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
 
   const handleClose = () => {
     setVisible(false);
-    setTimeout(onClose, 200);
+    setTimeout(onClose, 300);
   };
 
   const handleSubmit = async () => {
@@ -104,7 +114,9 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
       onCreated?.();
       handleClose();
     } catch (e) {
-      if (e.status === 500) {
+      if (e.message?.toLowerCase().includes("staff already has job in this time")) {
+        setError("Không thể tạo vì nhân viên kỹ thuật này đã có lịch làm việc trong thời gian chỉ định.");
+      } else if (e.status === 500) {
         setError(e.message ?? "Lỗi máy chủ, vui lòng thử lại sau.");
       } else {
         setError(e.message ?? "Đã xảy ra lỗi, vui lòng thử lại.");
@@ -117,25 +129,25 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
   const canSubmit =
     !!selectedJobId && !!selectedTimeSlot && !!selectedDate && !submitting;
 
-  if (!open) return null;
+  if (!mounted) return null;
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{
         backgroundColor: "rgba(30,41,59,0.45)",
         backdropFilter: "blur(3px)",
         opacity: visible ? 1 : 0,
+        transition: "opacity 300ms ease",
       }}
       onClick={handleClose}
     >
       <div
-        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden transition-all duration-200 ease-out"
+        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden"
         style={{
-          transform: visible
-            ? "translateY(0) scale(1)"
-            : "translateY(24px) scale(0.96)",
+          transform: visible ? "translateY(0) scale(1)" : "translateY(20px) scale(0.95)",
           opacity: visible ? 1 : 0,
+          transition: "transform 300ms cubic-bezier(0.34, 1.2, 0.64, 1), opacity 300ms ease",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -231,11 +243,12 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
             <p className="text-[13px] font-semibold text-slate-700 mb-2.5">
               Ngày làm việc
             </p>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent transition"
+            <DatePicker
+              className="w-full"
+              format="DD/MM/YYYY"
+              placeholder="Chọn ngày làm việc"
+              value={selectedDate ? dayjs(selectedDate) : null}
+              onChange={(date) => setSelectedDate(date ? date.format("YYYY-MM-DD") : "")}
             />
           </div>
 

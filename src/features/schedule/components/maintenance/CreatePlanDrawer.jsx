@@ -1,42 +1,49 @@
-import { useState } from "react";
-import { ArrowLeft, ArrowRight, Check, ChevronRight, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { ArrowLeft, ArrowRight, Check, ChevronRight, Minus, Plus, X } from "lucide-react";
+import { DatePicker } from "antd";
+import dayjs from "dayjs";
+import { createMaintenancePlan } from "../../api/schedule.api";
 
-const STEPS = ["Thông tin cơ bản", "Chọn bất động sản", "Lịch chu kỳ"];
+const STEPS = ["Thông tin cơ bản", "Chu kỳ bảo trì", "Thời gian hiệu lực"];
 
-const TYPE_OPTIONS = [
-  { value: "ELECTRICAL", label: "Hệ thống điện",       desc: "Kiểm tra điện, ổ cắm, aptomat..." },
-  { value: "PLUMBING",   label: "Hệ thống nước",        desc: "Đường ống, van, bơm nước..."       },
-  { value: "HVAC",       label: "Điều hòa / thông gió", desc: "Máy lạnh, quạt thông gió..."       },
-  { value: "GENERAL",    label: "Bảo dưỡng chung",      desc: "Vệ sinh, sơn tường, cửa..."        },
+const FREQUENCY_TYPE_OPTIONS = [
+  { value: "MONTHLY", label: "Theo tháng", desc: "Số lần thực hiện mỗi tháng" },
 ];
 
-const CYCLE_OPTIONS = [
-  { value: "WEEKLY",    label: "Hàng tuần",  desc: "Mỗi 7 ngày"    },
-  { value: "MONTHLY",   label: "Hàng tháng", desc: "Mỗi 30 ngày"   },
-  { value: "QUARTERLY", label: "Hàng quý",   desc: "Mỗi 3 tháng"   },
-  { value: "YEARLY",    label: "Hàng năm",   desc: "Mỗi 12 tháng"  },
-];
-
-// Mock houses — swap with API later
-const MOCK_HOUSES = [
-  { id: "h1", name: "Vinhomes Central Park - Tòa B", address: "208 Nguyễn Hữu Cảnh, Bình Thạnh" },
-  { id: "h2", name: "Masteri Thảo Điền",             address: "159 Xa Lộ Hà Nội, Quận 2"        },
-  { id: "h3", name: "Saigon Pearl",                  address: "92 Nguyễn Hữu Cảnh, Bình Thạnh"  },
-  { id: "h4", name: "The Sun Avenue",                address: "28 Mai Chí Thọ, Quận 2"           },
-];
-
-const inp = "w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 bg-slate-50 placeholder-slate-400 transition";
 const lbl = "block text-sm font-semibold text-slate-700 mb-1.5";
+const inp = "w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 bg-slate-50 placeholder-slate-400 transition";
 
-const INITIAL_FORM = { name: "", description: "", type: "", houseId: "", cycle: "", startDate: "", note: "" };
+const INITIAL_FORM = {
+  name: "",
+  frequencyType: "MONTHLY",
+  frequencyValue: 1,
+  effectiveFrom: "",
+  effectiveTo: "",
+  nextRunAt: "",
+};
 
 export default function CreatePlanDrawer({ open, onClose, onCreated }) {
-  const [step, setStep]           = useState(0);
-  const [form, setForm]           = useState(INITIAL_FORM);
-  const [errors, setErrors]       = useState({});
-  const [submitting, setSubmitting] = useState(false);
+  const [mounted, setMounted]         = useState(false);
+  const [visible, setVisible]         = useState(false);
+  const [step, setStep]               = useState(0);
+  const [form, setForm]               = useState(INITIAL_FORM);
+  const [errors, setErrors]           = useState({});
+  const [submitting, setSubmitting]   = useState(false);
+  const [submitError, setSubmitError] = useState(null);
 
-  if (!open) return null;
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
+    } else {
+      setVisible(false);
+      const t = setTimeout(() => setMounted(false), 300);
+      return () => clearTimeout(t);
+    }
+  }, [open]);
+
+  if (!mounted) return null;
 
   const setField = (f, v) => {
     setForm((p) => ({ ...p, [f]: v }));
@@ -47,14 +54,19 @@ export default function CreatePlanDrawer({ open, onClose, onCreated }) {
     const e = {};
     if (step === 0) {
       if (!form.name.trim()) e.name = "Vui lòng nhập tên kế hoạch";
-      if (!form.type)        e.type = "Vui lòng chọn loại bảo trì";
     }
     if (step === 1) {
-      if (!form.houseId) e.houseId = "Vui lòng chọn bất động sản";
+      if (!form.frequencyType)                              e.frequencyType  = "Vui lòng chọn loại chu kỳ";
+      if (!form.frequencyValue || form.frequencyValue < 1) e.frequencyValue = "Số lần phải ít nhất là 1";
     }
     if (step === 2) {
-      if (!form.cycle)     e.cycle     = "Vui lòng chọn chu kỳ";
-      if (!form.startDate) e.startDate = "Vui lòng chọn ngày bắt đầu";
+      if (!form.effectiveFrom) e.effectiveFrom = "Vui lòng chọn ngày bắt đầu hiệu lực";
+      if (!form.effectiveTo)   e.effectiveTo   = "Vui lòng chọn ngày kết thúc hiệu lực";
+      if (!form.nextRunAt)     e.nextRunAt     = "Vui lòng chọn ngày bắt đầu kế hoạch";
+      if (form.effectiveFrom && form.effectiveTo && form.effectiveTo < form.effectiveFrom)
+        e.effectiveTo = "Ngày kết thúc phải sau ngày bắt đầu";
+      if (form.effectiveFrom && form.nextRunAt && form.nextRunAt < form.effectiveFrom)
+        e.nextRunAt = "Ngày bắt đầu kế hoạch phải trong thời gian hiệu lực";
     }
     setErrors(e);
     return !Object.keys(e).length;
@@ -64,40 +76,67 @@ export default function CreatePlanDrawer({ open, onClose, onCreated }) {
   const prev = () => setStep((s) => s - 1);
 
   const handleClose = () => {
-    setStep(0);
-    setForm(INITIAL_FORM);
-    setErrors({});
-    onClose();
+    setVisible(false);
+    setTimeout(() => {
+      setStep(0);
+      setForm(INITIAL_FORM);
+      setErrors({});
+      setSubmitError(null);
+      onClose();
+    }, 300);
   };
 
   const handleSubmit = async () => {
     if (!validateStep()) return;
     setSubmitting(true);
-    // TODO: gọi createMaintenancePlan(form) khi có API
-    await new Promise((r) => setTimeout(r, 800));
-    setSubmitting(false);
-    handleClose();
-    onCreated?.();
+    setSubmitError(null);
+    try {
+      await createMaintenancePlan({
+        name:           form.name.trim(),
+        frequencyType:  form.frequencyType,
+        frequencyValue: form.frequencyValue,
+        effectiveFrom:  form.effectiveFrom,
+        effectiveTo:    form.effectiveTo,
+        nextRunAt:      form.nextRunAt,
+      });
+      handleClose();
+      onCreated?.();
+    } catch (e) {
+      setSubmitError(e.message ?? "Đã xảy ra lỗi, vui lòng thử lại.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const selectedHouse = MOCK_HOUSES.find((h) => h.id === form.houseId);
-
-  return (
-    <>
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm" onClick={handleClose} />
-
-      {/* Drawer */}
-      <div className="fixed right-0 top-0 h-full w-full max-w-lg bg-white z-50 shadow-2xl flex flex-col">
-
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{
+        backgroundColor: "rgba(15,23,42,0.45)",
+        backdropFilter: "blur(3px)",
+        opacity: visible ? 1 : 0,
+        transition: "opacity 300ms ease",
+      }}
+      onClick={handleClose}
+    >
+      <div
+        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col"
+        style={{
+          maxHeight: "90vh",
+          transform: visible ? "translateY(0) scale(1)" : "translateY(20px) scale(0.95)",
+          opacity: visible ? 1 : 0,
+          transition: "transform 300ms cubic-bezier(0.34, 1.2, 0.64, 1), opacity 300ms ease",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+        <div className="px-6 pt-5 pb-4 border-b border-slate-100 flex items-start justify-between gap-3 flex-shrink-0">
           <div>
-            <h3 className="text-base font-bold text-slate-900">Tạo kế hoạch bảo trì</h3>
+            <h3 className="text-[17px] font-bold text-slate-800 leading-tight">Tạo kế hoạch bảo trì</h3>
             <p className="text-xs text-slate-400 mt-0.5">Bước {step + 1}/{STEPS.length} — {STEPS[step]}</p>
           </div>
           <button type="button" onClick={handleClose}
-            className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-400 transition">
+            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 transition">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -107,10 +146,10 @@ export default function CreatePlanDrawer({ open, onClose, onCreated }) {
           <div className="flex items-center gap-1">
             {STEPS.map((s, i) => (
               <div key={i} className="flex items-center gap-1 flex-1 min-w-0">
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition ${
-                  i < step  ? "bg-teal-600 text-white" :
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 transition-colors ${
+                  i < step   ? "bg-teal-600 text-white" :
                   i === step ? "bg-teal-600 text-white ring-4 ring-teal-100" :
-                              "bg-slate-100 text-slate-400"
+                               "bg-slate-100 text-slate-400"
                 }`}>
                   {i < step ? <Check className="w-3.5 h-3.5" /> : i + 1}
                 </div>
@@ -136,145 +175,164 @@ export default function CreatePlanDrawer({ open, onClose, onCreated }) {
                 <input
                   value={form.name}
                   onChange={(e) => setField("name", e.target.value)}
-                  placeholder="VD: Kiểm tra hệ thống điện định kỳ..."
+                  placeholder="VD: Bảo trì hệ thống điện tháng 4..."
                   className={`${inp} ${errors.name ? "border-red-400" : ""}`}
                 />
                 {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
               </div>
+            </div>
+          )}
 
+          {/* ── Step 1: Chu kỳ bảo trì ── */}
+          {step === 1 && (
+            <div className="space-y-6">
               <div>
-                <label className={lbl}>Mô tả</label>
-                <textarea
-                  value={form.description}
-                  onChange={(e) => setField("description", e.target.value)}
-                  rows={3}
-                  placeholder="Mô tả nội dung bảo trì..."
-                  className={`${inp} resize-none`}
-                />
-              </div>
-
-              <div>
-                <label className={lbl}>Loại bảo trì <span className="text-red-500">*</span></label>
+                <label className={lbl}>Loại chu kỳ <span className="text-red-500">*</span></label>
                 <div className="space-y-2">
-                  {TYPE_OPTIONS.map((t) => (
-                    <button key={t.value} type="button" onClick={() => setField("type", t.value)}
+                  {FREQUENCY_TYPE_OPTIONS.map((t) => (
+                    <button key={t.value} type="button" onClick={() => setField("frequencyType", t.value)}
                       className={`w-full flex items-start gap-3 px-4 py-3 rounded-xl border text-left transition ${
-                        form.type === t.value
+                        form.frequencyType === t.value
                           ? "border-teal-500 bg-teal-50 ring-1 ring-teal-400"
                           : "border-slate-200 hover:border-teal-300 hover:bg-slate-50"
                       }`}>
-                      <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${form.type === t.value ? "bg-teal-500" : "bg-slate-300"}`} />
+                      <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${form.frequencyType === t.value ? "bg-teal-500" : "bg-slate-300"}`} />
                       <div>
-                        <p className={`text-sm font-semibold ${form.type === t.value ? "text-teal-700" : "text-slate-700"}`}>{t.label}</p>
+                        <p className={`text-sm font-semibold ${form.frequencyType === t.value ? "text-teal-700" : "text-slate-700"}`}>{t.label}</p>
                         <p className="text-xs text-slate-400 mt-0.5">{t.desc}</p>
                       </div>
                     </button>
                   ))}
                 </div>
-                {errors.type && <p className="mt-2 text-xs text-red-500">{errors.type}</p>}
+                {errors.frequencyType && <p className="mt-1 text-xs text-red-500">{errors.frequencyType}</p>}
               </div>
-            </div>
-          )}
-
-          {/* ── Step 1: Chọn BĐS ── */}
-          {step === 1 && (
-            <div className="space-y-3">
-              <p className="text-sm text-slate-500">Chọn bất động sản áp dụng kế hoạch này:</p>
-              {MOCK_HOUSES.map((h) => (
-                <button key={h.id} type="button" onClick={() => setField("houseId", h.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition ${
-                    form.houseId === h.id
-                      ? "border-teal-500 bg-teal-50 ring-1 ring-teal-400"
-                      : "border-slate-200 hover:border-teal-300 hover:bg-slate-50"
-                  }`}>
-                  <div className="w-9 h-9 rounded-xl bg-teal-100 flex items-center justify-center flex-shrink-0">
-                    <span className="text-sm font-bold text-teal-700">{h.name[0]}</span>
-                  </div>
-                  <div className="min-w-0">
-                    <p className={`text-sm font-semibold truncate ${form.houseId === h.id ? "text-teal-700" : "text-slate-700"}`}>{h.name}</p>
-                    <p className="text-xs text-slate-400 mt-0.5 truncate">{h.address}</p>
-                  </div>
-                  {form.houseId === h.id && <Check className="w-4 h-4 text-teal-600 flex-shrink-0 ml-auto" />}
-                </button>
-              ))}
-              {errors.houseId && <p className="text-xs text-red-500">{errors.houseId}</p>}
-            </div>
-          )}
-
-          {/* ── Step 2: Lịch chu kỳ ── */}
-          {step === 2 && (
-            <div className="space-y-5">
-              {selectedHouse && (
-                <div className="bg-teal-50 border border-teal-200 rounded-xl px-4 py-2.5">
-                  <p className="text-xs text-teal-500 font-medium">Bất động sản đã chọn</p>
-                  <p className="text-sm font-semibold text-teal-800 mt-0.5">{selectedHouse.name}</p>
-                </div>
-              )}
 
               <div>
-                <label className={lbl}>Chu kỳ thực hiện <span className="text-red-500">*</span></label>
-                <div className="grid grid-cols-2 gap-2">
-                  {CYCLE_OPTIONS.map((c) => (
-                    <button key={c.value} type="button" onClick={() => setField("cycle", c.value)}
-                      className={`flex flex-col px-4 py-3 rounded-xl border text-left transition ${
-                        form.cycle === c.value
-                          ? "border-teal-500 bg-teal-50 ring-1 ring-teal-400"
-                          : "border-slate-200 hover:border-teal-300 hover:bg-slate-50"
+                <label className={lbl}>Số lần thực hiện / tháng <span className="text-red-500">*</span></label>
+                <p className="text-xs text-slate-400 mb-3">Số lần bảo trì được thực hiện trong một tháng</p>
+                <div className="flex items-center gap-4 mb-4">
+                  <button type="button"
+                    onClick={() => setField("frequencyValue", Math.max(1, form.frequencyValue - 1))}
+                    className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition">
+                    <Minus className="w-4 h-4 text-slate-600" />
+                  </button>
+                  <div className="flex-1 text-center">
+                    <span className="text-3xl font-bold text-teal-700">{form.frequencyValue}</span>
+                    <p className="text-xs text-slate-400 mt-0.5">lần / tháng</p>
+                  </div>
+                  <button type="button"
+                    onClick={() => setField("frequencyValue", Math.min(12, form.frequencyValue + 1))}
+                    className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition">
+                    <Plus className="w-4 h-4 text-slate-600" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {[1, 2, 3, 4].map((v) => (
+                    <button key={v} type="button" onClick={() => setField("frequencyValue", v)}
+                      className={`py-2 rounded-xl border text-sm font-semibold transition ${
+                        form.frequencyValue === v
+                          ? "border-teal-500 bg-teal-600 text-white"
+                          : "border-slate-200 text-slate-600 hover:border-teal-300 hover:bg-teal-50"
                       }`}>
-                      <span className={`text-sm font-semibold ${form.cycle === c.value ? "text-teal-700" : "text-slate-700"}`}>{c.label}</span>
-                      <span className="text-xs text-slate-400 mt-0.5">{c.desc}</span>
+                      {v}x
                     </button>
                   ))}
                 </div>
-                {errors.cycle && <p className="mt-1 text-xs text-red-500">{errors.cycle}</p>}
+                {errors.frequencyValue && <p className="mt-2 text-xs text-red-500">{errors.frequencyValue}</p>}
+              </div>
+            </div>
+          )}
+
+          {/* ── Step 2: Thời gian hiệu lực ── */}
+          {step === 2 && (
+            <div className="space-y-5">
+              <div className="bg-teal-50 border border-teal-200 rounded-xl px-4 py-3 space-y-1">
+                <p className="text-xs text-teal-500 font-medium">Tóm tắt kế hoạch</p>
+                <p className="text-sm font-semibold text-teal-800">{form.name}</p>
+                <p className="text-xs text-teal-600">
+                  Bảo trì <strong>{form.frequencyValue} lần / tháng</strong>
+                </p>
               </div>
 
               <div>
-                <label className={lbl}>Ngày bắt đầu <span className="text-red-500">*</span></label>
-                <input
-                  type="date"
-                  value={form.startDate}
-                  onChange={(e) => setField("startDate", e.target.value)}
-                  className={`${inp} ${errors.startDate ? "border-red-400" : ""}`}
+                <label className={lbl}>Ngày bắt đầu hiệu lực <span className="text-red-500">*</span></label>
+                <DatePicker
+                  className="w-full"
+                  format="DD/MM/YYYY"
+                  placeholder="Chọn ngày bắt đầu"
+                  status={errors.effectiveFrom ? "error" : ""}
+                  value={form.effectiveFrom ? dayjs(form.effectiveFrom) : null}
+                  onChange={(date) => setField("effectiveFrom", date ? date.format("YYYY-MM-DD") : "")}
                 />
-                {errors.startDate && <p className="mt-1 text-xs text-red-500">{errors.startDate}</p>}
+                {errors.effectiveFrom && <p className="mt-1 text-xs text-red-500">{errors.effectiveFrom}</p>}
               </div>
 
               <div>
-                <label className={lbl}>Ghi chú thêm</label>
-                <textarea
-                  value={form.note}
-                  onChange={(e) => setField("note", e.target.value)}
-                  rows={3}
-                  placeholder="Lưu ý khi thực hiện bảo trì..."
-                  className={`${inp} resize-none`}
+                <label className={lbl}>Ngày kết thúc hiệu lực <span className="text-red-500">*</span></label>
+                <DatePicker
+                  className="w-full"
+                  format="DD/MM/YYYY"
+                  placeholder="Chọn ngày kết thúc"
+                  status={errors.effectiveTo ? "error" : ""}
+                  value={form.effectiveTo ? dayjs(form.effectiveTo) : null}
+                  disabledDate={(d) => form.effectiveFrom ? d.isBefore(dayjs(form.effectiveFrom), "day") : false}
+                  onChange={(date) => setField("effectiveTo", date ? date.format("YYYY-MM-DD") : "")}
                 />
+                {errors.effectiveTo && <p className="mt-1 text-xs text-red-500">{errors.effectiveTo}</p>}
               </div>
+
+              <div>
+                <label className={lbl}>Ngày bắt đầu kế hoạch <span className="text-red-500">*</span></label>
+                <p className="text-xs text-slate-400 mb-1.5">
+                  Mốc thời gian để hệ thống tạo lịch bảo trì đầu tiên
+                </p>
+                <DatePicker
+                  className="w-full"
+                  format="DD/MM/YYYY"
+                  placeholder="Chọn ngày bắt đầu kế hoạch"
+                  status={errors.nextRunAt ? "error" : ""}
+                  value={form.nextRunAt ? dayjs(form.nextRunAt) : null}
+                  disabledDate={(d) => {
+                    if (form.effectiveFrom && d.isBefore(dayjs(form.effectiveFrom), "day")) return true;
+                    if (form.effectiveTo && d.isAfter(dayjs(form.effectiveTo), "day")) return true;
+                    return false;
+                  }}
+                  onChange={(date) => setField("nextRunAt", date ? date.format("YYYY-MM-DD") : "")}
+                />
+                {errors.nextRunAt && <p className="mt-1 text-xs text-red-500">{errors.nextRunAt}</p>}
+              </div>
+
+              {submitError && (
+                <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
+                  {submitError}
+                </p>
+              )}
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
+        <div className="px-6 pb-6 pt-2 flex gap-3 border-t border-slate-100 flex-shrink-0">
           <button type="button" onClick={step === 0 ? handleClose : prev}
-            className="flex items-center gap-2 px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition">
+            className="flex-1 flex items-center justify-center gap-2 py-3 border border-slate-200 rounded-xl text-slate-600 text-sm font-semibold hover:bg-slate-50 transition">
             <ArrowLeft className="w-4 h-4" />
             {step === 0 ? "Hủy" : "Quay lại"}
           </button>
 
           {step < STEPS.length - 1 ? (
             <button type="button" onClick={next}
-              className="flex items-center gap-2 px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold rounded-xl transition">
+              className="flex-[2] flex items-center justify-center gap-2 py-3 bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold rounded-xl transition shadow-sm">
               Tiếp theo <ArrowRight className="w-4 h-4" />
             </button>
           ) : (
             <button type="button" onClick={handleSubmit} disabled={submitting}
-              className="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold rounded-xl transition disabled:opacity-60">
+              className="flex-[2] py-3 bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold rounded-xl transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed">
               {submitting ? "Đang tạo..." : "Tạo kế hoạch"}
             </button>
           )}
         </div>
       </div>
-    </>
+    </div>,
+    document.body,
   );
 }
