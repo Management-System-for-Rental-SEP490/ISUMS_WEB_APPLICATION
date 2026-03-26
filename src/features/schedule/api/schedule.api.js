@@ -132,6 +132,35 @@ export async function getWorkSlotsInRange(start, end) {
 }
 
 /**
+ * Add houses to an existing maintenance plan.
+ * @param {string} planId
+ * @param {string[]} houseIds
+ * @returns {Promise<Object>}
+ */
+export async function addHousesToPlan(planId, houseIds) {
+  try {
+    const response = await api.post(MAINTENANCE_ENDPOINTS.PLANS_HOUSES(planId), { houseIds });
+    return extractResponseData(response);
+  } catch (error) {
+    throwApiError(error);
+  }
+}
+
+/**
+ * Create a new maintenance plan.
+ * @param {{ name: string, frequencyType: string, frequencyValue: number, effectiveFrom: string, effectiveTo: string, nextRunAt: string }} payload
+ * @returns {Promise<Object>} Created plan
+ */
+export async function createMaintenancePlan(payload) {
+  try {
+    const response = await api.post(MAINTENANCE_ENDPOINTS.PLANS, payload);
+    return extractResponseData(response);
+  } catch (error) {
+    throwApiError(error);
+  }
+}
+
+/**
  * Get a maintenance plan by ID.
  * @param {string} planId
  * @returns {Promise<Object>} Plan detail { id, name, frequencyType, frequencyValue, effectiveFrom, effectiveTo, nextRunAt, houseIds }
