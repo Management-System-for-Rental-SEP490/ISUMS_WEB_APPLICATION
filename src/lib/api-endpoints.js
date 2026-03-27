@@ -98,3 +98,10 @@ export const ISSSUE_ENDPOINTS = {
   CREATE: "/issues",
   ISSUES: "/issues",
 };
+export const ASSET_ENDPOINTS = {
+  BASE: "/assets",
+  ASSET_BY_ID: (id) => `/assets/${id}`,
+  CREATE: "/assets",
+  UPDATE: (id) => `/assets/${id}`,
+  DELETE: (id) => `/assets/${id}`,
+};
