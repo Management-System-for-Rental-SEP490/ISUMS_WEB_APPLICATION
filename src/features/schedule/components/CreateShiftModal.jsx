@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { X, Wrench, AlertTriangle, Clock, CheckCircle2 } from "lucide-react";
+import {
+  X,
+  Wrench,
+  Hammer,
+  AlertTriangle,
+  Clock,
+  CheckCircle2,
+  HammerIcon,
+} from "lucide-react";
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
 import {
@@ -51,7 +59,9 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
   useEffect(() => {
     if (open) {
       setMounted(true);
-      requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => setVisible(true)),
+      );
     } else {
       setVisible(false);
       const t = setTimeout(() => setMounted(false), 300);
@@ -114,8 +124,12 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
       onCreated?.();
       handleClose();
     } catch (e) {
-      if (e.message?.toLowerCase().includes("staff already has job in this time")) {
-        setError("Không thể tạo vì nhân viên kỹ thuật này đã có lịch làm việc trong thời gian chỉ định.");
+      if (
+        e.message?.toLowerCase().includes("staff already has job in this time")
+      ) {
+        setError(
+          "Không thể tạo vì nhân viên kỹ thuật này đã có lịch làm việc trong thời gian chỉ định.",
+        );
       } else if (e.status === 500) {
         setError(e.message ?? "Lỗi máy chủ, vui lòng thử lại sau.");
       } else {
@@ -145,9 +159,12 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
       <div
         className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden"
         style={{
-          transform: visible ? "translateY(0) scale(1)" : "translateY(20px) scale(0.95)",
+          transform: visible
+            ? "translateY(0) scale(1)"
+            : "translateY(20px) scale(0.95)",
           opacity: visible ? 1 : 0,
-          transition: "transform 300ms cubic-bezier(0.34, 1.2, 0.64, 1), opacity 300ms ease",
+          transition:
+            "transform 300ms cubic-bezier(0.34, 1.2, 0.64, 1), opacity 300ms ease",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -180,11 +197,8 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
               <div className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border bg-slate-800 text-white border-slate-800 text-sm font-semibold">
                 <Wrench className="w-3.5 h-3.5" /> Bảo trì
               </div>
-              <div className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-300 text-sm font-semibold cursor-not-allowed select-none">
-                <AlertTriangle className="w-3.5 h-3.5" /> Sửa chữa
-                <span className="text-[9px] bg-slate-200 text-slate-400 px-1.5 py-0.5 rounded-full">
-                  Sắp có
-                </span>
+              <div celassName="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-300 text-sm font-semibold">
+                <HammerIcon className="w-3.5 h-3.5" /> Sửa chữa
               </div>
             </div>
           </div>
@@ -248,7 +262,9 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
               format="DD/MM/YYYY"
               placeholder="Chọn ngày làm việc"
               value={selectedDate ? dayjs(selectedDate) : null}
-              onChange={(date) => setSelectedDate(date ? date.format("YYYY-MM-DD") : "")}
+              onChange={(date) =>
+                setSelectedDate(date ? date.format("YYYY-MM-DD") : "")
+              }
             />
           </div>
 

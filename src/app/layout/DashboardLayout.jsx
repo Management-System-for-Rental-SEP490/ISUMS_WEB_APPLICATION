@@ -12,6 +12,9 @@ import ContractsPendingSignPage from "../../features/contracts/pages/ContractsPe
 import SchedulePage from "../../features/schedule/pages/SchedulePage";
 import MaintenancePlansPage from "../../features/schedule/pages/MaintenancePlansPage";
 import MaintenanceJobsPage from "../../features/schedule/pages/MaintenanceJobsPage";
+import IssueRequestsPage from "../../features/issues/pages/IssueRequestsPage";
+import IssueAssignmentPage from "../../features/issues/pages/IssueAssignmentPage";
+import IssueHistoryByPropertyPage from "../../features/issues/pages/IssueHistoryByPropertyPage";
 import Reports from "../../features/reports/pages/Reports";
 import Notifications from "../../features/notifications/pages/Notifications";
 import Settings from "../../features/settings/pages/Settings";
@@ -81,7 +84,10 @@ export default function Dashboard() {
     "contracts-sign": "Hợp Đồng Cần Ký",
     maintenance: "Lịch Làm Việc",
     "maintenance-plans": "Kế Hoạch Bảo Trì",
-    "maintenance-jobs":  "Công Việc Bảo Trì",
+    "maintenance-jobs":     "Công Việc Bảo Trì",
+    "issue-requests":       "Yêu Cầu Sửa Chữa",
+    "issue-assignment":     "Phân Công Xử Lý",
+    "issue-history":        "Lịch Sử Theo BĐS",
     reports: "Báo cáo",
     notifications: "Thông báo",
     settings: "Cài đặt",
@@ -462,6 +468,9 @@ export default function Dashboard() {
           {activeMenu === "maintenance" && <SchedulePage />}
           {activeMenu === "maintenance-plans" && <MaintenancePlansPage />}
           {activeMenu === "maintenance-jobs"  && <MaintenanceJobsPage />}
+          {activeMenu === "issue-requests"   && <IssueRequestsPage />}
+          {activeMenu === "issue-assignment" && <IssueAssignmentPage />}
+          {activeMenu === "issue-history"    && <IssueHistoryByPropertyPage />}
           {activeMenu === "reports" && <Reports />}
           {activeMenu === "notifications" && <Notifications />}
           {activeMenu === "settings" && <Settings />}
