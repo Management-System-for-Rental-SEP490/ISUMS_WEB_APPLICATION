@@ -2,10 +2,12 @@ import React, { useState, useCallback } from "react";
 import { ArrowLeft, ArrowRight, Save } from "lucide-react";
 import StepGeneralInfo from "./StepGeneralInfo";
 import StepHouseAndMoney from "./StepHouseAndMoney";
+import StepContractClauses from "./StepContractClauses";
 
 const STEPS = [
-  { id: 1, title: "Thông tin người thuê", component: StepGeneralInfo },
-  { id: 2, title: "Nhà và chi phí liên quan", component: StepHouseAndMoney },
+  { id: 1, title: "Thông tin người thuê" },
+  { id: 2, title: "Nhà & chi phí" },
+  { id: 3, title: "Điều khoản" },
 ];
 
 export default function CreateContractWizard({
@@ -165,13 +167,32 @@ export default function CreateContractWizard({
     return newErrors;
   };
 
+  const validateStep3 = (currentForm) => {
+    const newErrors = {};
+    const penalty = Number(currentForm.latePenaltyPercent);
+    if (
+      String(currentForm.latePenaltyPercent ?? "").trim() &&
+      (Number.isNaN(penalty) || penalty < 0 || penalty > 100)
+    ) {
+      newErrors.latePenaltyPercent = "Phần trăm phạt phải từ 0 đến 100";
+    }
+    const copies = Number(currentForm.copies);
+    if (String(currentForm.copies ?? "").trim() && (Number.isNaN(copies) || copies < 1)) {
+      newErrors.copies = "Số bản hợp đồng phải ít nhất là 1";
+    }
+    return newErrors;
+  };
+
   const handleNext = () => {
     if (currentStep === 1) {
       const stepErrors = validateStep1(form);
       setErrors(stepErrors);
-      if (Object.keys(stepErrors).length > 0) {
-        return;
-      }
+      if (Object.keys(stepErrors).length > 0) return;
+    }
+    if (currentStep === 2) {
+      const stepErrors = validateStep2(form);
+      setErrors(stepErrors);
+      if (Object.keys(stepErrors).length > 0) return;
     }
     if (currentStep < STEPS.length) setCurrentStep((s) => s + 1);
   };
@@ -186,7 +207,8 @@ export default function CreateContractWizard({
 
     const step1Errors = validateStep1(form);
     const step2Errors = validateStep2(form);
-    const combinedErrors = { ...step1Errors, ...step2Errors };
+    const step3Errors = validateStep3(form);
+    const combinedErrors = { ...step1Errors, ...step2Errors, ...step3Errors };
     setErrors(combinedErrors);
     if (Object.keys(combinedErrors).length > 0 || !canSubmitStep2) {
       return;
@@ -194,8 +216,6 @@ export default function CreateContractWizard({
 
     onCreated?.(form);
   };
-
-  const StepComponent = STEPS[currentStep - 1].component;
 
   return (
     <div className="space-y-6">
@@ -231,16 +251,9 @@ export default function CreateContractWizard({
         onSubmit={handleSubmit}
         className="space-y-6"
       >
-        {currentStep === 1 ? (
-          <StepGeneralInfo form={form} update={update} errors={errors} />
-        ) : (
-          <StepHouseAndMoney
-            form={form}
-            update={update}
-            houses={houses}
-            errors={errors}
-          />
-        )}
+        {currentStep === 1 && <StepGeneralInfo form={form} update={update} errors={errors} />}
+        {currentStep === 2 && <StepHouseAndMoney form={form} update={update} houses={houses} errors={errors} />}
+        {currentStep === 3 && <StepContractClauses form={form} update={update} errors={errors} />}
 
         <div className="flex items-center justify-between gap-4 pt-4 border-t border-gray-200">
           <div className="flex gap-2">

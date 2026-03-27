@@ -17,22 +17,50 @@ import {
  */
 function transformContractPayload(payload) {
   return {
+    // Thông tin người thuê
     isNewAccount: Boolean(payload.isNewAccount ?? false),
     name: payload.name?.trim() || "",
     email: payload.email?.trim() || "",
     phoneNumber: payload.phoneNumber?.trim() || "",
     identityNumber: payload.identityNumber?.trim() || "",
-    houseId: payload.houseId?.trim() || "",
     dateOfIssue: toISOString(payload.dateOfIssue),
     placeOfIssue: payload.placeOfIssue?.trim() || "",
     tenantAddress: payload.tenantAddress?.trim() || "",
+    // Thông tin căn nhà & hợp đồng cơ bản
+    houseId: payload.houseId?.trim() || "",
     startDate: toISOString(payload.startDate),
     endDate: toISOString(payload.endDate),
     rentAmount: Number(payload.rentAmount) || 0,
     payDate: Number(payload.payDate) || 5,
+    payCycle: payload.payCycle?.trim() || "monthly",
+    // Đặt cọc & bàn giao
     depositAmount: Number(payload.depositAmount) || 0,
     depositDate: toISOString(payload.depositDate),
+    depositRefundDays: Number(payload.depositRefundDays) || 0,
     handoverDate: toISOString(payload.handoverDate),
+    // Điều khoản vi phạm & phạt trễ hạn
+    lateDays: Number(payload.lateDays) || 0,
+    latePenaltyPercent: Number(payload.latePenaltyPercent) || 0,
+    maxLateDays: Number(payload.maxLateDays) || 0,
+    cureDays: Number(payload.cureDays) || 0,
+    earlyTerminationPenalty: payload.earlyTerminationPenalty?.trim() || "",
+    landlordBreachCompensation: payload.landlordBreachCompensation?.trim() || "",
+    // Điều khoản thông báo & gia hạn
+    renewNoticeDays: Number(payload.renewNoticeDays) || 0,
+    landlordNoticeDays: Number(payload.landlordNoticeDays) || 0,
+    forceMajeureNoticeHours: Number(payload.forceMajeureNoticeHours) || 0,
+    // Giải quyết tranh chấp
+    disputeDays: Number(payload.disputeDays) || 0,
+    disputeForum: payload.disputeForum?.trim() || "",
+    // Thông tin bản hợp đồng
+    copies: Number(payload.copies) || 2,
+    eachKeep: Number(payload.eachKeep) || 1,
+    // Thông tin tài sản & mục đích thuê
+    purpose: payload.purpose?.trim() || "",
+    area: payload.area?.trim() || "",
+    structure: payload.structure?.trim() || "",
+    ownershipDocs: payload.ownershipDocs?.trim() || "",
+    taxFeeNote: payload.taxFeeNote?.trim() || "",
   };
 }
 
