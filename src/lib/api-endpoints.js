@@ -94,9 +94,9 @@ export const SCHEDULE_ENDPOINTS = {
 };
 export const ISSSUE_ENDPOINTS = {
   BASE: "/issues",
+  TICKETS: "/issues/tickets",
   ISSUE_BY_ID: (id) => `/issues/${id}`,
   CREATE: "/issues",
-  ISSUES: "/issues",
 };
 export const ASSET_ENDPOINTS = {
   BASE: "/assets",
