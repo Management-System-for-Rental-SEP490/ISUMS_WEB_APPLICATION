@@ -141,7 +141,8 @@ export async function deleteContract(id) {
   }
 }
 /**
- * Mark contract as READY — manager/admin xác nhận hợp đồng để gửi cho khách thuê
+ * @deprecated Không còn trong API mới. READY được trigger tự động khi tenant upload CCCD.
+ * Giữ lại để tránh lỗi nếu còn nơi nào đang gọi.
  * @param {string} id - Contract ID
  * @returns {Promise<Object>}
  */
@@ -155,14 +156,29 @@ export async function readyContract(id) {
 }
 
 /**
- * Confirm by admin — chủ nhà (LANDLORD) xem hợp đồng READY và xác nhận,
- * sau đó bắt đầu bước ký chính thức
+ * Confirm by admin — render PDF → upload S3 → gửi email tenant.
+ * Chuyển trạng thái hợp đồng sang PENDING_TENANT_REVIEW.
  * @param {string} id - Contract ID
  * @returns {Promise<Object>}
  */
 export async function confirmByAdmin(id) {
   try {
     const response = await api.put(CONTRACTS_ENDPOINTS.CONFIRM(id));
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Cancel contract by landlord (admin).
+ * Chỉ hoạt động khi hợp đồng đang ở trạng thái READY hoặc PENDING_TENANT_REVIEW.
+ * @param {string} id - Contract ID
+ * @returns {Promise<Object>}
+ */
+export async function cancelContract(id) {
+  try {
+    const response = await api.put(CONTRACTS_ENDPOINTS.CANCEL(id));
     return extractResponseData(response);
   } catch (error) {
     throw new Error(getErrorMessage(error));

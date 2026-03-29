@@ -42,7 +42,7 @@ export function useAdminSignContract(id) {
       try {
         const raw = await getContractById(id);
         const mapped = mapContractFromApi(raw);
-        if ((mapped?.status ?? "") !== "CONFIRM_BY_LANDLORD") {
+        if ((mapped?.status ?? "") !== "READY") {
           toast.error("Hợp đồng chưa được chủ nhà xác nhận để ký.");
           navigate(`/contracts/${id}`, { replace: true });
           return;
@@ -73,8 +73,10 @@ export function useAdminSignContract(id) {
     const mainRect = main.getBoundingClientRect();
     const wrapperRect = iframeWrapperRef.current.getBoundingClientRect();
     const wrapperTopInMain = wrapperRect.top - mainRect.top + main.scrollTop;
+    const cw = iframeWrapperRef.current?.getBoundingClientRect().width ?? 800;
+    const pageHeightPx = cw * (595 / 752);
     const boxInitialY =
-      (signingSession.signingPage - 1) * 900 + Math.round(900 * 0.6);
+      (signingSession.signingPage - 1) * pageHeightPx + Math.round(pageHeightPx * 0.6);
     const scrollTarget = wrapperTopInMain + boxInitialY - 200;
     main.scrollTo({ top: Math.max(0, scrollTarget), behavior: "smooth" });
   }, [signatureData]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -144,7 +146,8 @@ export function useAdminSignContract(id) {
         return raw.startsWith("data:") ? raw : `data:image/png;base64,${raw}`;
       })(),
       signingPage: pos.page,
-      signingPosition: `${llx - 48},${lly + 270 + 107},${urx - 48},${ury + 270 + 107}`,
+      // signingPosition: `${llx - 48},${lly + 270 + 107},${urx - 48},${ury + 270 + 107}`,
+      signingPosition: `${llx},${lly},${urx},${ury}`,
       reason: "Admin ký hợp đồng",
       reject: false,
       confirmTermsConditions: true,
@@ -176,7 +179,9 @@ export function useAdminSignContract(id) {
     if (!signingSession || !signatureData) return;
     setConfirming(true);
     try {
-      const res = await adminSignEcontract(buildPayload(null, newPos));
+      const payload = buildPayload(null, newPos);
+      console.log("[AdminSign] 🚀 Payload gửi lên API sign-admin:", payload);
+      const res = await adminSignEcontract(payload);
       setOtpEmail(res?.data?.receiveOtpEmail ?? null);
       setOtpSent(true);
       setShowOtpModal(true);

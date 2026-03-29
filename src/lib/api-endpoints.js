@@ -27,7 +27,9 @@ export const CONTRACTS_ENDPOINTS = {
   UPDATE: (id) => `/econtracts/${id}`,
   DELETE: (id) => `/econtracts/${id}`,
   READY: (id) => `/econtracts/ready/${id}`,
-  CONFIRM: (id) => `/econtracts/confirm-by-admin/${id}`,
+  CONFIRM: (id) => `/econtracts/${id}/confirm`,
+  CANCEL: (id) => `/econtracts/${id}/cancel`,
+  CCCD_STATUS: (id) => `/econtracts/${id}/cccd-status`,
   GET_VNPT_DOCUMENT: (documentId) => `/econtracts/vnpt-document/${documentId}`,
   ADMIN_SIGN: "/econtracts/sign-admin",
 };

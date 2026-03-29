@@ -9,10 +9,13 @@ export default function ContractsFilters({
 }) {
   const statuses = [
     { value: "all", label: "Toàn bộ" },
-    { value: "IN_PROGRESS", label: "Chờ chủ nhà ký" },
-    { value: "CONFIRM_BY_LANDLORD", label: "Chờ chủ nhà đã xác nhận" },
-    { value: "READY", label: "Sẵn sàng" },
-    { value: "expired", label: "Đã hết hạn" },
+    { value: "DRAFT", label: "Bản nháp" },
+    { value: "PENDING_TENANT_REVIEW", label: "Chờ khách thuê xem xét" },
+    { value: "READY", label: "Chờ chủ nhà ký" },
+    { value: "IN_PROGRESS", label: "Chờ khách thuê ký" },
+    { value: "COMPLETED", label: "Đã hoàn thành" },
+    { value: "CANCELLED_BY_TENANT", label: "Khách thuê đã huỷ" },
+    { value: "CANCELLED_BY_LANDLORD", label: "Chủ nhà đã huỷ" },
   ];
 
   return (
@@ -53,33 +56,33 @@ export default function ContractsFilters({
           <span className="hidden sm:inline text-slate-400">Gợi ý:</span>
           <button
             type="button"
-            onClick={() => onFilter("CONFIRM_BY_LANDLORD")}
+            onClick={() => onFilter("PENDING_TENANT_REVIEW")}
             className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 ${
-              filterStatus === "IN_PROGRESS"
-                ? "border-emerald-500/70 bg-emerald-50 text-emerald-700"
+              filterStatus === "PENDING_TENANT_REVIEW"
+                ? "border-sky-500/70 bg-sky-50 text-sky-700"
                 : "border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600"
             } transition-colors`}
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            Chờ chủ nhà ký
+            <span className="h-1.5 w-1.5 rounded-full bg-sky-500" />
+            Chờ khách thuê xem xét
           </button>
           <button
             type="button"
             onClick={() => onFilter("READY")}
             className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 ${
-              filterStatus === "pending"
-                ? "border-amber-500/70 bg-amber-50 text-amber-700"
+              filterStatus === "READY"
+                ? "border-blue-500/70 bg-blue-50 text-blue-700"
                 : "border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600"
             } transition-colors`}
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-            Chờ chủ nhà xác nhận
+            <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+            Chờ chủ nhà ký
           </button>
           <button
             type="button"
-            onClick={() => onFilter("draft")}
+            onClick={() => onFilter("DRAFT")}
             className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 ${
-              filterStatus === "draft"
+              filterStatus === "DRAFT"
                 ? "border-slate-700/70 bg-slate-900 text-slate-50"
                 : "border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600"
             } transition-colors`}

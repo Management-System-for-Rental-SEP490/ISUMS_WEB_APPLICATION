@@ -22,6 +22,7 @@ export function mapContractFromApi(item) {
     paymentType: item.paymentType ?? "monthly",
     autoRenew: item.autoRenew ?? false,
     html: item.html,
+    pdfUrl: item.pdfUrl ?? null,
     createdAt: item.createdAt,
   };
 }
