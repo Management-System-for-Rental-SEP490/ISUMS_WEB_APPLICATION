@@ -81,7 +81,8 @@ export const MAINTENANCE_ENDPOINTS = {
   PLANS_HOUSES: (planId) => `/maintenances/plans/houses/${planId}`,
   JOBS: "/maintenances/jobs",
   JOBS_BY_ID: (jobId) => `/maintenances/jobs/${jobId}`,
-  JOBS_BY_STATUS: "/maintenances/jobs/status",
+  JOBS_BY_STATUS: "/maintenances/jobs",
+  JOBS_GENERATE: "/maintenances/jobs/generate",
   // SLOT_JOBS: (id) => `/maintenance/slots/${id}/jobs`,
   // JOB_BY_ID: (id) => `/maintenance/jobs/${id}`,
   // BY_WEEK: "/maintenance/slots/week",
@@ -90,7 +91,7 @@ export const MAINTENANCE_ENDPOINTS = {
 
 // Schedule endpoints
 export const SCHEDULE_ENDPOINTS = {
-  WORK_SLOTS: "/schedules/work_slots",
+  WORK_SLOTS: "/schedules/work_slots/confirm",
   WORK_SLOTS_CURRENT: "/schedules/work_slots/current",
   TEMPLATES_CURRENT: (date) => `/schedules/templates/current/${date}`,
 };

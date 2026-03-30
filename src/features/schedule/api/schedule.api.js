@@ -188,6 +188,20 @@ export async function getMaintenancePlans() {
 }
 
 /**
+ * Generate maintenance jobs from existing plans.
+ * POST /maintenances/jobs/generate
+ * @returns {Promise<Array>} List of generated jobs
+ */
+export async function generateMaintenanceJobs() {
+  try {
+    const response = await api.post(MAINTENANCE_ENDPOINTS.JOBS_GENERATE);
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
  * Get maintenance jobs filtered by status.
  * @param {string} status - e.g. "CREATED"
  * @returns {Promise<Array>}
