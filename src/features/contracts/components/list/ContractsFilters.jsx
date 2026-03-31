@@ -64,7 +64,7 @@ export default function ContractsFilters({
             } transition-colors`}
           >
             <span className="h-1.5 w-1.5 rounded-full bg-sky-500" />
-            Chờ khách thuê xem xét
+            Chờ khách thuê xác nhận
           </button>
           <button
             type="button"

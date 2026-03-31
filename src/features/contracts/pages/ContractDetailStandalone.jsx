@@ -21,7 +21,7 @@ const STATUS_CONFIG = {
     dot: "#94a3b8",
   },
   PENDING_TENANT_REVIEW: {
-    label: "Chờ khách thuê xem xét",
+    label: "Chờ khách thuê xác nhận",
     bg: "rgba(14,165,233,0.1)",
     color: "#0369a1",
     border: "rgba(14,165,233,0.3)",
@@ -230,7 +230,12 @@ export default function ContractDetailStandalone() {
         const mapped = mapContractFromApi(raw);
         if (mounted) setContract(mapped);
       } catch (err) {
-        if (mounted) setError(err?.message ?? "Không thể tải hợp đồng.");
+        const status = err?.response?.status;
+        const msg =
+          status === 403 ? "Bạn không có quyền xem hợp đồng này." :
+          status === 404 ? "Không tìm thấy hợp đồng." :
+          "Không thể tải hợp đồng, vui lòng thử lại.";
+        if (mounted) setError(msg);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -259,9 +264,13 @@ export default function ContractDetailStandalone() {
       );
       await refetchContract();
     } catch (err) {
-      toast.error(
-        err?.response?.data?.message || err?.message || "Xác nhận thất bại.",
-      );
+      const status = err?.response?.status;
+      const msg =
+        status === 400 ? "Không thể xác nhận hợp đồng này (hợp đồng không đủ điều kiện)." :
+        status === 403 ? "Bạn không có quyền xác nhận hợp đồng này." :
+        status === 404 ? "Không tìm thấy hợp đồng." :
+        "Xác nhận thất bại, vui lòng thử lại.";
+      toast.error(msg);
     } finally {
       setConfirming(false);
     }
