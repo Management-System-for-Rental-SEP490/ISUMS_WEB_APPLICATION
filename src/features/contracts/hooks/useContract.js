@@ -19,7 +19,11 @@ export function useContracts() {
       const mapped = arr.map(mapContractFromApi);
       setContracts(mapped);
     } catch (err) {
-      const msg = err?.message ?? String(err);
+      const status = err?.response?.status;
+      const msg =
+        status === 404 ? "Không tìm thấy danh sách hợp đồng." :
+        status === 403 ? "Bạn không có quyền xem danh sách hợp đồng." :
+        "Không thể tải danh sách hợp đồng, vui lòng thử lại.";
       setError(msg);
       setContracts([]);
     } finally {

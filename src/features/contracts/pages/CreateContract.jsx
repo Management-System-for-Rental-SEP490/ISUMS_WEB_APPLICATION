@@ -66,10 +66,11 @@ export default function CreateContract({ onCancel, onCreated }) {
       await createContract(form);
       setIsApiDone(true);
     } catch (err) {
+      const status = err?.response?.status;
       const msg =
-        err?.response?.status === 500
-          ? "Tạo hợp đồng lỗi, vui lòng thử lại."
-          : err?.response?.data?.message || err?.message || "Không thể tạo hợp đồng";
+        status === 400 ? "Dữ liệu không hợp lệ hoặc thông tin chủ nhà chưa được cập nhật đầy đủ." :
+        status === 404 ? "Không tìm thấy nhà hoặc email người dùng không tồn tại." :
+        "Tạo hợp đồng thất bại, vui lòng thử lại.";
       setIsError(true);
       setErrorMessage(msg);
       setIsApiDone(true);
