@@ -1,11 +1,26 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import AppRoutes from './routes/AppRoutes'
+import { useEffect } from "react";
+import { RouterProvider } from "react-router-dom";
+import { router } from "./routes";
+import { authActions } from "./features/auth/store/auth.store";
+import { ToastContainer } from "react-toastify";
+import { ConfigProvider } from "antd";
+import viVN from "antd/locale/vi_VN";
+import dayjs from "dayjs";
+import "dayjs/locale/vi";
 
-function App() {
-  return <AppRoutes />;
+dayjs.locale("vi");
 
+export default function App() {
+  useEffect(() => {
+    authActions.init();
+  }, []);
+
+  return (
+    <ConfigProvider locale={viVN}>
+      <>
+        <RouterProvider router={router} />
+        <ToastContainer position="top-right" autoClose={3000} />
+      </>
+    </ConfigProvider>
+  );
 }
-export default App
