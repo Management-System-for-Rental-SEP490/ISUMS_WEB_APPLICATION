@@ -232,6 +232,34 @@ export async function createWorkSlot(payload) {
 }
 
 /**
+ * Confirm a staff work slot (maintenance/issue job assignment).
+ * @param {{ jobId: string, startTime: string }} payload
+ * @returns {Promise<Object>}
+ */
+export async function confirmStaffWorkSlot(payload) {
+  try {
+    const response = await api.post(SCHEDULE_ENDPOINTS.WORK_SLOTS_STAFF_CONFIRM, payload);
+    return extractResponseData(response);
+  } catch (error) {
+    throwApiError(error);
+  }
+}
+
+/**
+ * Manager confirms a work slot by jobId (path param).
+ * @param {string} jobId
+ * @returns {Promise<Object>}
+ */
+export async function confirmManagerWorkSlot(jobId) {
+  try {
+    const response = await api.post(SCHEDULE_ENDPOINTS.WORK_SLOTS_MANAGER_CONFIRM(jobId));
+    return extractResponseData(response);
+  } catch (error) {
+    throwApiError(error);
+  }
+}
+
+/**
  * Get all maintenance jobs.
  * @returns {Promise<Array>} List of jobs { id, planId, houseId, periodStartDate, dueDate, status }
  */

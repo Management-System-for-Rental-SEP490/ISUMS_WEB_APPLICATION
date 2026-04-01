@@ -1,22 +1,119 @@
-import { useState } from "react";
-import { UserCheck } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import {
+  MapPin,
+  Clock,
+  UserCheck,
+  RefreshCw,
+  Wrench,
+  Phone,
+  Check,
+} from "lucide-react";
+import { getAllIssues, getIssueById } from "../api/issues.api";
+import { getHouseById } from "../../houses/api/houses.api";
+import { confirmManagerWorkSlot } from "../../schedule/api/schedule.api";
+import { toast } from "react-toastify";
 import { ISSUE_STATUS_CONFIG } from "../constants/issue.constants";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import "dayjs/locale/vi";
 
-// TODO: thay bằng data thật từ API khi có hook
-const issues = [];
-const staff  = [];
+dayjs.extend(relativeTime);
+dayjs.locale("vi");
+
+function Avatar({ name, size = "md" }) {
+  const initials = (name ?? "?")
+    .split(" ")
+    .slice(-2)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
+  const cls = size === "lg" ? "w-12 h-12 text-sm" : "w-8 h-8 text-xs";
+  return (
+    <div
+      className={`${cls} rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold flex-shrink-0`}
+    >
+      {initials}
+    </div>
+  );
+}
 
 export default function IssueAssignmentPage() {
-  const [assignments, setAssignments] = useState({});
-  const [assigned, setAssigned]       = useState(new Set());
+  const [issues, setIssues] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selected, setSelected] = useState(null);
+  const [selectedDetail, setSelectedDetail] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [houseNames, setHouseNames] = useState({});
 
-  const handleAssign = (issueId) => {
-    const staffId = assignments[issueId];
-    if (!staffId) return;
-    setAssigned((prev) => new Set([...prev, issueId]));
+  const fetchIssues = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getAllIssues({ type: "REPAIR", status: "WAITING_MANAGER_CONFIRM" });
+      const list = Array.isArray(data) ? data : [];
+      setIssues(list);
+      if (list.length > 0) setSelected(list[0]);
+
+      // Fetch house names
+      const ids = [...new Set(list.map((i) => i.houseId).filter(Boolean))];
+      const entries = await Promise.all(
+        ids.map((id) =>
+          getHouseById(id)
+            .then((h) => [id, h?.name ?? h?.houseName ?? "—"])
+            .catch(() => [id, "—"]),
+        ),
+      );
+      setHouseNames(Object.fromEntries(entries));
+    } catch (err) {
+      setError(err?.message ?? "Không thể tải danh sách yêu cầu.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchIssues();
+  }, [fetchIssues]);
+
+  const handleSelectIssue = async (issue) => {
+    setSelected(issue);
+    setSelectedDetail(null);
+    setDetailLoading(true);
+    try {
+      const detail = await getIssueById(issue.id);
+      setSelectedDetail(detail);
+      if (detail?.houseId && !houseNames[detail.houseId]) {
+        getHouseById(detail.houseId)
+          .then((h) => setHouseNames((prev) => ({ ...prev, [detail.houseId]: h?.name ?? h?.houseName ?? "—" })))
+          .catch(() => {});
+      }
+    } catch {
+      // fallback to list data
+    } finally {
+      setDetailLoading(false);
+    }
   };
 
-  const pendingList = issues.filter((i) => !assigned.has(i.id));
+  const handleConfirm = async () => {
+    if (!selected) return;
+    setConfirming(true);
+    try {
+      await confirmManagerWorkSlot(selected.id);
+      toast.success(`Đã xác nhận ca làm việc: ${selected.title}`);
+      fetchIssues();
+    } catch (e) {
+      toast.error(e.message ?? "Xác nhận thất bại, vui lòng thử lại.");
+    } finally {
+      setConfirming(false);
+    }
+  };
+
+  const detail = selectedDetail ?? selected;
+  const status = detail
+    ? (ISSUE_STATUS_CONFIG[detail.status] ?? ISSUE_STATUS_CONFIG.CREATED)
+    : null;
 
   return (
     <div className="space-y-5">
@@ -24,95 +121,261 @@ export default function IssueAssignmentPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Phân công xử lý</h2>
-          <p className="text-sm text-gray-500 mt-0.5">{pendingList.length} yêu cầu chưa có người nhận</p>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {loading
+              ? "Đang tải..."
+              : `${issues.length} yêu cầu sửa chữa chờ xử lý`}
+          </p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-gray-500 bg-white border rounded-lg px-4 py-2 shadow-sm">
-          <UserCheck className="w-4 h-4 text-teal-600" />
-          {staff.filter((s) => s.available).length} nhân viên đang sẵn sàng
-        </div>
+        <button
+          onClick={fetchIssues}
+          disabled={loading}
+          className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 bg-white shadow-sm transition disabled:opacity-50"
+        >
+          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+          Làm mới
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Issues list */}
-        <div className="lg:col-span-2 space-y-3">
-          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
-            Yêu cầu chờ phân công ({pendingList.length})
-          </h3>
-
-          {pendingList.length === 0 && (
-            <div className="bg-white rounded-xl border p-10 text-center text-gray-400 text-sm">
-              Không có yêu cầu nào chờ phân công
-            </div>
-          )}
-
-          {pendingList.map((issue) => {
-            const status = ISSUE_STATUS_CONFIG[issue.status] ?? ISSUE_STATUS_CONFIG.CREATED;
-            return (
-              <div key={issue.id} className="bg-white rounded-xl border shadow-sm p-4 flex items-start gap-4">
-                <span className={`mt-1.5 w-2.5 h-2.5 rounded-full flex-shrink-0 ${status.dot}`} />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-800">{issue.title}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{issue.description}</p>
-                  <span className={`inline-flex items-center mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${status.pill}`}>
-                    {status.label}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <select
-                    value={assignments[issue.id] ?? ""}
-                    onChange={(e) => setAssignments((prev) => ({ ...prev, [issue.id]: e.target.value }))}
-                    className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700"
-                  >
-                    <option value="">Chọn nhân viên</option>
-                    {staff.filter((s) => s.available).map((s) => (
-                      <option key={s.id} value={s.id}>{s.name} ({s.load} việc)</option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={() => handleAssign(issue.id)}
-                    disabled={!assignments[issue.id]}
-                    className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 disabled:bg-teal-200 disabled:cursor-not-allowed text-white text-sm rounded-lg transition font-medium"
-                  >
-                    Giao
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center justify-between">
+          <p className="text-sm text-red-600">{error}</p>
+          <button
+            onClick={fetchIssues}
+            className="text-xs text-red-600 underline"
+          >
+            Thử lại
+          </button>
         </div>
+      )}
 
-        {/* Staff panel */}
-        <div>
-          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">Nhân viên</h3>
+      {/* Main layout */}
+      <div className="flex gap-5 items-start">
+        {/* LEFT — issue list */}
+        <div className="w-72 flex-shrink-0 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+            <p className="text-sm font-bold text-gray-700">Yêu cầu sửa chữa</p>
+            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">
+              {issues.length}
+            </span>
+          </div>
 
-          {staff.length === 0 && (
-            <div className="bg-white rounded-xl border p-8 text-center text-gray-400 text-sm">
-              Chưa có dữ liệu nhân viên
-            </div>
-          )}
-
-          <div className="space-y-3">
-            {staff.map((s) => (
-              <div key={s.id} className="bg-white rounded-xl border shadow-sm p-4">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="font-medium text-gray-800 text-sm">{s.name}</p>
-                  <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${
-                    s.available ? "bg-green-50 text-green-700 border-green-200" : "bg-gray-50 text-gray-500 border-gray-200"
-                  }`}>
-                    {s.available ? "Sẵn sàng" : "Bận"}
-                  </span>
+          <div className="overflow-y-auto max-h-[calc(100vh-260px)]">
+            {loading &&
+              [1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="px-4 py-3 border-b border-gray-50 animate-pulse space-y-2"
+                >
+                  <div className="h-3 bg-gray-200 rounded w-1/3" />
+                  <div className="h-4 bg-gray-100 rounded w-3/4" />
+                  <div className="h-3 bg-gray-100 rounded w-1/2" />
                 </div>
-                <p className="text-xs text-gray-400">{s.role}</p>
-                <div className="mt-2 flex items-center gap-2">
-                  <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-teal-400 rounded-full" style={{ width: `${Math.min((s.load / 6) * 100, 100)}%` }} />
-                  </div>
-                  <span className="text-xs text-gray-400">{s.load}/6 việc</span>
-                </div>
+              ))}
+
+            {!loading && issues.length === 0 && (
+              <div className="py-12 text-center text-gray-400 text-sm">
+                Không có yêu cầu nào
               </div>
-            ))}
+            )}
+
+            {!loading &&
+              issues.map((issue) => {
+                const isActive = selected?.id === issue.id;
+                return (
+                  <button
+                    key={issue.id}
+                    onClick={() => handleSelectIssue(issue)}
+                    className={`w-full text-left px-4 py-3 border-b border-gray-50 transition hover:bg-gray-50 ${
+                      isActive ? "bg-teal-50 border-l-2 border-l-teal-500" : ""
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-mono font-bold text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded">
+                        #{String(issue.id).slice(0, 8).toUpperCase()}
+                      </span>
+                      <span className="text-[10px] text-gray-400">
+                        {dayjs(issue.createdAt).fromNow()}
+                      </span>
+                    </div>
+                    <p
+                      className={`text-sm font-semibold leading-snug truncate ${isActive ? "text-teal-700" : "text-gray-800"}`}
+                    >
+                      {issue.title}
+                    </p>
+                    <p className="text-[11px] mt-1 flex items-center gap-1">
+                      {issue.assignedStaffId ? (
+                        <span className="text-blue-500 font-medium flex items-center gap-1">
+                          <UserCheck className="w-3 h-3" />{" "}
+                          {issue.staffName ?? "Đã phân công"}
+                        </span>
+                      ) : (
+                        <span className="text-orange-400 font-medium">
+                          ● Chưa phân công
+                        </span>
+                      )}
+                    </p>
+                  </button>
+                );
+              })}
           </div>
         </div>
+
+        {/* RIGHT — detail panel */}
+        {!loading && selected ? (
+          <div className="flex-1 min-w-0 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            {/* Detail header */}
+            <div className="px-6 py-4 border-b border-gray-100 flex items-start justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                  <span className="text-[11px] font-mono font-bold text-teal-600 bg-teal-50 border border-teal-100 px-2 py-0.5 rounded-lg">
+                    Issue #{String(detail.id).slice(0, 8).toUpperCase()}
+                  </span>
+                  {status && (
+                    <span
+                      className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${status.pill}`}
+                    >
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${status.dot}`}
+                      />
+                      {status.label}
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 leading-snug">
+                  {detail.title}
+                </h3>
+                {detail.houseId && (
+                  <p className="flex items-center gap-1.5 text-sm text-gray-500 mt-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                    {houseNames[detail.houseId] ?? "Đang tải..."}
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={handleConfirm}
+                disabled={confirming}
+                className="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Check className="w-4 h-4" />
+                {confirming ? "Đang xác nhận..." : "Xác nhận ca làm việc"}
+              </button>
+            </div>
+
+            <div className="px-6 py-5 grid grid-cols-2 gap-5">
+              {/* Description */}
+              <div className="col-span-2 lg:col-span-1">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                  Mô tả
+                </p>
+                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                  <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                    {detail.description ?? "Không có mô tả."}
+                  </p>
+                  <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-200">
+                    <span className="flex items-center gap-1.5 text-[11px] text-gray-400">
+                      <Clock className="w-3.5 h-3.5" />
+                      {dayjs(detail.createdAt).format("DD/MM/YYYY · HH:mm")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right column */}
+              <div className="col-span-2 lg:col-span-1 space-y-4">
+                {/* Assigned technician */}
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                    Nhân viên xử lý
+                  </p>
+                  {detail.assignedStaffId ? (
+                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex items-center gap-3">
+                      <Avatar name={detail.staffName} size="lg" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-gray-800">
+                          {detail.staffName ?? "Nhân viên"}
+                        </p>
+                        {detail.staffPhone && (
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            {detail.staffPhone}
+                          </p>
+                        )}
+                      </div>
+                      {detail.staffPhone && (
+                        <a
+                          href={`tel:${detail.staffPhone}`}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 text-white text-xs font-semibold hover:bg-teal-700 transition"
+                        >
+                          <Phone className="w-3.5 h-3.5" />
+                          Gọi
+                        </a>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-orange-50 rounded-xl p-4 border border-orange-100 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                        <Wrench className="w-5 h-5 text-orange-400" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-orange-700">
+                          Chưa phân công
+                        </p>
+                        <p className="text-xs text-orange-400 mt-0.5">
+                          Nhấn "Gán nhân viên" để phân công
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Ticket info */}
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                    Thông tin
+                  </p>
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 space-y-2.5">
+                    {[
+                      {
+                        label: "Mã yêu cầu",
+                        value: String(detail.id).slice(0, 8).toUpperCase(),
+                      },
+                      { label: "Loại", value: "Sửa chữa" },
+                      {
+                        label: "Ngày tạo",
+                        value: dayjs(detail.createdAt).format(
+                          "DD/MM/YYYY HH:mm",
+                        ),
+                      },
+                      {
+                        label: "SĐT khách",
+                        value: detail.tenantPhone ?? "—",
+                      },
+                    ].map(({ label, value }) => (
+                      <div
+                        key={label}
+                        className="flex items-center justify-between"
+                      >
+                        <span className="text-xs text-gray-400">{label}</span>
+                        <span className="text-xs font-semibold text-gray-700">
+                          {value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          !loading && (
+            <div className="flex-1 bg-white rounded-2xl border border-gray-200 shadow-sm flex items-center justify-center py-24">
+              <div className="text-center text-gray-400">
+                <Wrench className="w-10 h-10 mx-auto mb-3 text-gray-300" />
+                <p className="text-sm">Chọn một yêu cầu để xem chi tiết</p>
+              </div>
+            </div>
+          )
+        )}
       </div>
     </div>
   );

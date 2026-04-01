@@ -32,6 +32,15 @@ export async function getAllResponses() {
   }
 }
 
+export async function getResponseByTicket(ticketId) {
+  try {
+    const response = await api.get(ISSSUE_ENDPOINTS.RESPONSE_BY_TICKET(ticketId));
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
 export async function replyToIssue(ticketId, { content }) {
   try {
     const response = await api.post(`/issues/responses/${ticketId}`, { content });

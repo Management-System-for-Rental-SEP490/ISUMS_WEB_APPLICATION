@@ -82,7 +82,6 @@ export const MAINTENANCE_ENDPOINTS = {
   JOBS: "/maintenances/jobs",
   JOBS_BY_ID: (jobId) => `/maintenances/jobs/${jobId}`,
   JOBS_BY_STATUS: "/maintenances/jobs",
-  JOBS_GENERATE: "/maintenances/jobs/generate",
   // SLOT_JOBS: (id) => `/maintenance/slots/${id}/jobs`,
   // JOB_BY_ID: (id) => `/maintenance/jobs/${id}`,
   // BY_WEEK: "/maintenance/slots/week",
@@ -93,6 +92,8 @@ export const MAINTENANCE_ENDPOINTS = {
 export const SCHEDULE_ENDPOINTS = {
   WORK_SLOTS: "/schedules/work_slots/confirm",
   WORK_SLOTS_CURRENT: "/schedules/work_slots/current",
+  WORK_SLOTS_STAFF_CONFIRM: "/schedules/work_slots/staff/confirm",
+  WORK_SLOTS_MANAGER_CONFIRM: (jobId) => `/schedules/work_slots/manager/confirm/${jobId}`,
   TEMPLATES_CURRENT: (date) => `/schedules/templates/current/${date}`,
 };
 export const ISSSUE_ENDPOINTS = {
@@ -100,6 +101,7 @@ export const ISSSUE_ENDPOINTS = {
   TICKETS: "/issues/tickets",
   ISSUE_BY_ID: (id) => `/issues/${id}`,
   CREATE: "/issues",
+  RESPONSE_BY_TICKET: (ticketId) => `/issues/responses/ticket/${ticketId}`,
 };
 export const ASSET_ENDPOINTS = {
   BASE: "/assets",
