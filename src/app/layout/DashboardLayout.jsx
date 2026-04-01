@@ -18,7 +18,10 @@ import IssueHistoryByPropertyPage from "../../features/issues/pages/IssueHistory
 import Reports from "../../features/reports/pages/Reports";
 import Notifications from "../../features/notifications/pages/Notifications";
 import Settings from "../../features/settings/pages/Settings";
-import { authActions, useAuthStore } from "../../features/auth/store/auth.store";
+import {
+  authActions,
+  useAuthStore,
+} from "../../features/auth/store/auth.store";
 
 const ROLE_LABELS = {
   LANDLORD: "Chủ nhà",
@@ -84,10 +87,10 @@ export default function Dashboard() {
     "contracts-sign": "Hợp Đồng Cần Ký",
     maintenance: "Lịch Làm Việc",
     "maintenance-plans": "Kế Hoạch Bảo Trì",
-    "maintenance-jobs":     "Công Việc Bảo Trì",
-    "issue-requests":       "Yêu Cầu Sửa Chữa",
-    "issue-assignment":     "Phân Công Xử Lý",
-    "issue-history":        "Lịch Sử Theo BĐS",
+    "maintenance-jobs": "Công Việc Bảo Trì",
+    "issue-requests": "Danh Sách Yêu Cầu",
+    "issue-assignment": "Phân Công Xử Lý",
+    "issue-history": "Lịch Sử Theo BĐS",
     reports: "Báo cáo",
     notifications: "Thông báo",
     settings: "Cài đặt",
@@ -467,10 +470,10 @@ export default function Dashboard() {
           {activeMenu === "contracts-sign" && <ContractsPendingSignPage />}
           {activeMenu === "maintenance" && <SchedulePage />}
           {activeMenu === "maintenance-plans" && <MaintenancePlansPage />}
-          {activeMenu === "maintenance-jobs"  && <MaintenanceJobsPage />}
-          {activeMenu === "issue-requests"   && <IssueRequestsPage />}
+          {activeMenu === "maintenance-jobs" && <MaintenanceJobsPage />}
+          {activeMenu === "issue-requests" && <IssueRequestsPage />}
           {activeMenu === "issue-assignment" && <IssueAssignmentPage />}
-          {activeMenu === "issue-history"    && <IssueHistoryByPropertyPage />}
+          {activeMenu === "issue-history" && <IssueHistoryByPropertyPage />}
           {activeMenu === "reports" && <Reports />}
           {activeMenu === "notifications" && <Notifications />}
           {activeMenu === "settings" && <Settings />}

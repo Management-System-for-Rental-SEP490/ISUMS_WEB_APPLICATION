@@ -13,6 +13,7 @@ import {
   FileText,
   Home,
   LogOut,
+  MailQuestionIcon,
   PenLine,
   Settings,
   UserCheck,
@@ -46,8 +47,9 @@ export default function Sidebar({
 
   const activeCls = "bg-teal-500 text-white shadow-sm shadow-teal-200";
   const inactiveCls = "text-slate-600 hover:bg-slate-100 hover:text-slate-900";
-const subActiveCls = "bg-teal-50 text-teal-700 font-semibold";
-  const subInactiveCls = "text-slate-500 hover:bg-slate-100 hover:text-slate-800";
+  const subActiveCls = "bg-teal-50 text-teal-700 font-semibold";
+  const subInactiveCls =
+    "text-slate-500 hover:bg-slate-100 hover:text-slate-800";
 
   // navItems: item thường hoặc group có children (hover để xổ)
   const navItems = [
@@ -61,8 +63,16 @@ const subActiveCls = "bg-teal-50 text-teal-700 font-semibold";
       label: "Bảo Trì",
       icon: ClipboardList,
       children: [
-        { id: "maintenance-plans", label: "Kế hoạch bảo trì", icon: ClipboardList },
-        { id: "maintenance-jobs", label: "Danh sách công việc", icon: ClipboardList },
+        {
+          id: "maintenance-plans",
+          label: "Kế hoạch bảo trì",
+          icon: ClipboardList,
+        },
+        {
+          id: "maintenance-jobs",
+          label: "Danh sách công việc",
+          icon: ClipboardList,
+        },
       ],
     },
     {
@@ -70,7 +80,11 @@ const subActiveCls = "bg-teal-50 text-teal-700 font-semibold";
       label: "Sửa Chữa",
       icon: AlertCircle,
       children: [
-        { id: "issue-requests", label: "Yêu cầu sửa chữa", icon: AlertCircle },
+        {
+          id: "issue-requests",
+          label: "Danh sách thắc mắc",
+          icon: MailQuestionIcon,
+        },
         { id: "issue-assignment", label: "Phân công xử lý", icon: UserCheck },
         { id: "issue-history", label: "Lịch sử theo BĐS", icon: BarChart2 },
       ],
@@ -82,7 +96,13 @@ const subActiveCls = "bg-teal-50 text-teal-700 font-semibold";
       children: [
         { id: "contracts", label: "Quản lý hợp đồng", icon: FileText },
         ...(canSeePendingSign
-          ? [{ id: "contracts-sign", label: "Hợp đồng cần xử lý", icon: PenLine }]
+          ? [
+              {
+                id: "contracts-sign",
+                label: "Hợp đồng cần xử lý",
+                icon: PenLine,
+              },
+            ]
           : []),
       ],
     },
@@ -126,7 +146,11 @@ const subActiveCls = "bg-teal-50 text-teal-700 font-semibold";
               ].join(" ")}
             >
               <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 shadow-md ring-2 ring-teal-200">
-                <img src={logo} alt="ISUMS Logo" className="w-full h-full object-cover" />
+                <img
+                  src={logo}
+                  alt="ISUMS Logo"
+                  className="w-full h-full object-cover"
+                />
               </div>
               {isOpen && (
                 <div className="min-w-0">
@@ -186,7 +210,9 @@ const subActiveCls = "bg-teal-50 text-teal-700 font-semibold";
                       <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
                       {isOpen && (
                         <>
-                          <span className="text-sm flex-1 text-left">{item.label}</span>
+                          <span className="text-sm flex-1 text-left">
+                            {item.label}
+                          </span>
                           <ChevronDown
                             className={[
                               "w-3.5 h-3.5 transition-transform duration-200",
@@ -267,7 +293,9 @@ const subActiveCls = "bg-teal-50 text-teal-700 font-semibold";
                 ].join(" ")}
               >
                 <Bell className="w-[18px] h-[18px] flex-shrink-0" />
-                {isOpen && <span className="text-sm font-medium">Thông báo</span>}
+                {isOpen && (
+                  <span className="text-sm font-medium">Thông báo</span>
+                )}
                 {isOpen ? (
                   <span className="absolute right-3 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold">
                     4

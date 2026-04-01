@@ -1,18 +1,19 @@
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import { createPortal } from "react-dom";
 import { X, Wrench, Settings, Search, Building2, CheckCircle2, Clock } from "lucide-react";
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
 import {
   getMaintenanceJobsByStatus,
-  createWorkSlot,
+  confirmStaffWorkSlot,
   getWorkTemplate,
+  getMaintenancePlanById,
 } from "../api/schedule.api";
 import { getAllIssues } from "../../issues/api/issues.api";
 import { buildTimeSlotsFromTemplate, localDateStr } from "../utils/dateHelpers";
 import { mapTemplateFromApi } from "../hooks/useSchedule";
 
-const HARDCODED_STAFF_ID   = "11111111-1111-1111-1111-111111111111";
 const HARDCODED_STAFF_NAME = "Lê Minh Tâm";
 const HARDCODED_STAFF_ROLE = "Kỹ thuật viên";
 
@@ -53,6 +54,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
   const [visible, setVisible]               = useState(false);
   const [jobType, setJobType]               = useState("MAINTENANCE");
   const [jobs, setJobs]                     = useState([]);
+  const [planNames, setPlanNames]           = useState({});
   const [jobsLoading, setJobsLoading]       = useState(false);
   const [timeSlots, setTimeSlots]           = useState([]);
   const [selectedJobId, setSelectedJobId]   = useState(null);
@@ -79,11 +81,23 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
     setError(null);
     setJobSearch("");
     setJobsLoading(true);
-    const fetcher = jobType === "ISSUE"
-      ? getAllIssues({ status: "CREATED", type: "REPAIR" })
+    const fetcher = jobType === "ISSUE" 
+      ? getAllIssues({ status: "WAITING_MANAGER_CONFIRM", type: "REPAIR" })
       : getMaintenanceJobsByStatus("CREATED");
     fetcher
-      .then((data) => setJobs(Array.isArray(data) ? data : (data?.data ?? [])))
+      .then(async (data) => {
+        const list = Array.isArray(data) ? data : (data?.data ?? []);
+        setJobs(list);
+        if (jobType === "MAINTENANCE") {
+          const uniquePlanIds = [...new Set(list.map((j) => j.planId).filter(Boolean))];
+          const results = await Promise.allSettled(uniquePlanIds.map((id) => getMaintenancePlanById(id)));
+          const nameMap = {};
+          results.forEach((r, i) => {
+            if (r.status === "fulfilled") nameMap[uniquePlanIds[i]] = r.value?.name;
+          });
+          setPlanNames(nameMap);
+        }
+      })
       .catch(() => setJobs([]))
       .finally(() => setJobsLoading(false));
   }, [open, jobType]);
@@ -112,12 +126,14 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
     setError(null);
     setSubmitting(true);
     try {
-      await createWorkSlot({
-        staffId: HARDCODED_STAFF_ID,
+      await confirmStaffWorkSlot({
         jobId: selectedJobId,
-        jobType,
         startTime: `${selectedDate}T${selectedSlot.start}:00`,
       });
+      const jobLabel = jobType === "MAINTENANCE"
+        ? (planNames[selectedJob?.planId] ?? `Bảo trì kỳ ${formatDateVN(selectedJob?.periodStartDate)}`)
+        : (selectedJob?.title ?? "Công việc");
+      toast.success(`Đã tạo ca làm việc: ${jobLabel} — ${selectedDate} lúc ${selectedSlot.start}`);
       onCreated?.();
       handleClose();
     } catch (e) {
@@ -229,7 +245,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
                         {slot.start} – {slot.end}
                       </button>
                     );
-                  })}
+                 })}
                 </div>
               )}
             </div>
@@ -310,7 +326,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
                         {/* Title */}
                         <p className="text-sm font-semibold text-slate-800 leading-snug mb-2 line-clamp-2">
                           {isMaintenance
-                            ? `Bảo trì kỳ ${formatDateVN(job.periodStartDate)}`
+                            ? (planNames[job.planId] ?? `Bảo trì kỳ ${formatDateVN(job.periodStartDate)}`)
                             : job.title}
                         </p>
 

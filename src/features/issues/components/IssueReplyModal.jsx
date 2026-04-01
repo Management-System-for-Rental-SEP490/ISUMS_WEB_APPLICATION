@@ -1,6 +1,6 @@
 import { createPortal } from "react-dom";
 import { useState, useEffect } from "react";
-import { X, Send, Bold, Italic, List, Paperclip, Home, Calendar, Tag, User } from "lucide-react";
+import { X, Send } from "lucide-react";
 import { getIssueById, replyToIssue } from "../api/issues.api";
 import { ISSUE_STATUS_CONFIG, ISSUE_TYPE_CONFIG } from "../constants/issue.constants";
 import dayjs from "dayjs";
@@ -69,19 +69,6 @@ export default function IssueReplyModal({ open, ticketId, onClose, onReplied }) 
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const insertFormat = (before, after = "") => {
-    const el = document.getElementById("reply-textarea");
-    if (!el) return;
-    const start = el.selectionStart;
-    const end   = el.selectionEnd;
-    const sel   = content.slice(start, end);
-    setContent(content.slice(0, start) + before + sel + after + content.slice(end));
-    setTimeout(() => {
-      el.focus();
-      el.setSelectionRange(start + before.length, start + before.length + sel.length);
-    }, 0);
   };
 
   const idShort  = ticketId ? `#${String(ticketId).slice(0, 8).toUpperCase()}` : "";
@@ -174,35 +161,13 @@ export default function IssueReplyModal({ open, ticketId, onClose, onReplied }) 
 
           {/* Content editor */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-slate-700">Nội dung phản hồi</label>
-              <span className="text-[11px] px-2.5 py-1 rounded-full bg-green-400 text-white font-semibold cursor-default select-none">
-                ✦ Gợi ý bằng AI
-              </span>
-            </div>
-
-            {/* Toolbar */}
-            <div className="flex items-center gap-1 px-3 py-2 border border-b-0 border-slate-200 rounded-t-xl bg-slate-50">
-              {[
-                { icon: Bold,      action: () => insertFormat("**", "**"), title: "In đậm"     },
-                { icon: Italic,    action: () => insertFormat("_", "_"),   title: "In nghiêng"  },
-                { icon: List,      action: () => insertFormat("\n- "),     title: "Danh sách"   },
-                { icon: Paperclip, action: () => {},                       title: "Đính kèm"    },
-              ].map(({ icon: Icon, action, title }) => (
-                <button key={title} type="button" title={title} onClick={action}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-200 text-slate-500 transition">
-                  <Icon className="w-3.5 h-3.5" />
-                </button>
-              ))}
-            </div>
-
+            <label className="block text-sm font-medium text-slate-700 mb-2">Nội dung phản hồi</label>
             <textarea
-              id="reply-textarea"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Nhập nội dung phản hồi, kế hoạch sửa chữa hoặc hướng dẫn tạm thời cho cư dân..."
+              placeholder="Nhập nội dung phản hồi..."
               rows={5}
-              className="w-full border border-slate-200 rounded-b-xl px-4 py-3 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400 resize-none"
+              className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400 resize-none"
             />
             <p className="text-[11px] text-slate-400 mt-1 text-right">{content.length} ký tự</p>
           </div>
