@@ -1,4 +1,5 @@
 import axios from "axios";
+import { toast } from "react-toastify";
 import keycloak from "../keycloak";
 
 const BASE_URL =
@@ -42,14 +43,15 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response) {
-      const status = error.response.status;
+      if (error.response) {
+        const status = error.response.status;
 
       switch (status) {
         case 401:
           console.warn("Unauthorized - token may be expired");
           break;
         case 403:
+          toast.error("Bạn không có quyền truy cập vào trang này.");
           console.warn("Forbidden - insufficient permissions");
           break;
         case 404:
@@ -57,6 +59,7 @@ api.interceptors.response.use(
           break;
         case 500:
           console.error("Internal server error");
+          toast.error("Lỗi hệ thống, vui lòng thử lại sau.");
           break;
         default:
           console.error(`API error ${status}:`, error.response.data);
