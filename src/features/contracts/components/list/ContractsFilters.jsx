@@ -1,16 +1,20 @@
 import React from "react";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, ArrowDownNarrowWide, ArrowUpNarrowWide, RefreshCw } from "lucide-react";
 
 export default function ContractsFilters({
   searchTerm,
   onSearch,
   filterStatus,
   onFilter,
+  sortDir,
+  onToggleSortDir,
+  onRefresh,
+  refreshing,
 }) {
   const statuses = [
     { value: "all", label: "Toàn bộ" },
     { value: "DRAFT", label: "Bản nháp" },
-    { value: "PENDING_TENANT_REVIEW", label: "Chờ khách thuê xem xét" },
+    { value: "PENDING_TENANT_REVIEW", label: "Chờ khách thuê xác nhận" },
     { value: "READY", label: "Chờ chủ nhà ký" },
     { value: "IN_PROGRESS", label: "Chờ khách thuê ký" },
     { value: "COMPLETED", label: "Đã hoàn thành" },
@@ -34,6 +38,27 @@ export default function ContractsFilters({
           </div>
 
           <div className="flex items-center gap-2 md:gap-3">
+            <button
+              type="button"
+              onClick={onRefresh}
+              disabled={refreshing}
+              title="Làm mới danh sách"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50 transition disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 text-slate-500 ${refreshing ? "animate-spin" : ""}`} />
+            </button>
+            <button
+              type="button"
+              onClick={onToggleSortDir}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50 transition"
+            >
+              {sortDir === "DESC" ? (
+                <ArrowDownNarrowWide className="w-4 h-4 text-slate-500" />
+              ) : (
+                <ArrowUpNarrowWide className="w-4 h-4 text-slate-500" />
+              )}
+              {sortDir === "DESC" ? "Mới nhất" : "Cũ nhất"}
+            </button>
             <div className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-1 border border-slate-100 text-[11px] text-slate-500">
               <Filter className="w-3.5 h-3.5 text-slate-400" />
               Bộ lọc nhanh
