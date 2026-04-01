@@ -27,7 +27,9 @@ export const CONTRACTS_ENDPOINTS = {
   UPDATE: (id) => `/econtracts/${id}`,
   DELETE: (id) => `/econtracts/${id}`,
   READY: (id) => `/econtracts/ready/${id}`,
-  CONFIRM: (id) => `/econtracts/confirm-by-admin/${id}`,
+  CONFIRM: (id) => `/econtracts/${id}/confirm`,
+  CANCEL: (id) => `/econtracts/${id}/cancel`,
+  CCCD_STATUS: (id) => `/econtracts/${id}/cccd-status`,
   GET_VNPT_DOCUMENT: (documentId) => `/econtracts/vnpt-document/${documentId}`,
   ADMIN_SIGN: "/econtracts/sign-admin",
 };
@@ -88,7 +90,7 @@ export const MAINTENANCE_ENDPOINTS = {
 
 // Schedule endpoints
 export const SCHEDULE_ENDPOINTS = {
-  WORK_SLOTS: "/schedules/work_slots",
+  WORK_SLOTS: "/schedules/work_slots/confirm",
   WORK_SLOTS_CURRENT: "/schedules/work_slots/current",
   WORK_SLOTS_STAFF_CONFIRM: "/schedules/work_slots/staff/confirm",
   WORK_SLOTS_MANAGER_CONFIRM: (jobId) => `/schedules/work_slots/manager/confirm/${jobId}`,

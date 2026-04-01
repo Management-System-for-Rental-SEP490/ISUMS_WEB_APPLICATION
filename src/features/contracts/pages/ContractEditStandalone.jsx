@@ -37,7 +37,12 @@ export default function ContractEditStandalone() {
           setBodyHtml(extractBodyFromHtml(mapped.html ?? ""));
         }
       } catch (err) {
-        if (mounted) setError(err?.message ?? "Không thể tải hợp đồng.");
+        const status = err?.response?.status;
+        const msg =
+          status === 403 ? "Bạn không có quyền chỉnh sửa hợp đồng này." :
+          status === 404 ? "Không tìm thấy hợp đồng." :
+          "Không thể tải hợp đồng, vui lòng thử lại.";
+        if (mounted) setError(msg);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -63,7 +68,11 @@ export default function ContractEditStandalone() {
       toast.success("Chỉnh sửa hợp đồng thành công!");
       navigate(`/contracts/${contract.id}`);
     } catch (err) {
-      const msg = err?.message ?? "Không thể lưu hợp đồng.";
+      const status = err?.response?.status;
+      const msg =
+        status === 403 ? "Bạn không có quyền chỉnh sửa hợp đồng này." :
+        status === 404 ? "Không tìm thấy hợp đồng." :
+        "Không thể lưu hợp đồng, vui lòng thử lại.";
       setError(msg);
       toast.error(msg);
     } finally {
