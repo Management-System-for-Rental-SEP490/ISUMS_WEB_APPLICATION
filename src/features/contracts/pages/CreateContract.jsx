@@ -127,18 +127,6 @@ export default function CreateContract({ onCancel, onCreated }) {
           Bước 1: Người thuê — Bước 2: Nhà & chi phí — Bước 3: Điều khoản
         </p>
       </div>
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center justify-between gap-3">
-          <span>{error}</span>
-          <button
-            type="button"
-            onClick={() => setError(null)}
-            className="flex-shrink-0 text-red-400 hover:text-red-600 transition font-bold text-base leading-none"
-          >
-            ✕
-          </button>
-        </div>
-      )}
       <CreateContractWizard
         initialForm={initialForm}
         onCancel={onCancel}
