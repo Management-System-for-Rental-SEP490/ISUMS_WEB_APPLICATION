@@ -58,7 +58,7 @@ function QuoteDetail({
   const [confirming, setConfirming] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const isApproved = quote.status === "APPROVED";
-  const isCancelled = quote.status === "CANCELLED";
+  const isRejected = quote.status === "REJECTED";
 
   const handleApprove = async () => {
     setConfirming(true);
@@ -76,7 +76,7 @@ function QuoteDetail({
   const handleReject = async () => {
     setRejecting(true);
     try {
-      await updateQuoteStatus(quote.id, "CANCELLED");
+      await updateQuoteStatus(quote.id, "REJECTED");
       toast.success("Đã từ chối báo giá");
       onRejected();
     } catch (e) {
@@ -257,7 +257,7 @@ function QuoteDetail({
           </p>
         </div>
 
-        {!isApproved && !isCancelled ? (
+        {!isApproved && !isRejected ? (
           <div className="flex items-center gap-3 flex-shrink-0">
             <button
               type="button"
