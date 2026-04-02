@@ -122,11 +122,21 @@ export default function CreateContractWizard({
     }
 
     const depositRaw = safeTrim(currentForm.depositAmount);
-    if (depositRaw) {
+    if (!depositRaw) {
+      newErrors.depositAmount = "Vui lòng nhập tiền cọc";
+    } else {
       const deposit = Number(depositRaw);
       if (Number.isNaN(deposit) || deposit < 0) {
         newErrors.depositAmount = "Tiền cọc phải là số không âm";
       }
+    }
+
+    if (!safeTrim(currentForm.depositDate)) {
+      newErrors.depositDate = "Vui lòng chọn ngày đặt cọc";
+    }
+
+    if (!safeTrim(currentForm.handoverDate)) {
+      newErrors.handoverDate = "Vui lòng chọn ngày bàn giao";
     }
 
     const payDateNumber = Number(currentForm.payDate);
@@ -169,17 +179,56 @@ export default function CreateContractWizard({
 
   const validateStep3 = (currentForm) => {
     const newErrors = {};
-    const penalty = Number(currentForm.latePenaltyPercent);
-    if (
-      String(currentForm.latePenaltyPercent ?? "").trim() &&
-      (Number.isNaN(penalty) || penalty < 0 || penalty > 100)
-    ) {
-      newErrors.latePenaltyPercent = "Phần trăm phạt phải từ 0 đến 100";
+    const safeTrim = (v) => String(v ?? "").trim();
+
+    if (!safeTrim(currentForm.area)) newErrors.area = "Thông tin không được trống";
+    if (!safeTrim(currentForm.structure)) newErrors.structure = "Thông tin không được trống";
+    if (!safeTrim(currentForm.ownershipDocs)) newErrors.ownershipDocs = "Thông tin không được trống";
+
+    const numericFields = [
+      { key: "lateDays", label: "Số ngày ân hạn", min: 0 },
+      { key: "maxLateDays", label: "Số ngày trễ tối đa", min: 0 },
+      { key: "cureDays", label: "Số ngày khắc phục", min: 0 },
+      { key: "renewNoticeDays", label: "Ngày báo trước gia hạn", min: 0 },
+      { key: "landlordNoticeDays", label: "Ngày chủ nhà báo trước", min: 0 },
+      { key: "forceMajeureNoticeHours", label: "Giờ thông báo bất khả kháng", min: 0 },
+      { key: "disputeDays", label: "Số ngày thương lượng", min: 0 },
+      { key: "eachKeep", label: "Số bản mỗi bên giữ", min: 1 },
+    ];
+    for (const { key, label, min } of numericFields) {
+      const raw = safeTrim(currentForm[key]);
+      if (!raw) {
+        newErrors[key] = "Thông tin không được trống";
+      } else {
+        const n = Number(raw);
+        if (Number.isNaN(n) || n < min) {
+          newErrors[key] = `${label} phải là số${min > 0 ? ` ít nhất là ${min}` : " không âm"}`;
+        }
+      }
     }
-    const copies = Number(currentForm.copies);
-    if (String(currentForm.copies ?? "").trim() && (Number.isNaN(copies) || copies < 1)) {
-      newErrors.copies = "Số bản hợp đồng phải ít nhất là 1";
+
+    if (!safeTrim(currentForm.disputeForum)) newErrors.disputeForum = "Thông tin không được trống";
+
+    const penaltyRaw = safeTrim(currentForm.latePenaltyPercent);
+    if (!penaltyRaw) {
+      newErrors.latePenaltyPercent = "Thông tin không được trống";
+    } else {
+      const penalty = Number(penaltyRaw);
+      if (Number.isNaN(penalty) || penalty < 0 || penalty > 100) {
+        newErrors.latePenaltyPercent = "Phần trăm phạt phải từ 0 đến 100";
+      }
     }
+
+    const copiesRaw = safeTrim(currentForm.copies);
+    if (!copiesRaw) {
+      newErrors.copies = "Thông tin không được trống";
+    } else {
+      const copies = Number(copiesRaw);
+      if (Number.isNaN(copies) || copies < 1) {
+        newErrors.copies = "Số bản hợp đồng phải ít nhất là 1";
+      }
+    }
+
     return newErrors;
   };
 
