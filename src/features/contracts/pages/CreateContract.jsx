@@ -37,7 +37,7 @@ const getInitialForm = (todayISO) => ({
   disputeForum: "",
   copies: 2,
   eachKeep: 1,
-  purpose: "",
+  purpose: "Để ở",
   area: "",
   structure: "",
   ownershipDocs: "",
@@ -98,8 +98,15 @@ export default function CreateContract({ onCancel, onCreated }) {
         </p>
       </div>
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-          {error}
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center justify-between gap-3">
+          <span>{error}</span>
+          <button
+            type="button"
+            onClick={() => setError(null)}
+            className="flex-shrink-0 text-red-400 hover:text-red-600 transition font-bold text-base leading-none"
+          >
+            ✕
+          </button>
         </div>
       )}
       <CreateContractWizard

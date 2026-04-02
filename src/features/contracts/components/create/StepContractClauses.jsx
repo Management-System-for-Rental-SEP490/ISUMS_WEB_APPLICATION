@@ -16,7 +16,7 @@ export default function StepContractClauses({ form, update, errors = {} }) {
           <div>
             <label className={labelClass}>Mục đích thuê</label>
             <select
-              value={form.purpose ?? "Để ở"}
+              value={form.purpose}
               onChange={update("purpose")}
               className={inputClass}
             >
@@ -27,31 +27,34 @@ export default function StepContractClauses({ form, update, errors = {} }) {
             </select>
           </div>
           <div>
-            <label className={labelClass}>Diện tích</label>
+            <label className={labelClass}>Diện tích *</label>
             <input
               value={form.area ?? ""}
               onChange={update("area")}
               placeholder="50m²"
-              className={inputClass}
+              className={`${inputClass} ${errors.area ? "border-red-500 focus:ring-red-500" : ""}`}
             />
+            {errors.area && <p className="mt-1 text-xs text-red-600">{errors.area}</p>}
           </div>
           <div className="md:col-span-2">
-            <label className={labelClass}>Kết cấu nhà</label>
+            <label className={labelClass}>Kết cấu nhà *</label>
             <input
               value={form.structure ?? ""}
               onChange={update("structure")}
               placeholder="1 phòng ngủ, 1 phòng khách, 1 bếp, 1 WC"
-              className={inputClass}
+              className={`${inputClass} ${errors.structure ? "border-red-500 focus:ring-red-500" : ""}`}
             />
+            {errors.structure && <p className="mt-1 text-xs text-red-600">{errors.structure}</p>}
           </div>
           <div>
-            <label className={labelClass}>Giấy tờ pháp lý căn nhà</label>
+            <label className={labelClass}>Giấy tờ pháp lý căn nhà *</label>
             <input
               value={form.ownershipDocs ?? ""}
               onChange={update("ownershipDocs")}
               placeholder="Sổ hồng, sổ GCN"
-              className={inputClass}
+              className={`${inputClass} ${errors.ownershipDocs ? "border-red-500 focus:ring-red-500" : ""}`}
             />
+            {errors.ownershipDocs && <p className="mt-1 text-xs text-red-600">{errors.ownershipDocs}</p>}
           </div>
           <div>
             <label className={labelClass}>Ghi chú thuế & phí</label>
@@ -73,7 +76,7 @@ export default function StepContractClauses({ form, update, errors = {} }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>
-              Số ngày ân hạn trước khi tính phạt
+              Số ngày ân hạn trước khi tính phạt *
             </label>
             <input
               type="number"
@@ -81,12 +84,13 @@ export default function StepContractClauses({ form, update, errors = {} }) {
               value={form.lateDays ?? ""}
               onChange={update("lateDays")}
               placeholder="3"
-              className={inputClass}
+              className={`${inputClass} ${errors.lateDays ? "border-red-500 focus:ring-red-500" : ""}`}
             />
+            {errors.lateDays && <p className="mt-1 text-xs text-red-600">{errors.lateDays}</p>}
           </div>
           <div>
             <label className={labelClass}>
-              % phạt trên tiền thuê nếu trả trễ
+              % phạt trên tiền thuê nếu trả trễ *
             </label>
             <input
               type="number"
@@ -105,7 +109,7 @@ export default function StepContractClauses({ form, update, errors = {} }) {
           </div>
           <div>
             <label className={labelClass}>
-              Số ngày trễ tối đa trước khi chấm dứt HĐ
+              Số ngày trễ tối đa trước khi chấm dứt HĐ *
             </label>
             <input
               type="number"
@@ -113,19 +117,21 @@ export default function StepContractClauses({ form, update, errors = {} }) {
               value={form.maxLateDays ?? ""}
               onChange={update("maxLateDays")}
               placeholder="10"
-              className={inputClass}
+              className={`${inputClass} ${errors.maxLateDays ? "border-red-500 focus:ring-red-500" : ""}`}
             />
+            {errors.maxLateDays && <p className="mt-1 text-xs text-red-600">{errors.maxLateDays}</p>}
           </div>
           <div>
-            <label className={labelClass}>Số ngày để khắc phục vi phạm</label>
+            <label className={labelClass}>Số ngày để khắc phục vi phạm *</label>
             <input
               type="number"
               min={0}
               value={form.cureDays ?? ""}
               onChange={update("cureDays")}
               placeholder="7"
-              className={inputClass}
+              className={`${inputClass} ${errors.cureDays ? "border-red-500 focus:ring-red-500" : ""}`}
             />
+            {errors.cureDays && <p className="mt-1 text-xs text-red-600">{errors.cureDays}</p>}
           </div>
           <div className="md:col-span-2">
             <label className={labelClass}>
@@ -161,19 +167,20 @@ export default function StepContractClauses({ form, update, errors = {} }) {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className={labelClass}>Ngày báo trước khi gia hạn HĐ</label>
+            <label className={labelClass}>Ngày báo trước khi gia hạn HĐ *</label>
             <input
               type="number"
               min={0}
               value={form.renewNoticeDays ?? ""}
               onChange={update("renewNoticeDays")}
               placeholder="30"
-              className={inputClass}
+              className={`${inputClass} ${errors.renewNoticeDays ? "border-red-500 focus:ring-red-500" : ""}`}
             />
+            {errors.renewNoticeDays && <p className="mt-1 text-xs text-red-600">{errors.renewNoticeDays}</p>}
           </div>
           <div>
             <label className={labelClass}>
-              Ngày chủ nhà báo trước khi chấm dứt
+              Ngày chủ nhà báo trước khi chấm dứt *
             </label>
             <input
               type="number"
@@ -181,12 +188,13 @@ export default function StepContractClauses({ form, update, errors = {} }) {
               value={form.landlordNoticeDays ?? ""}
               onChange={update("landlordNoticeDays")}
               placeholder="30"
-              className={inputClass}
+              className={`${inputClass} ${errors.landlordNoticeDays ? "border-red-500 focus:ring-red-500" : ""}`}
             />
+            {errors.landlordNoticeDays && <p className="mt-1 text-xs text-red-600">{errors.landlordNoticeDays}</p>}
           </div>
           <div>
             <label className={labelClass}>
-              Giờ thông báo khi xảy ra bất khả kháng
+              Giờ thông báo khi xảy ra bất khả kháng *
             </label>
             <input
               type="number"
@@ -194,8 +202,9 @@ export default function StepContractClauses({ form, update, errors = {} }) {
               value={form.forceMajeureNoticeHours ?? ""}
               onChange={update("forceMajeureNoticeHours")}
               placeholder="24"
-              className={inputClass}
+              className={`${inputClass} ${errors.forceMajeureNoticeHours ? "border-red-500 focus:ring-red-500" : ""}`}
             />
+            {errors.forceMajeureNoticeHours && <p className="mt-1 text-xs text-red-600">{errors.forceMajeureNoticeHours}</p>}
           </div>
         </div>
       </div>
@@ -206,7 +215,7 @@ export default function StepContractClauses({ form, update, errors = {} }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>
-              Số ngày để hai bên tự thương lượng
+              Số ngày để hai bên tự thương lượng *
             </label>
             <input
               type="number"
@@ -214,17 +223,19 @@ export default function StepContractClauses({ form, update, errors = {} }) {
               value={form.disputeDays ?? ""}
               onChange={update("disputeDays")}
               placeholder="30"
-              className={inputClass}
+              className={`${inputClass} ${errors.disputeDays ? "border-red-500 focus:ring-red-500" : ""}`}
             />
+            {errors.disputeDays && <p className="mt-1 text-xs text-red-600">{errors.disputeDays}</p>}
           </div>
           <div>
-            <label className={labelClass}>Cơ quan giải quyết tranh chấp</label>
+            <label className={labelClass}>Cơ quan giải quyết tranh chấp *</label>
             <input
               value={form.disputeForum ?? ""}
               onChange={update("disputeForum")}
               placeholder="Tòa án nhân dân có thẩm quyền"
-              className={inputClass}
+              className={`${inputClass} ${errors.disputeForum ? "border-red-500 focus:ring-red-500" : ""}`}
             />
+            {errors.disputeForum && <p className="mt-1 text-xs text-red-600">{errors.disputeForum}</p>}
           </div>
         </div>
       </div>
@@ -248,15 +259,16 @@ export default function StepContractClauses({ form, update, errors = {} }) {
             )}
           </div>
           <div>
-            <label className={labelClass}>Mỗi bên giữ (số bản)</label>
+            <label className={labelClass}>Mỗi bên giữ (số bản) *</label>
             <input
               type="number"
               min={1}
               value={form.eachKeep ?? ""}
               onChange={update("eachKeep")}
               placeholder="1"
-              className={inputClass}
+              className={`${inputClass} ${errors.eachKeep ? "border-red-500 focus:ring-red-500" : ""}`}
             />
+            {errors.eachKeep && <p className="mt-1 text-xs text-red-600">{errors.eachKeep}</p>}
           </div>
         </div>
       </div>
