@@ -8,9 +8,18 @@ const inputClass =
 const labelClass = "block text-sm font-medium text-gray-700 mb-2";
 
 const STATUS_LABEL = {
-  AVAILABLE: { text: "Còn trống", color: "text-green-700 bg-green-50 border-green-200" },
-  OCCUPIED: { text: "Đang thuê", color: "text-blue-700 bg-blue-50 border-blue-200" },
-  MAINTENANCE: { text: "Đang sửa chữa", color: "text-amber-700 bg-amber-50 border-amber-200" },
+  AVAILABLE: {
+    text: "Còn trống",
+    color: "text-green-700 bg-green-50 border-green-200",
+  },
+  OCCUPIED: {
+    text: "Đang thuê",
+    color: "text-blue-700 bg-blue-50 border-blue-200",
+  },
+  MAINTENANCE: {
+    text: "Đang sửa chữa",
+    color: "text-amber-700 bg-amber-50 border-amber-200",
+  },
 };
 
 export default function StepHouseAndMoney({
@@ -40,7 +49,9 @@ export default function StepHouseAndMoney({
       }
     };
     fetch();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [form.houseId]);
 
   const depositDateValue = useMemo(
@@ -59,7 +70,7 @@ export default function StepHouseAndMoney({
         <h3 className="text-lg font-semibold mb-4">Nhà cho thuê</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="md:col-span-2">
-            <label className={labelClass}>Mã nhà</label>
+            <label className={labelClass}>Các căn nhà trống</label>
             {Array.isArray(houses) && houses.length > 0 ? (
               <select
                 value={form.houseId ?? ""}
@@ -94,9 +105,24 @@ export default function StepHouseAndMoney({
           {/* House detail card */}
           {loadingHouse && (
             <div className="md:col-span-2 flex items-center gap-2 text-sm text-gray-500 py-2">
-              <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              <svg
+                className="w-4 h-4 animate-spin"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v8z"
+                />
               </svg>
               Đang tải thông tin nhà...
             </div>
@@ -105,16 +131,26 @@ export default function StepHouseAndMoney({
             <div className="md:col-span-2 rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-slate-800">{houseDetail.name}</p>
+                  <p className="text-sm font-semibold text-slate-800">
+                    {houseDetail.name}
+                  </p>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    {[houseDetail.address, houseDetail.ward, houseDetail.commune, houseDetail.city]
+                    {[
+                      houseDetail.address,
+                      houseDetail.ward,
+                      houseDetail.commune,
+                      houseDetail.city,
+                    ]
                       .filter(Boolean)
                       .join(", ")}
                   </p>
                 </div>
                 {houseDetail.status && (
-                  <span className={`shrink-0 text-[11px] font-medium px-2 py-0.5 rounded border ${STATUS_LABEL[houseDetail.status]?.color ?? "text-slate-600 bg-slate-100 border-slate-200"}`}>
-                    {STATUS_LABEL[houseDetail.status]?.text ?? houseDetail.status}
+                  <span
+                    className={`shrink-0 text-[11px] font-medium px-2 py-0.5 rounded border ${STATUS_LABEL[houseDetail.status]?.color ?? "text-slate-600 bg-slate-100 border-slate-200"}`}
+                  >
+                    {STATUS_LABEL[houseDetail.status]?.text ??
+                      houseDetail.status}
                   </span>
                 )}
               </div>
@@ -182,6 +218,32 @@ export default function StepHouseAndMoney({
             {errors.payDate && (
               <p className="mt-1 text-xs text-red-600">{errors.payDate}</p>
             )}
+          </div>
+          <div>
+            <label className={labelClass}>Chu kỳ thanh toán</label>
+            <select
+              value={form.payCycle ?? "monthly"}
+              onChange={update("payCycle")}
+              className={inputClass}
+            >
+              <option value="monthly">Hàng tháng</option>
+              <option value="quarterly">Hàng quý</option>
+              <option value="biannual">Nửa năm</option>
+              <option value="annual">Hàng năm</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelClass}>
+              Số ngày hoàn trả cọc sau khi hết HĐ
+            </label>
+            <input
+              type="number"
+              min={0}
+              value={form.depositRefundDays ?? ""}
+              onChange={update("depositRefundDays")}
+              placeholder="30"
+              className={inputClass}
+            />
           </div>
           <div>
             <label className={labelClass}>Ngày đặt cọc</label>

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { ClipboardList, Plus, RefreshCw } from "lucide-react";
+import { ClipboardList, Plus, RefreshCw, Wrench } from "lucide-react";
 import MaintenancePlanList from "../components/maintenance/MaintenancePlanList";
 import CreatePlanDrawer from "../components/maintenance/CreatePlanDrawer";
 import PlanJobsDrawer from "../components/maintenance/PlanJobsDrawer";
 import PlanDetailDrawer from "../components/maintenance/PlanDetailDrawer";
 import AssignStaffModal from "../components/maintenance/AssignStaffModal";
-import { getMaintenancePlans } from "../api/schedule.api";
+import GenerateJobsResultModal from "../components/GenerateJobsResultModal";
+import { getMaintenancePlans, generateMaintenanceJobs } from "../api/schedule.api";
 
 function formatDate(value) {
   if (!value) return "—";
@@ -36,9 +37,23 @@ export default function MaintenancePlansPage() {
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [generatingJobs, setGeneratingJobs] = useState(false);
+  const [generatedJobs, setGeneratedJobs] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [selectedJob,  setSelectedJob]  = useState(null);
   const [detailPlan,   setDetailPlan]   = useState(null);
+
+  const handleGenerateJobs = async () => {
+    setGeneratingJobs(true);
+    try {
+      const jobs = await generateMaintenanceJobs();
+      setGeneratedJobs(Array.isArray(jobs) ? jobs : []);
+    } catch {
+      setGeneratedJobs([]);
+    } finally {
+      setGeneratingJobs(false);
+    }
+  };
 
   const fetchPlans = () => {
     setLoading(true);
@@ -87,6 +102,15 @@ export default function MaintenancePlansPage() {
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             Làm mới
+          </button>
+          <button
+            type="button"
+            onClick={handleGenerateJobs}
+            disabled={generatingJobs}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white text-sm font-semibold rounded-xl shadow-sm transition"
+          >
+            <Wrench className={`w-4 h-4 ${generatingJobs ? "animate-spin" : ""}`} />
+            Tạo công việc bảo trì
           </button>
           <button type="button" onClick={() => setShowCreate(true)}
             className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold rounded-xl shadow-sm transition">
@@ -159,6 +183,10 @@ export default function MaintenancePlansPage() {
       )}
 
       {/* Drawers & Modals */}
+      <GenerateJobsResultModal
+        jobs={generatedJobs}
+        onClose={() => setGeneratedJobs(null)}
+      />
       <CreatePlanDrawer
         open={showCreate}
         onClose={() => setShowCreate(false)}

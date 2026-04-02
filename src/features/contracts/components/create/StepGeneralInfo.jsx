@@ -105,7 +105,6 @@ export default function StepGeneralInfo({ form, update, errors = {} }) {
     update("phoneNumber")({ target: { value: "" } });
     update("identityNumber")({ target: { value: "" } });
     update("dateOfIssue")({ target: { value: "" } });
-    update("placeOfIssue")({ target: { value: "" } });
     update("tenantAddress")({ target: { value: "" } });
   };
   return (
