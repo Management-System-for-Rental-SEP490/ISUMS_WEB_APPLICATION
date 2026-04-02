@@ -188,6 +188,20 @@ export async function getMaintenancePlans() {
 }
 
 /**
+ * Generate maintenance jobs from existing plans.
+ * POST /maintenances/jobs/generate
+ * @returns {Promise<Array>} List of generated jobs
+ */
+export async function generateMaintenanceJobs() {
+  try {
+    const response = await api.post(MAINTENANCE_ENDPOINTS.JOBS_GENERATE);
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
  * Get maintenance jobs filtered by status.
  * @param {string} status - e.g. "CREATED"
  * @returns {Promise<Array>}
@@ -211,6 +225,34 @@ export async function getMaintenanceJobsByStatus(status) {
 export async function createWorkSlot(payload) {
   try {
     const response = await api.post(SCHEDULE_ENDPOINTS.WORK_SLOTS, payload);
+    return extractResponseData(response);
+  } catch (error) {
+    throwApiError(error);
+  }
+}
+
+/**
+ * Confirm a staff work slot (maintenance/issue job assignment).
+ * @param {{ jobId: string, startTime: string }} payload
+ * @returns {Promise<Object>}
+ */
+export async function confirmStaffWorkSlot(payload) {
+  try {
+    const response = await api.post(SCHEDULE_ENDPOINTS.WORK_SLOTS_STAFF_CONFIRM, payload);
+    return extractResponseData(response);
+  } catch (error) {
+    throwApiError(error);
+  }
+}
+
+/**
+ * Manager confirms a work slot by jobId (path param).
+ * @param {string} jobId
+ * @returns {Promise<Object>}
+ */
+export async function confirmManagerWorkSlot(jobId) {
+  try {
+    const response = await api.post(SCHEDULE_ENDPOINTS.WORK_SLOTS_MANAGER_CONFIRM(jobId));
     return extractResponseData(response);
   } catch (error) {
     throwApiError(error);

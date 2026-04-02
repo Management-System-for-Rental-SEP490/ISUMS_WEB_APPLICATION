@@ -49,7 +49,12 @@ export function useAdminSignContract(id) {
         }
         if (mounted) setContract(mapped);
       } catch (err) {
-        if (mounted) setError(err?.message ?? "Không thể tải hợp đồng.");
+        const status = err?.response?.status;
+        const msg =
+          status === 403 ? "Bạn không có quyền xem hợp đồng này." :
+          status === 404 ? "Không tìm thấy hợp đồng." :
+          "Không thể tải hợp đồng, vui lòng thử lại.";
+        if (mounted) setError(msg);
       } finally {
         if (mounted) setLoading(false);
       }
@@ -180,15 +185,17 @@ export function useAdminSignContract(id) {
     setConfirming(true);
     try {
       const payload = buildPayload(null, newPos);
-      console.log("[AdminSign] 🚀 Payload gửi lên API sign-admin:", payload);
       const res = await adminSignEcontract(payload);
       setOtpEmail(res?.data?.receiveOtpEmail ?? null);
       setOtpSent(true);
       setShowOtpModal(true);
     } catch (err) {
-      toast.error(
-        err?.response?.data?.message || err?.message || "Xác nhận ký thất bại.",
-      );
+      const status = err?.response?.status;
+      const msg =
+        status === 400 ? "Hợp đồng chưa ở trạng thái sẵn sàng để ký hoặc có lỗi từ hệ thống VNPT." :
+        status === 403 ? "Bạn không có quyền ký hợp đồng này." :
+        "Xác nhận ký thất bại, vui lòng thử lại.";
+      toast.error(msg);
     } finally {
       setConfirming(false);
     }
@@ -202,9 +209,12 @@ export function useAdminSignContract(id) {
       setOtpEmail(res?.data?.receiveOtpEmail ?? null);
       setShowOtpModal(true);
     } catch (err) {
-      toast.error(
-        err?.response?.data?.message || err?.message || "Gửi lại OTP thất bại.",
-      );
+      const status = err?.response?.status;
+      const msg =
+        status === 400 ? "Không thể gửi lại OTP, hợp đồng không ở trạng thái hợp lệ." :
+        status === 403 ? "Bạn không có quyền thực hiện thao tác này." :
+        "Gửi lại OTP thất bại, vui lòng thử lại.";
+      toast.error(msg);
     } finally {
       setConfirming(false);
     }
@@ -220,15 +230,12 @@ export function useAdminSignContract(id) {
       setShowOtpModal(false);
       navigate(`/contracts/${id}`);
     } catch (err) {
-      if (err?.response?.status === 500) {
-        toast.error("OTP không đúng, vui lòng thử lại.");
-      } else {
-        toast.error(
-          err?.response?.data?.message ||
-            err?.message ||
-            "Ký hợp đồng thất bại.",
-        );
-      }
+      const status = err?.response?.status;
+      const msg =
+        status === 400 ? "Hợp đồng chưa ở trạng thái sẵn sàng để ký hoặc có lỗi từ hệ thống VNPT." :
+        status === 403 ? "Bạn không có quyền ký hợp đồng này (chỉ chủ nhà mới được ký)." :
+        "Ký hợp đồng thất bại, vui lòng thử lại.";
+      toast.error(msg);
     } finally {
       setSigning(false);
     }
@@ -245,9 +252,11 @@ export function useAdminSignContract(id) {
       toast.success("Đã từ chối ký hợp đồng.");
       navigate("/contracts");
     } catch (err) {
-      toast.error(
-        err?.response?.data?.message || err?.message || "Từ chối ký thất bại.",
-      );
+      const status = err?.response?.status;
+      const msg =
+        status === 403 ? "Bạn không có quyền từ chối ký hợp đồng này." :
+        "Từ chối ký thất bại, vui lòng thử lại.";
+      toast.error(msg);
     } finally {
       setRejecting(false);
     }
