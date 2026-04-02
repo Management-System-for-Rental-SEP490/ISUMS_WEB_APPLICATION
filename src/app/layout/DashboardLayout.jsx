@@ -15,6 +15,8 @@ import MaintenanceJobsPage from "../../features/schedule/pages/MaintenanceJobsPa
 import IssueRequestsPage from "../../features/issues/pages/IssueRequestsPage";
 import IssueAssignmentPage from "../../features/issues/pages/IssueAssignmentPage";
 import IssueHistoryByPropertyPage from "../../features/issues/pages/IssueHistoryByPropertyPage";
+import IssuePriceListPage from "../../features/issues/pages/IssuePriceListPage";
+import IssueQuoteApprovalPage from "../../features/issues/pages/IssueQuoteApprovalPage";
 import Reports from "../../features/reports/pages/Reports";
 import Notifications from "../../features/notifications/pages/Notifications";
 import Settings from "../../features/settings/pages/Settings";
@@ -90,7 +92,9 @@ export default function Dashboard() {
     "maintenance-jobs": "Công Việc Bảo Trì",
     "issue-requests": "Danh Sách Yêu Cầu",
     "issue-assignment": "Phân Công Xử Lý",
+    "issue-quote-approval": "Xác Nhận Báo Giá",
     "issue-history": "Lịch Sử Theo BĐS",
+    "issue-price-list": "Bảng Giá Thiết Bị",
     reports: "Báo cáo",
     notifications: "Thông báo",
     settings: "Cài đặt",
@@ -473,7 +477,9 @@ export default function Dashboard() {
           {activeMenu === "maintenance-jobs" && <MaintenanceJobsPage />}
           {activeMenu === "issue-requests" && <IssueRequestsPage />}
           {activeMenu === "issue-assignment" && <IssueAssignmentPage />}
+          {activeMenu === "issue-quote-approval" && <IssueQuoteApprovalPage />}
           {activeMenu === "issue-history" && <IssueHistoryByPropertyPage />}
+          {activeMenu === "issue-price-list" && <IssuePriceListPage />}
           {activeMenu === "reports" && <Reports />}
           {activeMenu === "notifications" && <Notifications />}
           {activeMenu === "settings" && <Settings />}

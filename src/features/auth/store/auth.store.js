@@ -89,9 +89,14 @@ export const authActions = {
               },
             });
           } catch {
+            // getMe() failed — try to extract roles from Keycloak token as fallback
+            const tokenRoles =
+              keycloak?.tokenParsed?.roles ??
+              keycloak?.tokenParsed?.realm_access?.roles ??
+              [];
             setState({
               isAuthenticated: true,
-              roles: [],
+              roles: Array.isArray(tokenRoles) ? tokenRoles : [],
               profile: {
                 name: keycloak?.tokenParsed?.name,
                 email: keycloak?.tokenParsed?.email,

@@ -3,6 +3,8 @@
  * Centralized endpoint definitions for the application
  */
 
+import { id } from "zod/v4/locales";
+
 // Auth endpoints
 export const AUTH_ENDPOINTS = {
   GET: "users/{email}",
@@ -91,7 +93,8 @@ export const SCHEDULE_ENDPOINTS = {
   WORK_SLOTS: "/schedules/work_slots",
   WORK_SLOTS_CURRENT: "/schedules/work_slots/current",
   WORK_SLOTS_STAFF_CONFIRM: "/schedules/work_slots/staff/confirm",
-  WORK_SLOTS_MANAGER_CONFIRM: (jobId) => `/schedules/work_slots/manager/confirm/${jobId}`,
+  WORK_SLOTS_MANAGER_CONFIRM: (jobId) =>
+    `/schedules/work_slots/manager/confirm/${jobId}`,
   TEMPLATES_CURRENT: (date) => `/schedules/templates/current/${date}`,
 };
 export const ISSSUE_ENDPOINTS = {
@@ -100,6 +103,8 @@ export const ISSSUE_ENDPOINTS = {
   ISSUE_BY_ID: (id) => `/issues/${id}`,
   CREATE: "/issues",
   RESPONSE_BY_TICKET: (ticketId) => `/issues/responses/ticket/${ticketId}`,
+  QUOTES_BY_TICKET: (ticketId) => `/issues/quotes/ticket/${ticketId}`,
+  QUOTE_STATUS: (id) => `/issues/quotes/${id}/status`,
 };
 export const ASSET_ENDPOINTS = {
   BASE: "/assets",
@@ -107,4 +112,9 @@ export const ASSET_ENDPOINTS = {
   CREATE: "/assets",
   UPDATE: (id) => `/assets/${id}`,
   DELETE: (id) => `/assets/${id}`,
+};
+export const BANNER_ENDPOINTS = {
+  BASE: "issues/banners",
+  CREATE: "issues/banners",
+  UPDATE: (id) => `issues/banners/${id}/price`,
 };
