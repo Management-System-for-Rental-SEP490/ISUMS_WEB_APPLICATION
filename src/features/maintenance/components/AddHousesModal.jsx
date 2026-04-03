@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, Search, Check, Building2, MapPin } from "lucide-react";
-import { getAllHouses } from "../../../houses/api/houses.api";
-import { addHousesToPlan } from "../../api/schedule.api";
+import { getAllHouses } from "../../houses/api/houses.api";
+import { addHousesToPlan } from "../api/maintenance.api";
 import { toast } from "react-toastify";
 
 export default function AddHousesModal({

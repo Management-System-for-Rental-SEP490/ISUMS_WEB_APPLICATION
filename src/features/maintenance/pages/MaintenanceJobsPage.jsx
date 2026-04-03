@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { RefreshCw, ClipboardList, Eye, Pencil } from "lucide-react";
-import { getMaintenanceJobs } from "../api/schedule.api";
-import JobDetailDrawer from "../components/maintenance/JobDetailDrawer";
+import { getMaintenanceJobs } from "../api/maintenance.api";
+import JobDetailDrawer from "../components/JobDetailDrawer";
 
 const STATUS_CONFIG = {
   SCHEDULED: {
@@ -207,30 +207,21 @@ export default function MaintenanceJobsPage() {
                 key={job.id}
                 className="grid grid-cols-[48px_1.5fr_1.5fr_2fr_120px] gap-4 px-5 py-3.5 border-b border-slate-50 last:border-0 hover:bg-slate-50/60 transition items-center"
               >
-                {/* STT */}
                 <p className="text-xs font-semibold text-slate-400">
                   {index + 1}
                 </p>
-
-                {/* Period start */}
                 <p className="text-xs text-slate-600">
                   {formatDate(job.periodStartDate)}
                 </p>
-
-                {/* Due date */}
                 <p className="text-xs text-slate-600">
                   {formatDate(job.dueDate)}
                 </p>
-
-                {/* Status */}
                 <span
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold w-fit ${st.bg} ${st.text}`}
                 >
                   <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
                   {st.label}
                 </span>
-
-                {/* Actions */}
                 <div className="flex items-center gap-1.5">
                   <button
                     type="button"

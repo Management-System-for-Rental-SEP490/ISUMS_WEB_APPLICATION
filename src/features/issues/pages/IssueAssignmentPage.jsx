@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { getAllIssues, getIssueById } from "../api/issues.api";
 import { getHouseById } from "../../houses/api/houses.api";
-import { confirmManagerWorkSlot } from "../../schedule/api/schedule.api";
+import { confirmManagerWorkSlot } from "../../maintenance/api/maintenance.api";
 import { toast } from "react-toastify";
 import { ISSUE_STATUS_CONFIG } from "../constants/issue.constants";
 import dayjs from "dayjs";

@@ -12,17 +12,17 @@ import {
 } from "lucide-react";
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
+import { confirmStaffWorkSlot, getWorkTemplate } from "../api/schedule.api";
 import {
   getMaintenanceJobsByStatus,
-  confirmStaffWorkSlot,
-  getWorkTemplate,
   getMaintenancePlanById,
-} from "../api/schedule.api";
+} from "../../maintenance/api/maintenance.api";
 import { getAllIssues } from "../../issues/api/issues.api";
+import { getHouseById } from "../../houses/api/houses.api";
 import { buildTimeSlotsFromTemplate, localDateStr } from "../utils/dateHelpers";
 import { mapTemplateFromApi } from "../hooks/useSchedule";
 
-const HARDCODED_STAFF_NAME = "Lê Minh Tâm";
+const HARDCODED_STAFF_NAME = "Lê Thanh Sửa";
 const HARDCODED_STAFF_ROLE = "Kỹ thuật viên";
 
 const DEFAULT_TEMPLATE = {
@@ -72,19 +72,20 @@ function Avatar({ name, size = "md" }) {
 
 export default function CreateShiftModal({ open, onClose, onCreated }) {
   const today = new Date();
-  const [mounted, setMounted]               = useState(false);
-  const [visible, setVisible]               = useState(false);
-  const [jobType, setJobType]               = useState("MAINTENANCE");
-  const [jobs, setJobs]                     = useState([]);
-  const [planNames, setPlanNames]           = useState({});
-  const [jobsLoading, setJobsLoading]       = useState(false);
-  const [timeSlots, setTimeSlots]           = useState([]);
-  const [selectedJobId, setSelectedJobId]   = useState(null);
-  const [selectedDate, setSelectedDate]     = useState(localDateStr(today));
-  const [selectedSlot, setSelectedSlot]     = useState(null);
-  const [jobSearch, setJobSearch]           = useState("");
-  const [submitting, setSubmitting]         = useState(false);
-  const [error, setError]                   = useState(null);
+  const [mounted, setMounted] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [jobType, setJobType] = useState("MAINTENANCE");
+  const [jobs, setJobs] = useState([]);
+  const [planNames, setPlanNames] = useState({});
+  const [houseNames, setHouseNames] = useState({});
+  const [jobsLoading, setJobsLoading] = useState(false);
+  const [timeSlots, setTimeSlots] = useState([]);
+  const [selectedJobId, setSelectedJobId] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(localDateStr(today));
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [jobSearch, setJobSearch] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (open) {
@@ -105,21 +106,40 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
     setError(null);
     setJobSearch("");
     setJobsLoading(true);
-    const fetcher = jobType === "ISSUE" 
-      ? getAllIssues({ status: "WAITING_MANAGER_CONFIRM", type: "REPAIR" })
-      : getMaintenanceJobsByStatus("CREATED");
+    const fetcher =
+      jobType === "ISSUE"
+        ? getAllIssues({ status: "WAITING_MANAGER_CONFIRM", type: "REPAIR" })
+        : getMaintenanceJobsByStatus("CREATED");
     fetcher
       .then(async (data) => {
         const list = Array.isArray(data) ? data : (data?.data ?? []);
         setJobs(list);
         if (jobType === "MAINTENANCE") {
-          const uniquePlanIds = [...new Set(list.map((j) => j.planId).filter(Boolean))];
-          const results = await Promise.allSettled(uniquePlanIds.map((id) => getMaintenancePlanById(id)));
+          const uniquePlanIds = [
+            ...new Set(list.map((j) => j.planId).filter(Boolean)),
+          ];
+          const uniqueHouseIds = [
+            ...new Set(list.map((j) => j.houseId).filter(Boolean)),
+          ];
+          const [planResults, houseResults] = await Promise.all([
+            Promise.allSettled(
+              uniquePlanIds.map((id) => getMaintenancePlanById(id)),
+            ),
+            Promise.allSettled(uniqueHouseIds.map((id) => getHouseById(id))),
+          ]);
           const nameMap = {};
-          results.forEach((r, i) => {
-            if (r.status === "fulfilled") nameMap[uniquePlanIds[i]] = r.value?.name;
+          planResults.forEach((r, i) => {
+            if (r.status === "fulfilled")
+              nameMap[uniquePlanIds[i]] = r.value?.name;
           });
           setPlanNames(nameMap);
+          const houseMap = {};
+          houseResults.forEach((r, i) => {
+            if (r.status === "fulfilled")
+              houseMap[uniqueHouseIds[i]] =
+                r.value?.name ?? r.value?.houseName ?? "—";
+          });
+          setHouseNames(houseMap);
         }
       })
       .catch(() => setJobs([]))
@@ -167,10 +187,14 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
         jobId: selectedJobId,
         startTime: `${selectedDate}T${selectedSlot.start}:00`,
       });
-      const jobLabel = jobType === "MAINTENANCE"
-        ? (planNames[selectedJob?.planId] ?? `Bảo trì kỳ ${formatDateVN(selectedJob?.periodStartDate)}`)
-        : (selectedJob?.title ?? "Công việc");
-      toast.success(`Đã tạo ca làm việc: ${jobLabel} — ${selectedDate} lúc ${selectedSlot.start}`);
+      const jobLabel =
+        jobType === "MAINTENANCE"
+          ? (planNames[selectedJob?.planId] ??
+            `Bảo trì kỳ ${formatDateVN(selectedJob?.periodStartDate)}`)
+          : (selectedJob?.title ?? "Công việc");
+      toast.success(
+        `Đã tạo ca làm việc: ${jobLabel} — ${selectedDate} lúc ${selectedSlot.start}`,
+      );
       onCreated?.();
       handleClose();
     } catch (e) {
@@ -288,6 +312,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
                 format="DD/MM/YYYY"
                 placeholder="Chọn ngày"
                 value={selectedDate ? dayjs(selectedDate) : null}
+                disabledDate={(d) => d.isBefore(dayjs().startOf("day"))}
                 onChange={(d) =>
                   setSelectedDate(d ? d.format("YYYY-MM-DD") : "")
                 }
@@ -312,7 +337,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
                         {slot.start} – {slot.end}
                       </button>
                     );
-                 })}
+                  })}
                 </div>
               )}
             </div>
@@ -321,7 +346,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                  Chọn nhân viên
+                  Nhân viên
                 </p>
                 <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full">
                   1 ĐANG RẢNH
@@ -382,9 +407,6 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
                   {filteredJobs.map((job) => {
                     const isSelected = selectedJobId === job.id;
                     const isMaintenance = jobType === "MAINTENANCE";
-                    const idShort = String(job.id ?? "")
-                      .slice(0, 8)
-                      .toUpperCase();
                     const deadline = isMaintenance
                       ? daysFromNow(job.dueDate)
                       : daysFromNow(job.scheduledDate);
@@ -403,12 +425,15 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
                       >
                         {/* Top row */}
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-[10px] font-mono text-slate-400">
-                            ID: #{idShort}
+                          <span className="text-[10px] text-slate-500 flex items-center gap-1 truncate max-w-[60%]">
+                            <Building2 className="w-3 h-3 flex-shrink-0" />
+                            {isMaintenance
+                              ? (houseNames[job.houseId] ?? "Đang tải...")
+                              : (job.houseName ?? "—")}
                           </span>
                           {isMaintenance ? (
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-600">
-                              BÌNH THƯỜNG
+                              BẢO TRÌ
                             </span>
                           ) : (
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">
@@ -420,7 +445,8 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
                         {/* Title */}
                         <p className="text-sm font-semibold text-slate-800 leading-snug mb-2 line-clamp-2">
                           {isMaintenance
-                            ? (planNames[job.planId] ?? `Bảo trì kỳ ${formatDateVN(job.periodStartDate)}`)
+                            ? (planNames[job.planId] ??
+                              `Bảo trì kỳ ${formatDateVN(job.periodStartDate)}`)
                             : job.title}
                         </p>
 
@@ -429,7 +455,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
                           <Building2 className="w-3 h-3 text-slate-400 flex-shrink-0" />
                           <p className="text-[11px] text-slate-500 truncate">
                             {isMaintenance
-                              ? `Hạn: ${formatDateVN(job.dueDate)}`
+                              ? `Ngày bắt đầu: ${formatDateVN(job.periodStartDate)}`
                               : (job.houseName ?? job.tenantName ?? "—")}
                           </p>
                         </div>
