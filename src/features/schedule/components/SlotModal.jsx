@@ -201,7 +201,7 @@ function ListView({
       {/* Subheader */}
       <div className="px-5 py-2.5 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between">
         <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-          {slots.length} nhân sự đang trực
+          Có {slots.length} ca làm việc trong khung giờ này
         </span>
         <div className="flex items-center gap-3 text-[11px] text-slate-400">
           <span className="flex items-center gap-1">
@@ -392,12 +392,16 @@ function DetailView({
         <div className="relative inline-block">
           <div className="w-20 h-20 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center mx-auto overflow-hidden">
             {avatarText ? (
-              <span className="text-2xl font-bold text-slate-600">{avatarText}</span>
+              <span className="text-2xl font-bold text-slate-600">
+                {avatarText}
+              </span>
             ) : (
               <User className="w-10 h-10 text-slate-400" />
             )}
           </div>
-          <span className={`absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${cfg.dot}`} />
+          <span
+            className={`absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${cfg.dot}`}
+          />
         </div>
 
         {staffLoading ? (
@@ -415,7 +419,9 @@ function DetailView({
           <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wide">
             {jobTypeLabel(slot.jobType)}
           </span>
-          <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${cfg.badge}`}>
+          <span
+            className={`px-3 py-1 rounded-full text-xs font-semibold border ${cfg.badge}`}
+          >
             {cfg.label}
           </span>
         </div>
@@ -435,7 +441,9 @@ function DetailView({
             <p className="text-base font-bold text-slate-800 mt-0.5">
               {slot.startTimeStr} - {slot.endTimeStr}
             </p>
-            <p className="text-xs text-slate-400 mt-0.5">{formatDateVN(slot.date ?? "")}</p>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {formatDateVN(slot.date ?? "")}
+            </p>
           </div>
         </div>
 
@@ -464,7 +472,9 @@ function DetailView({
               {houseLoading ? (
                 <Skeleton className="h-3 w-48" />
               ) : (
-                <p className="text-xs text-slate-400 leading-relaxed">{houseAddress}</p>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  {houseAddress}
+                </p>
               )}
             </div>
           )}
@@ -474,11 +484,15 @@ function DetailView({
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-slate-50 rounded-2xl p-4 text-center">
             <p className="text-xs text-slate-400">Hoàn thành tháng</p>
-            <p className="text-xl font-bold text-slate-800 mt-1">— <span className="text-sm font-semibold text-slate-400">ca</span></p>
+            <p className="text-xl font-bold text-slate-800 mt-1">
+              — <span className="text-sm font-semibold text-slate-400">ca</span>
+            </p>
           </div>
           <div className="bg-slate-50 rounded-2xl p-4 text-center">
             <p className="text-xs text-slate-400">Đánh giá</p>
-            <p className="text-xl font-bold text-slate-800 mt-1">— <span className="text-amber-400 text-base">★</span></p>
+            <p className="text-xl font-bold text-slate-800 mt-1">
+              — <span className="text-amber-400 text-base">★</span>
+            </p>
           </div>
         </div>
       </div>
@@ -505,7 +519,8 @@ function DetailView({
       {/* ── Footer ── */}
       <div className="pb-5 text-center">
         <p className="text-[10px] text-slate-400 font-semibold tracking-widest uppercase">
-          Powered by <span className="text-slate-600">ISUMS Property Management</span>
+          Powered by{" "}
+          <span className="text-slate-600">ISUMS Property Management</span>
         </p>
       </div>
     </div>
