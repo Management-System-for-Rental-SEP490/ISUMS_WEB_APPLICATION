@@ -70,7 +70,10 @@ export default function IssueAssignmentPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getAllIssues({ type: "REPAIR", status: "WAITING_MANAGER_CONFIRM" });
+      const data = await getAllIssues({
+        type: "REPAIR",
+        status: "WAITING_MANAGER_CONFIRM",
+      });
       const list = Array.isArray(data) ? data : [];
       setIssues(list);
       if (list.length > 0) setSelected(list[0]);
@@ -104,7 +107,12 @@ export default function IssueAssignmentPage() {
       setSelectedDetail(detail);
       if (detail?.houseId && !houseNames[detail.houseId]) {
         getHouseById(detail.houseId)
-          .then((h) => setHouseNames((prev) => ({ ...prev, [detail.houseId]: h?.name ?? h?.houseName ?? "—" })))
+          .then((h) =>
+            setHouseNames((prev) => ({
+              ...prev,
+              [detail.houseId]: h?.name ?? h?.houseName ?? "—",
+            })),
+          )
           .catch(() => {});
       }
     } catch {
@@ -140,7 +148,9 @@ export default function IssueAssignmentPage() {
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Phân công xử lý</h2>
           <p className="text-sm text-gray-500 mt-0.5">
-            {loading ? "Đang tải..." : `${issues.length} yêu cầu sửa chữa chờ xử lý`}
+            {loading
+              ? "Đang tải..."
+              : `${issues.length} yêu cầu sửa chữa chờ xử lý`}
           </p>
         </div>
         <button
@@ -156,7 +166,10 @@ export default function IssueAssignmentPage() {
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center justify-between">
           <p className="text-sm text-red-600">{error}</p>
-          <button onClick={fetchIssues} className="text-xs text-red-600 underline">
+          <button
+            onClick={fetchIssues}
+            className="text-xs text-red-600 underline"
+          >
             Thử lại
           </button>
         </div>
@@ -176,7 +189,10 @@ export default function IssueAssignmentPage() {
           <div className="overflow-y-auto max-h-[calc(100vh-260px)]">
             {loading &&
               [1, 2, 3, 4].map((i) => (
-                <div key={i} className="px-4 py-3 border-b border-gray-50 animate-pulse space-y-2">
+                <div
+                  key={i}
+                  className="px-4 py-3 border-b border-gray-50 animate-pulse space-y-2"
+                >
                   <div className="h-3 bg-gray-200 rounded w-1/3" />
                   <div className="h-4 bg-gray-100 rounded w-3/4" />
                   <div className="h-3 bg-gray-100 rounded w-1/2" />
@@ -208,16 +224,21 @@ export default function IssueAssignmentPage() {
                         {dayjs(issue.createdAt).fromNow()}
                       </span>
                     </div>
-                    <p className={`text-sm font-semibold leading-snug truncate ${isActive ? "text-teal-700" : "text-gray-800"}`}>
+                    <p
+                      className={`text-sm font-semibold leading-snug truncate ${isActive ? "text-teal-700" : "text-gray-800"}`}
+                    >
                       {issue.title}
                     </p>
                     <p className="text-[11px] mt-1 flex items-center gap-1">
                       {issue.assignedStaffId ? (
                         <span className="text-blue-500 font-medium flex items-center gap-1">
-                          <UserCheck className="w-3 h-3" /> {issue.staffName ?? "Đã phân công"}
+                          <UserCheck className="w-3 h-3" />{" "}
+                          {issue.staffName ?? "Đã phân công"}
                         </span>
                       ) : (
-                        <span className="text-orange-400 font-medium">● Chưa phân công</span>
+                        <span className="text-orange-400 font-medium">
+                          ● Chưa phân công
+                        </span>
                       )}
                     </p>
                   </button>
@@ -237,13 +258,19 @@ export default function IssueAssignmentPage() {
                     Issue #{String(detail.id).slice(0, 8).toUpperCase()}
                   </span>
                   {status && (
-                    <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${status.pill}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+                    <span
+                      className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${status.pill}`}
+                    >
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${status.dot}`}
+                      />
                       {status.label}
                     </span>
                   )}
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 leading-snug">{detail.title}</h3>
+                <h3 className="text-xl font-bold text-gray-900 leading-snug">
+                  {detail.title}
+                </h3>
                 {detail.houseId && (
                   <p className="flex items-center gap-1.5 text-sm text-gray-500 mt-1.5">
                     <MapPin className="w-3.5 h-3.5 text-gray-400" />
@@ -266,7 +293,9 @@ export default function IssueAssignmentPage() {
               <div className="space-y-4">
                 {/* Mô tả */}
                 <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Mô tả</p>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                    Mô tả
+                  </p>
                   <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
                     <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
                       {detail.description ?? "Không có mô tả."}
@@ -281,7 +310,9 @@ export default function IssueAssignmentPage() {
                 {/* Ca làm việc */}
                 {detail.startTime && (
                   <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Ca làm việc</p>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                      Ca làm việc
+                    </p>
                     <div className="bg-teal-50 border border-teal-100 rounded-xl p-4">
                       <div className="flex items-center gap-3">
                         <div className="flex flex-col items-center gap-1">
@@ -293,7 +324,9 @@ export default function IssueAssignmentPage() {
                         </div>
                         <div className="flex-1 space-y-3">
                           <div>
-                            <p className="text-[10px] text-teal-500 font-semibold uppercase tracking-wide">Bắt đầu</p>
+                            <p className="text-[10px] text-teal-500 font-semibold uppercase tracking-wide">
+                              Bắt đầu
+                            </p>
                             <p className="text-sm font-bold text-teal-800">
                               {dayjs(detail.startTime).format("HH:mm")}
                               <span className="font-normal text-teal-600 ml-1.5 text-xs">
@@ -310,9 +343,13 @@ export default function IssueAssignmentPage() {
                             </span>
                           </div>
                           <div>
-                            <p className="text-[10px] text-teal-500 font-semibold uppercase tracking-wide">Kết thúc</p>
+                            <p className="text-[10px] text-teal-500 font-semibold uppercase tracking-wide">
+                              Kết thúc
+                            </p>
                             <p className="text-sm font-bold text-teal-800">
-                              {detail.endTime ? dayjs(detail.endTime).format("HH:mm") : "—"}
+                              {detail.endTime
+                                ? dayjs(detail.endTime).format("HH:mm")
+                                : "—"}
                               {detail.endTime && (
                                 <span className="font-normal text-teal-600 ml-1.5 text-xs">
                                   {dayjs(detail.endTime).format("DD/MM/YYYY")}
@@ -331,14 +368,20 @@ export default function IssueAssignmentPage() {
               <div className="space-y-4">
                 {/* Nhân viên xử lý */}
                 <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Nhân viên xử lý</p>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                    Nhân viên xử lý
+                  </p>
                   {detail.assignedStaffId ? (
                     <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex items-center gap-3">
                       <Avatar name={detail.staffName} size="lg" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-gray-800">{detail.staffName ?? "Nhân viên"}</p>
+                        <p className="text-sm font-bold text-gray-800">
+                          {detail.staffName ?? "Nhân viên"}
+                        </p>
                         {detail.staffPhone && (
-                          <p className="text-xs text-gray-500 mt-0.5">{detail.staffPhone}</p>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            {detail.staffPhone}
+                          </p>
                         )}
                       </div>
                       {detail.staffPhone && (
@@ -357,8 +400,12 @@ export default function IssueAssignmentPage() {
                         <Wrench className="w-5 h-5 text-orange-400" />
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-orange-700">Chưa phân công</p>
-                        <p className="text-xs text-orange-400 mt-0.5">Nhấn "Gán nhân viên" để phân công</p>
+                        <p className="text-sm font-semibold text-orange-700">
+                          Chưa phân công
+                        </p>
+                        <p className="text-xs text-orange-400 mt-0.5">
+                          Nhấn "Gán nhân viên" để phân công
+                        </p>
                       </div>
                     </div>
                   )}
@@ -366,12 +413,27 @@ export default function IssueAssignmentPage() {
 
                 {/* Thông tin */}
                 <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Thông tin</p>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                    Thông tin
+                  </p>
                   <div className="bg-gray-50 rounded-xl px-4 py-1 border border-gray-100">
-                    <InfoRow icon={Hash} label="Mã yêu cầu" value={String(detail.id).slice(0, 8).toUpperCase()} valueClass="font-mono" />
+                    <InfoRow
+                      icon={Hash}
+                      label="Mã yêu cầu"
+                      value={String(detail.id).slice(0, 8).toUpperCase()}
+                      valueClass="font-mono"
+                    />
                     <InfoRow icon={Tag} label="Loại" value="Sửa chữa" />
-                    <InfoRow icon={CalendarDays} label="Ngày tạo" value={dayjs(detail.createdAt).format("DD/MM/YYYY HH:mm")} />
-                    <InfoRow icon={Phone} label="SĐT khách" value={detail.tenantPhone ?? "—"} />
+                    <InfoRow
+                      icon={CalendarDays}
+                      label="Ngày tạo"
+                      value={dayjs(detail.createdAt).format("DD/MM/YYYY HH:mm")}
+                    />
+                    <InfoRow
+                      icon={Phone}
+                      label="SĐT khách"
+                      value={detail.tenantPhone ?? "—"}
+                    />
                   </div>
                 </div>
               </div>

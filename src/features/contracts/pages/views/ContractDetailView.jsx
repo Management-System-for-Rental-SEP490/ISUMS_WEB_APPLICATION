@@ -4,6 +4,7 @@ import Breadcrumbs from "../../../../components/shared/Breadcrumbs";
 import { LoadingSpinner } from "../../../../components/shared/Loading";
 import { formatDateVi, formatMoneyVND } from "../../utils/contract.format";
 import { STATUS_BADGE, STATUS_LABEL } from "../../utils/contract.constants";
+import ContractPdfViewer from "../../components/shared/ContractPdfViewer";
 
 export default function ContractDetailView({
   contract,
@@ -14,7 +15,9 @@ export default function ContractDetailView({
   onEdit,
   onNavigateMenu,
 }) {
-  const contractHtml = contract?.html;
+  const isDraft = statusKeyUpper === "DRAFT" || statusKeyUpper === "PENDING_TENANT_REVIEW";
+  const pdfUrl = contract?.pdfUrl ?? null;
+  const contractHtml = contract?.html ?? "";
   const statusRaw = String(contract?.status ?? "pending");
   const statusKey = statusRaw.toLowerCase();
   const statusKeyUpper = statusRaw.toUpperCase();
@@ -146,18 +149,16 @@ export default function ContractDetailView({
 
         <div className="mt-6">
           <div className="text-sm text-gray-500 mb-2">Nội dung hợp đồng</div>
-          {contractHtml ? (
+          {isDraft ? (
             <iframe
               title="Contract HTML"
               srcDoc={contractHtml}
-              className="w-full min-h-[900px] border rounded-lg bg-white"
+              className="w-full min-h-[900px] rounded-lg border border-slate-200 bg-white"
               sandbox=""
               referrerPolicy="no-referrer"
             />
           ) : (
-            <div className="border rounded-lg p-4 text-sm text-gray-500 bg-gray-50">
-              Chưa có nội dung HTML cho hợp đồng này.
-            </div>
+            <ContractPdfViewer pdfUrl={pdfUrl} />
           )}
         </div>
 

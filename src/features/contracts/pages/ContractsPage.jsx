@@ -17,6 +17,13 @@ export default function ContractsPage({ onNavigateMenu }) {
     setSearchTerm,
     filterStatus,
     setFilterStatus,
+    sortDir,
+    onToggleSortDir,
+    page,
+    totalPage,
+    totalItems,
+    pageSize,
+    onPageChange,
     stats,
     loading,
     error,
@@ -104,10 +111,18 @@ export default function ContractsPage({ onNavigateMenu }) {
       setSearchTerm={setSearchTerm}
       filterStatus={filterStatus}
       setFilterStatus={setFilterStatus}
+      sortDir={sortDir}
+      onToggleSortDir={onToggleSortDir}
+      page={page}
+      totalPage={totalPage}
+      totalItems={totalItems}
+      pageSize={pageSize}
+      onPageChange={onPageChange}
       stats={stats}
       loading={loading}
       error={error}
       onRetry={refetch}
+      onRefresh={refetch}
     />
   );
 }

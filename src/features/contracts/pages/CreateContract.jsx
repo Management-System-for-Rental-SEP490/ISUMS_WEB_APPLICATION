@@ -1,9 +1,9 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import CreateContractWizard from "../components/create/CreateContractWizard";
+import ContractLoadingModal from "../components/create/ContractLoadingModal";
 import { useHouses } from "../../houses/hooks/useHouses";
 import { createContract } from "../api/contracts.api";
 import { toast } from "react-toastify";
-import { LoadingOverlay } from "../../../components/shared/Loading";
 
 const getInitialForm = (todayISO) => ({
   name: "",
@@ -13,81 +13,126 @@ const getInitialForm = (todayISO) => ({
   identityNumber: "",
   houseId: "",
   dateOfIssue: "",
-  placeOfIssue: "",
+  placeOfIssue: "Cục Cảnh sát QLHC về TTXH",
   tenantAddress: "",
   startDate: todayISO,
   endDate: "",
   rentAmount: "",
   payDate: 5,
+  payCycle: "monthly",
   depositAmount: "",
   depositDate: "",
+  depositRefundDays: 30,
   handoverDate: "",
+  lateDays: 3,
+  latePenaltyPercent: 5,
+  maxLateDays: 10,
+  cureDays: 7,
+  earlyTerminationPenalty: "",
+  landlordBreachCompensation: "",
+  renewNoticeDays: 30,
+  landlordNoticeDays: 30,
+  forceMajeureNoticeHours: 24,
+  disputeDays: 30,
+  disputeForum: "",
+  copies: 2,
+  eachKeep: 1,
+  purpose: "Để ở",
+  area: "",
+  structure: "",
+  ownershipDocs: "",
+  taxFeeNote: "",
 });
 
 export default function CreateContract({ onCancel, onCreated }) {
   const todayISO = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const initialForm = useMemo(() => getInitialForm(todayISO), [todayISO]);
   const { houses } = useHouses();
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [isApiDone, setIsApiDone] = useState(false);
+  const [isError, setIsError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [pendingForm, setPendingForm] = useState(null);
 
   const houseOptions = useMemo(() => {
     return Array.isArray(houses) ? houses : [];
   }, [houses]);
 
-  const handleCreated = async (form) => {
-    setError(null);
-    setSubmitting(true);
+  const callCreateApi = async (form) => {
+    setIsApiDone(false);
+    setIsError(false);
+    setErrorMessage("");
     try {
       await createContract(form);
-      const house = houseOptions.find((h) => h.id === form.houseId);
-      onCreated?.({
-        id: Date.now(),
-        contractNumber: `HD-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
-        tenant: form.name,
-        property: house?.name || house?.title || form.houseId || "—",
-        unit: house?.unit || "—",
-        startDate: form.startDate,
-        endDate: form.endDate,
-        rent: Number(form.rentAmount) || 0,
-        deposit: Number(form.depositAmount) || 0,
-        status: "pending",
-        paymentType: "monthly",
-        autoRenew: true,
-      });
-      toast.success("Tạo hợp đồng thành công!");
+      setIsApiDone(true);
     } catch (err) {
+      const status = err?.response?.status;
       const msg =
-        err?.response?.status === 500
-          ? "Tạo hợp đồng lỗi, vui lòng thử lại."
-          : err?.response?.data?.message || err?.message || "Không thể tạo hợp đồng";
-      setError(msg);
-      toast.error(msg);
-    } finally {
-      setSubmitting(false);
+        status === 400 ? "Dữ liệu không hợp lệ hoặc thông tin chủ nhà chưa được cập nhật đầy đủ." :
+        status === 404 ? "Không tìm thấy nhà hoặc email người dùng không tồn tại." :
+        "Tạo hợp đồng thất bại, vui lòng thử lại.";
+      setIsError(true);
+      setErrorMessage(msg);
+      setIsApiDone(true);
+    }
+  };
+
+  const handleCreated = (form) => {
+    setPendingForm(form);
+    setModalOpen(true);
+    callCreateApi(form);
+  };
+
+  const handleModalSuccess = () => {
+    setModalOpen(false);
+    const form = pendingForm;
+    const house = houseOptions.find((h) => h.id === form?.houseId);
+    toast.success("Tạo hợp đồng thành công!");
+    onCreated?.({
+      id: Date.now(),
+      contractNumber: `HD-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
+      tenant: form?.name,
+      property: house?.name || house?.title || form?.houseId || "—",
+      unit: house?.unit || "—",
+      startDate: form?.startDate,
+      endDate: form?.endDate,
+      rent: Number(form?.rentAmount) || 0,
+      deposit: Number(form?.depositAmount) || 0,
+      status: "pending",
+      paymentType: "monthly",
+      autoRenew: true,
+    });
+  };
+
+  const handleRetry = () => {
+    if (pendingForm) {
+      setModalOpen(true);
+      callCreateApi(pendingForm);
     }
   };
 
   return (
     <div className="space-y-6 relative">
-      <LoadingOverlay open={submitting} label="Đang tạo hợp đồng..." />
+      <ContractLoadingModal
+        isOpen={modalOpen}
+        isApiDone={isApiDone}
+        isError={isError}
+        errorMessage={errorMessage}
+        onSuccess={handleModalSuccess}
+        onRetry={handleRetry}
+      />
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-1">Tạo Hợp Đồng</h2>
         <p className="text-gray-600">
-          Bước 1: Thông tin chung — Bước 2: Nhà và tiền
+          Bước 1: Người thuê — Bước 2: Nhà & chi phí — Bước 3: Điều khoản
         </p>
       </div>
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-          {error}
-        </div>
-      )}
       <CreateContractWizard
         initialForm={initialForm}
         onCancel={onCancel}
         onCreated={handleCreated}
         houses={houseOptions}
-        disabled={submitting}
+        disabled={modalOpen}
       />
     </div>
   );
