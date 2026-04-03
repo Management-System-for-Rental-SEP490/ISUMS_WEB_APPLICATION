@@ -9,8 +9,8 @@ import {
   Hash,
   ClipboardList,
 } from "lucide-react";
-import { getMaintenancePlanById } from "../../api/schedule.api";
-import { getHouseById } from "../../../houses/api/houses.api";
+import { getMaintenancePlanById } from "../api/maintenance.api";
+import { getHouseById } from "../../houses/api/houses.api";
 
 const STATUS_CONFIG = {
   SCHEDULED: {

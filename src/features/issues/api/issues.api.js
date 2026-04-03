@@ -24,6 +24,15 @@ export async function getIssueById(ticketId) {
   }
 }
 
+export async function getIssueByTicketId(ticketId) {
+  try {
+    const response = await api.get(ISSSUE_ENDPOINTS.ISSUE_BY_TICKET_ID(ticketId));
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
 export async function getAllResponses() {
   try {
     const response = await api.get("/issues/responses");

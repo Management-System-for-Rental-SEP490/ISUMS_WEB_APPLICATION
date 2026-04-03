@@ -1,8 +1,8 @@
 import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import { X, Calendar, Clock, Building2, MapPin, Plus } from "lucide-react";
-import { getMaintenancePlanById } from "../../api/schedule.api";
-import { getHouseById } from "../../../houses/api/houses.api";
+import { getMaintenancePlanById } from "../api/maintenance.api";
+import { getHouseById } from "../../houses/api/houses.api";
 import AddHousesModal from "./AddHousesModal";
 
 const FREQ_LABELS = {

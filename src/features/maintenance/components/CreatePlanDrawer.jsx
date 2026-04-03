@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { ArrowLeft, ArrowRight, Check, ChevronRight, Minus, Plus, X } from "lucide-react";
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
-import { createMaintenancePlan } from "../../api/schedule.api";
+import { createMaintenancePlan } from "../api/maintenance.api";
 
 const STEPS = ["Thông tin cơ bản", "Chu kỳ bảo trì", "Thời gian hiệu lực"];
 

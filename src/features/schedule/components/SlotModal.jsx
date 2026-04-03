@@ -14,7 +14,8 @@ import {
   Phone,
   Mail,
 } from "lucide-react";
-import { getJobById } from "../api/schedule.api";
+import { getJobById } from "../../maintenance/api/maintenance.api";
+import { getIssueByTicketId } from "../../issues/api/issues.api";
 import { getHouseById } from "../../houses/api/houses.api";
 import { getUserById } from "../../tenants/api/users.api";
 import { DAY_NAMES_LONG, MONTH_NAMES } from "../constants";
@@ -75,12 +76,24 @@ function jobStatusCfg(status) {
   );
 }
 
+const ISSUE_STATUS_CFG = {
+  WAITING_PAYMENT: { badge: "bg-amber-50 text-amber-700 border border-amber-200", label: "Chờ thanh toán" },
+  PAID: { badge: "bg-green-50 text-green-700 border border-green-200", label: "Đã thanh toán" },
+  PENDING: { badge: "bg-slate-100 text-slate-600 border border-slate-200", label: "Chờ xử lý" },
+  IN_PROGRESS: { badge: "bg-blue-50 text-blue-700 border border-blue-200", label: "Đang xử lý" },
+  DONE: { badge: "bg-green-50 text-green-700 border border-green-200", label: "Hoàn thành" },
+  CANCELLED: { badge: "bg-red-50 text-red-400 border border-red-200", label: "Đã hủy" },
+};
+function issueStatusCfg(status) {
+  return ISSUE_STATUS_CFG[status?.toUpperCase()] ?? {
+    badge: "bg-slate-100 text-slate-500 border border-slate-200",
+    label: status ?? "—",
+  };
+}
+
 const JOB_TYPE_LABELS = {
   MAINTENANCE: "Bảo trì",
   ISSUE: "Sửa chữa",
-  INSPECTION: "Kiểm tra",
-  CLEANING: "Vệ sinh",
-  SUPPORT: "Hỗ trợ",
 };
 function jobTypeLabel(t) {
   return JOB_TYPE_LABELS[t?.toUpperCase()] ?? t ?? "—";
@@ -201,7 +214,7 @@ function ListView({
       {/* Subheader */}
       <div className="px-5 py-2.5 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between">
         <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-          {slots.length} nhân sự đang trực
+          Có {slots.length} ca làm việc trong khung giờ này
         </span>
         <div className="flex items-center gap-3 text-[11px] text-slate-400">
           <span className="flex items-center gap-1">
@@ -225,11 +238,9 @@ function ListView({
           const staffName = staff?.fullName ?? staff?.name ?? null;
           const displayName = staffName
             ? staffName
-            : staff === null
-              ? `ID: ${slot.staffId?.slice(-8) ?? "—"}`
-              : staff === undefined && slot.staffId
-                ? null
-                : "Nhân viên";
+            : staff === undefined && slot.staffId
+              ? null
+              : "Nhân viên";
           const avatarText = staffName ? initials(staffName) : null;
 
           return (
@@ -265,11 +276,8 @@ function ListView({
                   </p>
                 )}
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <span className="text-[11px] text-slate-400 font-mono">
-                    ID: {slot.staffId ? slot.staffId.slice(-8) : "—"}
-                  </span>
                   <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-wide">
-                    {slot.jobType ?? "—"}
+                    {jobTypeLabel(slot.jobType)}
                   </span>
                   {house === undefined && job?.houseId ? (
                     <Skeleton className="h-3 w-20 inline-block" />
@@ -342,6 +350,7 @@ function DetailView({
   onClose,
 }) {
   const cfg = slotCfg(slot.status);
+  const isIssue = slot.jobType?.toUpperCase() === "ISSUE";
   const staff = slot.staffId ? staffDetails[slot.staffId] : undefined;
   const job = slot.jobId ? jobDetails[slot.jobId] : undefined;
   const house = job?.houseId ? houseDetails[job.houseId] : undefined;
@@ -349,13 +358,18 @@ function DetailView({
   const staffLoading = slot.staffId && staff === undefined;
   const houseLoading = job?.houseId && house === undefined;
 
-  const staffName = staff?.fullName ?? staff?.name ?? null;
+  // For ISSUE slots, staff info comes from the issue response directly
+  const staffName = isIssue
+    ? (job?.staffName ?? null)
+    : (staff?.fullName ?? staff?.name ?? null);
   const avatarText = staffName ? initials(staffName) : null;
   const houseAddress = house
     ? [house.address, house.ward, house.commune, house.city]
         .filter(Boolean)
         .join(", ")
     : null;
+
+  const issueStatusBadge = isIssue ? issueStatusCfg(job?.status) : null;
 
   // Status label mapping
   const STATUS_LABELS = {
@@ -392,12 +406,16 @@ function DetailView({
         <div className="relative inline-block">
           <div className="w-20 h-20 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center mx-auto overflow-hidden">
             {avatarText ? (
-              <span className="text-2xl font-bold text-slate-600">{avatarText}</span>
+              <span className="text-2xl font-bold text-slate-600">
+                {avatarText}
+              </span>
             ) : (
               <User className="w-10 h-10 text-slate-400" />
             )}
           </div>
-          <span className={`absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${cfg.dot}`} />
+          <span
+            className={`absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${cfg.dot}`}
+          />
         </div>
 
         {staffLoading ? (
@@ -415,9 +433,15 @@ function DetailView({
           <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wide">
             {jobTypeLabel(slot.jobType)}
           </span>
-          <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${cfg.badge}`}>
-            {cfg.label}
-          </span>
+          {isIssue && issueStatusBadge ? (
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${issueStatusBadge.badge}`}>
+              {issueStatusBadge.label}
+            </span>
+          ) : (
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${cfg.badge}`}>
+              {cfg.label}
+            </span>
+          )}
         </div>
       </div>
 
@@ -435,7 +459,9 @@ function DetailView({
             <p className="text-base font-bold text-slate-800 mt-0.5">
               {slot.startTimeStr} - {slot.endTimeStr}
             </p>
-            <p className="text-xs text-slate-400 mt-0.5">{formatDateVN(slot.date ?? "")}</p>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {formatDateVN(slot.date ?? "")}
+            </p>
           </div>
         </div>
 
@@ -464,23 +490,42 @@ function DetailView({
               {houseLoading ? (
                 <Skeleton className="h-3 w-48" />
               ) : (
-                <p className="text-xs text-slate-400 leading-relaxed">{houseAddress}</p>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  {houseAddress}
+                </p>
               )}
             </div>
           )}
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-slate-50 rounded-2xl p-4 text-center">
-            <p className="text-xs text-slate-400">Hoàn thành tháng</p>
-            <p className="text-xl font-bold text-slate-800 mt-1">— <span className="text-sm font-semibold text-slate-400">ca</span></p>
+        {/* Issue-specific info */}
+        {isIssue && (
+          <SectionCard title="Thông tin sự cố" icon={Hash} iconBg="bg-orange-50">
+            <InfoRow icon={Hash} label="Tiêu đề" value={job?.title} loading={!job} />
+            <InfoRow icon={Briefcase} label="Mô tả" value={job?.description} loading={!job} />
+            <InfoRow icon={Phone} label="SĐT khách thuê" value={job?.tenantPhone} loading={!job} />
+            <InfoRow icon={User} label="Nhân viên phụ trách" value={job?.staffName} loading={!job} />
+            <InfoRow icon={Phone} label="SĐT nhân viên" value={job?.staffPhone} loading={!job} />
+          </SectionCard>
+        )}
+
+        {/* Stats — only for maintenance */}
+        {!isIssue && (
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-slate-50 rounded-2xl p-4 text-center">
+              <p className="text-xs text-slate-400">Hoàn thành tháng</p>
+              <p className="text-xl font-bold text-slate-800 mt-1">
+                — <span className="text-sm font-semibold text-slate-400">ca</span>
+              </p>
+            </div>
+            <div className="bg-slate-50 rounded-2xl p-4 text-center">
+              <p className="text-xs text-slate-400">Đánh giá</p>
+              <p className="text-xl font-bold text-slate-800 mt-1">
+                — <span className="text-amber-400 text-base">★</span>
+              </p>
+            </div>
           </div>
-          <div className="bg-slate-50 rounded-2xl p-4 text-center">
-            <p className="text-xs text-slate-400">Đánh giá</p>
-            <p className="text-xl font-bold text-slate-800 mt-1">— <span className="text-amber-400 text-base">★</span></p>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* ── Action buttons ── */}
@@ -505,7 +550,8 @@ function DetailView({
       {/* ── Footer ── */}
       <div className="pb-5 text-center">
         <p className="text-[10px] text-slate-400 font-semibold tracking-widest uppercase">
-          Powered by <span className="text-slate-600">ISUMS Property Management</span>
+          Powered by{" "}
+          <span className="text-slate-600">ISUMS Property Management</span>
         </p>
       </div>
     </div>
@@ -584,13 +630,20 @@ export default function SlotModal({ dateStr, timeSlot, slots, onClose }) {
         )
       : Promise.resolve();
 
+    // Build a map of jobId → jobType so we know which API to call
+    const jobTypeMap = Object.fromEntries(
+      slots.filter((s) => s.jobId).map((s) => [s.jobId, s.jobType]),
+    );
+
     const fetchJobs = uniqueJobIds.length
       ? Promise.all(
-          uniqueJobIds.map((id) =>
-            getJobById(id)
+          uniqueJobIds.map((id) => {
+            const isIssue = jobTypeMap[id]?.toUpperCase() === "ISSUE";
+            const fetcher = isIssue ? getIssueByTicketId(id) : getJobById(id);
+            return fetcher
               .then((d) => ({ id, data: d }))
-              .catch(() => ({ id, data: null })),
-          ),
+              .catch(() => ({ id, data: null }));
+          }),
         ).then((jobResults) => {
           setJobDetails(
             Object.fromEntries(jobResults.map(({ id, data }) => [id, data])),

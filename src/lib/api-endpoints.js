@@ -84,17 +84,14 @@ export const MAINTENANCE_ENDPOINTS = {
   JOBS: "/maintenances/jobs",
   JOBS_BY_ID: (jobId) => `/maintenances/jobs/${jobId}`,
   JOBS_BY_STATUS: "/maintenances/jobs",
-  // SLOT_JOBS: (id) => `/maintenance/slots/${id}/jobs`,
-  // JOB_BY_ID: (id) => `/maintenance/jobs/${id}`,
-  // BY_WEEK: "/maintenance/slots/week",
-  // BY_MONTH: "/maintenance/slots/month",
+  JOBS_GENERATE: "/maintenances/jobs/generate",
 };
 
 // Schedule endpoints
 export const SCHEDULE_ENDPOINTS = {
   WORK_SLOTS: "/schedules/work_slots/confirm",
   WORK_SLOTS_CURRENT: "/schedules/work_slots/current",
-  WORK_SLOTS_STAFF_CONFIRM: "/schedules/work_slots/staff/confirm",
+  WORK_SLOTS_CONFIRM_MAINTENANCE: "/schedules/work_slots/confirm",
   WORK_SLOTS_MANAGER_CONFIRM: (jobId) =>
     `/schedules/work_slots/manager/confirm/${jobId}`,
   TEMPLATES_CURRENT: (date) => `/schedules/templates/current/${date}`,
@@ -102,9 +99,9 @@ export const SCHEDULE_ENDPOINTS = {
 export const ISSSUE_ENDPOINTS = {
   BASE: "/issues",
   TICKETS: "/issues/tickets",
-  ISSUE_BY_ID: (id) => `/issues/${id}`,
+  ISSUE_BY_TICKET_ID: (ticketId) => `/issues/tickets/${ticketId}`,
   CREATE: "/issues",
-  RESPONSE_BY_TICKET: (ticketId) => `/issues/responses/ticket/${ticketId}`,
+  RESPONSE_BY_TICKET: (ticketId) => `/issues/responses/tickets/${ticketId}`,
   QUOTES_BY_TICKET: (ticketId) => `/issues/quotes/ticket/${ticketId}`,
   QUOTE_STATUS: (id) => `/issues/quotes/${id}/status`,
 };

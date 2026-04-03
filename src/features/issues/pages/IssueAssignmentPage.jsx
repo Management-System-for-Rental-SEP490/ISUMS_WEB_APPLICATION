@@ -7,10 +7,15 @@ import {
   Wrench,
   Phone,
   Check,
+  Hash,
+  Tag,
+  CalendarDays,
+  CalendarClock,
+  ArrowRight,
 } from "lucide-react";
 import { getAllIssues, getIssueById } from "../api/issues.api";
 import { getHouseById } from "../../houses/api/houses.api";
-import { confirmManagerWorkSlot } from "../../schedule/api/schedule.api";
+import { confirmManagerWorkSlot } from "../../maintenance/api/maintenance.api";
 import { toast } from "react-toastify";
 import { ISSUE_STATUS_CONFIG } from "../constants/issue.constants";
 import dayjs from "dayjs";
@@ -37,6 +42,20 @@ function Avatar({ name, size = "md" }) {
   );
 }
 
+function InfoRow({ icon: Icon, label, value, valueClass = "" }) {
+  return (
+    <div className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+      <span className="flex items-center gap-2 text-xs text-gray-400">
+        <Icon className="w-3.5 h-3.5 text-gray-300" />
+        {label}
+      </span>
+      <span className={`text-xs font-semibold text-gray-700 ${valueClass}`}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
 export default function IssueAssignmentPage() {
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -51,12 +70,14 @@ export default function IssueAssignmentPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getAllIssues({ type: "REPAIR", status: "WAITING_MANAGER_CONFIRM" });
+      const data = await getAllIssues({
+        type: "REPAIR",
+        status: "WAITING_MANAGER_CONFIRM",
+      });
       const list = Array.isArray(data) ? data : [];
       setIssues(list);
       if (list.length > 0) setSelected(list[0]);
 
-      // Fetch house names
       const ids = [...new Set(list.map((i) => i.houseId).filter(Boolean))];
       const entries = await Promise.all(
         ids.map((id) =>
@@ -86,7 +107,12 @@ export default function IssueAssignmentPage() {
       setSelectedDetail(detail);
       if (detail?.houseId && !houseNames[detail.houseId]) {
         getHouseById(detail.houseId)
-          .then((h) => setHouseNames((prev) => ({ ...prev, [detail.houseId]: h?.name ?? h?.houseName ?? "—" })))
+          .then((h) =>
+            setHouseNames((prev) => ({
+              ...prev,
+              [detail.houseId]: h?.name ?? h?.houseName ?? "—",
+            })),
+          )
           .catch(() => {});
       }
     } catch {
@@ -263,27 +289,84 @@ export default function IssueAssignmentPage() {
             </div>
 
             <div className="px-6 py-5 grid grid-cols-2 gap-5">
-              {/* Description */}
-              <div className="col-span-2 lg:col-span-1">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
-                  Mô tả
-                </p>
-                <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                  <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-                    {detail.description ?? "Không có mô tả."}
+              {/* LEFT column: mô tả + ca làm việc */}
+              <div className="space-y-4">
+                {/* Mô tả */}
+                <div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                    Mô tả
                   </p>
-                  <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-200">
-                    <span className="flex items-center gap-1.5 text-[11px] text-gray-400">
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {detail.description ?? "Không có mô tả."}
+                    </p>
+                    <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-gray-200 text-[11px] text-gray-400">
                       <Clock className="w-3.5 h-3.5" />
                       {dayjs(detail.createdAt).format("DD/MM/YYYY · HH:mm")}
-                    </span>
+                    </div>
                   </div>
                 </div>
+
+                {/* Ca làm việc */}
+                {detail.startTime && (
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
+                      Ca làm việc
+                    </p>
+                    <div className="bg-teal-50 border border-teal-100 rounded-xl p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex flex-col items-center gap-1">
+                          <div className="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
+                            <CalendarClock className="w-4 h-4 text-teal-600" />
+                          </div>
+                          <div className="w-px flex-1 bg-teal-200 min-h-[24px]" />
+                          <div className="w-2 h-2 rounded-full bg-teal-400" />
+                        </div>
+                        <div className="flex-1 space-y-3">
+                          <div>
+                            <p className="text-[10px] text-teal-500 font-semibold uppercase tracking-wide">
+                              Bắt đầu
+                            </p>
+                            <p className="text-sm font-bold text-teal-800">
+                              {dayjs(detail.startTime).format("HH:mm")}
+                              <span className="font-normal text-teal-600 ml-1.5 text-xs">
+                                {dayjs(detail.startTime).format("DD/MM/YYYY")}
+                              </span>
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 text-teal-300">
+                            <ArrowRight className="w-3.5 h-3.5" />
+                            <span className="text-[11px] text-teal-400">
+                              {detail.endTime
+                                ? `${dayjs(detail.endTime).diff(dayjs(detail.startTime), "minute")} phút`
+                                : ""}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-teal-500 font-semibold uppercase tracking-wide">
+                              Kết thúc
+                            </p>
+                            <p className="text-sm font-bold text-teal-800">
+                              {detail.endTime
+                                ? dayjs(detail.endTime).format("HH:mm")
+                                : "—"}
+                              {detail.endTime && (
+                                <span className="font-normal text-teal-600 ml-1.5 text-xs">
+                                  {dayjs(detail.endTime).format("DD/MM/YYYY")}
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Right column */}
-              <div className="col-span-2 lg:col-span-1 space-y-4">
-                {/* Assigned technician */}
+              {/* RIGHT column: nhân viên + thông tin */}
+              <div className="space-y-4">
+                {/* Nhân viên xử lý */}
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
                     Nhân viên xử lý
@@ -328,39 +411,29 @@ export default function IssueAssignmentPage() {
                   )}
                 </div>
 
-                {/* Ticket info */}
+                {/* Thông tin */}
                 <div>
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">
                     Thông tin
                   </p>
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 space-y-2.5">
-                    {[
-                      {
-                        label: "Mã yêu cầu",
-                        value: String(detail.id).slice(0, 8).toUpperCase(),
-                      },
-                      { label: "Loại", value: "Sửa chữa" },
-                      {
-                        label: "Ngày tạo",
-                        value: dayjs(detail.createdAt).format(
-                          "DD/MM/YYYY HH:mm",
-                        ),
-                      },
-                      {
-                        label: "SĐT khách",
-                        value: detail.tenantPhone ?? "—",
-                      },
-                    ].map(({ label, value }) => (
-                      <div
-                        key={label}
-                        className="flex items-center justify-between"
-                      >
-                        <span className="text-xs text-gray-400">{label}</span>
-                        <span className="text-xs font-semibold text-gray-700">
-                          {value}
-                        </span>
-                      </div>
-                    ))}
+                  <div className="bg-gray-50 rounded-xl px-4 py-1 border border-gray-100">
+                    <InfoRow
+                      icon={Hash}
+                      label="Mã yêu cầu"
+                      value={String(detail.id).slice(0, 8).toUpperCase()}
+                      valueClass="font-mono"
+                    />
+                    <InfoRow icon={Tag} label="Loại" value="Sửa chữa" />
+                    <InfoRow
+                      icon={CalendarDays}
+                      label="Ngày tạo"
+                      value={dayjs(detail.createdAt).format("DD/MM/YYYY HH:mm")}
+                    />
+                    <InfoRow
+                      icon={Phone}
+                      label="SĐT khách"
+                      value={detail.tenantPhone ?? "—"}
+                    />
                   </div>
                 </div>
               </div>

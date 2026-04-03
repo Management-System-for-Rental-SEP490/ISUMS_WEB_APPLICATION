@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(npm run:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(rm -rf src/features/schedule/components/maintenance)",
+      "Bash(rm src/features/schedule/components/GenerateJobsResultModal.jsx)",
+      "Bash(rm src/features/schedule/pages/MaintenancePlansPage.jsx)",
+      "Bash(rm src/features/schedule/pages/MaintenanceJobsPage.jsx)"
     ]
   }
 }

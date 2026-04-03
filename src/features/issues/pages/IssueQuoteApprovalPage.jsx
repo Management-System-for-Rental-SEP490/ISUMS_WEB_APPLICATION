@@ -387,8 +387,10 @@ export default function IssueQuoteApprovalPage() {
   }, [selected]);
 
   const handleApproved = () => {
+    setSelected(null);
+    setDetail(null);
+    setQuotes([]);
     fetchTickets();
-    if (selected) fetchDetail(selected);
   };
 
   const currentDetail = detail ?? selected;
