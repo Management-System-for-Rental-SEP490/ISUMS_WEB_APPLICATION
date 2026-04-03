@@ -1,18 +1,25 @@
 import React from "react";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, ArrowDownNarrowWide, ArrowUpNarrowWide, RefreshCw } from "lucide-react";
 
 export default function ContractsFilters({
   searchTerm,
   onSearch,
   filterStatus,
   onFilter,
+  sortDir,
+  onToggleSortDir,
+  onRefresh,
+  refreshing,
 }) {
   const statuses = [
     { value: "all", label: "Toàn bộ" },
-    { value: "IN_PROGRESS", label: "Chờ chủ nhà ký" },
-    { value: "CONFIRM_BY_LANDLORD", label: "Chờ chủ nhà đã xác nhận" },
-    { value: "READY", label: "Sẵn sàng" },
-    { value: "expired", label: "Đã hết hạn" },
+    { value: "DRAFT", label: "Bản nháp" },
+    { value: "PENDING_TENANT_REVIEW", label: "Chờ khách thuê xác nhận" },
+    { value: "READY", label: "Chờ chủ nhà ký" },
+    { value: "IN_PROGRESS", label: "Chờ khách thuê ký" },
+    { value: "COMPLETED", label: "Đã hoàn thành" },
+    { value: "CANCELLED_BY_TENANT", label: "Khách thuê đã huỷ" },
+    { value: "CANCELLED_BY_LANDLORD", label: "Chủ nhà đã huỷ" },
   ];
 
   return (
@@ -31,6 +38,27 @@ export default function ContractsFilters({
           </div>
 
           <div className="flex items-center gap-2 md:gap-3">
+            <button
+              type="button"
+              onClick={onRefresh}
+              disabled={refreshing}
+              title="Làm mới danh sách"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50 transition disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 text-slate-500 ${refreshing ? "animate-spin" : ""}`} />
+            </button>
+            <button
+              type="button"
+              onClick={onToggleSortDir}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50 transition"
+            >
+              {sortDir === "DESC" ? (
+                <ArrowDownNarrowWide className="w-4 h-4 text-slate-500" />
+              ) : (
+                <ArrowUpNarrowWide className="w-4 h-4 text-slate-500" />
+              )}
+              {sortDir === "DESC" ? "Mới nhất" : "Cũ nhất"}
+            </button>
             <div className="hidden md:inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-1 border border-slate-100 text-[11px] text-slate-500">
               <Filter className="w-3.5 h-3.5 text-slate-400" />
               Bộ lọc nhanh
@@ -53,33 +81,33 @@ export default function ContractsFilters({
           <span className="hidden sm:inline text-slate-400">Gợi ý:</span>
           <button
             type="button"
-            onClick={() => onFilter("CONFIRM_BY_LANDLORD")}
+            onClick={() => onFilter("PENDING_TENANT_REVIEW")}
             className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 ${
-              filterStatus === "IN_PROGRESS"
-                ? "border-emerald-500/70 bg-emerald-50 text-emerald-700"
+              filterStatus === "PENDING_TENANT_REVIEW"
+                ? "border-sky-500/70 bg-sky-50 text-sky-700"
                 : "border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600"
             } transition-colors`}
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            Chờ chủ nhà ký
+            <span className="h-1.5 w-1.5 rounded-full bg-sky-500" />
+            Chờ khách thuê xác nhận
           </button>
           <button
             type="button"
             onClick={() => onFilter("READY")}
             className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 ${
-              filterStatus === "pending"
-                ? "border-amber-500/70 bg-amber-50 text-amber-700"
+              filterStatus === "READY"
+                ? "border-blue-500/70 bg-blue-50 text-blue-700"
                 : "border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600"
             } transition-colors`}
           >
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
-            Chờ chủ nhà xác nhận
+            <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+            Chờ chủ nhà ký
           </button>
           <button
             type="button"
-            onClick={() => onFilter("draft")}
+            onClick={() => onFilter("DRAFT")}
             className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 ${
-              filterStatus === "draft"
+              filterStatus === "DRAFT"
                 ? "border-slate-700/70 bg-slate-900 text-slate-50"
                 : "border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600"
             } transition-colors`}

@@ -5,11 +5,7 @@
 
 import api from "../../../lib/axios";
 import { CONTRACTS_ENDPOINTS } from "../../../lib/api-endpoints";
-import {
-  extractResponseData,
-  getErrorMessage,
-  toISOString,
-} from "../../../lib/api-helpers";
+import { extractResponseData, toISOString } from "../../../lib/api-helpers";
 
 /**
  * @param {Object} payload - Raw contract data
@@ -22,153 +18,91 @@ function transformContractPayload(payload) {
     email: payload.email?.trim() || "",
     phoneNumber: payload.phoneNumber?.trim() || "",
     identityNumber: payload.identityNumber?.trim() || "",
-    houseId: payload.houseId?.trim() || "",
     dateOfIssue: toISOString(payload.dateOfIssue),
     placeOfIssue: payload.placeOfIssue?.trim() || "",
     tenantAddress: payload.tenantAddress?.trim() || "",
+    houseId: payload.houseId?.trim() || "",
     startDate: toISOString(payload.startDate),
     endDate: toISOString(payload.endDate),
     rentAmount: Number(payload.rentAmount) || 0,
     payDate: Number(payload.payDate) || 5,
+    payCycle: payload.payCycle?.trim() || "monthly",
     depositAmount: Number(payload.depositAmount) || 0,
     depositDate: toISOString(payload.depositDate),
+    depositRefundDays: Number(payload.depositRefundDays) || 0,
     handoverDate: toISOString(payload.handoverDate),
+    lateDays: Number(payload.lateDays) || 0,
+    latePenaltyPercent: Number(payload.latePenaltyPercent) || 0,
+    maxLateDays: Number(payload.maxLateDays) || 0,
+    cureDays: Number(payload.cureDays) || 0,
+    earlyTerminationPenalty: payload.earlyTerminationPenalty?.trim() || "",
+    landlordBreachCompensation: payload.landlordBreachCompensation?.trim() || "",
+    renewNoticeDays: Number(payload.renewNoticeDays) || 0,
+    landlordNoticeDays: Number(payload.landlordNoticeDays) || 0,
+    forceMajeureNoticeHours: Number(payload.forceMajeureNoticeHours) || 0,
+    disputeDays: Number(payload.disputeDays) || 0,
+    disputeForum: payload.disputeForum?.trim() || "",
+    copies: Number(payload.copies) || 2,
+    eachKeep: Number(payload.eachKeep) || 1,
+    purpose: payload.purpose?.trim() || "",
+    area: payload.area?.trim() || "",
+    structure: payload.structure?.trim() || "",
+    ownershipDocs: payload.ownershipDocs?.trim() || "",
+    taxFeeNote: payload.taxFeeNote?.trim() || "",
   };
 }
 
-/**
- * Get all contracts
- * @returns {Promise<Array>} List of contracts
- * @throws {Error} If request fails
- */
 export async function getAllContracts() {
-  try {
-    const response = await api.get(CONTRACTS_ENDPOINTS.BASE);
-    return extractResponseData(response);
-  } catch (error) {
-    throw new Error(getErrorMessage(error));
-  }
+  const response = await api.get(CONTRACTS_ENDPOINTS.BASE);
+  return extractResponseData(response);
 }
 
-/**
- * Get contract by ID
- * @param {string} id - Contract ID
- * @returns {Promise<Object>} Contract details
- * @throws {Error} If request fails
- */
 export async function getContractById(id) {
-  try {
-    const response = await api.get(CONTRACTS_ENDPOINTS.BY_ID(id));
-    return extractResponseData(response);
-  } catch (error) {
-    throw new Error(getErrorMessage(error));
-  }
+  const response = await api.get(CONTRACTS_ENDPOINTS.BY_ID(id));
+  return extractResponseData(response);
 }
 
-/**
- * Create new contract
- * @param {Object} payload - Contract data
- * @returns {Promise<Object>} Created contract
- * @throws {Error} If request fails
- */
 export async function createContract(payload) {
-  try {
-    const body = transformContractPayload(payload);
-    const response = await api.post(CONTRACTS_ENDPOINTS.CREATE, body);
-    return extractResponseData(response);
-  } catch (error) {
-    throw new Error(getErrorMessage(error));
-  }
+  const body = transformContractPayload(payload);
+  const response = await api.post(CONTRACTS_ENDPOINTS.CREATE, body);
+  return extractResponseData(response);
 }
 
-/**
- * Update contract HTML content only
- * @param {string} id - Contract ID
- * @param {string} html - Full HTML document content
- * @returns {Promise<Object>} Updated contract
- * @throws {Error} If request fails
- */
 export async function updateContractHtml(id, html) {
-  try {
-    const body = typeof html === "string" ? { html } : { html: "" };
-    const response = await api.put(CONTRACTS_ENDPOINTS.UPDATE(id), body);
-    return extractResponseData(response);
-  } catch (error) {
-    throw new Error(getErrorMessage(error));
-  }
+  const body = typeof html === "string" ? { html } : { html: "" };
+  const response = await api.put(CONTRACTS_ENDPOINTS.UPDATE(id), body);
+  return extractResponseData(response);
+}
+
+export async function deleteContract(id) {
+  const response = await api.delete(CONTRACTS_ENDPOINTS.DELETE(id));
+  return extractResponseData(response);
 }
 
 /**
- * Delete contract
- * @param {string} id - Contract ID
- * @returns {Promise<void>}
- * @throws {Error} If request fails
- */
-export async function deleteContract(id) {
-  try {
-    const response = await api.delete(CONTRACTS_ENDPOINTS.DELETE(id));
-    return extractResponseData(response);
-  } catch (error) {
-    throw new Error(getErrorMessage(error));
-  }
-}
-/**
- * Mark contract as READY — manager/admin xác nhận hợp đồng để gửi cho khách thuê
- * @param {string} id - Contract ID
- * @returns {Promise<Object>}
+ * @deprecated READY được trigger tự động khi tenant upload CCCD.
  */
 export async function readyContract(id) {
-  try {
-    const response = await api.put(CONTRACTS_ENDPOINTS.READY(id));
-    return extractResponseData(response);
-  } catch (error) {
-    throw new Error(getErrorMessage(error));
-  }
+  const response = await api.put(CONTRACTS_ENDPOINTS.READY(id));
+  return extractResponseData(response);
 }
 
-/**
- * Confirm by admin — chủ nhà (LANDLORD) xem hợp đồng READY và xác nhận,
- * sau đó bắt đầu bước ký chính thức
- * @param {string} id - Contract ID
- * @returns {Promise<Object>}
- */
 export async function confirmByAdmin(id) {
-  try {
-    const response = await api.put(CONTRACTS_ENDPOINTS.CONFIRM(id));
-    return extractResponseData(response);
-  } catch (error) {
-    throw new Error(getErrorMessage(error));
-  }
+  const response = await api.put(CONTRACTS_ENDPOINTS.CONFIRM(id));
+  return extractResponseData(response);
 }
 
-/**
- * Get VNPT e-contract document detail (processId, signingPage, position…)
- * @param {string} documentId - VNPT document ID (from contract.documentId)
- * @returns {Promise<Object>} VNPT document data including waitingProcess
- * @throws {Error} If request fails
- */
+export async function cancelContract(id) {
+  const response = await api.put(CONTRACTS_ENDPOINTS.CANCEL(id));
+  return extractResponseData(response);
+}
+
 export async function getVnptDocument(documentId) {
-  try {
-    const response = await api.get(
-      CONTRACTS_ENDPOINTS.GET_VNPT_DOCUMENT(documentId),
-    );
-    return extractResponseData(response);
-  } catch (error) {
-    throw new Error(getErrorMessage(error));
-  }
+  const response = await api.get(CONTRACTS_ENDPOINTS.GET_VNPT_DOCUMENT(documentId));
+  return extractResponseData(response);
 }
 
-/**
- * Submit admin signature with OTP to sign contract
- * @param {Object} payload - Signing payload
- * @returns {Promise<Object>} Signing result
- * @throws {Error} If request fails
- */
 export async function adminSignEcontract(payload) {
-  try {
-    const response = await api.post(CONTRACTS_ENDPOINTS.ADMIN_SIGN, payload);
-    return extractResponseData(response);
-  } catch (error) {
-    throw new Error(getErrorMessage(error));
-  }
+  const response = await api.post(CONTRACTS_ENDPOINTS.ADMIN_SIGN, payload);
+  return extractResponseData(response);
 }
