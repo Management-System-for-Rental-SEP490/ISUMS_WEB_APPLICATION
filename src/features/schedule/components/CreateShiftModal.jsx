@@ -9,6 +9,7 @@ import {
   Building2,
   CheckCircle2,
   Clock,
+  ClipboardList,
 } from "lucide-react";
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
@@ -107,9 +108,12 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
     setJobSearch("");
     setJobsLoading(true);
     const fetcher =
-      jobType === "ISSUE"
-        ? getAllIssues({ status: "WAITING_MANAGER_CONFIRM", type: "REPAIR" })
-        : getMaintenanceJobsByStatus("CREATED");
+      jobType === "MAINTENANCE"
+        ? getMaintenanceJobsByStatus("CREATED")
+        : getAllIssues({
+            status: "WAITING_MANAGER_CONFIRM",
+            type: jobType === "INSPECTION" ? "INSPECTION" : "REPAIR",
+          });
     fetcher
       .then(async (data) => {
         const list = Array.isArray(data) ? data : (data?.data ?? []);
@@ -279,8 +283,9 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
               </p>
               <div className="space-y-2">
                 {[
-                  { value: "MAINTENANCE", label: "Bảo trì", icon: Wrench },
-                  { value: "ISSUE", label: "Sửa chữa", icon: Settings },
+                  { value: "MAINTENANCE", label: "Bảo trì",     icon: Wrench },
+                  { value: "ISSUE",       label: "Sửa chữa",    icon: Settings },
+                  { value: "INSPECTION",  label: "Kiểm tra nhà", icon: ClipboardList },
                 ].map(({ value, label, icon: Icon }) => {
                   const active = jobType === value;
                   return (
@@ -406,8 +411,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
                 <div className="grid grid-cols-2 gap-3">
                   {filteredJobs.map((job) => {
                     const isSelected = selectedJobId === job.id;
-                    const isMaintenance = jobType === "MAINTENANCE";
-                    const deadline = isMaintenance
+                    const deadline = jobType === "MAINTENANCE"
                       ? daysFromNow(job.dueDate)
                       : daysFromNow(job.scheduledDate);
                     return (
@@ -427,16 +431,20 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-[10px] text-slate-500 flex items-center gap-1 truncate max-w-[60%]">
                             <Building2 className="w-3 h-3 flex-shrink-0" />
-                            {isMaintenance
+                            {jobType === "MAINTENANCE"
                               ? (houseNames[job.houseId] ?? "Đang tải...")
                               : (job.houseName ?? "—")}
                           </span>
-                          {isMaintenance ? (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-600">
+                          {jobType === "MAINTENANCE" ? (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-100 text-teal-700">
                               BẢO TRÌ
                             </span>
+                          ) : jobType === "INSPECTION" ? (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                              KIỂM TRA
+                            </span>
                           ) : (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
                               SỬA CHỮA
                             </span>
                           )}
@@ -444,9 +452,8 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
 
                         {/* Title */}
                         <p className="text-sm font-semibold text-slate-800 leading-snug mb-2 line-clamp-2">
-                          {isMaintenance
-                            ? (planNames[job.planId] ??
-                              `Bảo trì kỳ ${formatDateVN(job.periodStartDate)}`)
+                          {jobType === "MAINTENANCE"
+                            ? (planNames[job.planId] ?? `Bảo trì kỳ ${formatDateVN(job.periodStartDate)}`)
                             : job.title}
                         </p>
 
@@ -454,7 +461,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
                         <div className="flex items-center gap-1.5 mb-2">
                           <Building2 className="w-3 h-3 text-slate-400 flex-shrink-0" />
                           <p className="text-[11px] text-slate-500 truncate">
-                            {isMaintenance
+                            {jobType === "MAINTENANCE"
                               ? `Ngày bắt đầu: ${formatDateVN(job.periodStartDate)}`
                               : (job.houseName ?? job.tenantName ?? "—")}
                           </p>
@@ -464,9 +471,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
                         {deadline && (
                           <div className="flex items-center gap-1">
                             <Clock className="w-3 h-3 text-slate-400 flex-shrink-0" />
-                            <p className="text-[11px] text-slate-400">
-                              {deadline}
-                            </p>
+                            <p className="text-[11px] text-slate-400">{deadline}</p>
                           </div>
                         )}
 
