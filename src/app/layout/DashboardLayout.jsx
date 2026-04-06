@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "../../components/dashboard/Sidebar";
-import AlertsList from "../../components/dashboard/AlertsList";
-import ChartSection from "../../components/dashboard/ChartSection";
-import StatsCard from "../../components/dashboard/StatsCard";
+import DashboardPage from "../../features/dashboard/DashboardPage";
 import Houses from "../../features/houses/pages/Houses";
 import Utilities from "./Utilities";
 import UsersPage from "../../features/tenants/pages/UsersPage";
@@ -39,15 +37,7 @@ function getRoleLabel(roles = []) {
 import {
   Search,
   Menu,
-  X,
   MapPin,
-  Building2,
-  Users,
-  TrendingUp,
-  DollarSign,
-  Zap,
-  Droplet,
-  Flame,
   User,
   LogOut,
   ChevronDown,
@@ -66,7 +56,6 @@ export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(
     () => window.innerWidth >= 1024,
   );
-  const [activeTab, setActiveTab] = useState("electricity");
   const [activeMenu, setActiveMenu] = useState(
     () => location.state?.menu ?? "dashboard",
   );
@@ -101,79 +90,6 @@ export default function Dashboard() {
   };
   const currentTitle = headerTitles[activeMenu] ?? headerTitles.dashboard;
 
-  const stats = [
-    {
-      title: "Tổng Bất Động Sản",
-      value: "18",
-      subtitle: "Quận 1, 2, 7, Bình Thạnh",
-      change: "12.5%",
-      isIncrease: true,
-      icon: Building2,
-      color: "teal",
-    },
-    {
-      title: "Khách Thuê",
-      value: "234",
-      subtitle: "97.2% tỷ lệ lấp đầy",
-      change: "3.8%",
-      isIncrease: true,
-      icon: Users,
-      color: "green",
-    },
-    {
-      title: "Tiết Kiệm Năng Lượng",
-      value: "15.2%",
-      subtitle: "so với tháng trước",
-      change: "15.2%",
-      isIncrease: true,
-      icon: TrendingUp,
-      color: "yellow",
-    },
-    {
-      title: "Tiết Kiệm Chi Phí",
-      value: "₫45.8M",
-      subtitle: "Tháng này",
-      change: "8.4%",
-      isIncrease: true,
-      icon: DollarSign,
-      color: "blue",
-    },
-  ];
-
-  const alerts = [
-    {
-      id: 1,
-      property: "Vinhomes Central Park",
-      issue: "Phát hiện điện năng bất thường",
-      severity: "critical",
-      time: "2 phút trước",
-      icon: Zap,
-    },
-    {
-      id: 2,
-      property: "Masteri Thảo Điền",
-      issue: "Phát hiện rò rỉ nước",
-      severity: "warning",
-      time: "15 phút trước",
-      icon: Droplet,
-    },
-    {
-      id: 3,
-      property: "Saigon Pearl",
-      issue: "Tiêu thụ gas cao",
-      severity: "warning",
-      time: "1 giờ trước",
-      icon: Flame,
-    },
-    {
-      id: 4,
-      property: "Landmark 81",
-      issue: "Sắp chạm giới hạn công suất",
-      severity: "warning",
-      time: "3 giờ trước",
-      icon: Zap,
-    },
-  ];
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {isSidebarOpen && (
@@ -417,53 +333,7 @@ export default function Dashboard() {
 
         <main className="flex-1 px-6 pt-6 pb-10 bg-gray-50">
           {/* Render content dựa trên activeMenu */}
-          {activeMenu === "dashboard" && (
-            <>
-              <div className="mb-8 flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-1">
-                    Xin chào, Chủ nhà 👋
-                  </h2>
-                  <p className="text-gray-600">Quản lý tiện ích thông minh</p>
-                </div>
-                <div className="flex gap-3">
-                  <button className="px-4 py-2 border rounded-lg text-sm flex items-center gap-2">
-                    <MapPin size={16} /> Bản đồ
-                  </button>
-                  <button className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm">
-                    Thêm Bất Động Sản
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                {stats.map((s, i) => (
-                  <StatsCard key={i} {...s} />
-                ))}
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                <div className="lg:col-span-2">
-                  <ChartSection
-                    activeTab={activeTab}
-                    setActiveTab={setActiveTab}
-                  />
-                </div>
-                <AlertsList alerts={alerts} />
-              </div>
-
-              <div className="bg-white rounded-xl p-6 shadow-sm border">
-                <h3 className="text-lg font-semibold mb-6">
-                  Danh Sách Bất Động Sản
-                </h3>
-                {/* <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-                  {properties.map((p) => (
-                    // <PropertyCard key={p.id} property={p} />
-                  ))}
-                </div> */}
-              </div>
-            </>
-          )}
+          {activeMenu === "dashboard" && <DashboardPage />}
 
           {activeMenu === "houses" && <Houses />}
           {activeMenu === "utilities" && <Utilities />}
