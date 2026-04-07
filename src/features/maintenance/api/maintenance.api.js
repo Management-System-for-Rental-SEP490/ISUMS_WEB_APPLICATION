@@ -1,5 +1,5 @@
 import api from "../../../lib/axios";
-import { MAINTENANCE_ENDPOINTS, SCHEDULE_ENDPOINTS } from "../../../lib/api-endpoints";
+import { MAINTENANCE_ENDPOINTS, SCHEDULE_ENDPOINTS, INSPECTION_ENDPOINTS } from "../../../lib/api-endpoints";
 import { extractResponseData, getErrorMessage, throwApiError } from "../../../lib/api-helpers";
 
 /**
@@ -109,6 +109,49 @@ export async function getMaintenanceJobs() {
 export async function getJobById(jobId) {
   try {
     const response = await api.get(MAINTENANCE_ENDPOINTS.JOBS_BY_ID(jobId));
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Create a new inspection.
+ * @param {{ houseId: string, note: string }} payload
+ * @returns {Promise<Object>}
+ */
+export async function createInspection(payload) {
+  try {
+    const response = await api.post(INSPECTION_ENDPOINTS.CREATE, payload);
+    return extractResponseData(response);
+  } catch (error) {
+    throwApiError(error);
+  }
+}
+
+/**
+ * Get a single inspection by ID.
+ * @param {string} id
+ * @returns {Promise<Object>}
+ */
+export async function getInspectionById(id) {
+  try {
+    const response = await api.get(INSPECTION_ENDPOINTS.GET(id));
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Get all inspections.
+ * @param {string} [status] - optional filter by status
+ * @returns {Promise<Array>}
+ */
+export async function getInspections(status) {
+  try {
+    const params = status ? { status } : {};
+    const response = await api.get(INSPECTION_ENDPOINTS.BASE, { params });
     return extractResponseData(response);
   } catch (error) {
     throw new Error(getErrorMessage(error));

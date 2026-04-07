@@ -12,6 +12,7 @@ import ContractsPendingSignPage from "../../features/contracts/pages/ContractsPe
 import SchedulePage from "../../features/schedule/pages/SchedulePage";
 import MaintenancePlansPage from "../../features/maintenance/pages/MaintenancePlansPage";
 import MaintenanceJobsPage from "../../features/maintenance/pages/MaintenanceJobsPage";
+import InspectionsPage from "../../features/maintenance/pages/InspectionsPage";
 import IssueRequestsPage from "../../features/issues/pages/IssueRequestsPage";
 import IssueAssignmentPage from "../../features/issues/pages/IssueAssignmentPage";
 import IssueHistoryByPropertyPage from "../../features/issues/pages/IssueHistoryByPropertyPage";
@@ -90,6 +91,7 @@ export default function Dashboard() {
     maintenance: "Lịch Làm Việc",
     "maintenance-plans": "Kế Hoạch Bảo Trì",
     "maintenance-jobs": "Công Việc Bảo Trì",
+    "maintenance-inspections": "Kiểm Tra Nhà Cửa",
     "issue-requests": "Danh Sách Yêu Cầu",
     "issue-assignment": "Phân Công Xử Lý",
     "issue-quote-approval": "Xác Nhận Báo Giá",
@@ -475,6 +477,7 @@ export default function Dashboard() {
           {activeMenu === "maintenance" && <SchedulePage />}
           {activeMenu === "maintenance-plans" && <MaintenancePlansPage />}
           {activeMenu === "maintenance-jobs" && <MaintenanceJobsPage />}
+          {activeMenu === "maintenance-inspections" && <InspectionsPage />}
           {activeMenu === "issue-requests" && <IssueRequestsPage />}
           {activeMenu === "issue-assignment" && <IssueAssignmentPage />}
           {activeMenu === "issue-quote-approval" && <IssueQuoteApprovalPage />}

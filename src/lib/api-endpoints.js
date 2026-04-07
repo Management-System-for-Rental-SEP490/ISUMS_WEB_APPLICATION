@@ -39,7 +39,8 @@ export const CONTRACTS_ENDPOINTS = {
 // Users endpoints
 export const USERS_ENDPOINTS = {
   BASE: "/users",
-  BY_ID: (id) => `/users/${id}`,
+  BY_ID: (id) => `/users/byId/${id}`,
+  GET_STAFF: "/users/staffs",
 };
 
 // Tenants endpoints
@@ -116,4 +117,10 @@ export const BANNER_ENDPOINTS = {
   BASE: "issues/banners",
   CREATE: "issues/banners",
   UPDATE: (id) => `issues/banners/${id}/price`,
+};
+export const INSPECTION_ENDPOINTS = {
+  BASE: "maintenances/inspections",
+  CREATE: "maintenances/inspections",
+  GET: (id) => `maintenances/inspections/${id}`,
+  UPDATE: (id) => `maintenances/inspections/${id}/status`,
 };
