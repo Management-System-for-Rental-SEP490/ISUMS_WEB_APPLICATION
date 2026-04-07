@@ -41,25 +41,8 @@ function StatCard({ title, value, subtitle, icon: Icon, color, error, loading })
 function ContractRow({ contract }) {
   const navigate = useNavigate();
 
-  const isExpiringSoon =
-    contract.endDate &&
-    (() => {
-      const diff = (new Date(contract.endDate) - new Date()) / (1000 * 60 * 60 * 24);
-      return diff >= 0 && diff <= EXPIRING_DAYS;
-    })();
-
-  // Ưu tiên hiển thị "sắp hết hạn" nếu đủ điều kiện, còn lại dùng status thật từ API
-  const displayStatus = isExpiringSoon && contract.status === "COMPLETED"
-    ? "EXPIRING_SOON"
-    : contract.status;
-
-  const statusLabel = displayStatus === "EXPIRING_SOON"
-    ? "Sắp hết hạn"
-    : (STATUS_LABEL[displayStatus] ?? displayStatus ?? "—");
-
-  const statusCls = displayStatus === "EXPIRING_SOON"
-    ? "bg-amber-50 text-amber-700 border border-amber-200"
-    : (STATUS_BADGE[displayStatus] ?? "bg-gray-100 text-gray-500 border border-gray-200");
+  const statusLabel = STATUS_LABEL[contract.status] ?? contract.status ?? "—";
+  const statusCls = STATUS_BADGE[contract.status] ?? "bg-gray-100 text-gray-500 border border-gray-200";
 
   const endLabel = contract.endDate
     ? new Date(contract.endDate).toLocaleDateString("vi-VN")

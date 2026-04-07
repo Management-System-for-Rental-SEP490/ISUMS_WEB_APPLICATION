@@ -311,6 +311,8 @@ export default function ContractDetailStandalone() {
     }
   };
 
+  console.log("DEBUG", { status, normalizedStatus, pdfUrl, canDownload });
+
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
       {/* Header */}
@@ -390,7 +392,7 @@ export default function ContractDetailStandalone() {
             {canDownload && (
               <ActionButton
                 onClick={handleDownload}
-                variant="outline"
+                variant="teal"
                 icon={<Icons.Download />}
               >
                 Tải về
