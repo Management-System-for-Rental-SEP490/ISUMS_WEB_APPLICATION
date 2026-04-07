@@ -75,6 +75,11 @@ export default function Sidebar({
           label: "Danh sách công việc",
           icon: ClipboardList,
         },
+        {
+          id: "maintenance-inspections",
+          label: "Kiểm tra nhà cửa",
+          icon: ClipboardList,
+        },
       ],
     },
     {

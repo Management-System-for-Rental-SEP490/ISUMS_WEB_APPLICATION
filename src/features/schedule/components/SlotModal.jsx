@@ -14,7 +14,7 @@ import {
   Phone,
   Mail,
 } from "lucide-react";
-import { getJobById } from "../../maintenance/api/maintenance.api";
+import { getJobById, getInspectionById } from "../../maintenance/api/maintenance.api";
 import { getIssueByTicketId } from "../../issues/api/issues.api";
 import { getHouseById } from "../../houses/api/houses.api";
 import { getUserById } from "../../tenants/api/users.api";
@@ -94,6 +94,7 @@ function issueStatusCfg(status) {
 const JOB_TYPE_LABELS = {
   MAINTENANCE: "Bảo trì",
   ISSUE: "Sửa chữa",
+  INSPECTION: "Kiểm duyệt",
 };
 function jobTypeLabel(t) {
   return JOB_TYPE_LABELS[t?.toUpperCase()] ?? t ?? "—";
@@ -351,6 +352,7 @@ function DetailView({
 }) {
   const cfg = slotCfg(slot.status);
   const isIssue = slot.jobType?.toUpperCase() === "ISSUE";
+  const isInspection = slot.jobType?.toUpperCase() === "INSPECTION";
   const staff = slot.staffId ? staffDetails[slot.staffId] : undefined;
   const job = slot.jobId ? jobDetails[slot.jobId] : undefined;
   const house = job?.houseId ? houseDetails[job.houseId] : undefined;
@@ -509,8 +511,21 @@ function DetailView({
           </SectionCard>
         )}
 
+        {/* Inspection-specific info */}
+        {isInspection && (
+          <SectionCard title="Thông tin kiểm duyệt" icon={Hash} iconBg="bg-purple-50">
+            <InfoRow icon={Hash} label="Ghi chú" value={job?.note} loading={!job} />
+            <InfoRow
+              icon={CalendarDays}
+              label="Ngày tạo"
+              value={job?.createdAt ? formatISODate(job.createdAt) : undefined}
+              loading={!job}
+            />
+          </SectionCard>
+        )}
+
         {/* Stats — only for maintenance */}
-        {!isIssue && (
+        {!isIssue && !isInspection && (
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-slate-50 rounded-2xl p-4 text-center">
               <p className="text-xs text-slate-400">Hoàn thành tháng</p>
@@ -638,8 +653,13 @@ export default function SlotModal({ dateStr, timeSlot, slots, onClose }) {
     const fetchJobs = uniqueJobIds.length
       ? Promise.all(
           uniqueJobIds.map((id) => {
-            const isIssue = jobTypeMap[id]?.toUpperCase() === "ISSUE";
-            const fetcher = isIssue ? getIssueByTicketId(id) : getJobById(id);
+            const type = jobTypeMap[id]?.toUpperCase();
+            const fetcher =
+              type === "ISSUE"
+                ? getIssueByTicketId(id)
+                : type === "INSPECTION"
+                  ? getInspectionById(id)
+                  : getJobById(id);
             return fetcher
               .then((d) => ({ id, data: d }))
               .catch(() => ({ id, data: null }));

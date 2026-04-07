@@ -6,7 +6,9 @@
       "Bash(rm -rf src/features/schedule/components/maintenance)",
       "Bash(rm src/features/schedule/components/GenerateJobsResultModal.jsx)",
       "Bash(rm src/features/schedule/pages/MaintenancePlansPage.jsx)",
-      "Bash(rm src/features/schedule/pages/MaintenanceJobsPage.jsx)"
+      "Bash(rm src/features/schedule/pages/MaintenanceJobsPage.jsx)",
+      "Bash(ls \"d:\\\\University\\\\Semester_9th\\\\SEP490\\\\ISUMS_WEB\\\\ISUMS_WEB_APPLICATION\\\\src\\\\pages\\\\\\\\\")",
+      "Bash(dir \"d:/University/Semester_9th/SEP490/ISUMS_WEB/ISUMS_WEB_APPLICATION/src\" /b)"
     ]
   }
 }
