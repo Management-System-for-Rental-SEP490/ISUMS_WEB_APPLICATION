@@ -232,9 +232,11 @@ export default function ContractDetailStandalone() {
       } catch (err) {
         const status = err?.response?.status;
         const msg =
-          status === 403 ? "Bạn không có quyền xem hợp đồng này." :
-          status === 404 ? "Không tìm thấy hợp đồng." :
-          "Không thể tải hợp đồng, vui lòng thử lại.";
+          status === 403
+            ? "Bạn không có quyền xem hợp đồng này."
+            : status === 404
+              ? "Không tìm thấy hợp đồng."
+              : "Không thể tải hợp đồng, vui lòng thử lại.";
         if (mounted) setError(msg);
       } finally {
         if (mounted) setLoading(false);
@@ -266,10 +268,13 @@ export default function ContractDetailStandalone() {
     } catch (err) {
       const status = err?.response?.status;
       const msg =
-        status === 400 ? "Không thể xác nhận hợp đồng này (hợp đồng không đủ điều kiện)." :
-        status === 403 ? "Bạn không có quyền xác nhận hợp đồng này." :
-        status === 404 ? "Không tìm thấy hợp đồng." :
-        "Xác nhận thất bại, vui lòng thử lại.";
+        status === 400
+          ? "Không thể xác nhận hợp đồng này (hợp đồng không đủ điều kiện)."
+          : status === 403
+            ? "Bạn không có quyền xác nhận hợp đồng này."
+            : status === 404
+              ? "Không tìm thấy hợp đồng."
+              : "Xác nhận thất bại, vui lòng thử lại.";
       toast.error(msg);
     } finally {
       setConfirming(false);
@@ -277,42 +282,68 @@ export default function ContractDetailStandalone() {
   };
 
   const normalizedStatus = (status ?? "").toUpperCase();
-  const isDraft = normalizedStatus === "DRAFT" || normalizedStatus === "PENDING_TENANT_REVIEW";
+  const isDraft =
+    normalizedStatus === "DRAFT" ||
+    normalizedStatus === "PENDING_TENANT_REVIEW";
   const pdfUrl = contract?.pdfUrl ?? null;
   const html = contract?.html ?? "";
 
   // Điều kiện hiển thị buttons
   const canConfirm = normalizedStatus === "DRAFT";
   const canLandlordSign = isLandlord && normalizedStatus === "READY";
+  const canDownload = normalizedStatus === "COMPLETED" && !!pdfUrl;
+
+  const goBack = () => navigate("/dashboard", { state: { menu: "contracts" } });
+
+  const handleDownload = async () => {
+    if (!pdfUrl) return;
+    try {
+      const res = await fetch(pdfUrl);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `${contract?.contractNumber ?? contract?.name ?? id}.pdf`;
+      a.click();
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      toast.error("Không thể tải file, vui lòng thử lại.");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
       {/* Header */}
       <header className="w-full bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-        <div className="max-w-5xl mx-auto h-16 px-6 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-100 to-emerald-100 border border-teal-300/60 text-teal-700 flex items-center justify-center flex-shrink-0">
-              <Icons.FileText />
-            </div>
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-sm font-bold text-slate-900 whitespace-nowrap">
-                  Hợp đồng
-                </h1>
-                {status && <StatusBadge status={normalizedStatus} />}
-              </div>
-              <div className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-400 font-mono truncate">
-                <Icons.Hash />
-                <span className="truncate">
-                  {contract?.contractNumber ?? contract?.name ?? id}
-                </span>
-              </div>
-            </div>
+        <div className="h-16 flex items-center px-4 gap-3">
+          {/* Back — sát trái */}
+          <button
+            type="button"
+            onClick={goBack}
+            className="flex-shrink-0 flex items-center gap-1.5 text-[13px] font-medium text-slate-500 hover:text-slate-900 transition"
+          >
+            <Icons.ArrowLeft />
+            <span className="whitespace-nowrap ">Quay lại danh sách</span>
+          </button>
+
+          <div className="h-6 w-px bg-slate-200 flex-shrink-0" />
+
+          {/* Title block */}
+          <div className="min-w-0 flex-1">
+            <h1 className="text-sm font-bold text-slate-900 truncate leading-tight">
+              Chi tiết hợp đồng thuê nhà
+            </h1>
+            <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wide truncate leading-tight">
+              Mã hồ sơ:{" "}
+              {contract?.contractNumber ?? contract?.name ?? id ?? "—"}
+            </p>
           </div>
 
+          {/* Status badge */}
+          {status && <StatusBadge status={normalizedStatus} />}
+
           {/* Action buttons */}
-          <div className="flex gap-2 shrink-0">
-            {/* DRAFT: chỉnh sửa + xác nhận */}
+          <div className="flex items-center gap-2 flex-shrink-0">
             {canConfirm && (
               <ActionButton
                 onClick={() => navigate(`/contracts/${id}/edit`)}
@@ -332,8 +363,6 @@ export default function ContractDetailStandalone() {
                 {confirming ? "Đang xử lý..." : "Xác nhận hợp đồng"}
               </ActionButton>
             )}
-
-            {/* READY: Landlord ký ngay */}
             {canLandlordSign && (
               <ActionButton
                 onClick={() => navigate(`/contracts/${id}/sign`)}
@@ -358,16 +387,24 @@ export default function ContractDetailStandalone() {
                 Ký hợp đồng
               </ActionButton>
             )}
-
-            <ActionButton
-              onClick={() =>
-                navigate("/dashboard", { state: { menu: "contracts" } })
-              }
-              variant="outline"
-              icon={<Icons.X />}
+            {canDownload && (
+              <ActionButton
+                onClick={handleDownload}
+                variant="outline"
+                icon={<Icons.Download />}
+              >
+                Tải về
+              </ActionButton>
+            )}
+            {/* Close button — dark filled như stitch */}
+            <button
+              type="button"
+              onClick={goBack}
+              className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-[13px] font-semibold bg-slate-800 text-white hover:bg-slate-700 transition"
             >
+              <Icons.X />
               Đóng
-            </ActionButton>
+            </button>
           </div>
         </div>
       </header>
@@ -432,7 +469,6 @@ export default function ContractDetailStandalone() {
         description="Hợp đồng sẽ được gửi cho chủ nhà xem xét và xác nhận. Bạn vẫn có thể chỉnh sửa nếu chủ nhà yêu cầu."
         confirmLabel="Xác nhận & Gửi"
       />
-
     </div>
   );
 }

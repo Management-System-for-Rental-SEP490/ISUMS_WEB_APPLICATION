@@ -52,8 +52,8 @@ function transformContractPayload(payload) {
   };
 }
 
-export async function getAllContracts() {
-  const response = await api.get(CONTRACTS_ENDPOINTS.BASE);
+export async function getAllContracts(params) {
+  const response = await api.get(CONTRACTS_ENDPOINTS.BASE, { params });
   return extractResponseData(response);
 }
 

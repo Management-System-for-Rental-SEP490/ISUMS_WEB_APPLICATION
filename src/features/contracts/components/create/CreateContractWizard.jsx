@@ -128,6 +128,11 @@ export default function CreateContractWizard({
       const deposit = Number(depositRaw);
       if (Number.isNaN(deposit) || deposit < 0) {
         newErrors.depositAmount = "Tiền cọc phải là số không âm";
+      } else {
+        const rent = Number(safeTrim(currentForm.rentAmount));
+        if (rent > 0 && (deposit < rent || deposit > rent * 3)) {
+          newErrors.depositAmount = "Tiền cọc thông thường từ 1 đến 3 tháng tiền thuê";
+        }
       }
     }
 

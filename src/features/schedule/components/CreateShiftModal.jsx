@@ -548,8 +548,8 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
                             <Building2 className="w-3 h-3 flex-shrink-0" />
                             {houseName}
                           </span>
-                          {isMaintenance ? (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-600">
+                          {jobType === "MAINTENANCE" ? (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-100 text-teal-700">
                               BẢO TRÌ
                             </span>
                           ) : isInspection ? (
@@ -557,7 +557,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
                               KIỂM DUYỆT
                             </span>
                           ) : (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
                               SỬA CHỮA
                             </span>
                           )}
@@ -577,7 +577,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
                         <div className="flex items-center gap-1.5 mb-2">
                           <Building2 className="w-3 h-3 text-slate-400 flex-shrink-0" />
                           <p className="text-[11px] text-slate-500 truncate">
-                            {isMaintenance
+                            {jobType === "MAINTENANCE"
                               ? `Ngày bắt đầu: ${formatDateVN(job.periodStartDate)}`
                               : isInspection
                                 ? `Tòa nhà: ${houseName}`
@@ -589,9 +589,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
                         {deadline && (
                           <div className="flex items-center gap-1">
                             <Clock className="w-3 h-3 text-slate-400 flex-shrink-0" />
-                            <p className="text-[11px] text-slate-400">
-                              {deadline}
-                            </p>
+                            <p className="text-[11px] text-slate-400">{deadline}</p>
                           </div>
                         )}
 
