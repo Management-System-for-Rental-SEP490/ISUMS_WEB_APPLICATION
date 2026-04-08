@@ -12,8 +12,12 @@ import {
   CalendarDays,
   CalendarClock,
   ArrowRight,
+  ImageIcon,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
-import { getAllIssues, getIssueById } from "../api/issues.api";
+import { getAllIssues, getIssueById, getTicketImages } from "../api/issues.api";
 import { getHouseById } from "../../houses/api/houses.api";
 import { confirmManagerWorkSlot } from "../../maintenance/api/maintenance.api";
 import { toast } from "react-toastify";
@@ -65,6 +69,9 @@ export default function IssueAssignmentPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [houseNames, setHouseNames] = useState({});
+  const [images, setImages] = useState([]);
+  const [imagesLoading, setImagesLoading] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
 
   const fetchIssues = useCallback(async () => {
     setLoading(true);
@@ -101,10 +108,16 @@ export default function IssueAssignmentPage() {
   const handleSelectIssue = async (issue) => {
     setSelected(issue);
     setSelectedDetail(null);
+    setImages([]);
     setDetailLoading(true);
+    setImagesLoading(true);
     try {
-      const detail = await getIssueById(issue.id);
+      const [detail, imgs] = await Promise.all([
+        getIssueById(issue.id),
+        getTicketImages(issue.id).catch(() => []),
+      ]);
       setSelectedDetail(detail);
+      setImages(Array.isArray(imgs) ? imgs : []);
       if (detail?.houseId && !houseNames[detail.houseId]) {
         getHouseById(detail.houseId)
           .then((h) =>
@@ -119,6 +132,7 @@ export default function IssueAssignmentPage() {
       // fallback to list data
     } finally {
       setDetailLoading(false);
+      setImagesLoading(false);
     }
   };
 
@@ -307,6 +321,47 @@ export default function IssueAssignmentPage() {
                   </div>
                 </div>
 
+                {/* Ảnh đính kèm */}
+                {(imagesLoading || images.length > 0) && (
+                  <div>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      Ảnh đính kèm
+                      {images.length > 0 && (
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                          {images.length}
+                        </span>
+                      )}
+                    </p>
+                    {imagesLoading ? (
+                      <div className="grid grid-cols-3 gap-2">
+                        {[1, 2, 3].map((i) => (
+                          <div
+                            key={i}
+                            className="aspect-square rounded-lg bg-gray-100 animate-pulse"
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-2">
+                        {images.map((img, idx) => (
+                          <button
+                            key={img.id}
+                            onClick={() => setLightboxIndex(idx)}
+                            className="block aspect-square rounded-lg overflow-hidden border border-gray-200 hover:opacity-80 hover:scale-[1.02] transition-all"
+                          >
+                            <img
+                              src={img.url}
+                              alt="Ảnh đính kèm"
+                              className="w-full h-full object-cover"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Ca làm việc */}
                 {detail.startTime && (
                   <div>
@@ -450,6 +505,63 @@ export default function IssueAssignmentPage() {
           )
         )}
       </div>
+
+      {/* Lightbox */}
+      {lightboxIndex !== null && images[lightboxIndex] && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setLightboxIndex(null)}
+        >
+          {/* Prev */}
+          {images.length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightboxIndex((lightboxIndex - 1 + images.length) % images.length);
+              }}
+              className="absolute left-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition"
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+          )}
+
+          {/* Image */}
+          <img
+            src={images[lightboxIndex].url}
+            alt="Ảnh đính kèm"
+            className="max-h-[85vh] max-w-[85vw] rounded-xl shadow-2xl object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+
+          {/* Next */}
+          {images.length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightboxIndex((lightboxIndex + 1) % images.length);
+              }}
+              className="absolute right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition"
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          )}
+
+          {/* Close */}
+          <button
+            onClick={() => setLightboxIndex(null)}
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {/* Counter */}
+          {images.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-white/70 bg-black/40 px-3 py-1 rounded-full">
+              {lightboxIndex + 1} / {images.length}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

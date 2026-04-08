@@ -102,6 +102,7 @@ export const ISSSUE_ENDPOINTS = {
   TICKETS: "/issues/tickets",
   ISSUE_BY_TICKET_ID: (ticketId) => `/issues/tickets/${ticketId}`,
   CREATE: "/issues",
+  TICKET_IMAGE: (issueId) => `/issues/tickets/${issueId}/images`,
   RESPONSE_BY_TICKET: (ticketId) => `/issues/responses/tickets/${ticketId}`,
   QUOTES_BY_TICKET: (ticketId) => `/issues/quotes/ticket/${ticketId}`,
   QUOTE_STATUS: (id) => `/issues/quotes/${id}/status`,
