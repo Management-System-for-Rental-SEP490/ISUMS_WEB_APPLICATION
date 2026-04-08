@@ -58,10 +58,9 @@ export function useDashboardStats() {
         getAllHouses(),
         getAllUsers(),
         getAllContracts({
-          page: 0,
+          page: 1,
           size: 5,
-          sortBy: "createdAt",
-          sortDir: "DESC",
+          sorts: "createdAt:DESC",
         }),
       ]);
 

@@ -7,6 +7,7 @@ export default function ContractLoadingModal({
   errorMessage,
   onSuccess,
   onRetry,
+  onClose,
 }) {
   const [timePassed, setTimePassed] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
@@ -81,14 +82,24 @@ export default function ContractLoadingModal({
             <p className="text-slate-500 text-[14px] text-center mb-6 px-2 leading-relaxed">
               {errorMessage || "Đã có lỗi xảy ra, vui lòng thử lại."}
             </p>
-            {onRetry && (
-              <button
-                onClick={onRetry}
-                className="w-full py-3 bg-[#357792] hover:bg-[#2d6f8a] text-white font-semibold rounded-xl transition-colors"
-              >
-                Thử lại
-              </button>
-            )}
+            <div className="w-full flex flex-col gap-3">
+              {onRetry && (
+                <button
+                  onClick={onRetry}
+                  className="w-full py-3 bg-[#357792] hover:bg-[#2d6f8a] text-white font-semibold rounded-xl transition-colors"
+                >
+                  Thử lại
+                </button>
+              )}
+              {onClose && (
+                <button
+                  onClick={onClose}
+                  className="w-full py-3 bg-white hover:bg-slate-50 text-slate-600 font-semibold rounded-xl border border-slate-200 transition-colors"
+                >
+                  Đóng
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Footer */}

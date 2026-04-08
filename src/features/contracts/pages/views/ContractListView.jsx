@@ -33,7 +33,7 @@ export default function ContractsListView({
 }) {
   return (
     <div className="space-y-6">
-      <ContractsHeader total={contracts.length} onCreate={onCreate} />
+      <ContractsHeader total={totalItems} onCreate={onCreate} />
       <ContractsStats stats={stats} />
 
       <ContractsFilters
