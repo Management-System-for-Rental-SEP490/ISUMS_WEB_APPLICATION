@@ -118,10 +118,9 @@ export default function ContractsPendingSignPage() {
       setLoading(true);
       setError(null);
       try {
-        const raw = await getAllContracts();
-        const all = (Array.isArray(raw) ? raw : (raw?.data ?? [])).map(mapContractFromApi);
-        const pending = all.filter((c) => c.status === "READY");
-        if (mounted) setContracts(pending);
+        const raw = await getAllContracts({ status: "READY", sorts: "createdAt:DESC", size: 100 });
+        const arr = Array.isArray(raw) ? raw : (raw?.items ?? raw?.data ?? []);
+        if (mounted) setContracts(arr.map(mapContractFromApi).filter(Boolean));
       } catch (err) {
         const msg = err?.message ?? "Không thể tải danh sách hợp đồng.";
         if (mounted) {

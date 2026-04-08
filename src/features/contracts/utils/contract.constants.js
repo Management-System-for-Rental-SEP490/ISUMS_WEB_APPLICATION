@@ -18,7 +18,7 @@ export const STATUS_BADGE = {
 
 export const STATUS_LABEL = {
   DRAFT: "Bản nháp",
-  PENDING_TENANT_REVIEW: "Chờ khách thuê xem xét",
+  PENDING_TENANT_REVIEW: "Chờ khách thuê xác nhận",
   CORRECTING: "Đang hiệu chỉnh",
   READY: "Chờ chủ nhà ký",
   IN_PROGRESS: "Chờ khách thuê ký",
