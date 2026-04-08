@@ -3,6 +3,8 @@
  * Centralized endpoint definitions for the application
  */
 
+import { id } from "zod/v4/locales";
+
 // Auth endpoints
 export const AUTH_ENDPOINTS = {
   GET: "users/{email}",
@@ -37,7 +39,8 @@ export const CONTRACTS_ENDPOINTS = {
 // Users endpoints
 export const USERS_ENDPOINTS = {
   BASE: "/users",
-  BY_ID: (id) => `/users/${id}`,
+  BY_ID: (id) => `/users/byId/${id}`,
+  GET_STAFF: "/users/staffs",
 };
 
 // Tenants endpoints
@@ -82,26 +85,27 @@ export const MAINTENANCE_ENDPOINTS = {
   JOBS: "/maintenances/jobs",
   JOBS_BY_ID: (jobId) => `/maintenances/jobs/${jobId}`,
   JOBS_BY_STATUS: "/maintenances/jobs",
-  // SLOT_JOBS: (id) => `/maintenance/slots/${id}/jobs`,
-  // JOB_BY_ID: (id) => `/maintenance/jobs/${id}`,
-  // BY_WEEK: "/maintenance/slots/week",
-  // BY_MONTH: "/maintenance/slots/month",
+  JOBS_GENERATE: "/maintenances/jobs/generate",
 };
 
 // Schedule endpoints
 export const SCHEDULE_ENDPOINTS = {
   WORK_SLOTS: "/schedules/work_slots/confirm",
   WORK_SLOTS_CURRENT: "/schedules/work_slots/current",
-  WORK_SLOTS_STAFF_CONFIRM: "/schedules/work_slots/staff/confirm",
-  WORK_SLOTS_MANAGER_CONFIRM: (jobId) => `/schedules/work_slots/manager/confirm/${jobId}`,
+  WORK_SLOTS_CONFIRM_MAINTENANCE: "/schedules/work_slots/confirm-maintenance",
+  WORK_SLOTS_MANAGER_CONFIRM: (jobId) =>
+    `/schedules/work_slots/manager/confirm-issue/${jobId}`,
   TEMPLATES_CURRENT: (date) => `/schedules/templates/current/${date}`,
 };
 export const ISSSUE_ENDPOINTS = {
   BASE: "/issues",
   TICKETS: "/issues/tickets",
-  ISSUE_BY_ID: (id) => `/issues/${id}`,
+  ISSUE_BY_TICKET_ID: (ticketId) => `/issues/tickets/${ticketId}`,
   CREATE: "/issues",
-  RESPONSE_BY_TICKET: (ticketId) => `/issues/responses/ticket/${ticketId}`,
+  TICKET_IMAGE: (issueId) => `/issues/tickets/${issueId}/images`,
+  RESPONSE_BY_TICKET: (ticketId) => `/issues/responses/tickets/${ticketId}`,
+  QUOTES_BY_TICKET: (ticketId) => `/issues/quotes/ticket/${ticketId}`,
+  QUOTE_STATUS: (id) => `/issues/quotes/${id}/status`,
 };
 export const ASSET_ENDPOINTS = {
   BASE: "/assets",
@@ -109,4 +113,15 @@ export const ASSET_ENDPOINTS = {
   CREATE: "/assets",
   UPDATE: (id) => `/assets/${id}`,
   DELETE: (id) => `/assets/${id}`,
+};
+export const BANNER_ENDPOINTS = {
+  BASE: "issues/banners",
+  CREATE: "issues/banners",
+  UPDATE: (id) => `issues/banners/${id}/price`,
+};
+export const INSPECTION_ENDPOINTS = {
+  BASE: "maintenances/inspections",
+  CREATE: "maintenances/inspections",
+  GET: (id) => `maintenances/inspections/${id}`,
+  UPDATE: (id) => `maintenances/inspections/${id}/status`,
 };

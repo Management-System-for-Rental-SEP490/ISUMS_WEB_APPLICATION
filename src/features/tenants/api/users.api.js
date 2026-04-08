@@ -19,3 +19,12 @@ export async function getUserById(id) {
     throw new Error(getErrorMessage(error));
   }
 }
+
+export async function getStaffs() {
+  try {
+    const response = await api.get(USERS_ENDPOINTS.GET_STAFF);
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}

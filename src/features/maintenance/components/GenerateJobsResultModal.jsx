@@ -1,5 +1,12 @@
-import { useEffect } from "react";
-import { X, Wrench, CalendarClock, CheckCircle2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  X,
+  Wrench,
+  CalendarClock,
+  CheckCircle2,
+  Building2,
+} from "lucide-react";
+import { getHouseById } from "../../houses/api/houses.api";
 
 const STATUS_LABEL = {
   CREATED: { text: "Mới tạo", cls: "bg-blue-50 text-blue-600" },
@@ -30,7 +37,7 @@ function EmptyNotice({ onClose }) {
           <CalendarClock className="w-6 h-6 text-slate-400" />
         </div>
         <p className="text-slate-700 font-semibold text-center">
-          Hiện tại không có công việc từ kế hoạch bảo trì
+          Hiện tại chưa có kế hoạch bảo trì
         </p>
         <p className="text-xs text-slate-400">Đang tự đóng...</p>
       </div>
@@ -40,6 +47,23 @@ function EmptyNotice({ onClose }) {
 
 // --- Result modal: danh sách jobs ---
 export default function GenerateJobsResultModal({ jobs, onClose }) {
+  const [houseNames, setHouseNames] = useState({});
+
+  useEffect(() => {
+    if (!jobs || jobs.length === 0) return;
+    const uniqueIds = [...new Set(jobs.map((j) => j.houseId).filter(Boolean))];
+    uniqueIds.forEach((id) => {
+      getHouseById(id)
+        .then((h) =>
+          setHouseNames((prev) => ({
+            ...prev,
+            [id]: h?.name ?? h?.houseName ?? "—",
+          })),
+        )
+        .catch(() => setHouseNames((prev) => ({ ...prev, [id]: "—" })));
+    });
+  }, [jobs]);
+
   if (!jobs) return null;
 
   if (jobs.length === 0) return <EmptyNotice onClose={onClose} />;
@@ -54,8 +78,12 @@ export default function GenerateJobsResultModal({ jobs, onClose }) {
               <Wrench className="w-4 h-4 text-teal-600" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-800 text-[15px]">Công việc vừa được tạo</h3>
-              <p className="text-xs text-slate-400">{jobs.length} công việc từ kế hoạch bảo trì</p>
+              <h3 className="font-bold text-slate-800 text-[15px]">
+                Công việc vừa được tạo
+              </h3>
+              <p className="text-xs text-slate-400">
+                {jobs.length} công việc từ kế hoạch bảo trì
+              </p>
             </div>
           </div>
           <button
@@ -69,28 +97,43 @@ export default function GenerateJobsResultModal({ jobs, onClose }) {
         {/* List */}
         <div className="overflow-y-auto flex-1 px-6 py-4 flex flex-col gap-3">
           {jobs.map((job, idx) => {
-            const statusCfg = STATUS_LABEL[job.status] ?? { text: job.status, cls: "bg-slate-100 text-slate-500" };
+            const statusCfg = STATUS_LABEL[job.status] ?? {
+              text: job.status,
+              cls: "bg-slate-100 text-slate-500",
+            };
             return (
               <div
                 key={job.id}
                 className="flex items-start gap-3 p-3.5 rounded-xl border border-slate-100 hover:border-teal-200 hover:bg-teal-50/30 transition"
               >
                 <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-xs font-bold text-teal-700">{idx + 1}</span>
+                  <span className="text-xs font-bold text-teal-700">
+                    {idx + 1}
+                  </span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <span className="text-[13px] font-semibold text-slate-700 truncate">
                       Kỳ bắt đầu: {formatDate(job.periodStartDate)}
                     </span>
-                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0 ${statusCfg.cls}`}>
+                    <span
+                      className={`text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0 ${statusCfg.cls}`}
+                    >
                       {statusCfg.text}
                     </span>
                   </div>
                   <p className="text-xs text-slate-400 mt-1">
-                    Hạn hoàn thành: <span className="text-slate-600 font-medium">{formatDate(job.dueDate)}</span>
+                    Hạn hoàn thành:{" "}
+                    <span className="text-slate-600 font-medium">
+                      {formatDate(job.dueDate)}
+                    </span>
                   </p>
-                  <p className="text-[11px] text-slate-300 mt-0.5 font-mono truncate">{job.id}</p>
+                  {job.houseId && (
+                    <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-1 truncate">
+                      <Building2 className="w-3 h-3 flex-shrink-0" />
+                      {houseNames[job.houseId] ?? "Đang tải..."}
+                    </p>
+                  )}
                 </div>
               </div>
             );

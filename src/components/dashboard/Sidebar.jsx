@@ -13,8 +13,10 @@ import {
   FileText,
   Home,
   LogOut,
+  CheckCircle,
   MailQuestionIcon,
   PenLine,
+  Tag,
   Settings,
   UserCheck,
   Users,
@@ -73,6 +75,11 @@ export default function Sidebar({
           label: "Danh sách công việc",
           icon: ClipboardList,
         },
+        {
+          id: "maintenance-inspections",
+          label: "Kiểm tra nhà cửa",
+          icon: ClipboardList,
+        },
       ],
     },
     {
@@ -86,7 +93,9 @@ export default function Sidebar({
           icon: MailQuestionIcon,
         },
         { id: "issue-assignment", label: "Phân công xử lý", icon: UserCheck },
+        { id: "issue-quote-approval", label: "Xác nhận báo giá", icon: CheckCircle },
         { id: "issue-history", label: "Lịch sử theo BĐS", icon: BarChart2 },
+        { id: "issue-price-list", label: "Bảng giá thiết bị", icon: Tag },
       ],
     },
     {

@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { ClipboardList, Plus, RefreshCw, Wrench } from "lucide-react";
-import MaintenancePlanList from "../components/maintenance/MaintenancePlanList";
-import CreatePlanDrawer from "../components/maintenance/CreatePlanDrawer";
-import PlanJobsDrawer from "../components/maintenance/PlanJobsDrawer";
-import PlanDetailDrawer from "../components/maintenance/PlanDetailDrawer";
-import AssignStaffModal from "../components/maintenance/AssignStaffModal";
+import MaintenancePlanList from "../components/MaintenancePlanList";
+import CreatePlanDrawer from "../components/CreatePlanDrawer";
+import PlanJobsDrawer from "../components/PlanJobsDrawer";
+import PlanDetailDrawer from "../components/PlanDetailDrawer";
+import AssignStaffModal from "../components/AssignStaffModal";
 import GenerateJobsResultModal from "../components/GenerateJobsResultModal";
-import { getMaintenancePlans, generateMaintenanceJobs } from "../api/schedule.api";
+import { getMaintenancePlans, generateMaintenanceJobs } from "../api/maintenance.api";
 
 function formatDate(value) {
   if (!value) return "—";
