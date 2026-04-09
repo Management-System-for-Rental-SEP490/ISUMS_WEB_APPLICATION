@@ -24,6 +24,7 @@ import {
   Wrench,
   X,
   Zap,
+  LayoutDashboard,
 } from "lucide-react";
 import logo from "../../assets/logo.jpg";
 
@@ -49,10 +50,13 @@ export default function Sidebar({
     setActiveMenu(menuId);
   };
 
+  const isExpanded = isOpen;
+
   const sections = [
     {
       id: "tong-quan",
       label: "Tổng Quan",
+      icon: LayoutDashboard,
       collapsible: false,
       items: [
         { id: "dashboard", label: "Dashboard", icon: Home },
@@ -63,6 +67,7 @@ export default function Sidebar({
     {
       id: "bat-dong-san-group",
       label: "Bất Động Sản",
+      icon: Building2,
       collapsible: true,
       items: [
         { id: "houses", label: "Quản lý nhà", icon: Building2 },
@@ -72,6 +77,7 @@ export default function Sidebar({
     {
       id: "nguoi-dung-group",
       label: "Người Dùng",
+      icon: Users,
       collapsible: true,
       items: [
         { id: "users", label: "Khách thuê", icon: Users },
@@ -81,6 +87,7 @@ export default function Sidebar({
     {
       id: "bao-tri-group",
       label: "Bảo Trì",
+      icon: ClipboardList,
       collapsible: true,
       items: [
         { id: "maintenance-plans", label: "Kế hoạch bảo trì", icon: ClipboardList },
@@ -91,6 +98,7 @@ export default function Sidebar({
     {
       id: "sua-chua-group",
       label: "Sửa Chữa",
+      icon: AlertCircle,
       collapsible: true,
       items: [
         { id: "issue-requests", label: "Danh sách thắc mắc", icon: MailQuestionIcon },
@@ -103,6 +111,7 @@ export default function Sidebar({
     {
       id: "hop-dong-group",
       label: "Hợp Đồng",
+      icon: FileText,
       collapsible: true,
       items: [
         { id: "contracts", label: "Quản lý hợp đồng", icon: FileText },
@@ -114,6 +123,7 @@ export default function Sidebar({
     {
       id: "he-thong",
       label: "Hệ Thống",
+      icon: Settings,
       collapsible: false,
       items: [
         { id: "notifications", label: "Thông báo", icon: Bell, badge: unreadCount },
@@ -127,21 +137,24 @@ export default function Sidebar({
 
   return (
     <aside
+      onMouseEnter={() => !isOpen && onToggle()}
       className={[
         "bg-slate-100 border-r border-slate-200 text-slate-800 fixed left-0 inset-y-0 z-40",
         "lg:sticky lg:top-0 lg:h-screen",
         "transition-all duration-300 ease-in-out",
-        isOpen ? "translate-x-0 w-64" : "-translate-x-full w-64",
+        // Mobile: slide in/out
+        isOpen ? "translate-x-0" : "-translate-x-full",
         "lg:translate-x-0",
-        !isOpen ? "lg:w-[70px]" : "lg:w-64",
+        // Desktop width
+        isExpanded ? "lg:w-64" : "lg:w-[72px]",
       ].join(" ")}
+      aria-label="Sidebar"
     >
       <div className="h-full flex flex-col overflow-hidden">
 
         {/* ── Logo ── */}
         <div className="bg-white border-b border-slate-200 flex-shrink-0">
-          {isOpen ? (
-            /* Expanded: logo + text + chevron ngang */
+          {isExpanded ? (
             <div className="flex items-center gap-3 px-4 py-4">
               <div className="w-9 h-9 rounded-xl overflow-hidden flex-shrink-0 shadow ring-2 ring-teal-200">
                 <img src={logo} alt="ISUMS Logo" className="w-full h-full object-cover" />
@@ -150,17 +163,20 @@ export default function Sidebar({
                 <h1 className="font-extrabold text-sm text-teal-700 tracking-wide truncate">ISUMS</h1>
                 <p className="text-[10px] text-slate-400 leading-snug">Hệ thống nhà cho thuê thông minh</p>
               </div>
-              <button
-                type="button"
-                onClick={onToggle}
-                className="p-1.5 rounded-lg hover:bg-slate-100 transition text-slate-400 hover:text-slate-600 flex-shrink-0"
-              >
-                <span className="lg:hidden"><X className="w-4 h-4" /></span>
-                <span className="hidden lg:block"><ChevronLeft className="w-4 h-4" /></span>
-              </button>
+              {/* Chỉ hiện nút toggle khi isOpen thực sự (không phải hover) */}
+              {isOpen && (
+                <button
+                  type="button"
+                  onClick={onToggle}
+                  className="p-1.5 rounded-lg hover:bg-slate-100 transition text-slate-400 hover:text-slate-600 flex-shrink-0"
+                >
+                  <span className="lg:hidden"><X className="w-4 h-4" /></span>
+                  <span className="hidden lg:block"><ChevronLeft className="w-4 h-4" /></span>
+                </button>
+              )}
             </div>
           ) : (
-            /* Collapsed: logo căn giữa + chevron nhỏ bên dưới */
+            /* Collapsed: chỉ logo + nút expand */
             <div className="flex flex-col items-center py-3 gap-2">
               <div className="w-9 h-9 rounded-xl overflow-hidden shadow ring-2 ring-teal-200">
                 <img src={logo} alt="ISUMS Logo" className="w-full h-full object-cover" />
@@ -170,52 +186,54 @@ export default function Sidebar({
                 onClick={onToggle}
                 className="p-1 rounded-lg hover:bg-slate-100 transition text-slate-400 hover:text-slate-600"
               >
-                <span className="lg:hidden"><X className="w-3.5 h-3.5" /></span>
-                <span className="hidden lg:block"><ChevronRight className="w-3.5 h-3.5" /></span>
+                <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
           )}
         </div>
 
         {/* ── Nav ── */}
-        <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-2">
-          {sections.map((section) => {
-            const isExpanded = !!openGroups[section.id];
+        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-2">
+
+          {/* ══ COLLAPSED: 1 icon đại diện mỗi section ══ */}
+          {!isExpanded && (
+            <div className="flex flex-col items-center gap-1">
+              {sections.map((section) => {
+                const SectionIcon = section.icon;
+                const isActive = hasActiveChild(section) || activeMenu === section.items[0]?.id;
+                return (
+                  <button
+                    key={section.id}
+                    type="button"
+                    onClick={() => {
+                      // Click vào icon section → navigate item đầu tiên không disabled
+                      const first = section.items.find((i) => !i.disabled);
+                      if (first) setActiveMenu(first.id);
+                    }}
+                    title={section.label}
+                    className={[
+                      "relative flex items-center justify-center w-11 h-11 rounded-xl transition",
+                      isActive
+                        ? "bg-teal-500 text-white shadow-sm"
+                        : "text-slate-400 hover:bg-white hover:text-teal-600 hover:shadow-sm",
+                    ].join(" ")}
+                  >
+                    <SectionIcon className="w-[18px] h-[18px]" />
+                    {/* Badge dot nếu section có badge */}
+                    {section.items.some((i) => i.badge > 0) && (
+                      <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* ══ EXPANDED: card sections đầy đủ ══ */}
+          {isExpanded && sections.map((section) => {
+            const isGroupExpanded = !!openGroups[section.id];
             const sectionHasActive = hasActiveChild(section);
 
-            // ── Thu nhỏ (icon only) ──
-            if (!isOpen) {
-              return (
-                <div key={section.id} className="space-y-0.5">
-                  <div className="my-1 border-t border-slate-200 mx-1" />
-                  {section.items.filter(i => !i.disabled).map((item) => {
-                    const isActive = activeMenu === item.id;
-                    const Icon = item.icon;
-                    return (
-                      <a
-                        key={item.id}
-                        href="#"
-                        onClick={(e) => handleNavClick(e, item.id)}
-                        title={item.label}
-                        className={[
-                          "relative flex items-center justify-center p-2.5 rounded-xl transition",
-                          isActive
-                            ? "bg-teal-500 text-white shadow-sm"
-                            : "text-slate-500 hover:bg-white hover:text-teal-600 hover:shadow-sm",
-                        ].join(" ")}
-                      >
-                        <Icon className="w-[18px] h-[18px]" />
-                        {item.badge > 0 && (
-                          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-                        )}
-                      </a>
-                    );
-                  })}
-                </div>
-              );
-            }
-
-            // ── Full sidebar ──
             return (
               <div
                 key={section.id}
@@ -227,9 +245,8 @@ export default function Sidebar({
                     type="button"
                     onClick={() => toggleGroup(section.id)}
                     className={[
-                      "w-full flex items-center justify-between px-4 py-3 transition-colors",
-                      isExpanded ? "border-b border-slate-100" : "",
-                      "hover:bg-slate-50",
+                      "w-full flex items-center justify-between px-4 py-3 transition-colors hover:bg-slate-50",
+                      isGroupExpanded ? "border-b border-slate-100" : "",
                     ].join(" ")}
                   >
                     <span className={[
@@ -238,13 +255,11 @@ export default function Sidebar({
                     ].join(" ")}>
                       {section.label}
                     </span>
-                    <ChevronDown
-                      className={[
-                        "w-3.5 h-3.5 transition-transform duration-200",
-                        isExpanded ? "rotate-180" : "",
-                        sectionHasActive ? "text-teal-400" : "text-slate-300",
-                      ].join(" ")}
-                    />
+                    <ChevronDown className={[
+                      "w-3.5 h-3.5 transition-transform duration-200",
+                      isGroupExpanded ? "rotate-180" : "",
+                      sectionHasActive ? "text-teal-400" : "text-slate-300",
+                    ].join(" ")} />
                   </button>
                 ) : (
                   <div className="px-4 py-3 border-b border-slate-100">
@@ -254,8 +269,8 @@ export default function Sidebar({
                   </div>
                 )}
 
-                {/* Items — pill style */}
-                {(!section.collapsible || isExpanded) && (
+                {/* Items */}
+                {(!section.collapsible || isGroupExpanded) && (
                   <div className="p-1.5 space-y-0.5">
                     {section.items.map((item) => {
                       const isActive = activeMenu === item.id;
@@ -263,10 +278,7 @@ export default function Sidebar({
 
                       if (item.disabled) {
                         return (
-                          <div
-                            key={item.id}
-                            className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-40 cursor-not-allowed"
-                          >
+                          <div key={item.id} className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-40 cursor-not-allowed">
                             <Icon className="w-4 h-4 flex-shrink-0 text-slate-400" />
                             <span className="text-sm text-slate-400 flex-1">{item.label}</span>
                             <span className="text-[10px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded font-medium">Soon</span>
@@ -307,19 +319,19 @@ export default function Sidebar({
         </nav>
 
         {/* ── Logout ── */}
-        <div className={["bg-white px-3 py-3 border-t border-slate-200 flex-shrink-0", !isOpen ? "lg:px-2" : ""].join(" ")}>
+        <div className="bg-white px-2 py-3 border-t border-slate-200 flex-shrink-0">
           <button
             type="button"
             onClick={onLogout}
-            title={!isOpen ? "Đăng Xuất" : undefined}
+            title={!isExpanded ? "Đăng Xuất" : undefined}
             className={[
-              "flex items-center gap-3 px-3 py-2.5 rounded-xl w-full transition",
+              "flex items-center gap-3 py-2.5 rounded-xl w-full transition",
               "text-slate-500 hover:bg-red-50 hover:text-red-600",
-              !isOpen ? "lg:justify-center" : "",
+              !isExpanded ? "justify-center px-0" : "px-3",
             ].join(" ")}
           >
             <LogOut className="w-[18px] h-[18px] flex-shrink-0" />
-            {isOpen && <span className="text-sm font-medium">Đăng Xuất</span>}
+            {isExpanded && <span className="text-sm font-medium">Đăng Xuất</span>}
           </button>
         </div>
 

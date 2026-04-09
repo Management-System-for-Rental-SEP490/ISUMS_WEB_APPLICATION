@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   Bell, AlertTriangle, CheckCircle, Info, XCircle,
-  Filter, Check, Search, RefreshCw, Wifi, WifiOff, Loader2,
+  Filter, Check, Search, RefreshCw, Loader2,
 } from 'lucide-react';
 import { useNotifications } from '../hooks/useNotifications';
 
@@ -26,27 +26,6 @@ const TYPE_LABEL = {
   success: 'Thành công',
 };
 
-function SseStatusBadge({ status }) {
-  if (status === 'open') {
-    return (
-      <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
-        <Wifi className="w-3.5 h-3.5" /> Realtime
-      </span>
-    );
-  }
-  if (status === 'connecting') {
-    return (
-      <span className="flex items-center gap-1 text-xs text-amber-600 font-medium">
-        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Đang kết nối...
-      </span>
-    );
-  }
-  return (
-    <span className="flex items-center gap-1 text-xs text-red-500 font-medium">
-      <WifiOff className="w-3.5 h-3.5" /> Mất kết nối
-    </span>
-  );
-}
 
 function formatTime(dateStr) {
   if (!dateStr) return '';
@@ -77,7 +56,6 @@ export default function Notifications() {
     isLoading,
     isLoadingMore,
     hasMore,
-    sseStatus,
     loadMore,
     markRead,
     markAllRead,
@@ -105,7 +83,6 @@ export default function Notifications() {
             <p className="text-gray-600">
               {unreadCount > 0 ? `${unreadCount} thông báo chưa đọc` : 'Tất cả đã đọc'}
             </p>
-            <SseStatusBadge status={sseStatus} />
           </div>
         </div>
         <div className="flex gap-2">
