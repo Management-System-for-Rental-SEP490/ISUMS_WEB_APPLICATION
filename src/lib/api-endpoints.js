@@ -75,6 +75,12 @@ export const NOTIFICATIONS_ENDPOINTS = {
   BY_ID: (id) => `/notifications/${id}`,
   MARK_READ: (id) => `/notifications/${id}/read`,
   MARK_ALL_READ: "/notifications/read-all",
+  // Manager-specific
+  MANAGER_STREAM: "/notifications/manager/stream",
+  MANAGER_LIST: "/notifications/manager",
+  MANAGER_UNREAD_COUNT: "/notifications/manager/unread-count",
+  MANAGER_MARK_READ: (id) => `/notifications/manager/${id}/read`,
+  MANAGER_MARK_ALL_READ: "/notifications/manager/read-all",
 };
 
 // Maintenance endpoints

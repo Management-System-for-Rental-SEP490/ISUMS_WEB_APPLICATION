@@ -155,6 +155,7 @@ export default function ContractDetailStandalone() {
 
   // Manager confirm dialog (DRAFT → PENDING_TENANT_REVIEW)
   const [showManagerConfirm, setShowManagerConfirm] = useState(false);
+  const [showResendConfirm, setShowResendConfirm] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
@@ -219,6 +220,31 @@ export default function ContractDetailStandalone() {
     }
   };
 
+  // Gửi lại hợp đồng cho người thuê (PENDING_TENANT_REVIEW → gọi lại confirm)
+  const handleResend = async () => {
+    if (!id || confirming) return;
+    setShowResendConfirm(false);
+    setConfirming(true);
+    try {
+      await confirmByAdmin(id);
+      toast.success("Đã gửi lại hợp đồng cho người thuê xem xét.");
+      await refetchContract();
+    } catch (err) {
+      const httpStatus = err?.response?.status;
+      const msg =
+        httpStatus === 400
+          ? "Không thể gửi lại hợp đồng này."
+          : httpStatus === 403
+            ? "Bạn không có quyền thực hiện thao tác này."
+            : httpStatus === 404
+              ? "Không tìm thấy hợp đồng."
+              : "Gửi lại thất bại, vui lòng thử lại.";
+      toast.error(msg);
+    } finally {
+      setConfirming(false);
+    }
+  };
+
   const normalizedStatus = (status ?? "").toUpperCase();
   const isDraft =
     normalizedStatus === "DRAFT" ||
@@ -228,6 +254,7 @@ export default function ContractDetailStandalone() {
 
   // Điều kiện hiển thị buttons
   const canConfirm = normalizedStatus === "DRAFT";
+  const canResend  = normalizedStatus === "PENDING_TENANT_REVIEW";
   const canLandlordSign = isLandlord && normalizedStatus === "READY";
   const canDownload = normalizedStatus === "COMPLETED" && !!pdfUrl;
 
@@ -301,6 +328,16 @@ export default function ContractDetailStandalone() {
                 icon={confirming ? <Icons.Loader /> : <Icons.CheckCircle />}
               >
                 {confirming ? "Đang xử lý..." : "Xác nhận hợp đồng"}
+              </ActionButton>
+            )}
+            {canResend && (
+              <ActionButton
+                onClick={() => setShowResendConfirm(true)}
+                disabled={confirming || loading || !!error}
+                variant="primary"
+                icon={confirming ? <Icons.Loader /> : <Icons.Send />}
+              >
+                {confirming ? "Đang gửi..." : "Gửi lại cho người thuê"}
               </ActionButton>
             )}
             {canLandlordSign && (
@@ -408,6 +445,17 @@ export default function ContractDetailStandalone() {
         title="Xác nhận hợp đồng"
         description="Hợp đồng sẽ được gửi cho người thuê xem và xác nhận. Bạn vẫn có thể chỉnh sửa nếu chủ nhà yêu cầu."
         confirmLabel="Xác nhận & Gửi"
+      />
+
+      {/* Dialog: Gửi lại cho người thuê (PENDING_TENANT_REVIEW) */}
+      <ConfirmDialog
+        open={showResendConfirm}
+        onClose={() => !confirming && setShowResendConfirm(false)}
+        onConfirm={handleResend}
+        confirming={confirming}
+        title="Gửi lại cho người thuê"
+        description="Hệ thống sẽ gửi lại email thông báo cho người thuê để xem xét và xác nhận hợp đồng."
+        confirmLabel="Gửi lại"
       />
     </div>
   );

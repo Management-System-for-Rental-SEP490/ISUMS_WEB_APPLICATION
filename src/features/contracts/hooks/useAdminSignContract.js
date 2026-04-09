@@ -65,27 +65,6 @@ export function useAdminSignContract(id) {
     };
   }, [id, navigate]);
 
-  // ─── Auto-scroll to signing page ─────────────────────────────────────────────
-  useEffect(() => {
-    if (
-      !signatureData ||
-      !signingSession ||
-      !iframeWrapperRef.current ||
-      !mainRef.current
-    )
-      return;
-    const main = mainRef.current;
-    const mainRect = main.getBoundingClientRect();
-    const wrapperRect = iframeWrapperRef.current.getBoundingClientRect();
-    const wrapperTopInMain = wrapperRect.top - mainRect.top + main.scrollTop;
-    const cw = iframeWrapperRef.current?.getBoundingClientRect().width ?? 800;
-    const pageHeightPx = cw * (595 / 752);
-    const boxInitialY =
-      (signingSession.signingPage - 1) * pageHeightPx + Math.round(pageHeightPx * 0.6);
-    const scrollTarget = wrapperTopInMain + boxInitialY - 200;
-    main.scrollTo({ top: Math.max(0, scrollTarget), behavior: "smooth" });
-  }, [signatureData]); // eslint-disable-line react-hooks/exhaustive-deps
-
   // ─── Signing session ──────────────────────────────────────────────────────────
   const ensureSigningSession = async () => {
     if (signingSession) return signingSession;

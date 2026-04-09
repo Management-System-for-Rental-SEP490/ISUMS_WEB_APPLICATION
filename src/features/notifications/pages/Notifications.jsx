@@ -1,129 +1,99 @@
 import React, { useState } from 'react';
-import { Bell, AlertTriangle, CheckCircle, Info, XCircle, Filter, Check, Trash2, Search } from 'lucide-react';
+import {
+  Bell, AlertTriangle, CheckCircle, Info, XCircle,
+  Filter, Check, Search, RefreshCw, Wifi, WifiOff, Loader2,
+} from 'lucide-react';
+import { useNotifications } from '../hooks/useNotifications';
+
+const TYPE_ICON = {
+  critical: <XCircle className="w-5 h-5 text-red-500" />,
+  warning: <AlertTriangle className="w-5 h-5 text-amber-500" />,
+  info: <Info className="w-5 h-5 text-blue-500" />,
+  success: <CheckCircle className="w-5 h-5 text-green-500" />,
+};
+
+const TYPE_BADGE = {
+  critical: 'bg-red-100 text-red-700 border-red-200',
+  warning: 'bg-amber-100 text-amber-700 border-amber-200',
+  info: 'bg-blue-100 text-blue-700 border-blue-200',
+  success: 'bg-green-100 text-green-700 border-green-200',
+};
+
+const TYPE_LABEL = {
+  critical: 'Khẩn cấp',
+  warning: 'Cảnh báo',
+  info: 'Thông tin',
+  success: 'Thành công',
+};
+
+function SseStatusBadge({ status }) {
+  if (status === 'open') {
+    return (
+      <span className="flex items-center gap-1 text-xs text-green-600 font-medium">
+        <Wifi className="w-3.5 h-3.5" /> Realtime
+      </span>
+    );
+  }
+  if (status === 'connecting') {
+    return (
+      <span className="flex items-center gap-1 text-xs text-amber-600 font-medium">
+        <Loader2 className="w-3.5 h-3.5 animate-spin" /> Đang kết nối...
+      </span>
+    );
+  }
+  return (
+    <span className="flex items-center gap-1 text-xs text-red-500 font-medium">
+      <WifiOff className="w-3.5 h-3.5" /> Mất kết nối
+    </span>
+  );
+}
+
+function formatTime(dateStr) {
+  if (!dateStr) return '';
+  try {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return 'Vừa xong';
+    if (diffMin < 60) return `${diffMin} phút trước`;
+    const diffH = Math.floor(diffMin / 60);
+    if (diffH < 24) return `${diffH} giờ trước`;
+    const diffD = Math.floor(diffH / 24);
+    if (diffD < 7) return `${diffD} ngày trước`;
+    return date.toLocaleDateString('vi-VN');
+  } catch {
+    return dateStr;
+  }
+}
 
 export default function Notifications() {
   const [filterType, setFilterType] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const notifications = [
-    {
-      id: 1,
-      type: 'critical',
-      title: 'Phát hiện điện năng bất thường',
-      message: 'Vinhomes Central Park - Đơn vị A101 đang tiêu thụ điện vượt mức cho phép 15%',
-      time: '2 phút trước',
-      property: 'Vinhomes Central Park',
-      read: false,
-    },
-    {
-      id: 2,
-      type: 'warning',
-      title: 'Phát hiện rò rỉ nước',
-      message: 'Masteri Thảo Điền - Đơn vị B205 có dấu hiệu rò rỉ nước',
-      time: '15 phút trước',
-      property: 'Masteri Thảo Điền',
-      read: false,
-    },
-    {
-      id: 3,
-      type: 'info',
-      title: 'Hợp đồng sắp hết hạn',
-      message: 'Hợp đồng HD-2024-045 của khách thuê Hoàng Văn E sẽ hết hạn trong 15 ngày',
-      time: '1 giờ trước',
-      property: 'Vinhomes Central Park',
-      read: true,
-    },
-    {
-      id: 4,
-      type: 'success',
-      title: 'Thanh toán thành công',
-      message: 'Khách thuê Trần Thị B đã thanh toán tiền thuê tháng 6 thành công',
-      time: '2 giờ trước',
-      property: 'Masteri Thảo Điền',
-      read: true,
-    },
-    {
-      id: 5,
-      type: 'warning',
-      title: 'Tiêu thụ gas cao',
-      message: 'Saigon Pearl - Đơn vị C301 đang tiêu thụ gas cao hơn bình thường',
-      time: '3 giờ trước',
-      property: 'Saigon Pearl',
-      read: false,
-    },
-    {
-      id: 6,
-      type: 'info',
-      title: 'Bảo trì định kỳ',
-      message: 'Đã đến lịch bảo trì hệ thống điện cho Landmark 81',
-      time: '5 giờ trước',
-      property: 'Landmark 81',
-      read: true,
-    },
-    {
-      id: 7,
-      type: 'critical',
-      title: 'Sắp chạm giới hạn công suất',
-      message: 'Landmark 81 đang sử dụng 92% công suất điện cho phép',
-      time: '1 ngày trước',
-      property: 'Landmark 81',
-      read: false,
-    },
-    {
-      id: 8,
-      type: 'success',
-      title: 'Khách thuê mới',
-      message: 'Đã ký hợp đồng mới với khách thuê Võ Thị F tại Masteri Thảo Điền',
-      time: '2 ngày trước',
-      property: 'Masteri Thảo Điền',
-      read: true,
-    },
-  ];
+  const {
+    notifications,
+    unreadCount,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    sseStatus,
+    loadMore,
+    markRead,
+    markAllRead,
+    refresh,
+  } = useNotifications();
 
-  const getTypeIcon = (type) => {
-    switch (type) {
-      case 'critical':
-        return <XCircle className="w-5 h-5 text-red-500" />;
-      case 'warning':
-        return <AlertTriangle className="w-5 h-5 text-amber-500" />;
-      case 'info':
-        return <Info className="w-5 h-5 text-blue-500" />;
-      case 'success':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
-      default:
-        return <Bell className="w-5 h-5 text-gray-500" />;
-    }
-  };
-
-  const getTypeBadge = (type) => {
-    const styles = {
-      critical: 'bg-red-100 text-red-700 border-red-200',
-      warning: 'bg-amber-100 text-amber-700 border-amber-200',
-      info: 'bg-blue-100 text-blue-700 border-blue-200',
-      success: 'bg-green-100 text-green-700 border-green-200',
-    };
-    return styles[type] || styles.info;
-  };
-
-  const getTypeLabel = (type) => {
-    const labels = {
-      critical: 'Khẩn cấp',
-      warning: 'Cảnh báo',
-      info: 'Thông tin',
-      success: 'Thành công',
-    };
-    return labels[type] || type;
-  };
-
-  const filteredNotifications = notifications.filter(notif => {
-    const matchesSearch = notif.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         notif.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         notif.property.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterType === 'all' || notif.type === filterType;
-    return matchesSearch && matchesFilter;
+  const filtered = notifications.filter((n) => {
+    const text = `${n.title ?? ''} ${n.message ?? ''} ${n.content ?? ''} ${n.property ?? ''}`.toLowerCase();
+    const matchSearch = !searchTerm || text.includes(searchTerm.toLowerCase());
+    const notifType = n.type?.toLowerCase();
+    const matchFilter = filterType === 'all' || notifType === filterType;
+    return matchSearch && matchFilter;
   });
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const criticalCount = notifications.filter((n) => n.type?.toLowerCase() === 'critical').length;
+  const warningCount = notifications.filter((n) => n.type?.toLowerCase() === 'warning').length;
 
   return (
     <div className="space-y-6">
@@ -131,18 +101,28 @@ export default function Notifications() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-1">Thông Báo</h2>
-          <p className="text-gray-600">
-            {unreadCount > 0 ? `${unreadCount} thông báo chưa đọc` : 'Tất cả đã đọc'}
-          </p>
+          <div className="flex items-center gap-3">
+            <p className="text-gray-600">
+              {unreadCount > 0 ? `${unreadCount} thông báo chưa đọc` : 'Tất cả đã đọc'}
+            </p>
+            <SseStatusBadge status={sseStatus} />
+          </div>
         </div>
         <div className="flex gap-2">
-          <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 transition">
+          <button
+            onClick={markAllRead}
+            disabled={unreadCount === 0}
+            className="px-4 py-2 border border-gray-300 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 transition disabled:opacity-40 disabled:cursor-not-allowed"
+          >
             <Check className="w-4 h-4" />
             Đánh dấu tất cả đã đọc
           </button>
-          <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 transition">
-            <Trash2 className="w-4 h-4" />
-            Xóa tất cả
+          <button
+            onClick={refresh}
+            className="px-4 py-2 border border-gray-300 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 transition"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Làm mới
           </button>
         </div>
       </div>
@@ -168,18 +148,14 @@ export default function Notifications() {
             <span className="text-sm text-gray-600">Khẩn cấp</span>
             <XCircle className="w-5 h-5 text-red-500" />
           </div>
-          <p className="text-2xl font-bold text-gray-900">
-            {notifications.filter(n => n.type === 'critical').length}
-          </p>
+          <p className="text-2xl font-bold text-gray-900">{criticalCount}</p>
         </div>
         <div className="bg-white rounded-xl p-6 shadow-sm border">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-gray-600">Cảnh báo</span>
             <AlertTriangle className="w-5 h-5 text-amber-500" />
           </div>
-          <p className="text-2xl font-bold text-gray-900">
-            {notifications.filter(n => n.type === 'warning').length}
-          </p>
+          <p className="text-2xl font-bold text-gray-900">{warningCount}</p>
         </div>
       </div>
 
@@ -187,7 +163,7 @@ export default function Notifications() {
       <div className="bg-white rounded-xl p-4 shadow-sm border">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
               placeholder="Tìm kiếm thông báo..."
@@ -216,63 +192,101 @@ export default function Notifications() {
       {/* Notifications List */}
       <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
         <div className="p-6 border-b border-gray-200">
-          <h3 className="text-lg font-semibold">Danh Sách Thông Báo ({filteredNotifications.length})</h3>
+          <h3 className="text-lg font-semibold">
+            Danh Sách Thông Báo ({filtered.length})
+          </h3>
         </div>
-        <div className="divide-y divide-gray-200">
-          {filteredNotifications.map((notif) => (
-            <div
-              key={notif.id}
-              className={`p-6 hover:bg-gray-50 transition ${
-                !notif.read ? 'bg-blue-50/50' : ''
-              }`}
-            >
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 mt-1">
-                  {getTypeIcon(notif.type)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-4 mb-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className={`font-semibold ${!notif.read ? 'text-gray-900' : 'text-gray-700'}`}>
-                          {notif.title}
-                        </h4>
-                        {!notif.read && (
-                          <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                        )}
-                        <span className={`px-2 py-0.5 text-xs font-medium rounded border ${getTypeBadge(notif.type)}`}>
-                          {getTypeLabel(notif.type)}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 mb-2">{notif.message}</p>
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
-                        <span>{notif.property}</span>
-                        <span>•</span>
-                        <span>{notif.time}</span>
-                      </div>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16 gap-3 text-gray-400">
+            <Loader2 className="w-6 h-6 animate-spin" />
+            <span>Đang tải thông báo...</span>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-200">
+            {filtered.map((notif) => {
+              const type = notif.type?.toLowerCase() ?? 'info';
+              const isUnread = !notif.read;
+
+              return (
+                <div
+                  key={notif.id}
+                  className={`p-6 hover:bg-gray-50 transition ${isUnread ? 'bg-blue-50/50' : ''}`}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 mt-1">
+                      {TYPE_ICON[type] ?? <Bell className="w-5 h-5 text-gray-500" />}
                     </div>
-                    <div className="flex items-center gap-2">
-                      {!notif.read && (
-                        <button className="p-2 hover:bg-gray-200 rounded" title="Đánh dấu đã đọc">
-                          <Check className="w-4 h-4 text-gray-600" />
-                        </button>
-                      )}
-                      <button className="p-2 hover:bg-gray-200 rounded" title="Xóa">
-                        <Trash2 className="w-4 h-4 text-red-600" />
-                      </button>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-4 mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className={`font-semibold ${isUnread ? 'text-gray-900' : 'text-gray-700'}`}>
+                              {notif.title ?? notif.type ?? 'Thông báo'}
+                            </h4>
+                            {isUnread && (
+                              <span className="w-2 h-2 bg-blue-500 rounded-full" />
+                            )}
+                            {type && (
+                              <span className={`px-2 py-0.5 text-xs font-medium rounded border ${TYPE_BADGE[type] ?? TYPE_BADGE.info}`}>
+                                {TYPE_LABEL[type] ?? type}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-600 mb-2">
+                            {notif.message ?? notif.content ?? ''}
+                          </p>
+                          <div className="flex items-center gap-4 text-xs text-gray-500">
+                            {notif.property && <span>{notif.property}</span>}
+                            {notif.property && <span>•</span>}
+                            <span>{formatTime(notif.createdAt ?? notif.time)}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {isUnread && (
+                            <button
+                              onClick={() => markRead(notif.id)}
+                              className="p-2 hover:bg-gray-200 rounded"
+                              title="Đánh dấu đã đọc"
+                            >
+                              <Check className="w-4 h-4 text-gray-600" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
+              );
+            })}
+
+            {filtered.length === 0 && !isLoading && (
+              <div className="text-center py-12">
+                <Bell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">Không có thông báo nào</p>
               </div>
-            </div>
-          ))}
-          {filteredNotifications.length === 0 && (
-            <div className="text-center py-12">
-              <Bell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500">Không có thông báo nào</p>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
+
+        {/* Load more */}
+        {hasMore && !isLoading && (
+          <div className="p-4 border-t border-gray-200 text-center">
+            <button
+              onClick={loadMore}
+              disabled={isLoadingMore}
+              className="px-6 py-2 text-sm text-teal-600 border border-teal-300 rounded-lg hover:bg-teal-50 transition disabled:opacity-50 flex items-center gap-2 mx-auto"
+            >
+              {isLoadingMore ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" /> Đang tải...
+                </>
+              ) : (
+                'Tải thêm'
+              )}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
