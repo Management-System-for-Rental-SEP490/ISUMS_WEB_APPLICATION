@@ -101,6 +101,9 @@ export const SCHEDULE_ENDPOINTS = {
   WORK_SLOTS_CONFIRM_MAINTENANCE: "/schedules/work_slots/confirm-maintenance",
   WORK_SLOTS_MANAGER_CONFIRM: (jobId) =>
     `/schedules/work_slots/manager/confirm-issue/${jobId}`,
+  WORK_SLOTS_SLOTS: "/schedules/work_slots/slots",
+  WORK_SLOTS_SLOTS_STAFF: "/schedules/work_slots/slots/staff",
+  WORK_SLOTS_MANUAL: "/schedules/work_slots/manual",
   TEMPLATES_CURRENT: (date) => `/schedules/templates/current/${date}`,
 };
 export const ISSSUE_ENDPOINTS = {
