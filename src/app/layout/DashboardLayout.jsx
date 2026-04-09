@@ -16,6 +16,7 @@ import IssueAssignmentPage from "../../features/issues/pages/IssueAssignmentPage
 import IssueHistoryByPropertyPage from "../../features/issues/pages/IssueHistoryByPropertyPage";
 import IssuePriceListPage from "../../features/issues/pages/IssuePriceListPage";
 import IssueQuoteApprovalPage from "../../features/issues/pages/IssueQuoteApprovalPage";
+import StaffPage from "../../features/tenants/pages/StaffPage";
 import Reports from "../../features/reports/pages/Reports";
 import Notifications from "../../features/notifications/pages/Notifications";
 import Settings from "../../features/settings/pages/Settings";
@@ -23,6 +24,7 @@ import {
   authActions,
   useAuthStore,
 } from "../../features/auth/store/auth.store";
+import NotificationDropdown from "../../features/notifications/components/NotificationDropdown";
 
 const ROLE_LABELS = {
   LANDLORD: "Chủ nhà",
@@ -74,7 +76,8 @@ export default function Dashboard() {
     dashboard: "Dashboard",
     houses: "Bất động sản",
     utilities: "Tiện ích",
-    users: "Người Dùng",
+    users: "Khách Thuê",
+    staff: "Nhân Viên",
     contracts: "Hợp đồng",
     "contracts-sign": "Hợp Đồng Cần Ký",
     maintenance: "Lịch Làm Việc",
@@ -175,29 +178,8 @@ export default function Dashboard() {
             {/* Divider */}
             <div className="hidden lg:block h-5 w-px bg-gray-200 mx-1" />
 
-            {/* Notifications bell */}
-            <button
-              type="button"
-              onClick={() => setActiveMenu("notifications")}
-              className="relative p-2 rounded-lg hover:bg-gray-100 transition"
-              aria-label="Thông báo"
-            >
-              <svg
-                className="w-5 h-5 text-gray-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.8}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                />
-              </svg>
-              {/* Badge */}
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
-            </button>
+            {/* Notifications bell + dropdown */}
+            <NotificationDropdown onNavigate={setActiveMenu} />
 
             {/* Quick add */}
             <button
@@ -340,6 +322,7 @@ export default function Dashboard() {
           {activeMenu === "houses" && <Houses />}
           {activeMenu === "utilities" && <Utilities />}
           {activeMenu === "users" && <UsersPage />}
+          {activeMenu === "staff" && <StaffPage />}
           {activeMenu === "contracts" && (
             <ContractsPage onNavigateMenu={setActiveMenu} />
           )}

@@ -49,25 +49,33 @@ export default function ContractsTable({
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full table-fixed min-w-[600px]">
+          <colgroup>
+            <col className="w-10" />
+            <col className="w-[40%]" />
+            <col className="w-[20%]" />
+            <col className="w-[14%]" />
+            <col className="w-[16%]" />
+            <col className="w-[10%]" />
+          </colgroup>
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+              <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                 STT
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Số hợp đồng
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Khách thuê
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Thanh toán
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Trạng thái
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Thao tác
               </th>
             </tr>
@@ -77,38 +85,36 @@ export default function ContractsTable({
             {items.map((contract, idx) => {
               return (
                 <tr key={contract.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-4 whitespace-nowrap text-center text-xs font-medium text-gray-400">{idx + 1}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm font-medium text-gray-900">
+                  <td className="px-3 py-3 text-center text-xs font-medium text-gray-400 whitespace-nowrap">{idx + 1}</td>
+
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <span className="text-sm font-medium text-gray-900 truncate" title={contract.contractNumber}>
                         {contract.contractNumber}
                       </span>
                     </div>
                   </td>
 
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-900">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Users className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <span className="text-sm text-gray-900 truncate" title={contract.tenant}>
                         {contract.tenant}
                       </span>
                     </div>
                   </td>
 
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <span className="text-sm text-gray-600">
-                      {PAYMENT_LABEL[contract.paymentType] ??
-                        contract.paymentType}
+                      {PAYMENT_LABEL[contract.paymentType] ?? contract.paymentType}
                     </span>
                     {contract.autoRenew && (
-                      <div className="text-xs text-green-600 mt-1">
-                        Tự động gia hạn
-                      </div>
+                      <div className="text-xs text-green-600 mt-0.5">Tự động gia hạn</div>
                     )}
                   </td>
 
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded-full ${
                         STATUS_BADGE[contract.status] ??
@@ -123,12 +129,12 @@ export default function ContractsTable({
                     </span>
                   </td>
 
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex items-center justify-end gap-2">
+                  <td className="px-3 py-3 whitespace-nowrap text-right">
+                    <div className="flex items-center justify-end gap-1">
                       <button
                         type="button"
                         onClick={() => onViewDetail(contract.id)}
-                        className="p-2 hover:bg-gray-100 rounded"
+                        className="p-1.5 hover:bg-gray-100 rounded"
                         title="Xem chi tiết"
                       >
                         <Eye className="w-4 h-4 text-gray-600" />
@@ -136,7 +142,7 @@ export default function ContractsTable({
                       <button
                         type="button"
                         onClick={() => onEdit(contract.id)}
-                        className="p-2 hover:bg-gray-100 rounded"
+                        className="p-1.5 hover:bg-gray-100 rounded"
                         title="Chỉnh sửa"
                       >
                         <Edit className="w-4 h-4 text-blue-600" />
@@ -144,7 +150,7 @@ export default function ContractsTable({
                       <button
                         type="button"
                         onClick={() => onDelete(contract.id)}
-                        className="p-2 hover:bg-gray-100 rounded"
+                        className="p-1.5 hover:bg-gray-100 rounded"
                         title="Xóa"
                       >
                         <Trash2 className="w-4 h-4 text-red-600" />
