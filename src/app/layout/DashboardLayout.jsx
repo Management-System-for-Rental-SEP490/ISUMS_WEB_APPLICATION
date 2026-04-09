@@ -1,21 +1,30 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Sidebar from "../../components/dashboard/Sidebar";
-import AlertsList from "../../components/dashboard/AlertsList";
-import ChartSection from "../../components/dashboard/ChartSection";
-import StatsCard from "../../components/dashboard/StatsCard";
+import DashboardPage from "../../features/dashboard/DashboardPage";
 import Houses from "../../features/houses/pages/Houses";
 import Utilities from "./Utilities";
 import UsersPage from "../../features/tenants/pages/UsersPage";
 import ContractsPage from "../../features/contracts/pages/ContractsPage";
 import ContractsPendingSignPage from "../../features/contracts/pages/ContractsPendingSignPage";
 import SchedulePage from "../../features/schedule/pages/SchedulePage";
-import MaintenancePlansPage from "../../features/schedule/pages/MaintenancePlansPage";
-import MaintenanceJobsPage from "../../features/schedule/pages/MaintenanceJobsPage";
+import MaintenancePlansPage from "../../features/maintenance/pages/MaintenancePlansPage";
+import MaintenanceJobsPage from "../../features/maintenance/pages/MaintenanceJobsPage";
+import InspectionsPage from "../../features/maintenance/pages/InspectionsPage";
+import IssueRequestsPage from "../../features/issues/pages/IssueRequestsPage";
+import IssueAssignmentPage from "../../features/issues/pages/IssueAssignmentPage";
+import IssueHistoryByPropertyPage from "../../features/issues/pages/IssueHistoryByPropertyPage";
+import IssuePriceListPage from "../../features/issues/pages/IssuePriceListPage";
+import IssueQuoteApprovalPage from "../../features/issues/pages/IssueQuoteApprovalPage";
+import StaffPage from "../../features/tenants/pages/StaffPage";
 import Reports from "../../features/reports/pages/Reports";
 import Notifications from "../../features/notifications/pages/Notifications";
 import Settings from "../../features/settings/pages/Settings";
-import { authActions, useAuthStore } from "../../features/auth/store/auth.store";
+import {
+  authActions,
+  useAuthStore,
+} from "../../features/auth/store/auth.store";
+import NotificationDropdown from "../../features/notifications/components/NotificationDropdown";
 
 const ROLE_LABELS = {
   LANDLORD: "Chủ nhà",
@@ -31,15 +40,7 @@ function getRoleLabel(roles = []) {
 import {
   Search,
   Menu,
-  X,
   MapPin,
-  Building2,
-  Users,
-  TrendingUp,
-  DollarSign,
-  Zap,
-  Droplet,
-  Flame,
   User,
   LogOut,
   ChevronDown,
@@ -58,7 +59,6 @@ export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(
     () => window.innerWidth >= 1024,
   );
-  const [activeTab, setActiveTab] = useState("electricity");
   const [activeMenu, setActiveMenu] = useState(
     () => location.state?.menu ?? "dashboard",
   );
@@ -76,91 +76,25 @@ export default function Dashboard() {
     dashboard: "Dashboard",
     houses: "Bất động sản",
     utilities: "Tiện ích",
-    users: "Người Dùng",
+    users: "Khách Thuê",
+    staff: "Nhân Viên",
     contracts: "Hợp đồng",
     "contracts-sign": "Hợp Đồng Cần Ký",
     maintenance: "Lịch Làm Việc",
     "maintenance-plans": "Kế Hoạch Bảo Trì",
-    "maintenance-jobs":  "Công Việc Bảo Trì",
+    "maintenance-jobs": "Công Việc Bảo Trì",
+    "maintenance-inspections": "Kiểm Tra Nhà Cửa",
+    "issue-requests": "Danh Sách Yêu Cầu",
+    "issue-assignment": "Phân Công Xử Lý",
+    "issue-quote-approval": "Xác Nhận Báo Giá",
+    "issue-history": "Lịch Sử Theo BĐS",
+    "issue-price-list": "Bảng Giá Thiết Bị",
     reports: "Báo cáo",
     notifications: "Thông báo",
     settings: "Cài đặt",
   };
   const currentTitle = headerTitles[activeMenu] ?? headerTitles.dashboard;
 
-  const stats = [
-    {
-      title: "Tổng Bất Động Sản",
-      value: "18",
-      subtitle: "Quận 1, 2, 7, Bình Thạnh",
-      change: "12.5%",
-      isIncrease: true,
-      icon: Building2,
-      color: "teal",
-    },
-    {
-      title: "Khách Thuê",
-      value: "234",
-      subtitle: "97.2% tỷ lệ lấp đầy",
-      change: "3.8%",
-      isIncrease: true,
-      icon: Users,
-      color: "green",
-    },
-    {
-      title: "Tiết Kiệm Năng Lượng",
-      value: "15.2%",
-      subtitle: "so với tháng trước",
-      change: "15.2%",
-      isIncrease: true,
-      icon: TrendingUp,
-      color: "yellow",
-    },
-    {
-      title: "Tiết Kiệm Chi Phí",
-      value: "₫45.8M",
-      subtitle: "Tháng này",
-      change: "8.4%",
-      isIncrease: true,
-      icon: DollarSign,
-      color: "blue",
-    },
-  ];
-
-  const alerts = [
-    {
-      id: 1,
-      property: "Vinhomes Central Park",
-      issue: "Phát hiện điện năng bất thường",
-      severity: "critical",
-      time: "2 phút trước",
-      icon: Zap,
-    },
-    {
-      id: 2,
-      property: "Masteri Thảo Điền",
-      issue: "Phát hiện rò rỉ nước",
-      severity: "warning",
-      time: "15 phút trước",
-      icon: Droplet,
-    },
-    {
-      id: 3,
-      property: "Saigon Pearl",
-      issue: "Tiêu thụ gas cao",
-      severity: "warning",
-      time: "1 giờ trước",
-      icon: Flame,
-    },
-    {
-      id: 4,
-      property: "Landmark 81",
-      issue: "Sắp chạm giới hạn công suất",
-      severity: "warning",
-      time: "3 giờ trước",
-      icon: Zap,
-    },
-  ];
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {isSidebarOpen && (
@@ -244,29 +178,8 @@ export default function Dashboard() {
             {/* Divider */}
             <div className="hidden lg:block h-5 w-px bg-gray-200 mx-1" />
 
-            {/* Notifications bell */}
-            <button
-              type="button"
-              onClick={() => setActiveMenu("notifications")}
-              className="relative p-2 rounded-lg hover:bg-gray-100 transition"
-              aria-label="Thông báo"
-            >
-              <svg
-                className="w-5 h-5 text-gray-500"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.8}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                />
-              </svg>
-              {/* Badge */}
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
-            </button>
+            {/* Notifications bell + dropdown */}
+            <NotificationDropdown onNavigate={setActiveMenu} />
 
             {/* Quick add */}
             <button
@@ -404,64 +317,25 @@ export default function Dashboard() {
 
         <main className="flex-1 px-6 pt-6 pb-10 bg-gray-50">
           {/* Render content dựa trên activeMenu */}
-          {activeMenu === "dashboard" && (
-            <>
-              <div className="mb-8 flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-1">
-                    Xin chào, Chủ nhà 👋
-                  </h2>
-                  <p className="text-gray-600">Quản lý tiện ích thông minh</p>
-                </div>
-                <div className="flex gap-3">
-                  <button className="px-4 py-2 border rounded-lg text-sm flex items-center gap-2">
-                    <MapPin size={16} /> Bản đồ
-                  </button>
-                  <button className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm">
-                    Thêm Bất Động Sản
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                {stats.map((s, i) => (
-                  <StatsCard key={i} {...s} />
-                ))}
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                <div className="lg:col-span-2">
-                  <ChartSection
-                    activeTab={activeTab}
-                    setActiveTab={setActiveTab}
-                  />
-                </div>
-                <AlertsList alerts={alerts} />
-              </div>
-
-              <div className="bg-white rounded-xl p-6 shadow-sm border">
-                <h3 className="text-lg font-semibold mb-6">
-                  Danh Sách Bất Động Sản
-                </h3>
-                {/* <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-                  {properties.map((p) => (
-                    // <PropertyCard key={p.id} property={p} />
-                  ))}
-                </div> */}
-              </div>
-            </>
-          )}
+          {activeMenu === "dashboard" && <DashboardPage />}
 
           {activeMenu === "houses" && <Houses />}
           {activeMenu === "utilities" && <Utilities />}
           {activeMenu === "users" && <UsersPage />}
+          {activeMenu === "staff" && <StaffPage />}
           {activeMenu === "contracts" && (
             <ContractsPage onNavigateMenu={setActiveMenu} />
           )}
           {activeMenu === "contracts-sign" && <ContractsPendingSignPage />}
           {activeMenu === "maintenance" && <SchedulePage />}
           {activeMenu === "maintenance-plans" && <MaintenancePlansPage />}
-          {activeMenu === "maintenance-jobs"  && <MaintenanceJobsPage />}
+          {activeMenu === "maintenance-jobs" && <MaintenanceJobsPage />}
+          {activeMenu === "maintenance-inspections" && <InspectionsPage />}
+          {activeMenu === "issue-requests" && <IssueRequestsPage />}
+          {activeMenu === "issue-assignment" && <IssueAssignmentPage />}
+          {activeMenu === "issue-quote-approval" && <IssueQuoteApprovalPage />}
+          {activeMenu === "issue-history" && <IssueHistoryByPropertyPage />}
+          {activeMenu === "issue-price-list" && <IssuePriceListPage />}
           {activeMenu === "reports" && <Reports />}
           {activeMenu === "notifications" && <Notifications />}
           {activeMenu === "settings" && <Settings />}

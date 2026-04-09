@@ -26,6 +26,7 @@ export default function SchedulePage() {
   const {
     slotGrid,
     template,
+    timeSlots,
     loading: weekLoading,
     refetch: refetchWeek,
   } = useWorkSchedule(startStr, endStr);
@@ -214,7 +215,7 @@ export default function SchedulePage() {
             className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold rounded-xl transition shadow-sm"
           >
             <Plus className="w-4 h-4" />
-            Tạo ca làm việc mới
+            Xác nhận các ca làm việc mới
           </button>
         </div>
       </div>
@@ -227,6 +228,7 @@ export default function SchedulePage() {
           onNext={nextWeek}
           slotGrid={slotGrid}
           template={template}
+          timeSlots={timeSlots}
           loading={weekLoading}
         />
       ) : (
@@ -243,7 +245,9 @@ export default function SchedulePage() {
       <CreateShiftModal
         open={createShiftOpen}
         onClose={() => setCreateShiftOpen(false)}
+        onCreated={refetchWeek}
       />
+
 
       {/* Legend + Export */}
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -252,10 +256,8 @@ export default function SchedulePage() {
             Chú thích trạng thái:
           </span>
           {[
-            { dot: "bg-teal-500",   label: "Bảo trì" },
-            { dot: "bg-orange-500", label: "Sửa chữa" },
-            { dot: "bg-blue-500",   label: "Kiểm tra" },
-            { dot: "bg-purple-500", label: "Vệ sinh" },
+            { dot: "bg-teal-500", label: "Đã đặt (Booked)" },
+            { dot: "bg-red-400", label: "Đã hủy (Cancelled)" },
           ].map(({ dot, label }) => (
             <span key={label} className="flex items-center gap-1.5">
               <span className={`w-2.5 h-2.5 rounded-full ${dot}`} />

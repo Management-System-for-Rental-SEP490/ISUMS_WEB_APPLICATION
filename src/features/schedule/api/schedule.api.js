@@ -3,7 +3,11 @@ import {
   MAINTENANCE_ENDPOINTS,
   SCHEDULE_ENDPOINTS,
 } from "../../../lib/api-endpoints";
-import { extractResponseData, getErrorMessage } from "../../../lib/api-helpers";
+import {
+  extractResponseData,
+  getErrorMessage,
+  throwApiError,
+} from "../../../lib/api-helpers";
 
 /**
  * Get all slots within a date range (used by week view).
@@ -132,56 +136,33 @@ export async function getWorkSlotsInRange(start, end) {
 }
 
 /**
- * Get a maintenance plan by ID.
- * @param {string} planId
- * @returns {Promise<Object>} Plan detail { id, name, frequencyType, frequencyValue, effectiveFrom, effectiveTo, nextRunAt, houseIds }
+ * Create a new work slot.
+ * @param {{ staffId: string, jobId: string, jobType: string, startTime: string }} payload
+ * @returns {Promise<Object>} Created work slot
  */
-export async function getMaintenancePlanById(planId) {
+export async function createWorkSlot(payload) {
   try {
-    const response = await api.get(MAINTENANCE_ENDPOINTS.PLANS_BY_ID(planId));
+    const response = await api.post(SCHEDULE_ENDPOINTS.WORK_SLOTS, payload);
     return extractResponseData(response);
   } catch (error) {
-    throw new Error(getErrorMessage(error));
+    throwApiError(error);
   }
 }
 
 /**
- * Get all maintenance plans.
- * @returns {Promise<Array>} List of plans
+ * Confirm a staff work slot (maintenance/issue job assignment).
+ * @param {{ jobId: string, startTime: string }} payload
+ * @returns {Promise<Object>}
  */
-export async function getMaintenancePlans() {
+export async function confirmStaffWorkSlot(payload) {
   try {
-    const response = await api.get(MAINTENANCE_ENDPOINTS.PLANS);
+    const response = await api.post(
+      SCHEDULE_ENDPOINTS.WORK_SLOTS_CONFIRM_MAINTENANCE,
+      payload,
+    );
     return extractResponseData(response);
   } catch (error) {
-    throw new Error(getErrorMessage(error));
-  }
-}
-
-/**
- * Get all maintenance jobs.
- * @returns {Promise<Array>} List of jobs { id, planId, houseId, periodStartDate, dueDate, status }
- */
-export async function getMaintenanceJobs() {
-  try {
-    const response = await api.get(MAINTENANCE_ENDPOINTS.JOBS);
-    return extractResponseData(response);
-  } catch (error) {
-    throw new Error(getErrorMessage(error));
-  }
-}
-
-/**
- * Get a maintenance job by ID.
- * @param {string} jobId
- * @returns {Promise<Object>} Job detail { id, planId, houseId, periodStartDate, dueDate, status }
- */
-export async function getJobById(jobId) {
-  try {
-    const response = await api.get(MAINTENANCE_ENDPOINTS.JOBS_BY_ID(jobId));
-    return extractResponseData(response);
-  } catch (error) {
-    throw new Error(getErrorMessage(error));
+    throwApiError(error);
   }
 }
 

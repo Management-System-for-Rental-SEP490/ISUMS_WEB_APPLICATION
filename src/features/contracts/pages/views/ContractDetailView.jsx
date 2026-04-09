@@ -1,9 +1,10 @@
-import React from "react";
-import { Edit } from "lucide-react";
+import React, { useState } from "react";
+import { Edit, Download } from "lucide-react";
 import Breadcrumbs from "../../../../components/shared/Breadcrumbs";
 import { LoadingSpinner } from "../../../../components/shared/Loading";
 import { formatDateVi, formatMoneyVND } from "../../utils/contract.format";
 import { STATUS_BADGE, STATUS_LABEL } from "../../utils/contract.constants";
+import ContractPdfViewer from "../../components/shared/ContractPdfViewer";
 
 export default function ContractDetailView({
   contract,
@@ -14,10 +15,14 @@ export default function ContractDetailView({
   onEdit,
   onNavigateMenu,
 }) {
-  const contractHtml = contract?.html;
+  const [downloading, setDownloading] = useState(false);
+  const pdfUrl = contract?.pdfUrl ?? null;
+  const contractHtml = contract?.html ?? "";
   const statusRaw = String(contract?.status ?? "pending");
   const statusKey = statusRaw.toLowerCase();
   const statusKeyUpper = statusRaw.toUpperCase();
+  const isDraft = statusKeyUpper === "DRAFT" || statusKeyUpper === "PENDING_TENANT_REVIEW";
+  const canDownload = statusKeyUpper === "COMPLETED" && !!pdfUrl;
   const startDateRaw =
     contract?.startDate ||
     contract?.startAt ||
@@ -108,14 +113,45 @@ export default function ContractDetailView({
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => onEdit(contract?.id ?? contractId)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-blue-700 transition"
-          >
-            <Edit className="w-4 h-4" />
-            Chỉnh sửa
-          </button>
+          <div className="flex items-center gap-2">
+            {canDownload && (
+              <button
+                type="button"
+                disabled={downloading}
+                onClick={async () => {
+                  setDownloading(true);
+                  try {
+                    const res = await fetch(pdfUrl);
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `${contract?.contractNumber ?? contract?.name ?? "hopдong"}.pdf`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  } catch {
+                    window.open(pdfUrl, "_blank");
+                  } finally {
+                    setDownloading(false);
+                  }
+                }}
+                className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-teal-700 transition disabled:opacity-60"
+              >
+                <Download className="w-4 h-4" />
+                {downloading ? "Đang tải..." : "Tải về"}
+              </button>
+            )}
+            {isDraft && (
+              <button
+                type="button"
+                onClick={() => onEdit(contract?.id ?? contractId)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-blue-700 transition"
+              >
+                <Edit className="w-4 h-4" />
+                Chỉnh sửa
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -146,18 +182,16 @@ export default function ContractDetailView({
 
         <div className="mt-6">
           <div className="text-sm text-gray-500 mb-2">Nội dung hợp đồng</div>
-          {contractHtml ? (
+          {isDraft ? (
             <iframe
               title="Contract HTML"
               srcDoc={contractHtml}
-              className="w-full min-h-[900px] border rounded-lg bg-white"
+              className="w-full min-h-[900px] rounded-lg border border-slate-200 bg-white"
               sandbox=""
               referrerPolicy="no-referrer"
             />
           ) : (
-            <div className="border rounded-lg p-4 text-sm text-gray-500 bg-gray-50">
-              Chưa có nội dung HTML cho hợp đồng này.
-            </div>
+            <ContractPdfViewer pdfUrl={pdfUrl} />
           )}
         </div>
 

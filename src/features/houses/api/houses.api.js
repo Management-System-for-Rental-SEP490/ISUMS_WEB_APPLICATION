@@ -8,13 +8,14 @@ import { HOUSES_ENDPOINTS } from "../../../lib/api-endpoints";
 import { extractResponseData, getErrorMessage } from "../../../lib/api-helpers";
 
 /**
- * Get all houses
- * @returns {Promise<Array>} List of houses
+ * Get all houses with optional server-side filtering/pagination
+ * @param {Object} params - Query params: page, size, keyword, sortBy, sortDir, status
+ * @returns {Promise<Object>} Paginated response { items, total, totalPages, currentPage, pageSize }
  * @throws {Error} If request fails
  */
-export async function getAllHouses() {
+export async function getAllHouses(params = {}) {
   try {
-    const response = await api.get(HOUSES_ENDPOINTS.BASE);
+    const response = await api.get(HOUSES_ENDPOINTS.BASE, { params });
     return extractResponseData(response);
   } catch (error) {
     throw new Error(getErrorMessage(error));

@@ -1,61 +1,81 @@
 import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
-import { X, Calendar, Clock, Building2, MapPin } from "lucide-react";
-import { getMaintenancePlanById } from "../../api/schedule.api";
-import { getHouseById } from "../../../houses/api/houses.api";
+import { X, Calendar, Clock, Building2, MapPin, Plus } from "lucide-react";
+import { getMaintenancePlanById } from "../api/maintenance.api";
+import { getHouseById } from "../../houses/api/houses.api";
+import AddHousesModal from "./AddHousesModal";
 
 const FREQ_LABELS = {
-  WEEKLY:    "Hàng tuần",
-  MONTHLY:   "Hàng tháng",
+  WEEKLY: "Hàng tuần",
+  MONTHLY: "Hàng tháng",
   QUARTERLY: "Hàng quý",
-  YEARLY:    "Hàng năm",
+  YEARLY: "Hàng năm",
 };
 
 function formatDate(value) {
   if (!value) return "—";
   const d = new Date(value);
   if (isNaN(d)) return value;
-  return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+  return d.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 }
 
 export default function PlanDetailDrawer({ open, planId, onClose }) {
-  const [detail, setDetail]   = useState(null);
-  const [houses, setHouses]   = useState([]);
+  const [detail, setDetail] = useState(null);
+  const [houses, setHouses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [showAddHouses, setShowAddHouses] = useState(false);
 
   useEffect(() => {
     if (!open || !planId) return;
+    setLoading(true);
+    setError(null);
+    setHouses([]);
 
     getMaintenancePlanById(planId)
       .then(async (data) => {
         setDetail(data);
         if (Array.isArray(data.houseIds) && data.houseIds.length > 0) {
           const results = await Promise.allSettled(
-            data.houseIds.map((id) => getHouseById(id))
+            data.houseIds.map((id) => getHouseById(id)),
           );
           setHouses(
-            results
-              .filter((r) => r.status === "fulfilled")
-              .map((r) => r.value)
+            results.filter((r) => r.status === "fulfilled").map((r) => r.value),
           );
         }
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [open, planId]);
+  }, [open, planId, refreshKey]);
 
   if (!open) return null;
 
   return createPortal(
     <>
-      <div className="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm" onClick={onClose} />
+      <AddHousesModal
+        open={showAddHouses}
+        planId={planId}
+        existingHouseIds={detail?.houseIds ?? []}
+        onClose={() => setShowAddHouses(false)}
+        onAdded={() => setRefreshKey((k) => k + 1)}
+      />
+      <div
+        className="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
       <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white z-50 shadow-2xl flex flex-col">
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-start justify-between flex-shrink-0">
           <div className="min-w-0 flex-1">
-            <p className="text-xs text-teal-600 font-semibold mb-1">Chi tiết kế hoạch bảo trì</p>
+            <p className="text-xs text-teal-600 font-semibold mb-1">
+              Chi tiết kế hoạch bảo trì
+            </p>
             <h3 className="text-base font-bold text-slate-900 truncate">
               {loading ? "Đang tải..." : (detail?.name ?? "—")}
             </h3>
@@ -74,7 +94,10 @@ export default function PlanDetailDrawer({ open, planId, onClose }) {
           <div className="flex-1 flex items-center justify-center">
             <div className="space-y-3 w-full px-6">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-4 bg-slate-100 rounded animate-pulse" />
+                <div
+                  key={i}
+                  className="h-4 bg-slate-100 rounded animate-pulse"
+                />
               ))}
             </div>
           </div>
@@ -82,7 +105,9 @@ export default function PlanDetailDrawer({ open, planId, onClose }) {
 
         {!loading && error && (
           <div className="flex-1 flex items-center justify-center px-6">
-            <p className="text-sm text-red-500 font-medium text-center">{error}</p>
+            <p className="text-sm text-red-500 font-medium text-center">
+              {error}
+            </p>
           </div>
         )}
 
@@ -93,10 +118,13 @@ export default function PlanDetailDrawer({ open, planId, onClose }) {
               <div className="flex items-start gap-3">
                 <Clock className="w-4 h-4 text-teal-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">Chu kỳ</p>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">
+                    Chu kỳ
+                  </p>
                   <p className="text-sm font-semibold text-slate-700">
                     {FREQ_LABELS[detail.frequencyType] ?? detail.frequencyType}
-                    {detail.frequencyValue > 1 && ` · mỗi ${detail.frequencyValue} kỳ`}
+                    {detail.frequencyValue > 1 &&
+                      ` · mỗi ${detail.frequencyValue} kỳ`}
                   </p>
                 </div>
               </div>
@@ -104,9 +132,12 @@ export default function PlanDetailDrawer({ open, planId, onClose }) {
               <div className="flex items-start gap-3">
                 <Calendar className="w-4 h-4 text-teal-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">Thời gian hiệu lực</p>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">
+                    Thời gian hiệu lực
+                  </p>
                   <p className="text-sm font-semibold text-slate-700">
-                    {formatDate(detail.effectiveFrom)} – {formatDate(detail.effectiveTo)}
+                    {formatDate(detail.effectiveFrom)} –{" "}
+                    {formatDate(detail.effectiveTo)}
                   </p>
                 </div>
               </div>
@@ -114,24 +145,40 @@ export default function PlanDetailDrawer({ open, planId, onClose }) {
               <div className="flex items-start gap-3">
                 <Calendar className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">Lần chạy tiếp theo</p>
-                  <p className="text-sm font-semibold text-slate-700">{formatDate(detail.nextRunAt)}</p>
+                  <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">
+                    Lần chạy tiếp theo
+                  </p>
+                  <p className="text-sm font-semibold text-slate-700">
+                    {formatDate(detail.nextRunAt)}
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Danh sách bất động sản */}
             <div>
-              <p className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 mb-3">
                 <Building2 className="w-4 h-4 text-slate-400" />
-                Bất động sản áp dụng
-                <span className="ml-auto text-xs font-normal text-slate-400">
+                <p className="text-sm font-semibold text-slate-700">
+                  Bất động sản áp dụng
+                </p>
+                <span className="ml-1 text-xs font-normal text-slate-400">
                   {(detail.houseIds ?? []).length} nhà
                 </span>
-              </p>
+                <button
+                  type="button"
+                  onClick={() => setShowAddHouses(true)}
+                  className="ml-auto flex items-center gap-1 px-2.5 py-1 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold rounded-lg transition"
+                >
+                  <Plus className="w-3 h-3" />
+                  Thêm nhà vào kế hoạch
+                </button>
+              </div>
 
               {houses.length === 0 ? (
-                <p className="text-xs text-slate-400 italic">Không có bất động sản nào</p>
+                <p className="text-xs text-slate-400 italic">
+                  Không có bất động sản nào
+                </p>
               ) : (
                 <div className="space-y-2">
                   {houses.map((house) => (
@@ -145,7 +192,9 @@ export default function PlanDetailDrawer({ open, planId, onClose }) {
                       {(house.address || house.city) && (
                         <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
                           <MapPin className="w-3 h-3 flex-shrink-0" />
-                          {[house.address, house.ward, house.city].filter(Boolean).join(", ")}
+                          {[house.address, house.ward, house.city]
+                            .filter(Boolean)
+                            .join(", ")}
                         </p>
                       )}
                     </div>

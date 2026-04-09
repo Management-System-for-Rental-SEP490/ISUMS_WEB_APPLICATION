@@ -42,6 +42,17 @@ let initPromise = null;
 
 export const authActions = {
   async init() {
+    // ============================================================
+    // [DEV BYPASS]
+    if (import.meta.env.VITE_DEV_BYPASS_AUTH === "true") {
+      setState({
+        isAuthenticated: true,
+        roles: ["ADMIN"],
+        profile: { id: "dev-user", name: "Dev User", email: "dev@local.test" },
+      });
+      return true;
+    }
+    // ============================================================
     if (!hasEnv()) {
       setState({ isAuthenticated: false, roles: [], profile: null });
       return false;
@@ -72,17 +83,22 @@ export const authActions = {
               isAuthenticated: true,
               roles: Array.isArray(me?.roles) ? me.roles : [],
               profile: {
-                id:    me?.id    ?? null,
-                name:  me?.name  ?? keycloak?.tokenParsed?.name,
+                id: me?.id ?? null,
+                name: me?.name ?? keycloak?.tokenParsed?.name,
                 email: me?.email ?? keycloak?.tokenParsed?.email,
               },
             });
           } catch {
+            // getMe() failed — try to extract roles from Keycloak token as fallback
+            const tokenRoles =
+              keycloak?.tokenParsed?.roles ??
+              keycloak?.tokenParsed?.realm_access?.roles ??
+              [];
             setState({
               isAuthenticated: true,
-              roles: [],
+              roles: Array.isArray(tokenRoles) ? tokenRoles : [],
               profile: {
-                name:  keycloak?.tokenParsed?.name,
+                name: keycloak?.tokenParsed?.name,
                 email: keycloak?.tokenParsed?.email,
               },
             });

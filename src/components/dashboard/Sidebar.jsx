@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useAuthStore } from "../../features/auth/store/auth.store";
 import {
+  AlertCircle,
+  BarChart2,
   Bell,
   Building2,
   CalendarDays,
@@ -11,12 +13,18 @@ import {
   FileText,
   Home,
   LogOut,
-  Paperclip,
+  CheckCircle,
+  MailQuestionIcon,
   PenLine,
+  Tag,
   Settings,
+  UserCheck,
   Users,
+  UserCog,
+  Wrench,
   X,
   Zap,
+  LayoutDashboard,
 } from "lucide-react";
 import logo from "../../assets/logo.jpg";
 
@@ -26,376 +34,307 @@ export default function Sidebar({
   onLogout,
   activeMenu,
   setActiveMenu,
+  unreadCount = 0,
 }) {
-  const [contractsOpen, setContractsOpen] = useState(
-    activeMenu === "contracts" || activeMenu === "contracts-sign",
-  );
-  const [maintenanceOpen, setMaintenanceOpen] = useState(
-    activeMenu === "maintenance" ||
-      activeMenu === "maintenance-plans" ||
-      activeMenu === "maintenance-jobs",
-  );
   const roles = useAuthStore((s) => s.roles ?? []);
-  const isAdmin = roles.includes("ADMIN");
-  const isLandlord = roles.includes("LANDLORD");
-  const canSeePendingSign = isAdmin || isLandlord;
+  const canSeePendingSign =
+    roles.includes("ADMIN") || roles.includes("LANDLORD");
+
+  const [openGroups, setOpenGroups] = useState({});
+
+  const toggleGroup = (id) =>
+    setOpenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const handleNavClick = (e, menuId) => {
     e.preventDefault();
     setActiveMenu(menuId);
   };
 
-  const handleContractsToggle = (e) => {
-    e.preventDefault();
-    if (!isOpen) {
-      setActiveMenu("contracts");
-    } else {
-      setContractsOpen((prev) => !prev);
-    }
-  };
+  const isExpanded = isOpen;
 
-  const topMenuItems = [
-    { id: "dashboard", label: "Bảng Điều Khiển", icon: Home },
-    { id: "houses", label: "Bất Động Sản", icon: Building2 },
-    { id: "utilities", label: "Tiện Ích", icon: Zap },
-    { id: "users", label: "Người Dùng", icon: Users },
+  const sections = [
+    {
+      id: "tong-quan",
+      label: "Tổng Quan",
+      icon: LayoutDashboard,
+      collapsible: false,
+      items: [
+        { id: "dashboard", label: "Dashboard", icon: Home },
+        { id: "utilities", label: "Tiện Ích", icon: Zap },
+        { id: "maintenance", label: "Lịch Làm Việc", icon: CalendarDays },
+      ],
+    },
+    {
+      id: "bat-dong-san-group",
+      label: "Bất Động Sản",
+      icon: Building2,
+      collapsible: true,
+      items: [
+        { id: "houses", label: "Quản lý nhà", icon: Building2 },
+        { id: "assets", label: "Thiết bị trong nhà", icon: Wrench, disabled: true },
+      ],
+    },
+    {
+      id: "nguoi-dung-group",
+      label: "Người Dùng",
+      icon: Users,
+      collapsible: true,
+      items: [
+        { id: "users", label: "Khách thuê", icon: Users },
+        { id: "staff", label: "Nhân viên", icon: UserCog },
+      ],
+    },
+    {
+      id: "bao-tri-group",
+      label: "Bảo Trì",
+      icon: ClipboardList,
+      collapsible: true,
+      items: [
+        { id: "maintenance-plans", label: "Kế hoạch bảo trì", icon: ClipboardList },
+        { id: "maintenance-jobs", label: "Công việc bảo trì", icon: ClipboardList },
+        { id: "maintenance-inspections", label: "Kiểm tra nhà cửa", icon: ClipboardList },
+      ],
+    },
+    {
+      id: "sua-chua-group",
+      label: "Sửa Chữa",
+      icon: AlertCircle,
+      collapsible: true,
+      items: [
+        { id: "issue-requests", label: "Danh sách thắc mắc", icon: MailQuestionIcon },
+        { id: "issue-assignment", label: "Phân công xử lý", icon: UserCheck },
+        { id: "issue-quote-approval", label: "Xác nhận báo giá", icon: CheckCircle },
+        { id: "issue-history", label: "Lịch sử theo BĐS", icon: BarChart2 },
+        { id: "issue-price-list", label: "Bảng giá thiết bị", icon: Tag },
+      ],
+    },
+    {
+      id: "hop-dong-group",
+      label: "Hợp Đồng",
+      icon: FileText,
+      collapsible: true,
+      items: [
+        { id: "contracts", label: "Quản lý hợp đồng", icon: FileText },
+        ...(canSeePendingSign
+          ? [{ id: "contracts-sign", label: "Hợp đồng cần xử lý", icon: PenLine }]
+          : []),
+      ],
+    },
+    {
+      id: "he-thong",
+      label: "Hệ Thống",
+      icon: Settings,
+      collapsible: false,
+      items: [
+        { id: "notifications", label: "Thông báo", icon: Bell, badge: unreadCount },
+        { id: "settings", label: "Cài Đặt", icon: Settings },
+      ],
+    },
   ];
 
-  const isMaintenanceActive =
-    activeMenu === "maintenance" ||
-    activeMenu === "maintenance-plans" ||
-    activeMenu === "maintenance-jobs";
-
-  const handleMaintenanceToggle = (e) => {
-    e.preventDefault();
-    if (!isOpen) {
-      setActiveMenu("maintenance");
-    } else {
-      setMaintenanceOpen((prev) => !prev);
-    }
-  };
-
-  const isContractsActive =
-    activeMenu === "contracts" || activeMenu === "contracts-sign";
-
-  const activeItemCls = "bg-teal-500 text-white shadow-sm shadow-teal-200";
-  const inactiveItemCls =
-    "text-slate-600 hover:bg-slate-100 hover:text-slate-900";
+  const hasActiveChild = (section) =>
+    section.items?.some((c) => c.id === activeMenu);
 
   return (
     <aside
+      onMouseEnter={() => !isOpen && onToggle()}
       className={[
-        "bg-white border-r border-slate-200 text-slate-800 fixed left-0 inset-y-0 z-40",
+        "bg-slate-100 border-r border-slate-200 text-slate-800 fixed left-0 inset-y-0 z-40",
         "lg:sticky lg:top-0 lg:h-screen",
         "transition-all duration-300 ease-in-out",
-        isOpen ? "translate-x-0 w-64" : "-translate-x-full w-64",
+        // Mobile: slide in/out
+        isOpen ? "translate-x-0" : "-translate-x-full",
         "lg:translate-x-0",
-        !isOpen ? "lg:w-20" : "lg:w-64",
+        // Desktop width
+        isExpanded ? "lg:w-64" : "lg:w-[72px]",
       ].join(" ")}
       aria-label="Sidebar"
     >
       <div className="h-full flex flex-col overflow-hidden">
-        {/* ── Header ─────────────────────────────────────────── */}
-        <div
-          className={[
-            "px-4 py-4 border-b border-slate-100",
-            !isOpen ? "lg:px-2" : "",
-          ].join(" ")}
-        >
-          <div
-            className={[
-              "flex items-center gap-3",
-              isOpen
-                ? "justify-between"
-                : "lg:flex-col lg:gap-2 justify-center",
-            ].join(" ")}
-          >
-            <div
-              className={[
-                "flex items-center gap-2.5 min-w-0",
-                !isOpen ? "lg:flex-col" : "",
-              ].join(" ")}
-            >
-              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 shadow-md ring-2 ring-teal-200">
-                <img
-                  src={logo}
-                  alt="ISUMS Logo"
-                  className="w-full h-full object-cover"
-                />
+
+        {/* ── Logo ── */}
+        <div className="bg-white border-b border-slate-200 flex-shrink-0">
+          {isExpanded ? (
+            <div className="flex items-center gap-3 px-4 py-4">
+              <div className="w-9 h-9 rounded-xl overflow-hidden flex-shrink-0 shadow ring-2 ring-teal-200">
+                <img src={logo} alt="ISUMS Logo" className="w-full h-full object-cover" />
               </div>
+              <div className="min-w-0 flex-1">
+                <h1 className="font-extrabold text-sm text-teal-700 tracking-wide truncate">ISUMS</h1>
+                <p className="text-[10px] text-slate-400 leading-snug">Hệ thống nhà cho thuê thông minh</p>
+              </div>
+              {/* Chỉ hiện nút toggle khi isOpen thực sự (không phải hover) */}
               {isOpen && (
-                <div className="min-w-0">
-                  <h1 className="font-extrabold text-base text-teal-700 leading-tight tracking-wide truncate">
-                    ISUMS
-                  </h1>
-                  <p className="text-[10px] font-medium text-slate-400 leading-snug whitespace-normal">
-                    Hệ thống nhà cho thuê
-                    <br />
-                    thông minh
-                  </p>
-                </div>
+                <button
+                  type="button"
+                  onClick={onToggle}
+                  className="p-1.5 rounded-lg hover:bg-slate-100 transition text-slate-400 hover:text-slate-600 flex-shrink-0"
+                >
+                  <span className="lg:hidden"><X className="w-4 h-4" /></span>
+                  <span className="hidden lg:block"><ChevronLeft className="w-4 h-4" /></span>
+                </button>
               )}
             </div>
-
-            <button
-              type="button"
-              onClick={onToggle}
-              className="p-1.5 rounded-lg hover:bg-slate-100 transition flex-shrink-0 flex items-center justify-center text-slate-400 hover:text-slate-600"
-              aria-label={isOpen ? "Thu nhỏ menu" : "Mở rộng menu"}
-              title={isOpen ? "Thu nhỏ menu" : "Mở rộng menu"}
-            >
-              <span className="lg:hidden">
-                <X className="w-4 h-4" />
-              </span>
-              <span className="hidden lg:block">
-                {isOpen ? (
-                  <ChevronLeft className="w-4 h-4" />
-                ) : (
-                  <ChevronRight className="w-4 h-4" />
-                )}
-              </span>
-            </button>
-          </div>
+          ) : (
+            /* Collapsed: chỉ logo + nút expand */
+            <div className="flex flex-col items-center py-3 gap-2">
+              <div className="w-9 h-9 rounded-xl overflow-hidden shadow ring-2 ring-teal-200">
+                <img src={logo} alt="ISUMS Logo" className="w-full h-full object-cover" />
+              </div>
+              <button
+                type="button"
+                onClick={onToggle}
+                className="p-1 rounded-lg hover:bg-slate-100 transition text-slate-400 hover:text-slate-600"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* ── Nav ────────────────────────────────────────────── */}
-        <nav className="flex-1 py-3 overflow-y-auto px-3 space-y-0.5">
-          {isOpen && (
-            <p className="px-2 text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-2">
-              Menu Chính
-            </p>
-          )}
+        {/* ── Nav ── */}
+        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-2">
 
-          {topMenuItems.map((item) => (
-            <a
-              key={item.id}
-              href="#"
-              onClick={(e) => handleNavClick(e, item.id)}
-              className={[
-                "flex items-center gap-3 py-2.5 px-3 transition rounded-xl",
-                !isOpen && "lg:justify-center",
-                activeMenu === item.id ? activeItemCls : inactiveItemCls,
-              ].join(" ")}
-              title={!isOpen ? item.label : undefined}
-            >
-              <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
-              {isOpen && (
-                <span className="text-sm font-medium">{item.label}</span>
-              )}
-            </a>
-          ))}
-
-          {/* Maintenance group */}
-          <a
-            href="#"
-            onClick={handleMaintenanceToggle}
-            className={[
-              "flex items-center gap-3 py-2.5 px-3 transition rounded-xl",
-              !isOpen && "lg:justify-center",
-              isMaintenanceActive ? activeItemCls : inactiveItemCls,
-            ].join(" ")}
-            title={!isOpen ? "Lịch Sửa Chữa" : undefined}
-          >
-            <CalendarDays className="w-[18px] h-[18px] flex-shrink-0" />
-            {isOpen && (
-              <>
-                <span className="text-sm font-medium flex-1">
-                  Lịch Sửa Chữa
-                </span>
-                <ChevronDown
-                  className={[
-                    "w-4 h-4 transition-transform duration-200",
-                    isMaintenanceActive ? "text-white/70" : "text-slate-400",
-                    maintenanceOpen ? "rotate-180" : "",
-                  ].join(" ")}
-                />
-              </>
-            )}
-          </a>
-
-          {isOpen && maintenanceOpen && (
-            <div className="ml-4 border-l-2 border-teal-100 pl-2 space-y-0.5">
-              <a
-                href="#"
-                onClick={(e) => handleNavClick(e, "maintenance")}
-                className={[
-                  "flex items-center gap-3 py-2 px-3 transition rounded-xl text-sm",
-                  activeMenu === "maintenance"
-                    ? "bg-teal-50 text-teal-700 font-semibold"
-                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-800",
-                ].join(" ")}
-              >
-                <CalendarDays className="w-4 h-4 flex-shrink-0" />
-                <span>Lịch làm việc</span>
-              </a>
-              <a
-                href="#"
-                onClick={(e) => handleNavClick(e, "maintenance-plans")}
-                className={[
-                  "flex items-center gap-3 py-2 px-3 transition rounded-xl text-sm",
-                  activeMenu === "maintenance-plans"
-                    ? "bg-teal-50 text-teal-700 font-semibold"
-                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-800",
-                ].join(" ")}
-              >
-                <ClipboardList className="w-4 h-4 flex-shrink-0" />
-                <span>Kế hoạch bảo trì</span>
-              </a>
-              <a
-                href="#"
-                onClick={(e) => handleNavClick(e, "maintenance-jobs")}
-                className={[
-                  "flex items-center gap-3 py-2 px-3 transition rounded-xl text-sm",
-                  activeMenu === "maintenance-jobs"
-                    ? "bg-teal-50 text-teal-700 font-semibold"
-                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-800",
-                ].join(" ")}
-              >
-                <ClipboardList className="w-4 h-4 flex-shrink-0" />
-                <span>Công việc bảo trì</span>
-              </a>
+          {/* ══ COLLAPSED: 1 icon đại diện mỗi section ══ */}
+          {!isExpanded && (
+            <div className="flex flex-col items-center gap-1">
+              {sections.map((section) => {
+                const SectionIcon = section.icon;
+                const isActive = hasActiveChild(section) || activeMenu === section.items[0]?.id;
+                return (
+                  <button
+                    key={section.id}
+                    type="button"
+                    onClick={() => {
+                      // Click vào icon section → navigate item đầu tiên không disabled
+                      const first = section.items.find((i) => !i.disabled);
+                      if (first) setActiveMenu(first.id);
+                    }}
+                    title={section.label}
+                    className={[
+                      "relative flex items-center justify-center w-11 h-11 rounded-xl transition",
+                      isActive
+                        ? "bg-teal-500 text-white shadow-sm"
+                        : "text-slate-400 hover:bg-white hover:text-teal-600 hover:shadow-sm",
+                    ].join(" ")}
+                  >
+                    <SectionIcon className="w-[18px] h-[18px]" />
+                    {/* Badge dot nếu section có badge */}
+                    {section.items.some((i) => i.badge > 0) && (
+                      <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
 
-          {/* Contracts group */}
-          <a
-            href="#"
-            onClick={handleContractsToggle}
-            className={[
-              "flex items-center gap-3 py-2.5 px-3 transition rounded-xl",
-              !isOpen && "lg:justify-center",
-              isContractsActive ? activeItemCls : inactiveItemCls,
-            ].join(" ")}
-            title={!isOpen ? "Hợp Đồng" : undefined}
-          >
-            <FileText className="w-[18px] h-[18px] flex-shrink-0" />
-            {isOpen && (
-              <>
-                <span className="text-sm font-medium flex-1">Hợp Đồng</span>
-                <ChevronDown
-                  className={[
-                    "w-4 h-4 transition-transform duration-200",
-                    isContractsActive ? "text-white/70" : "text-slate-400",
-                    contractsOpen ? "rotate-180" : "",
-                  ].join(" ")}
-                />
-              </>
-            )}
-          </a>
+          {/* ══ EXPANDED: card sections đầy đủ ══ */}
+          {isExpanded && sections.map((section) => {
+            const isGroupExpanded = !!openGroups[section.id];
+            const sectionHasActive = hasActiveChild(section);
 
-          {isOpen && contractsOpen && (
-            <div className="ml-4 border-l-2 border-teal-100 pl-2 space-y-0.5">
-              <a
-                href="#"
-                onClick={(e) => handleNavClick(e, "contracts")}
-                className={[
-                  "flex items-center gap-3 py-2 px-3 transition rounded-xl text-sm",
-                  activeMenu === "contracts"
-                    ? "bg-teal-50 text-teal-700 font-semibold"
-                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-800",
-                ].join(" ")}
+            return (
+              <div
+                key={section.id}
+                className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden"
               >
-                <FileText className="w-4 h-4 flex-shrink-0" />
-                <span>Quản lý hợp đồng</span>
-              </a>
-              {canSeePendingSign && (
-                <a
-                  href="#"
-                  onClick={(e) => handleNavClick(e, "contracts-sign")}
-                  className={[
-                    "flex items-center gap-3 py-2 px-3 transition rounded-xl text-sm",
-                    activeMenu === "contracts-sign"
-                      ? "bg-teal-50 text-teal-700 font-semibold"
-                      : "text-slate-500 hover:bg-slate-100 hover:text-slate-800",
-                  ].join(" ")}
-                >
-                  <PenLine className="w-4 h-4 flex-shrink-0" />
-                  <span>Hợp đồng cần xử lý</span>
-                </a>
-              )}
-            </div>
-          )}
+                {/* Header */}
+                {section.collapsible ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleGroup(section.id)}
+                    className={[
+                      "w-full flex items-center justify-between px-4 py-3 transition-colors hover:bg-slate-50",
+                      isGroupExpanded ? "border-b border-slate-100" : "",
+                    ].join(" ")}
+                  >
+                    <span className={[
+                      "text-[11px] font-bold uppercase tracking-widest",
+                      sectionHasActive ? "text-teal-600" : "text-slate-400",
+                    ].join(" ")}>
+                      {section.label}
+                    </span>
+                    <ChevronDown className={[
+                      "w-3.5 h-3.5 transition-transform duration-200",
+                      isGroupExpanded ? "rotate-180" : "",
+                      sectionHasActive ? "text-teal-400" : "text-slate-300",
+                    ].join(" ")} />
+                  </button>
+                ) : (
+                  <div className="px-4 py-3 border-b border-slate-100">
+                    <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+                      {section.label}
+                    </span>
+                  </div>
+                )}
 
-          {/* Reports */}
-          <a
-            href="#"
-            onClick={(e) => handleNavClick(e, "reports")}
-            className={[
-              "flex items-center gap-3 py-2.5 px-3 transition rounded-xl",
-              !isOpen && "lg:justify-center",
-              activeMenu === "reports" ? activeItemCls : inactiveItemCls,
-            ].join(" ")}
-            title={!isOpen ? "Báo Cáo" : undefined}
-          >
-            <Paperclip className="w-[18px] h-[18px] flex-shrink-0" />
-            {isOpen && <span className="text-sm font-medium">Báo Cáo</span>}
-          </a>
+                {/* Items */}
+                {(!section.collapsible || isGroupExpanded) && (
+                  <div className="p-1.5 space-y-0.5">
+                    {section.items.map((item) => {
+                      const isActive = activeMenu === item.id;
+                      const Icon = item.icon;
 
-          {/* System section */}
-          {isOpen ? (
-            <p className="px-2 text-[10px] font-semibold text-slate-400 uppercase tracking-widest mt-5 mb-2">
-              Hệ Thống
-            </p>
-          ) : (
-            <div className="my-3 border-t border-slate-100 mx-1" />
-          )}
+                      if (item.disabled) {
+                        return (
+                          <div key={item.id} className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-40 cursor-not-allowed">
+                            <Icon className="w-4 h-4 flex-shrink-0 text-slate-400" />
+                            <span className="text-sm text-slate-400 flex-1">{item.label}</span>
+                            <span className="text-[10px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded font-medium">Soon</span>
+                          </div>
+                        );
+                      }
 
-          <a
-            href="#"
-            onClick={(e) => handleNavClick(e, "notifications")}
-            className={[
-              "flex items-center gap-3 py-2.5 px-3 relative rounded-xl transition",
-              !isOpen && "lg:justify-center",
-              activeMenu === "notifications" ? activeItemCls : inactiveItemCls,
-            ].join(" ")}
-            title={!isOpen ? "Thông báo" : undefined}
-          >
-            <Bell className="w-[18px] h-[18px] flex-shrink-0" />
-            {isOpen && <span className="text-sm font-medium">Thông báo</span>}
-            {isOpen ? (
-              <span className="absolute right-3 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold">
-                4
-              </span>
-            ) : (
-              <span className="absolute lg:right-2 lg:top-2 right-4 top-3 w-2 h-2 bg-red-500 rounded-full" />
-            )}
-          </a>
-
-          <a
-            href="#"
-            onClick={(e) => handleNavClick(e, "settings")}
-            className={[
-              "flex items-center gap-3 py-2.5 px-3 rounded-xl transition",
-              !isOpen && "lg:justify-center",
-              activeMenu === "settings" ? activeItemCls : inactiveItemCls,
-            ].join(" ")}
-            title={!isOpen ? "Cài đặt" : undefined}
-          >
-            <Settings className="w-[18px] h-[18px] flex-shrink-0" />
-            {isOpen && <span className="text-sm font-medium">Cài Đặt</span>}
-          </a>
+                      return (
+                        <a
+                          key={item.id}
+                          href="#"
+                          onClick={(e) => handleNavClick(e, item.id)}
+                          className={[
+                            "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150",
+                            isActive
+                              ? "bg-teal-500 text-white shadow-sm shadow-teal-200"
+                              : "text-slate-600 hover:bg-teal-50 hover:text-teal-700",
+                          ].join(" ")}
+                        >
+                          <Icon className={["w-4 h-4 flex-shrink-0", isActive ? "text-white" : "text-slate-400"].join(" ")} />
+                          <span className={["text-sm flex-1", isActive ? "font-semibold" : ""].join(" ")}>{item.label}</span>
+                          {item.badge > 0 && (
+                            <span className={[
+                              "min-w-[20px] h-5 text-[10px] font-bold rounded-full flex items-center justify-center px-1",
+                              isActive ? "bg-white/30 text-white" : "bg-red-500 text-white",
+                            ].join(" ")}>
+                              {item.badge > 9 ? "9+" : item.badge}
+                            </span>
+                          )}
+                        </a>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </nav>
 
-        {/* ── Footer ─────────────────────────────────────────── */}
-        <div
-          className={[
-            "px-3 py-3 border-t border-slate-100",
-            !isOpen ? "lg:px-2" : "",
-          ].join(" ")}
-        >
+        {/* ── Logout ── */}
+        <div className="bg-white px-2 py-3 border-t border-slate-200 flex-shrink-0">
           <button
             type="button"
             onClick={onLogout}
+            title={!isExpanded ? "Đăng Xuất" : undefined}
             className={[
-              "flex items-center gap-3 py-2.5 px-3 text-slate-500 hover:bg-red-50 hover:text-red-600 rounded-xl w-full transition",
-              !isOpen && "lg:justify-center",
+              "flex items-center gap-3 py-2.5 rounded-xl w-full transition",
+              "text-slate-500 hover:bg-red-50 hover:text-red-600",
+              !isExpanded ? "justify-center px-0" : "px-3",
             ].join(" ")}
-            title={!isOpen ? "Đăng Xuất" : undefined}
           >
             <LogOut className="w-[18px] h-[18px] flex-shrink-0" />
-            {isOpen && <span className="text-sm font-medium">Đăng Xuất</span>}
+            {isExpanded && <span className="text-sm font-medium">Đăng Xuất</span>}
           </button>
         </div>
+
       </div>
     </aside>
   );
