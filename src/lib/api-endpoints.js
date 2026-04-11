@@ -122,6 +122,7 @@ export const ASSET_ENDPOINTS = {
   CREATE: "/assets",
   UPDATE: (id) => `/assets/${id}`,
   DELETE: (id) => `/assets/${id}`,
+  PROPERTIES_STATUS: "/assets/events",
 };
 export const BANNER_ENDPOINTS = {
   BASE: "issues/banners",

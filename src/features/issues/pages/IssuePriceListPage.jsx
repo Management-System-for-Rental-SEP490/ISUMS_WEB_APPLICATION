@@ -127,10 +127,10 @@ function CreateBannerModal({ open, onClose, onCreated }) {
                 Giá mua (đ) <span className="text-red-400">*</span>
               </label>
               <input
-                name="price"
+                name="estimatedCost"
                 type="number"
                 min="0"
-                value={form.currentPrice}
+                value={form.estimatedCost}
                 onChange={handleChange}
                 placeholder="0"
                 className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-800 outline-none focus:border-teal-400 transition placeholder-gray-300"
@@ -142,10 +142,10 @@ function CreateBannerModal({ open, onClose, onCreated }) {
                 Giá bán (đ) <span className="text-red-400">*</span>
               </label>
               <input
-                name="estimatedCost"
+                name="currentPrice"
                 type="number"
                 min="0"
-                value={form.estimatedCost}
+                value={form.currentPrice}
                 onChange={handleChange}
                 placeholder="0"
                 className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-800 outline-none focus:border-teal-400 transition placeholder-gray-300"
@@ -185,7 +185,7 @@ function EditPriceInline({ item, onUpdated }) {
   const [saving, setSaving] = useState(false);
 
   const handleOpen = () => {
-    setPrice(String(item.estimatedCost ?? item.currentPrice ?? ""));
+    setPrice(String(item.currentPrice ?? ""));
     setEditing(true);
   };
 
@@ -208,7 +208,7 @@ function EditPriceInline({ item, onUpdated }) {
     return (
       <div className="flex items-center gap-2">
         <p className="text-sm font-bold text-teal-600">
-          {formatCurrency(item.estimatedCost ?? item.currentPrice)}
+          {formatCurrency(item.currentPrice)}
         </p>
         <button
           type="button"
@@ -323,14 +323,16 @@ export default function IssuePriceListPage() {
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         {/* Table header */}
         <div className="grid grid-cols-[48px_minmax(0,1fr)_200px_220px] gap-4 px-6 py-3 border-b border-gray-100 bg-gray-50">
-          {["STT", "Tên dịch vụ / thiết bị", "Giá mua", "Giá bán"].map((h) => (
-            <p
-              key={h}
-              className="text-xs font-semibold text-gray-400 uppercase tracking-wide"
-            >
-              {h}
-            </p>
-          ))}
+          {["STT", "Tên dịch vụ / thiết bị", "Giá mua vào", "Giá bán"].map(
+            (h) => (
+              <p
+                key={h}
+                className="text-xs font-semibold text-gray-400 uppercase tracking-wide"
+              >
+                {h}
+              </p>
+            ),
+          )}
         </div>
 
         {/* Skeleton */}
@@ -370,7 +372,7 @@ export default function IssuePriceListPage() {
                 {item.name}
               </p>
               <p className="text-sm font-semibold text-gray-600">
-                {formatCurrency(item.price ?? item.currentPrice)}
+                {formatCurrency(item.estimatedCost)}
               </p>
               <EditPriceInline item={item} onUpdated={fetchBanners} />
             </div>

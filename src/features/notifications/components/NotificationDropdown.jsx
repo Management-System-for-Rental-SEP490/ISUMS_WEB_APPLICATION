@@ -6,6 +6,14 @@ import {
 import { useUnreadCount } from "../hooks/useUnreadCount";
 import { getManagerNotifications, markAllNotificationsRead } from "../api/notifications.api";
 
+// Map category từ API sang loại hiển thị
+const CATEGORY_TYPE = {
+  CONTRACT_EXPIRED: "warning",
+  INSPECTION_DONE: "success",
+  PAYMENT_DUE: "critical",
+  PAYMENT_RECEIVED: "success",
+};
+
 const TYPE_ICON = {
   critical: <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />,
   warning: <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />,
@@ -18,6 +26,13 @@ const TYPE_DOT = {
   warning: "bg-amber-500",
   info: "bg-blue-500",
   success: "bg-green-500",
+};
+
+const TYPE_TEXT_COLOR = {
+  critical: "text-red-500",
+  warning: "text-amber-500",
+  info: "text-blue-500",
+  success: "text-green-500",
 };
 
 function formatTime(dateStr) {
@@ -55,7 +70,15 @@ export default function NotificationDropdown({ onNavigate }) {
     setIsLoading(true);
     try {
       const res = await getManagerNotifications(0, 8);
-      const items = Array.isArray(res) ? res : (res?.content ?? res?.data ?? []);
+      const items = Array.isArray(res)
+        ? res
+        : Array.isArray(res?.content)
+          ? res.content
+          : Array.isArray(res?.data)
+            ? res.data
+            : Array.isArray(res?.data?.content)
+              ? res.data.content
+              : [];
       setPreviews(items);
     } catch {
       // silent
@@ -183,8 +206,11 @@ export default function NotificationDropdown({ onNavigate }) {
               </div>
             ) : (
               previews.map((notif) => {
-                const type = notif.type?.toLowerCase() ?? "info";
+                const category = notif.category ?? notif.type ?? "";
+                const type = CATEGORY_TYPE[category] ?? category?.toLowerCase() ?? "info";
+                const resolvedType = TYPE_ICON[type] ? type : "info";
                 const isUnread = !notif.read;
+                const metadata = notif.metadata ?? {};
 
                 return (
                   <button
@@ -197,25 +223,30 @@ export default function NotificationDropdown({ onNavigate }) {
                   >
                     {/* Icon */}
                     <div className="mt-0.5">
-                      {TYPE_ICON[type] ?? <Bell className="w-4 h-4 text-gray-400 flex-shrink-0" />}
+                      {TYPE_ICON[resolvedType] ?? <Bell className="w-4 h-4 text-gray-400 flex-shrink-0" />}
                     </div>
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <p className={`text-sm leading-snug mb-0.5 ${isUnread ? "font-semibold text-gray-900" : "font-medium text-gray-700"}`}>
-                        {notif.title ?? notif.type ?? "Thông báo"}
+                        {notif.title ?? category ?? "Thông báo"}
                       </p>
                       <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
                         {notif.message ?? notif.content ?? ""}
                       </p>
-                      <p className={`text-[11px] mt-1 font-medium ${TYPE_DOT[type] ? `text-${type === "critical" ? "red" : type === "warning" ? "amber" : type === "success" ? "green" : "blue"}-500` : "text-gray-400"}`}>
+                      {metadata.type && (
+                        <p className="text-[10px] text-gray-400 mt-0.5">
+                          {metadata.type === "CHECK_IN" ? "Bàn giao nhà" : metadata.type === "CHECK_OUT" ? "Kết thúc hợp đồng" : metadata.type}
+                        </p>
+                      )}
+                      <p className={`text-[11px] mt-1 font-medium ${TYPE_TEXT_COLOR[resolvedType] ?? "text-gray-400"}`}>
                         {formatTime(notif.createdAt ?? notif.time)}
                       </p>
                     </div>
 
                     {/* Unread dot */}
                     {isUnread && (
-                      <span className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${TYPE_DOT[type] ?? "bg-blue-500"}`} />
+                      <span className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${TYPE_DOT[resolvedType] ?? "bg-blue-500"}`} />
                     )}
                   </button>
                 );
