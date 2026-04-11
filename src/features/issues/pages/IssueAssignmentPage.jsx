@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { getAllIssues, getIssueById, getTicketImages } from "../api/issues.api";
 import { getHouseById } from "../../houses/api/houses.api";
+import { getUserById } from "../../tenants/api/users.api";
 import { confirmManagerWorkSlot } from "../../maintenance/api/maintenance.api";
 import { toast } from "react-toastify";
 import { ISSUE_STATUS_CONFIG } from "../constants/issue.constants";
@@ -69,6 +70,7 @@ export default function IssueAssignmentPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [houseNames, setHouseNames] = useState({});
+  const [staffDetail, setStaffDetail] = useState(null);
   const [images, setImages] = useState([]);
   const [imagesLoading, setImagesLoading] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(null);
@@ -108,6 +110,7 @@ export default function IssueAssignmentPage() {
   const handleSelectIssue = async (issue) => {
     setSelected(issue);
     setSelectedDetail(null);
+    setStaffDetail(null);
     setImages([]);
     setDetailLoading(true);
     setImagesLoading(true);
@@ -128,6 +131,11 @@ export default function IssueAssignmentPage() {
           )
           .catch(() => {});
       }
+      if (detail?.assignedStaffId) {
+        getUserById(detail.assignedStaffId)
+          .then((s) => setStaffDetail(s))
+          .catch(() => {});
+      }
     } catch {
       // fallback to list data
     } finally {
@@ -142,6 +150,10 @@ export default function IssueAssignmentPage() {
     try {
       await confirmManagerWorkSlot(selected.id);
       toast.success(`Đã xác nhận ca làm việc: ${selected.title}`);
+      setSelected(null);
+      setSelectedDetail(null);
+      setStaffDetail(null);
+      setImages([]);
       fetchIssues();
     } catch (e) {
       toast.error(e.message ?? "Xác nhận thất bại, vui lòng thử lại.");
@@ -427,28 +439,56 @@ export default function IssueAssignmentPage() {
                     Nhân viên xử lý
                   </p>
                   {detail.assignedStaffId ? (
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex items-center gap-3">
-                      <Avatar name={detail.staffName} size="lg" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-gray-800">
-                          {detail.staffName ?? "Nhân viên"}
-                        </p>
-                        {detail.staffPhone && (
-                          <p className="text-xs text-gray-500 mt-0.5">
-                            {detail.staffPhone}
+                    detailLoading ||
+                    (!staffDetail && detail.assignedStaffId) ? (
+                      <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex items-center gap-3 animate-pulse">
+                        <div className="w-12 h-12 rounded-full bg-gray-200 flex-shrink-0" />
+                        <div className="flex-1 space-y-2">
+                          <div className="h-3 bg-gray-200 rounded w-2/3" />
+                          <div className="h-3 bg-gray-200 rounded w-1/2" />
+                          <div className="h-3 bg-gray-200 rounded w-1/3" />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex items-start gap-3">
+                        <Avatar
+                          name={staffDetail?.name ?? detail.staffName}
+                          size="lg"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-gray-800">
+                            {staffDetail?.name ??
+                              detail.staffName ??
+                              "Nhân viên"}
                           </p>
+                          {staffDetail?.phoneNumber && (
+                            <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                              <Phone className="w-3 h-3 text-gray-400" />
+                              {staffDetail.phoneNumber}
+                            </p>
+                          )}
+                          {staffDetail?.email && (
+                            <p className="text-xs text-gray-400 mt-0.5 truncate">
+                              {staffDetail.email}
+                            </p>
+                          )}
+                          {staffDetail?.roles?.[0] && (
+                            <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 mt-1">
+                              Nhân viên kỹ thuật
+                            </span>
+                          )}
+                        </div>
+                        {(staffDetail?.phoneNumber ?? detail.staffPhone) && (
+                          <a
+                            href={`tel:${staffDetail?.phoneNumber ?? detail.staffPhone}`}
+                            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 text-white text-xs font-semibold hover:bg-teal-700 transition"
+                          >
+                            <Phone className="w-3.5 h-3.5" />
+                            Gọi
+                          </a>
                         )}
                       </div>
-                      {detail.staffPhone && (
-                        <a
-                          href={`tel:${detail.staffPhone}`}
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 text-white text-xs font-semibold hover:bg-teal-700 transition"
-                        >
-                          <Phone className="w-3.5 h-3.5" />
-                          Gọi
-                        </a>
-                      )}
-                    </div>
+                    )
                   ) : (
                     <div className="bg-orange-50 rounded-xl p-4 border border-orange-100 flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
@@ -517,7 +557,9 @@ export default function IssueAssignmentPage() {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setLightboxIndex((lightboxIndex - 1 + images.length) % images.length);
+                setLightboxIndex(
+                  (lightboxIndex - 1 + images.length) % images.length,
+                );
               }}
               className="absolute left-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition"
             >

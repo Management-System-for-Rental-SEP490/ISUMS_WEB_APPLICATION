@@ -26,7 +26,7 @@ import {
   getAvailableSlotsByJob,
   getAvailableStaffForSlot,
 } from "../api/schedule.api";
-import { getUserById } from "../../tenants/api/users.api";
+import { getUserById, getStaffs } from "../../tenants/api/users.api";
 import {
   getMaintenanceJobsByStatus,
   getMaintenancePlanById,
@@ -185,6 +185,13 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  // ── Force manual mode khi chọn INSPECTION ─────────────────────────────
+  useEffect(() => {
+    if (jobType === "INSPECTION") {
+      setStaffMode("manual");
+    }
+  }, [jobType]);
+
   // ── Fetch jobs ─────────────────────────────────────────────────────────
   useEffect(() => {
     if (!open) return;
@@ -251,14 +258,22 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
     setAvailableStaff([]);
     setSelectedStaffId(null);
     setStaffLoading(true);
-    getAvailableStaffForSlot(selectedJobId, selectedDate, selectedSlot.startRaw)
-      .then(async (ids) => {
-        const results = await Promise.allSettled(ids.map((id) => getUserById(id)));
-        setAvailableStaff(results.filter((r) => r.status === "fulfilled").map((r) => r.value));
-      })
-      .catch(() => setAvailableStaff([]))
-      .finally(() => setStaffLoading(false));
-  }, [step, selectedJobId, selectedDate, selectedSlot]);
+    if (jobType === "INSPECTION") {
+      // INSPECTION: lấy toàn bộ nhân viên, không lọc theo slot
+      getStaffs()
+        .then((list) => setAvailableStaff(Array.isArray(list) ? list : []))
+        .catch(() => setAvailableStaff([]))
+        .finally(() => setStaffLoading(false));
+    } else {
+      getAvailableStaffForSlot(selectedJobId, selectedDate, selectedSlot.startRaw)
+        .then(async (ids) => {
+          const results = await Promise.allSettled(ids.map((id) => getUserById(id)));
+          setAvailableStaff(results.filter((r) => r.status === "fulfilled").map((r) => r.value));
+        })
+        .catch(() => setAvailableStaff([]))
+        .finally(() => setStaffLoading(false));
+    }
+  }, [step, selectedJobId, selectedDate, selectedSlot, jobType]);
 
   // ── Submit ─────────────────────────────────────────────────────────────
   const handleClose = () => { setVisible(false); setTimeout(onClose, 300); };
@@ -568,22 +583,24 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
           {/* ══ STEP 3: Nhân sự ══ */}
           {step === 3 && (
             <div className="space-y-5">
-              {/* Mode toggle */}
-              <div className="flex items-center justify-between px-4 py-3.5 rounded-xl border border-slate-200 bg-white">
-                <div>
-                  <p className="text-sm font-semibold text-slate-700">Chế độ phân công</p>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    {staffMode === "auto" ? "Hệ thống sẽ tự động chọn nhân sự tối ưu nhất" : "Bạn tự chọn nhân viên thực hiện"}
-                  </p>
+              {/* Mode toggle — ẩn khi INSPECTION (luôn manual) */}
+              {jobType !== "INSPECTION" && (
+                <div className="flex items-center justify-between px-4 py-3.5 rounded-xl border border-slate-200 bg-white">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700">Chế độ phân công</p>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {staffMode === "auto" ? "Hệ thống sẽ tự động chọn nhân sự tối ưu nhất" : "Bạn tự chọn nhân viên thực hiện"}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { setStaffMode((m) => m === "auto" ? "manual" : "auto"); setSelectedStaffId(null); }}
+                    className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${staffMode === "auto" ? "bg-teal-600" : "bg-slate-300"}`}
+                  >
+                    <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${staffMode === "auto" ? "left-7" : "left-1"}`} />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => { setStaffMode((m) => m === "auto" ? "manual" : "auto"); setSelectedStaffId(null); }}
-                  className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${staffMode === "auto" ? "bg-teal-600" : "bg-slate-300"}`}
-                >
-                  <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${staffMode === "auto" ? "left-7" : "left-1"}`} />
-                </button>
-              </div>
+              )}
 
               {/* Staff list */}
               <div>
