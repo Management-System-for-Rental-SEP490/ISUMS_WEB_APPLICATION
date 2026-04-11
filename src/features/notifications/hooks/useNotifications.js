@@ -33,8 +33,14 @@ export function useNotifications() {
 
       const items = Array.isArray(listRes)
         ? listRes
-        : (listRes?.content ?? listRes?.data ?? []);
-      const totalPages = listRes?.totalPages ?? 1;
+        : Array.isArray(listRes?.content)
+          ? listRes.content
+          : Array.isArray(listRes?.data)
+            ? listRes.data
+            : Array.isArray(listRes?.data?.content)
+              ? listRes.data.content
+              : [];
+      const totalPages = listRes?.totalPages ?? listRes?.data?.totalPages ?? 1;
 
       setNotifications(items);
       setHasMore(totalPages > 1);
@@ -58,8 +64,14 @@ export function useNotifications() {
 
       const items = Array.isArray(listRes)
         ? listRes
-        : (listRes?.content ?? listRes?.data ?? []);
-      const totalPages = listRes?.totalPages ?? nextPage + 1;
+        : Array.isArray(listRes?.content)
+          ? listRes.content
+          : Array.isArray(listRes?.data)
+            ? listRes.data
+            : Array.isArray(listRes?.data?.content)
+              ? listRes.data.content
+              : [];
+      const totalPages = listRes?.totalPages ?? listRes?.data?.totalPages ?? nextPage + 1;
 
       setNotifications((prev) => [...prev, ...items]);
       setHasMore(nextPage + 1 < totalPages);

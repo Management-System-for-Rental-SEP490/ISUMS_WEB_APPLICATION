@@ -259,7 +259,17 @@ export default function InspectionsPage() {
     setLoading(true);
     setError(null);
     getInspections(status || undefined)
-      .then((data) => setInspections(Array.isArray(data) ? data : (data?.data ?? [])))
+      .then((data) =>
+        setInspections(
+          Array.isArray(data)
+            ? data
+            : Array.isArray(data?.items)
+              ? data.items
+              : Array.isArray(data?.data)
+                ? data.data
+                : [],
+        ),
+      )
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   };
