@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../features/auth/store/auth.store";
 import {
   AlertCircle,
@@ -28,27 +29,17 @@ import {
 } from "lucide-react";
 import logo from "../../assets/logo.jpg";
 
-export default function Sidebar({
-  isOpen,
-  onToggle,
-  onLogout,
-  activeMenu,
-  setActiveMenu,
-  unreadCount = 0,
-}) {
+export default function Sidebar({ isOpen, onToggle, onLogout, unreadCount = 0 }) {
   const roles = useAuthStore((s) => s.roles ?? []);
   const canSeePendingSign =
     roles.includes("ADMIN") || roles.includes("LANDLORD");
 
+  const navigate = useNavigate();
+  const location = useLocation();
   const [openGroups, setOpenGroups] = useState({});
 
   const toggleGroup = (id) =>
     setOpenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
-
-  const handleNavClick = (e, menuId) => {
-    e.preventDefault();
-    setActiveMenu(menuId);
-  };
 
   const isExpanded = isOpen;
 
@@ -59,9 +50,9 @@ export default function Sidebar({
       icon: LayoutDashboard,
       collapsible: false,
       items: [
-        { id: "dashboard", label: "Dashboard", icon: Home },
-        { id: "utilities", label: "Tiện Ích", icon: Zap },
-        { id: "maintenance", label: "Lịch Làm Việc", icon: CalendarDays },
+        { id: "dashboard", label: "Dashboard", icon: Home, path: "/dashboard" },
+        { id: "utilities", label: "Tiện Ích", icon: Zap, path: "/utilities" },
+        { id: "maintenance", label: "Lịch Làm Việc", icon: CalendarDays, path: "/maintenance" },
       ],
     },
     {
@@ -70,7 +61,7 @@ export default function Sidebar({
       icon: Building2,
       collapsible: true,
       items: [
-        { id: "houses", label: "Quản lý nhà", icon: Building2 },
+        { id: "houses", label: "Quản lý nhà", icon: Building2, path: "/houses" },
         { id: "assets", label: "Thiết bị trong nhà", icon: Wrench, disabled: true },
       ],
     },
@@ -80,8 +71,8 @@ export default function Sidebar({
       icon: Users,
       collapsible: true,
       items: [
-        { id: "users", label: "Khách thuê", icon: Users },
-        { id: "staff", label: "Nhân viên", icon: UserCog },
+        { id: "users", label: "Khách thuê", icon: Users, path: "/users" },
+        { id: "staff", label: "Nhân viên", icon: UserCog, path: "/staff" },
       ],
     },
     {
@@ -90,9 +81,9 @@ export default function Sidebar({
       icon: ClipboardList,
       collapsible: true,
       items: [
-        { id: "maintenance-plans", label: "Kế hoạch bảo trì", icon: ClipboardList },
-        { id: "maintenance-jobs", label: "Công việc bảo trì", icon: ClipboardList },
-        { id: "maintenance-inspections", label: "Kiểm tra nhà cửa", icon: ClipboardList },
+        { id: "maintenance-plans", label: "Kế hoạch bảo trì", icon: ClipboardList, path: "/maintenance/plans" },
+        { id: "maintenance-jobs", label: "Công việc bảo trì", icon: ClipboardList, path: "/maintenance/jobs" },
+        { id: "maintenance-inspections", label: "Kiểm tra nhà cửa", icon: ClipboardList, path: "/maintenance/inspections" },
       ],
     },
     {
@@ -101,11 +92,11 @@ export default function Sidebar({
       icon: AlertCircle,
       collapsible: true,
       items: [
-        { id: "issue-requests", label: "Danh sách thắc mắc", icon: MailQuestionIcon },
-        { id: "issue-assignment", label: "Phân công xử lý", icon: UserCheck },
-        { id: "issue-quote-approval", label: "Xác nhận báo giá", icon: CheckCircle },
-        { id: "issue-history", label: "Lịch sử theo BĐS", icon: BarChart2 },
-        { id: "issue-price-list", label: "Bảng giá thiết bị", icon: Tag },
+        { id: "issue-requests", label: "Danh sách thắc mắc", icon: MailQuestionIcon, path: "/issues" },
+        { id: "issue-assignment", label: "Phân công xử lý", icon: UserCheck, path: "/issues/assignment" },
+        { id: "issue-quote-approval", label: "Xác nhận báo giá", icon: CheckCircle, path: "/issues/quotes" },
+        { id: "issue-history", label: "Lịch sử theo BĐS", icon: BarChart2, path: "/issues/history" },
+        { id: "issue-price-list", label: "Bảng giá thiết bị", icon: Tag, path: "/issues/price-list" },
       ],
     },
     {
@@ -114,9 +105,9 @@ export default function Sidebar({
       icon: FileText,
       collapsible: true,
       items: [
-        { id: "contracts", label: "Quản lý hợp đồng", icon: FileText },
+        { id: "contracts", label: "Quản lý hợp đồng", icon: FileText, path: "/contracts" },
         ...(canSeePendingSign
-          ? [{ id: "contracts-sign", label: "Hợp đồng cần xử lý", icon: PenLine }]
+          ? [{ id: "contracts-sign", label: "Hợp đồng cần xử lý", icon: PenLine, path: "/contracts/pending" }]
           : []),
       ],
     },
@@ -126,14 +117,21 @@ export default function Sidebar({
       icon: Settings,
       collapsible: false,
       items: [
-        { id: "notifications", label: "Thông báo", icon: Bell, badge: unreadCount },
-        { id: "settings", label: "Cài Đặt", icon: Settings },
+        { id: "notifications", label: "Thông báo", icon: Bell, path: "/notifications", badge: unreadCount },
+        { id: "settings", label: "Cài Đặt", icon: Settings, path: "/settings" },
       ],
     },
   ];
 
+  const isItemActive = (item) => location.pathname === item.path;
+
   const hasActiveChild = (section) =>
-    section.items?.some((c) => c.id === activeMenu);
+    section.items?.some((item) => item.path && location.pathname === item.path);
+
+  // Brand gradient style (matches mobile: #3bb582 → #2096d8, diagonal)
+  const brandGradientStyle = {
+    background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)",
+  };
 
   return (
     <aside
@@ -142,10 +140,8 @@ export default function Sidebar({
         "bg-slate-100 border-r border-slate-200 text-slate-800 fixed left-0 inset-y-0 z-40",
         "lg:sticky lg:top-0 lg:h-screen",
         "transition-all duration-300 ease-in-out",
-        // Mobile: slide in/out
         isOpen ? "translate-x-0" : "-translate-x-full",
         "lg:translate-x-0",
-        // Desktop width
         isExpanded ? "lg:w-64" : "lg:w-[72px]",
       ].join(" ")}
       aria-label="Sidebar"
@@ -153,22 +149,21 @@ export default function Sidebar({
       <div className="h-full flex flex-col overflow-hidden">
 
         {/* ── Logo ── */}
-        <div className="bg-white border-b border-slate-200 flex-shrink-0">
+        <div className="flex-shrink-0">
           {isExpanded ? (
-            <div className="flex items-center gap-3 px-4 py-4">
-              <div className="w-9 h-9 rounded-xl overflow-hidden flex-shrink-0 shadow ring-2 ring-teal-200">
+            <div className="flex items-center gap-3 px-4 py-3.5">
+              <div className="w-8 h-8 rounded-xl overflow-hidden flex-shrink-0 shadow ring-2 ring-[#3bb582]/40">
                 <img src={logo} alt="ISUMS Logo" className="w-full h-full object-cover" />
               </div>
               <div className="min-w-0 flex-1">
-                <h1 className="font-extrabold text-sm text-teal-700 tracking-wide truncate">ISUMS</h1>
+                <h1 className="font-extrabold text-sm tracking-wide truncate" style={{ color: "#3bb582" }}>ISUMS</h1>
                 <p className="text-[10px] text-slate-400 leading-snug">Hệ thống nhà cho thuê thông minh</p>
               </div>
-              {/* Chỉ hiện nút toggle khi isOpen thực sự (không phải hover) */}
               {isOpen && (
                 <button
                   type="button"
                   onClick={onToggle}
-                  className="p-1.5 rounded-lg hover:bg-slate-100 transition text-slate-400 hover:text-slate-600 flex-shrink-0"
+                  className="p-1.5 rounded-lg hover:bg-slate-200 transition text-slate-400 hover:text-slate-600 flex-shrink-0"
                 >
                   <span className="lg:hidden"><X className="w-4 h-4" /></span>
                   <span className="hidden lg:block"><ChevronLeft className="w-4 h-4" /></span>
@@ -176,15 +171,14 @@ export default function Sidebar({
               )}
             </div>
           ) : (
-            /* Collapsed: chỉ logo + nút expand */
-            <div className="flex flex-col items-center py-3 gap-2">
-              <div className="w-9 h-9 rounded-xl overflow-hidden shadow ring-2 ring-teal-200">
+            <div className="flex flex-col items-center py-3.5 gap-2">
+              <div className="w-8 h-8 rounded-xl overflow-hidden shadow ring-2 ring-[#3bb582]/40">
                 <img src={logo} alt="ISUMS Logo" className="w-full h-full object-cover" />
               </div>
               <button
                 type="button"
                 onClick={onToggle}
-                className="p-1 rounded-lg hover:bg-slate-100 transition text-slate-400 hover:text-slate-600"
+                className="p-1 rounded-lg hover:bg-slate-200 transition text-slate-400 hover:text-slate-600"
               >
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
@@ -200,26 +194,25 @@ export default function Sidebar({
             <div className="flex flex-col items-center gap-1">
               {sections.map((section) => {
                 const SectionIcon = section.icon;
-                const isActive = hasActiveChild(section) || activeMenu === section.items[0]?.id;
+                const isActive = hasActiveChild(section);
                 return (
                   <button
                     key={section.id}
                     type="button"
                     onClick={() => {
-                      // Click vào icon section → navigate item đầu tiên không disabled
-                      const first = section.items.find((i) => !i.disabled);
-                      if (first) setActiveMenu(first.id);
+                      const first = section.items.find((i) => !i.disabled && i.path);
+                      if (first) navigate(first.path);
                     }}
                     title={section.label}
+                    style={isActive ? brandGradientStyle : undefined}
                     className={[
                       "relative flex items-center justify-center w-11 h-11 rounded-xl transition",
                       isActive
-                        ? "bg-teal-500 text-white shadow-sm"
-                        : "text-slate-400 hover:bg-white hover:text-teal-600 hover:shadow-sm",
+                        ? "text-white shadow-sm"
+                        : "text-slate-400 hover:bg-white hover:shadow-sm",
                     ].join(" ")}
                   >
                     <SectionIcon className="w-[18px] h-[18px]" />
-                    {/* Badge dot nếu section có badge */}
                     {section.items.some((i) => i.badge > 0) && (
                       <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
                     )}
@@ -249,17 +242,22 @@ export default function Sidebar({
                       isGroupExpanded ? "border-b border-slate-100" : "",
                     ].join(" ")}
                   >
-                    <span className={[
-                      "text-[11px] font-bold uppercase tracking-widest",
-                      sectionHasActive ? "text-teal-600" : "text-slate-400",
-                    ].join(" ")}>
+                    <span
+                      className={[
+                        "text-[11px] font-bold uppercase tracking-widest",
+                        sectionHasActive ? "" : "text-slate-400",
+                      ].join(" ")}
+                      style={sectionHasActive ? { color: "#3bb582" } : undefined}
+                    >
                       {section.label}
                     </span>
-                    <ChevronDown className={[
-                      "w-3.5 h-3.5 transition-transform duration-200",
-                      isGroupExpanded ? "rotate-180" : "",
-                      sectionHasActive ? "text-teal-400" : "text-slate-300",
-                    ].join(" ")} />
+                    <ChevronDown
+                      className={[
+                        "w-3.5 h-3.5 transition-transform duration-200",
+                        isGroupExpanded ? "rotate-180" : "",
+                      ].join(" ")}
+                      style={sectionHasActive ? { color: "#3bb582" } : { color: "#cbd5e1" }}
+                    />
                   </button>
                 ) : (
                   <div className="px-4 py-3 border-b border-slate-100">
@@ -273,7 +271,7 @@ export default function Sidebar({
                 {(!section.collapsible || isGroupExpanded) && (
                   <div className="p-1.5 space-y-0.5">
                     {section.items.map((item) => {
-                      const isActive = activeMenu === item.id;
+                      const isActive = isItemActive(item);
                       const Icon = item.icon;
 
                       if (item.disabled) {
@@ -287,19 +285,20 @@ export default function Sidebar({
                       }
 
                       return (
-                        <a
+                        <button
                           key={item.id}
-                          href="#"
-                          onClick={(e) => handleNavClick(e, item.id)}
+                          type="button"
+                          onClick={() => navigate(item.path)}
+                          style={isActive ? brandGradientStyle : undefined}
                           className={[
-                            "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150",
+                            "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150",
                             isActive
-                              ? "bg-teal-500 text-white shadow-sm shadow-teal-200"
-                              : "text-slate-600 hover:bg-teal-50 hover:text-teal-700",
+                              ? "text-white shadow-sm"
+                              : "text-slate-600 hover:bg-[#3bb582]/10 hover:text-[#3bb582]",
                           ].join(" ")}
                         >
                           <Icon className={["w-4 h-4 flex-shrink-0", isActive ? "text-white" : "text-slate-400"].join(" ")} />
-                          <span className={["text-sm flex-1", isActive ? "font-semibold" : ""].join(" ")}>{item.label}</span>
+                          <span className={["text-sm flex-1 text-left", isActive ? "font-semibold" : ""].join(" ")}>{item.label}</span>
                           {item.badge > 0 && (
                             <span className={[
                               "min-w-[20px] h-5 text-[10px] font-bold rounded-full flex items-center justify-center px-1",
@@ -308,7 +307,7 @@ export default function Sidebar({
                               {item.badge > 9 ? "9+" : item.badge}
                             </span>
                           )}
-                        </a>
+                        </button>
                       );
                     })}
                   </div>
@@ -319,7 +318,7 @@ export default function Sidebar({
         </nav>
 
         {/* ── Logout ── */}
-        <div className="bg-white px-2 py-3 border-t border-slate-200 flex-shrink-0">
+        <div className="px-2 py-3 flex-shrink-0">
           <button
             type="button"
             onClick={onLogout}

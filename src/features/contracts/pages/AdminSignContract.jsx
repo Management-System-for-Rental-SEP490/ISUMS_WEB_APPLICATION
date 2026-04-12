@@ -146,10 +146,7 @@ export default function AdminSignContract() {
               setRejectReason("");
             }}
             onExit={() =>
-              navigate("/dashboard", {
-                state: { menu: "contracts-sign" },
-                replace: true,
-              })
+              navigate("/contracts/pending", { replace: true })
             }
             onOpenSignatureModal={() => setShowSigModal(true)}
             onReopenOtp={() => setShowOtpModal(true)}

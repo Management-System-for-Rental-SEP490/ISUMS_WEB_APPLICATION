@@ -4,7 +4,7 @@
  */
 
 import api from "../../../lib/axios";
-import { HOUSES_ENDPOINTS } from "../../../lib/api-endpoints";
+import { HOUSES_ENDPOINTS, ASSET_ENDPOINTS } from "../../../lib/api-endpoints";
 import { extractResponseData, getErrorMessage } from "../../../lib/api-helpers";
 
 /**
@@ -116,16 +116,46 @@ export async function uploadHouseImages(houseId, files) {
   }
 }
 
+
 /**
- * Get images of a house
- * @param {string} id - House ID
- * @returns {Promise<Array>} List of images [{id, url, createdAt}]
+ * Get all assets belonging to a house
+ * @param {string} houseId
+ * @returns {Promise<Array>} List of assets
  */
-export async function getHouseImages(id) {
+export async function getAssetsByHouse(houseId) {
   try {
-    const response = await api.get(HOUSES_ENDPOINTS.IMAGES(id));
+    const response = await api.get(ASSET_ENDPOINTS.BY_HOUSE(houseId));
+    const data = extractResponseData(response);
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Create a functional area inside a house
+ * @param {Object} payload - { house, name, areaType, floorNo, description }
+ * @returns {Promise<Object>}
+ */
+export async function createFunctionalArea(payload) {
+  try {
+    const response = await api.post(HOUSES_ENDPOINTS.FUNCTIONAL_AREAS, payload);
     return extractResponseData(response);
-  } catch {
-    return [];
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Get single asset detail by ID
+ * @param {string} assetId
+ * @returns {Promise<Object>}
+ */
+export async function getAssetById(assetId) {
+  try {
+    const response = await api.get(ASSET_ENDPOINTS.ITEM_BY_ID(assetId));
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
   }
 }

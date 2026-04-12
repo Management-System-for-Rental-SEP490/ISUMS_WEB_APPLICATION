@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowUpDown,
   Building2,
@@ -8,10 +9,10 @@ import {
   List,
   Plus,
   Search,
+  Sparkles,
 } from "lucide-react";
 import { useHouses } from "../hooks/useHouses";
 import HouseCard from "../components/HouseCard";
-import HouseDetailModal from "../components/HouseDetailModal";
 import CreateHousePage from "./CreateHousePage";
 import { LoadingSpinner } from "../../../components/shared/Loading";
 
@@ -50,14 +51,17 @@ function Pagination({ current, total, onChange }) {
         type="button"
         onClick={() => onChange(current - 1)}
         disabled={current === 1}
-        className="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+        className="w-9 h-9 flex items-center justify-center rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
+        style={{ border: "1px solid #C4DED5", color: "#5A7A6E" }}
+        onMouseEnter={e => !e.currentTarget.disabled && (e.currentTarget.style.background = "#EAF4F0")}
+        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
       >
         <ChevronLeft className="w-4 h-4" />
       </button>
 
       {pages.map((p, i) =>
         p === "..." ? (
-          <span key={`ellipsis-${i}`} className="w-9 h-9 flex items-center justify-center text-slate-400 text-sm">
+          <span key={`ellipsis-${i}`} className="w-9 h-9 flex items-center justify-center text-sm" style={{ color: "#5A7A6E" }}>
             ...
           </span>
         ) : (
@@ -65,12 +69,12 @@ function Pagination({ current, total, onChange }) {
             key={p}
             type="button"
             onClick={() => onChange(p)}
-            className={[
-              "w-9 h-9 flex items-center justify-center rounded-xl text-sm font-medium transition",
-              p === current
-                ? "bg-teal-600 text-white shadow-sm"
-                : "border border-slate-200 text-slate-600 hover:bg-slate-50",
-            ].join(" ")}
+            className="w-9 h-9 flex items-center justify-center rounded-xl text-sm font-medium transition"
+            style={p === current
+              ? { background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)", color: "#ffffff", boxShadow: "0 4px 12px -2px rgba(59,181,130,0.35)" }
+              : { border: "1px solid #C4DED5", color: "#5A7A6E" }}
+            onMouseEnter={e => p !== current && (e.currentTarget.style.background = "#EAF4F0")}
+            onMouseLeave={e => p !== current && (e.currentTarget.style.background = "transparent")}
           >
             {p}
           </button>
@@ -81,7 +85,10 @@ function Pagination({ current, total, onChange }) {
         type="button"
         onClick={() => onChange(current + 1)}
         disabled={current === total}
-        className="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+        className="w-9 h-9 flex items-center justify-center rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
+        style={{ border: "1px solid #C4DED5", color: "#5A7A6E" }}
+        onMouseEnter={e => !e.currentTarget.disabled && (e.currentTarget.style.background = "#EAF4F0")}
+        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
       >
         <ChevronRight className="w-4 h-4" />
       </button>
@@ -96,26 +103,34 @@ function ListRow({ house }) {
   const price = house?.rentPrice ?? house?.rent;
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl px-5 py-4 shadow-sm flex items-center gap-4 hover:shadow-md transition">
-      <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center shrink-0">
-        <Building2 className="w-5 h-5 text-teal-500" />
+    <div
+      className="rounded-2xl px-5 py-4 flex items-center gap-4 transition-all duration-200"
+      style={{ background: "#ffffff", border: "1px solid #C4DED5", boxShadow: "0 2px 8px -2px rgba(59,181,130,0.08)" }}
+      onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 6px 20px -4px rgba(59,181,130,0.15)"; e.currentTarget.style.borderColor = "#3bb582"; }}
+      onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 2px 8px -2px rgba(59,181,130,0.08)"; e.currentTarget.style.borderColor = "#C4DED5"; }}
+    >
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "#EAF4F0" }}>
+        <Building2 className="w-5 h-5" style={{ color: "#3bb582" }} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-slate-800 truncate">{name}</p>
-        <p className="text-xs text-slate-500 truncate">{addr}</p>
+        <p className="text-sm font-semibold truncate" style={{ color: "#1E2D28" }}>{name}</p>
+        <p className="text-xs truncate" style={{ color: "#5A7A6E" }}>{addr}</p>
       </div>
       <span className={`px-2.5 py-1 text-xs font-medium rounded-lg border shrink-0 ${b.cls}`}>
         {b.label}
       </span>
       {price != null && price > 0 && (
-        <p className="text-sm font-semibold text-teal-600 shrink-0 w-28 text-right">
+        <p className="text-sm font-semibold shrink-0 w-28 text-right" style={{ color: "#3bb582" }}>
           ₫{Number(price).toLocaleString("vi-VN")}
-          <span className="text-xs font-normal text-slate-400">/th</span>
+          <span className="text-xs font-normal" style={{ color: "#5A7A6E" }}>/th</span>
         </p>
       )}
       <button
         type="button"
-        className="px-3 py-1.5 text-xs font-medium border border-slate-200 rounded-lg hover:bg-slate-50 transition shrink-0"
+        className="px-3 py-1.5 text-xs font-medium rounded-full transition shrink-0"
+        style={{ border: "1px solid #C4DED5", color: "#5A7A6E" }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.color = "#3bb582"; e.currentTarget.style.background = "rgba(59,181,130,0.06)"; }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.color = "#5A7A6E"; e.currentTarget.style.background = "transparent"; }}
       >
         Xem chi tiết
       </button>
@@ -131,16 +146,14 @@ export default function Houses() {
   const [sortValue, setSortValue]     = useState(":");
   const [viewMode, setViewMode]       = useState("grid");
   const [page, setPage]               = useState(1);
-  const [selectedHouse, setSelectedHouse] = useState(null);
+  const navigate = useNavigate();
   const [showCreate, setShowCreate]   = useState(false);
 
-  // Debounce keyword 400ms before sending to API
   useEffect(() => {
     const t = setTimeout(() => { setDebouncedKeyword(keyword); setPage(1); }, 400);
     return () => clearTimeout(t);
   }, [keyword]);
 
-  // Reset page when filters change
   const handleStatusChange = (val) => { setFilterStatus(val); setPage(1); };
   const handleSortChange   = (val) => { setSortValue(val);    setPage(1); };
 
@@ -169,15 +182,28 @@ export default function Houses() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Quản lý Bất động sản</h2>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,181,130,0.12)" }}>
+              <Sparkles className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
+            </div>
+            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>
+              Bất động sản
+            </span>
+          </div>
+          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>
+            Quản lý Bất động sản
+          </h2>
+          <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>
             Tổng số {pagination.total} bất động sản đang quản lý
             {loading && " • Đang tải..."}
           </p>
         </div>
         <button
           type="button"
-          className="flex items-center gap-2 px-4 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold rounded-xl shadow-sm transition"
+          className="flex items-center gap-2 px-4 py-2.5 text-white text-sm font-semibold rounded-full shadow-sm transition"
+          style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
+          onMouseEnter={e => e.currentTarget.style.opacity = "0.9"}
+          onMouseLeave={e => e.currentTarget.style.opacity = "1"}
           onClick={() => setShowCreate(true)}
         >
           <Plus className="w-4 h-4" />
@@ -186,15 +212,21 @@ export default function Houses() {
       </div>
 
       {/* Filter bar */}
-      <div className="bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm flex flex-wrap items-center gap-3">
+      <div
+        className="rounded-2xl px-4 py-3 flex flex-wrap items-center gap-3"
+        style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+      >
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "#5A7A6E" }} />
           <input
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             placeholder="Tìm theo tên nhà..."
-            className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 bg-slate-50 placeholder-slate-400"
+            className="w-full pl-9 pr-4 py-2 text-sm rounded-full outline-none transition"
+            style={{ background: "#EAF4F0", border: "1px solid #C4DED5", color: "#1E2D28" }}
+            onFocus={e => { e.currentTarget.style.background = "#ffffff"; e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59,181,130,0.12)"; }}
+            onBlur={e => { e.currentTarget.style.background = "#EAF4F0"; e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.boxShadow = "none"; }}
           />
         </div>
 
@@ -202,7 +234,8 @@ export default function Houses() {
         <select
           value={filterStatus}
           onChange={(e) => handleStatusChange(e.target.value)}
-          className="px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 bg-slate-50 text-slate-700 cursor-pointer"
+          className="px-3 py-2 text-sm rounded-full outline-none transition cursor-pointer"
+          style={{ background: "#EAF4F0", border: "1px solid #C4DED5", color: "#1E2D28" }}
         >
           <option value="">Tất cả trạng thái</option>
           <option value="AVAILABLE">Còn trống</option>
@@ -211,12 +244,16 @@ export default function Houses() {
         </select>
 
         {/* Sort */}
-        <div className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 rounded-xl bg-slate-50">
-          <ArrowUpDown className="w-3.5 h-3.5 text-slate-400" />
+        <div
+          className="flex items-center gap-1.5 px-3 py-2 rounded-full"
+          style={{ background: "#EAF4F0", border: "1px solid #C4DED5" }}
+        >
+          <ArrowUpDown className="w-3.5 h-3.5" style={{ color: "#5A7A6E" }} />
           <select
             value={sortValue}
             onChange={(e) => handleSortChange(e.target.value)}
-            className="text-sm text-slate-700 bg-transparent focus:outline-none cursor-pointer"
+            className="text-sm bg-transparent outline-none cursor-pointer"
+            style={{ color: "#1E2D28" }}
           >
             {SORT_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
@@ -225,20 +262,27 @@ export default function Houses() {
         </div>
 
         {/* View toggle */}
-        <div className="flex items-center gap-1 border border-slate-200 rounded-xl p-1 bg-slate-50 ml-auto">
+        <div
+          className="flex items-center gap-1 rounded-xl p-1 ml-auto"
+          style={{ background: "#EAF4F0", border: "1px solid #C4DED5" }}
+        >
           <button
             type="button"
             onClick={() => setViewMode("grid")}
-            className={["w-8 h-8 flex items-center justify-center rounded-lg transition",
-              viewMode === "grid" ? "bg-white shadow-sm text-teal-600" : "text-slate-400 hover:text-slate-600"].join(" ")}
+            className="w-8 h-8 flex items-center justify-center rounded-lg transition"
+            style={viewMode === "grid"
+              ? { background: "#ffffff", boxShadow: "0 1px 4px rgba(59,181,130,0.18)", color: "#3bb582" }
+              : { color: "#5A7A6E" }}
           >
             <LayoutGrid className="w-4 h-4" />
           </button>
           <button
             type="button"
             onClick={() => setViewMode("list")}
-            className={["w-8 h-8 flex items-center justify-center rounded-lg transition",
-              viewMode === "list" ? "bg-white shadow-sm text-teal-600" : "text-slate-400 hover:text-slate-600"].join(" ")}
+            className="w-8 h-8 flex items-center justify-center rounded-lg transition"
+            style={viewMode === "list"
+              ? { background: "#ffffff", boxShadow: "0 1px 4px rgba(59,181,130,0.18)", color: "#3bb582" }
+              : { color: "#5A7A6E" }}
           >
             <List className="w-4 h-4" />
           </button>
@@ -247,15 +291,18 @@ export default function Houses() {
 
       {/* Loading */}
       {loading && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-12 shadow-sm flex justify-center">
+        <div
+          className="rounded-2xl p-12 flex justify-center"
+          style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}
+        >
           <LoadingSpinner size="lg" showLabel label="Đang tải danh sách nhà..." />
         </div>
       )}
 
       {/* Error */}
       {!loading && error && (
-        <div className="bg-white border border-red-200 rounded-2xl p-6 shadow-sm">
-          <p className="text-red-600 font-medium text-sm">
+        <div className="rounded-2xl p-6" style={{ background: "#FAFFFE", border: "1px solid rgba(217,95,75,0.3)" }}>
+          <p className="font-medium text-sm" style={{ color: "#D95F4B" }}>
             Không tải được danh sách nhà. Vui lòng thử lại sau.
           </p>
         </div>
@@ -263,12 +310,12 @@ export default function Houses() {
 
       {/* Empty */}
       {!loading && !error && houses.length === 0 && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-16 shadow-sm text-center">
-          <div className="mx-auto w-16 h-16 rounded-2xl bg-teal-50 flex items-center justify-center mb-4">
-            <Building2 className="w-8 h-8 text-teal-500" />
+        <div className="rounded-2xl p-16 text-center" style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}>
+          <div className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: "#EAF4F0" }}>
+            <Building2 className="w-8 h-8" style={{ color: "#3bb582" }} />
           </div>
-          <h3 className="font-semibold text-slate-800">Không tìm thấy bất động sản phù hợp</h3>
-          <p className="mt-1.5 text-slate-500 text-sm max-w-xs mx-auto">
+          <h3 className="font-semibold" style={{ color: "#1E2D28" }}>Không tìm thấy bất động sản phù hợp</h3>
+          <p className="mt-1.5 text-sm max-w-xs mx-auto" style={{ color: "#5A7A6E" }}>
             Thử thay đổi bộ lọc trạng thái hoặc từ khóa tìm kiếm.
           </p>
         </div>
@@ -283,7 +330,7 @@ export default function Houses() {
                 <HouseCard
                   key={house.id}
                   house={house}
-                  onView={(h) => setSelectedHouse(h)}
+                  onView={(h) => navigate(`/houses/${h.id}`)}
                   onEdit={(h) => console.log("edit", h?.id)}
                 />
               ))}
@@ -307,7 +354,6 @@ export default function Houses() {
         </>
       )}
 
-      <HouseDetailModal house={selectedHouse} onClose={() => setSelectedHouse(null)} />
     </div>
   );
 }

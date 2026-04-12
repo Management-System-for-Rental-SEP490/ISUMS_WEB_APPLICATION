@@ -1,9 +1,7 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Sparkles } from "lucide-react";
 import { ISSUE_STATUS_CONFIG, ISSUE_TYPE_CONFIG } from "../constants/issue.constants";
 
-// TODO: thay bằng data thật từ API khi có hook
-// Cấu trúc mỗi property: { id, name, address, issues: Issue[] }
 const propertiesWithIssues = [];
 
 export default function IssueHistoryByPropertyPage() {
@@ -20,8 +18,14 @@ export default function IssueHistoryByPropertyPage() {
     <div className="space-y-5">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Lịch sử theo BĐS</h2>
-        <p className="text-sm text-gray-500 mt-0.5">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,181,130,0.12)" }}>
+            <Sparkles className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
+          </div>
+          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Lịch sử</span>
+        </div>
+        <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Lịch sử theo BĐS</h2>
+        <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>
           Tổng quan sự cố theo từng bất động sản để hỗ trợ quyết định bảo trì chủ động
         </p>
       </div>
@@ -33,11 +37,14 @@ export default function IssueHistoryByPropertyPage() {
             <button
               key={p.id}
               onClick={() => toggle(p.id)}
-              className="bg-white rounded-xl border shadow-sm p-4 text-left hover:border-teal-300 transition"
+              className="rounded-2xl p-4 text-left transition-all duration-200"
+              style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.background = "#F0FAF6"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.background = "#FAFFFE"; }}
             >
-              <p className="text-sm font-semibold text-gray-800 truncate">{p.name}</p>
-              <p className="text-2xl font-bold text-teal-600 mt-1">{p.issues.length}</p>
-              <p className="text-xs text-gray-400">sự cố</p>
+              <p className="text-sm font-semibold truncate" style={{ color: "#1E2D28" }}>{p.name}</p>
+              <p className="text-2xl font-heading font-bold mt-1" style={{ color: "#3bb582" }}>{p.issues.length}</p>
+              <p className="text-xs" style={{ color: "#5A7A6E" }}>sự cố</p>
             </button>
           ))}
         </div>
@@ -45,7 +52,10 @@ export default function IssueHistoryByPropertyPage() {
 
       {/* Detail per property */}
       {propertiesWithIssues.length === 0 ? (
-        <div className="bg-white rounded-xl border p-16 text-center text-gray-400 text-sm">
+        <div
+          className="rounded-2xl p-16 text-center text-sm"
+          style={{ background: "#FAFFFE", border: "1px solid #C4DED5", color: "#5A7A6E" }}
+        >
           Không có dữ liệu lịch sử sự cố
         </div>
       ) : (
@@ -53,59 +63,69 @@ export default function IssueHistoryByPropertyPage() {
           {propertiesWithIssues.map((p) => {
             const isOpen = expanded.has(p.id);
             return (
-              <div key={p.id} className="bg-white rounded-xl border shadow-sm overflow-hidden">
-                {/* Property header */}
+              <div
+                key={p.id}
+                className="rounded-2xl overflow-hidden"
+                style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+              >
                 <button
                   onClick={() => toggle(p.id)}
-                  className="w-full flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition"
+                  className="w-full flex items-center justify-between px-5 py-4 transition"
+                  onMouseEnter={e => e.currentTarget.style.background = "#F0FAF6"}
+                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                 >
                   <div className="flex items-center gap-3 text-left">
                     {isOpen
-                      ? <ChevronDown  className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      : <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      ? <ChevronDown  className="w-4 h-4 flex-shrink-0" style={{ color: "#3bb582" }} />
+                      : <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: "#5A7A6E" }} />
                     }
                     <div>
-                      <p className="font-semibold text-gray-800">{p.name}</p>
-                      <p className="text-xs text-gray-400">{p.address}</p>
+                      <p className="font-semibold" style={{ color: "#1E2D28" }}>{p.name}</p>
+                      <p className="text-xs" style={{ color: "#5A7A6E" }}>{p.address}</p>
                     </div>
                   </div>
-                  <span className="text-sm text-gray-500">{p.issues.length} sự cố</span>
+                  <span className="text-sm" style={{ color: "#5A7A6E" }}>{p.issues.length} sự cố</span>
                 </button>
 
-                {/* Issue rows */}
                 {isOpen && (
-                  <div className="border-t border-gray-100 overflow-x-auto">
+                  <div className="overflow-x-auto" style={{ borderTop: "1px solid #C4DED5" }}>
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="text-left text-xs text-gray-400 uppercase tracking-wide bg-gray-50">
+                        <tr className="text-left text-xs uppercase tracking-wide" style={{ background: "#EAF4F0", color: "#5A7A6E" }}>
                           <th className="px-5 py-2.5 font-semibold">Tiêu đề</th>
                           <th className="px-4 py-2.5 font-semibold">Loại</th>
                           <th className="px-4 py-2.5 font-semibold">Trạng thái</th>
                           <th className="px-4 py-2.5 font-semibold">Ngày tạo</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-50">
+                      <tbody>
                         {p.issues.map((issue) => {
                           const type   = ISSUE_TYPE_CONFIG[issue.type]     ?? ISSUE_TYPE_CONFIG.REPAIR;
                           const status = ISSUE_STATUS_CONFIG[issue.status] ?? ISSUE_STATUS_CONFIG.CREATED;
                           return (
-                            <tr key={issue.id} className="hover:bg-gray-50 transition">
+                            <tr
+                              key={issue.id}
+                              className="transition"
+                              style={{ borderBottom: "1px solid rgba(196,222,213,0.4)" }}
+                              onMouseEnter={e => e.currentTarget.style.background = "#F0FAF6"}
+                              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                            >
                               <td className="px-5 py-3">
-                                <p className="font-medium text-gray-800">{issue.title}</p>
-                                <p className="text-xs text-gray-400 mt-0.5 truncate">{issue.description}</p>
+                                <p className="font-medium" style={{ color: "#1E2D28" }}>{issue.title}</p>
+                                <p className="text-xs mt-0.5 truncate" style={{ color: "#5A7A6E" }}>{issue.description}</p>
                               </td>
                               <td className="px-4 py-3">
-                                <span className={`text-xs font-semibold px-2 py-0.5 rounded ${type.cls}`}>
+                                <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: type.bg, color: type.color }}>
                                   {type.label}
                                 </span>
                               </td>
                               <td className="px-4 py-3">
-                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${status.pill}`}>
-                                  <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: status.bg, color: status.color }}>
+                                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: status.dot }} />
                                   {status.label}
                                 </span>
                               </td>
-                              <td className="px-4 py-3 text-gray-500">{issue.createdAt}</td>
+                              <td className="px-4 py-3" style={{ color: "#5A7A6E" }}>{issue.createdAt}</td>
                             </tr>
                           );
                         })}

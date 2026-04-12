@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Edit, Download } from "lucide-react";
 import Breadcrumbs from "../../../../components/shared/Breadcrumbs";
 import { LoadingSpinner } from "../../../../components/shared/Loading";
@@ -13,8 +14,8 @@ export default function ContractDetailView({
   error,
   onBack,
   onEdit,
-  onNavigateMenu,
 }) {
+  const navigate = useNavigate();
   const [downloading, setDownloading] = useState(false);
   const pdfUrl = contract?.pdfUrl ?? null;
   const contractHtml = contract?.html ?? "";
@@ -43,7 +44,7 @@ export default function ContractDetailView({
       <div className="space-y-4">
         <Breadcrumbs
           items={[
-            { label: "Trang chủ", onClick: () => onNavigateMenu?.("dashboard") },
+            { label: "Trang chủ", onClick: () => navigate("/dashboard") },
             { label: "Quản lý hợp đồng", onClick: onBack },
             { label: "Đang tải..." },
           ]}
@@ -61,7 +62,7 @@ export default function ContractDetailView({
       <div className="space-y-4">
         <Breadcrumbs
           items={[
-            { label: "Trang chủ", onClick: () => onNavigateMenu?.("dashboard") },
+            { label: "Trang chủ", onClick: () => navigate("/dashboard") },
             { label: "Quản lý hợp đồng", onClick: onBack },
             { label: "Chi tiết" },
           ]}
@@ -95,7 +96,7 @@ export default function ContractDetailView({
     <div className="space-y-4">
       <Breadcrumbs
         items={[
-          { label: "Trang chủ", onClick: () => onNavigateMenu?.("dashboard") },
+          { label: "Trang chủ", onClick: () => navigate("/dashboard") },
           { label: "Quản lý hợp đồng", onClick: onBack },
           { label: contract?.contractNumber ?? contract?.name ?? "Chi tiết" },
         ]}

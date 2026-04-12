@@ -5,7 +5,7 @@ import { useContracts } from "../../../features/contracts/hooks/useContract";
 import ContractsListView from "./views/ContractListView";
 import ContractCreateView from "./views/ContractCreateView";
 
-export default function ContractsPage({ onNavigateMenu }) {
+export default function ContractsPage() {
   const navigate = useNavigate();
   const [view, setView] = useState("list");
   const [selectedId, setSelectedId] = useState(null);
@@ -72,7 +72,6 @@ export default function ContractsPage({ onNavigateMenu }) {
   if (view === "create") {
     return (
       <ContractCreateView
-        onNavigateMenu={onNavigateMenu}
         onBack={goList}
         onCreated={(payload) => {
           if (payload) {
@@ -100,7 +99,6 @@ export default function ContractsPage({ onNavigateMenu }) {
 
   return (
     <ContractsListView
-      onNavigateMenu={onNavigateMenu}
       onCreate={goCreate}
       onViewDetail={goDetail}
       onEdit={goEdit}

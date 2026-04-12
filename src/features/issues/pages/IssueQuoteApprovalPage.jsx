@@ -3,13 +3,12 @@ import {
   RefreshCw,
   Wrench,
   CheckCircle,
-  MapPin,
   AlertTriangle,
-  ChevronRight,
   PackageSearch,
   Home,
   X,
   Info,
+  Sparkles,
 } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -42,19 +41,16 @@ function StaffAvatar({ name }) {
     .join("")
     .toUpperCase();
   return (
-    <div className="w-14 h-14 rounded-full bg-teal-600 text-white flex items-center justify-center text-lg font-bold flex-shrink-0 shadow-sm">
+    <div
+      className="w-14 h-14 rounded-full text-white flex items-center justify-center text-lg font-bold flex-shrink-0 shadow-sm"
+      style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
+    >
       {initials}
     </div>
   );
 }
 
-function QuoteDetail({
-  quote,
-  ticketDetail,
-  houseName,
-  onApproved,
-  onRejected,
-}) {
+function QuoteDetail({ quote, ticketDetail, houseName, onApproved, onRejected }) {
   const [confirming, setConfirming] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const isApproved = quote.status === "APPROVED";
@@ -86,54 +82,58 @@ function QuoteDetail({
     }
   };
 
+  const s = ISSUE_STATUS_CONFIG[ticketDetail.status] ?? ISSUE_STATUS_CONFIG.CREATED;
+
   return (
     <div className="space-y-5">
       {/* Top two-column cards */}
       <div className="grid grid-cols-[1fr_280px] gap-4">
         {/* Ticket info card */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 border-l-4 border-l-teal-500">
+        <div
+          className="rounded-2xl p-5"
+          style={{
+            background: "#FAFFFE",
+            border: "1px solid #C4DED5",
+            borderLeft: "4px solid #3bb582",
+            boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)",
+          }}
+        >
           <div className="flex items-start justify-between mb-3">
             <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "#5A7A6E" }}>
                 Mã yêu cầu
               </p>
-              <p className="text-2xl font-black text-gray-900">
+              <p className="text-2xl font-black" style={{ color: "#1E2D28" }}>
                 #{String(ticketDetail.id).slice(0, 8).toUpperCase()}
               </p>
             </div>
-            {(() => {
-              const s =
-                ISSUE_STATUS_CONFIG[ticketDetail.status] ??
-                ISSUE_STATUS_CONFIG.CREATED;
-              return (
-                <span
-                  className={`inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full ${s.pill}`}
-                >
-                  <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
-                  {s.label}
-                </span>
-              );
-            })()}
+            <span
+              className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full"
+              style={{ background: s.bg, color: s.color }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: s.dot }} />
+              {s.label}
+            </span>
           </div>
           <div className="space-y-2.5">
             <div className="flex items-start gap-2">
-              <Home className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+              <Home className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "#5A7A6E" }} />
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">
+                <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>
                   Địa chỉ bảo trì
                 </p>
-                <p className="text-sm text-gray-700 mt-0.5">
+                <p className="text-sm mt-0.5" style={{ color: "#1E2D28" }}>
                   {houseName ?? "Đang tải..."}
                 </p>
               </div>
             </div>
             <div className="flex items-start gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
+              <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "#f59e0b" }} />
               <div>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide">
+                <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>
                   Mô tả sự cố
                 </p>
-                <p className="text-sm text-gray-700 mt-0.5 leading-relaxed">
+                <p className="text-sm mt-0.5 leading-relaxed" style={{ color: "#1E2D28" }}>
                   {ticketDetail.description ?? "Không có mô tả."}
                 </p>
               </div>
@@ -142,8 +142,11 @@ function QuoteDetail({
         </div>
 
         {/* Technician card */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">
+        <div
+          className="rounded-2xl p-5 flex flex-col"
+          style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+        >
+          <p className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: "#5A7A6E" }}>
             Kỹ thuật viên
           </p>
           {ticketDetail.assignedStaffId ? (
@@ -151,28 +154,31 @@ function QuoteDetail({
               <div className="flex items-center gap-3 mb-4">
                 <StaffAvatar name={ticketDetail.staffName} />
                 <div>
-                  <p className="text-sm font-bold text-gray-900">
+                  <p className="text-sm font-bold" style={{ color: "#1E2D28" }}>
                     {ticketDetail.staffName ?? "Nhân viên"}
                   </p>
                   {ticketDetail.staffPhone && (
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs mt-0.5" style={{ color: "#5A7A6E" }}>
                       {ticketDetail.staffPhone}
                     </p>
                   )}
                 </div>
               </div>
               {quote.isTenantFault && (
-                <div className="mt-auto flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-50 border border-red-100">
-                  <AlertTriangle className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
-                  <p className="text-xs font-semibold text-red-600">
+                <div
+                  className="mt-auto flex items-center gap-1.5 px-3 py-2 rounded-xl"
+                  style={{ background: "rgba(217,95,75,0.08)", border: "1px solid rgba(217,95,75,0.2)" }}
+                >
+                  <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#D95F4B" }} />
+                  <p className="text-xs font-semibold" style={{ color: "#D95F4B" }}>
                     Lỗi do khách thuê
                   </p>
                 </div>
               )}
             </>
           ) : (
-            <div className="flex items-center gap-3 text-gray-400">
-              <Wrench className="w-8 h-8 text-gray-200" />
+            <div className="flex items-center gap-3" style={{ color: "#5A7A6E" }}>
+              <Wrench className="w-8 h-8" style={{ color: "#C4DED5" }} />
               <p className="text-sm">Chưa phân công</p>
             </div>
           )}
@@ -180,79 +186,82 @@ function QuoteDetail({
       </div>
 
       {/* Quote table */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 flex items-center justify-between border-b border-gray-100">
-          <p className="text-base font-bold text-gray-900">
+      <div
+        className="rounded-2xl overflow-hidden"
+        style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+      >
+        <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid #C4DED5" }}>
+          <p className="text-base font-bold" style={{ color: "#1E2D28" }}>
             Báo giá từ kỹ thuật viên
           </p>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs" style={{ color: "#5A7A6E" }}>
             Cập nhật: {dayjs(quote.createdAt).format("HH:mm · DD/MM/YYYY")}
           </p>
         </div>
 
         {/* Table head */}
-        <div className="grid grid-cols-[1fr_100px_120px_120px] gap-4 px-6 py-3 bg-gray-50 border-b border-gray-100">
-          {["Hạng mục chi tiết", "Số lượng", "Đơn giá", "Thành tiền"].map(
-            (h) => (
-              <p
-                key={h}
-                className="text-[10px] font-bold text-gray-400 uppercase tracking-wider"
-              >
-                {h}
-              </p>
-            ),
-          )}
+        <div
+          className="grid grid-cols-[1fr_100px_120px_120px] gap-4 px-6 py-3"
+          style={{ background: "#EAF4F0", borderBottom: "1px solid #C4DED5" }}
+        >
+          {["Hạng mục chi tiết", "Số lượng", "Đơn giá", "Thành tiền"].map((h) => (
+            <p key={h} className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "#5A7A6E" }}>
+              {h}
+            </p>
+          ))}
         </div>
 
         {/* Rows */}
         {(quote.items ?? []).length === 0 && (
-          <div className="py-10 text-center text-sm text-gray-400">
+          <div className="py-10 text-center text-sm" style={{ color: "#5A7A6E" }}>
             Không có hạng mục nào
           </div>
         )}
         {(quote.items ?? []).map((item, idx) => (
           <div
             key={item.id}
-            className="grid grid-cols-[1fr_100px_120px_120px] gap-4 px-6 py-4 border-b border-gray-50 last:border-0 items-center hover:bg-gray-50/50 transition"
+            className="grid grid-cols-[1fr_100px_120px_120px] gap-4 px-6 py-4 transition items-center"
+            style={{ borderBottom: "1px solid rgba(196,222,213,0.4)" }}
+            onMouseEnter={e => { e.currentTarget.style.background = "#F0FAF6"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
           >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-teal-50 border border-teal-100 flex items-center justify-center flex-shrink-0">
-                <span className="text-teal-500 text-xs font-bold">
-                  {idx + 1}
-                </span>
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: "#EAF4F0", border: "1px solid #C4DED5" }}
+              >
+                <span className="text-xs font-bold" style={{ color: "#3bb582" }}>{idx + 1}</span>
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-800">
-                  {item.itemName}
-                </p>
+                <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>{item.itemName}</p>
                 {item.description && (
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {item.description}
-                  </p>
+                  <p className="text-xs mt-0.5" style={{ color: "#5A7A6E" }}>{item.description}</p>
                 )}
               </div>
             </div>
-            <p className="text-sm text-gray-600">01</p>
-            <p className="text-sm text-gray-700">
-              {formatCurrency(item.price)}
-            </p>
-            <p className="text-sm font-semibold text-gray-800">
-              {formatCurrency(item.price)}
-            </p>
+            <p className="text-sm" style={{ color: "#5A7A6E" }}>01</p>
+            <p className="text-sm" style={{ color: "#1E2D28" }}>{formatCurrency(item.price)}</p>
+            <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>{formatCurrency(item.price)}</p>
           </div>
         ))}
       </div>
 
       {/* Total + actions bar */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex items-center gap-5">
-        <div className="flex-1 min-w-0 bg-teal-50 border border-teal-100 rounded-xl px-5 py-4">
-          <p className="text-[10px] font-bold text-teal-600 uppercase tracking-widest mb-1">
+      <div
+        className="rounded-2xl p-5 flex items-center gap-5"
+        style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+      >
+        <div
+          className="flex-1 min-w-0 rounded-xl px-5 py-4"
+          style={{ background: "rgba(59,181,130,0.08)", border: "1px solid #C4DED5" }}
+        >
+          <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "#3bb582" }}>
             Tổng chi phí dự kiến
           </p>
-          <p className="text-3xl font-black text-teal-700">
+          <p className="font-heading text-3xl font-black" style={{ color: "#1E2D28" }}>
             {formatCurrency(quote.totalPrice)}
           </p>
-          <p className="text-xs text-teal-500 mt-1">
+          <p className="text-xs mt-1" style={{ color: "#5A7A6E" }}>
             Giá đã bao gồm thuế VAT và phí dịch vụ kỹ thuật.
           </p>
         </div>
@@ -263,7 +272,10 @@ function QuoteDetail({
               type="button"
               onClick={handleReject}
               disabled={rejecting}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl border border-red-200 text-red-600 text-sm font-semibold hover:bg-red-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ border: "1px solid rgba(217,95,75,0.4)", color: "#D95F4B", background: "transparent" }}
+              onMouseEnter={e => { e.currentTarget.style.background = "rgba(217,95,75,0.06)"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
             >
               <X className="w-4 h-4" />
               {rejecting ? "Đang từ chối..." : "Từ chối"}
@@ -272,33 +284,43 @@ function QuoteDetail({
               type="button"
               onClick={handleApprove}
               disabled={confirming}
-              className="flex items-center gap-2 px-7 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-7 py-3 rounded-full text-white text-sm font-bold transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
             >
               <CheckCircle className="w-4 h-4" />
               {confirming ? "Đang duyệt..." : "Duyệt báo giá"}
             </button>
           </div>
         ) : isApproved ? (
-          <div className="flex items-center gap-2 px-5 py-3 rounded-xl bg-green-50 border border-green-200 flex-shrink-0">
-            <CheckCircle className="w-5 h-5 text-green-500" />
-            <p className="text-sm font-bold text-green-700">Đã duyệt</p>
+          <div
+            className="flex items-center gap-2 px-5 py-3 rounded-2xl flex-shrink-0"
+            style={{ background: "rgba(59,181,130,0.10)", border: "1px solid #C4DED5" }}
+          >
+            <CheckCircle className="w-5 h-5" style={{ color: "#3bb582" }} />
+            <p className="text-sm font-bold" style={{ color: "#3bb582" }}>Đã duyệt</p>
           </div>
         ) : (
-          <div className="flex items-center gap-2 px-5 py-3 rounded-xl bg-red-50 border border-red-200 flex-shrink-0">
-            <X className="w-5 h-5 text-red-500" />
-            <p className="text-sm font-bold text-red-600">Đã từ chối</p>
+          <div
+            className="flex items-center gap-2 px-5 py-3 rounded-2xl flex-shrink-0"
+            style={{ background: "rgba(217,95,75,0.08)", border: "1px solid rgba(217,95,75,0.3)" }}
+          >
+            <X className="w-5 h-5" style={{ color: "#D95F4B" }} />
+            <p className="text-sm font-bold" style={{ color: "#D95F4B" }}>Đã từ chối</p>
           </div>
         )}
       </div>
 
       {/* Note */}
-      <div className="bg-blue-50 border border-blue-100 rounded-2xl px-5 py-4 flex items-start gap-3">
-        <Info className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+      <div
+        className="rounded-2xl px-5 py-4 flex items-start gap-3"
+        style={{ background: "rgba(32,150,216,0.06)", border: "1px solid rgba(32,150,216,0.2)" }}
+      >
+        <Info className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "#2096d8" }} />
         <div>
-          <p className="text-xs font-bold text-blue-700 mb-0.5">
+          <p className="text-xs font-bold mb-0.5" style={{ color: "#2096d8" }}>
             Lưu ý quan trọng
           </p>
-          <p className="text-xs text-blue-600 leading-relaxed">
+          <p className="text-xs leading-relaxed" style={{ color: "#1a6fa8" }}>
             Sau khi bạn nhấn "Duyệt báo giá", kỹ thuật viên sẽ nhận được thông
             báo và bắt đầu công việc ngay lập tức. Mọi thay đổi sau khi duyệt
             cần liên hệ trực tiếp với bộ phận hỗ trợ ISUMS.
@@ -397,157 +419,188 @@ export default function IssueQuoteApprovalPage() {
   const currentQuote = quotes[activeQuoteIdx] ?? null;
 
   return (
-    <div className="flex gap-5 items-start">
-      {/* LEFT — ticket list */}
-      <div className="w-64 flex-shrink-0 bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden sticky top-0">
-        <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-          <p className="text-sm font-bold text-gray-700">Chờ duyệt</p>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-600">
-              {tickets.length}
-            </span>
-            <button
-              onClick={fetchTickets}
-              disabled={loading}
-              className="p-1 rounded-lg hover:bg-gray-100 text-gray-400 transition disabled:opacity-50"
-            >
-              <RefreshCw
-                className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`}
-              />
-            </button>
+    <div className="space-y-5">
+      {/* Header */}
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,181,130,0.12)" }}>
+            <Sparkles className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
           </div>
+          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Phê duyệt</span>
         </div>
-
-        <div className="overflow-y-auto max-h-[calc(100vh-200px)]">
-          {loading &&
-            [1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="px-4 py-3 border-b border-gray-50 animate-pulse space-y-2"
-              >
-                <div className="h-3 bg-gray-200 rounded w-1/3" />
-                <div className="h-4 bg-gray-100 rounded w-3/4" />
-              </div>
-            ))}
-          {!loading && tickets.length === 0 && (
-            <div className="py-10 text-center text-gray-400 text-xs">
-              Không có yêu cầu nào
-            </div>
-          )}
-          {!loading &&
-            tickets.map((ticket) => {
-              const isActive = selected?.id === ticket.id;
-              return (
-                <button
-                  key={ticket.id}
-                  onClick={() => setSelected(ticket)}
-                  className={`w-full text-left px-4 py-3 border-b border-gray-50 transition hover:bg-gray-50 ${isActive ? "bg-amber-50 border-l-4 border-l-amber-400" : ""}`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span
-                      className={`text-[10px] font-mono font-bold ${isActive ? "text-amber-600" : "text-gray-400"}`}
-                    >
-                      #{String(ticket.id).slice(0, 8).toUpperCase()}
-                    </span>
-                    <span className="text-[10px] text-gray-400">
-                      {dayjs(ticket.createdAt).fromNow()}
-                    </span>
-                  </div>
-                  <p
-                    className={`text-sm font-semibold leading-snug truncate ${isActive ? "text-amber-700" : "text-gray-800"}`}
-                  >
-                    {ticket.title}
-                  </p>
-                </button>
-              );
-            })}
-        </div>
+        <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Xác nhận báo giá</h2>
+        <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>
+          {loading ? "Đang tải..." : `${tickets.length} yêu cầu đang chờ duyệt`}
+        </p>
       </div>
 
-      {/* RIGHT — main content */}
-      <div className="flex-1 min-w-0">
-        {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center justify-between">
-            <p className="text-sm text-red-600">{error}</p>
-            <button
-              onClick={fetchTickets}
-              className="text-xs text-red-600 underline"
-            >
-              Thử lại
-            </button>
-          </div>
-        )}
+      {error && (
+        <div className="rounded-xl px-4 py-3 flex items-center justify-between" style={{ background: "rgba(217,95,75,0.04)", border: "1px solid rgba(217,95,75,0.3)" }}>
+          <p className="text-sm" style={{ color: "#D95F4B" }}>{error}</p>
+          <button onClick={fetchTickets} className="text-xs underline" style={{ color: "#D95F4B" }}>
+            Thử lại
+          </button>
+        </div>
+      )}
 
-        {/* Page title */}
-        <div className="mb-5">
-          <h2 className="text-2xl font-bold text-gray-900">Xác nhận báo giá</h2>
-          <p className="text-sm text-gray-500 mt-0.5">
-            {loading
-              ? "Đang tải..."
-              : `${tickets.length} yêu cầu đang chờ duyệt`}
-          </p>
+      <div className="flex gap-5 items-start">
+        {/* LEFT — ticket list */}
+        <div
+          className="w-64 flex-shrink-0 rounded-2xl overflow-hidden sticky top-0"
+          style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+        >
+          <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid #C4DED5" }}>
+            <p className="text-sm font-bold" style={{ color: "#1E2D28" }}>Chờ duyệt</p>
+            <div className="flex items-center gap-1.5">
+              <span
+                className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                style={{ background: "rgba(245,158,11,0.12)", color: "#b45309" }}
+              >
+                {tickets.length}
+              </span>
+              <button
+                onClick={fetchTickets}
+                disabled={loading}
+                className="p-1 rounded-lg transition disabled:opacity-50"
+                style={{ color: "#5A7A6E" }}
+                onMouseEnter={e => { e.currentTarget.style.background = "#EAF4F0"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+              </button>
+            </div>
+          </div>
+
+          <div className="overflow-y-auto max-h-[calc(100vh-200px)]">
+            {loading &&
+              [1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="px-4 py-3 animate-pulse space-y-2"
+                  style={{ borderBottom: "1px solid rgba(196,222,213,0.4)" }}
+                >
+                  <div className="h-3 rounded w-1/3" style={{ background: "#EAF4F0" }} />
+                  <div className="h-4 rounded w-3/4" style={{ background: "#EAF4F0" }} />
+                </div>
+              ))}
+            {!loading && tickets.length === 0 && (
+              <div className="py-10 text-center text-xs" style={{ color: "#5A7A6E" }}>
+                Không có yêu cầu nào
+              </div>
+            )}
+            {!loading &&
+              tickets.map((ticket) => {
+                const isActive = selected?.id === ticket.id;
+                return (
+                  <button
+                    key={ticket.id}
+                    onClick={() => setSelected(ticket)}
+                    className="w-full text-left px-4 py-3 transition"
+                    style={{
+                      borderBottom: "1px solid rgba(196,222,213,0.4)",
+                      background: isActive ? "rgba(59,181,130,0.08)" : "transparent",
+                      borderLeft: isActive ? "3px solid #3bb582" : "3px solid transparent",
+                    }}
+                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "#F0FAF6"; }}
+                    onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span
+                        className="text-[10px] font-mono font-bold"
+                        style={{ color: isActive ? "#3bb582" : "#5A7A6E" }}
+                      >
+                        #{String(ticket.id).slice(0, 8).toUpperCase()}
+                      </span>
+                      <span className="text-[10px]" style={{ color: "#5A7A6E" }}>
+                        {dayjs(ticket.createdAt).fromNow()}
+                      </span>
+                    </div>
+                    <p
+                      className="text-sm font-semibold leading-snug truncate"
+                      style={{ color: isActive ? "#1E2D28" : "#5A7A6E" }}
+                    >
+                      {ticket.title}
+                    </p>
+                  </button>
+                );
+              })}
+          </div>
         </div>
 
-        {/* Quotes tab switcher (nếu có nhiều quote) */}
-        {!quotesLoading && quotes.length > 1 && (
-          <div className="flex items-center gap-2 mb-4">
-            {quotes.map((q, idx) => (
-              <button
-                key={q.id}
-                onClick={() => setActiveQuoteIdx(idx)}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition ${
-                  activeQuoteIdx === idx
-                    ? "border-teal-400 bg-teal-50 text-teal-700"
-                    : "border-gray-200 text-gray-500 hover:border-gray-300"
-                }`}
-              >
-                Báo giá #{idx + 1}
-                {q.status === "APPROVED" && (
-                  <CheckCircle className="w-3.5 h-3.5 text-green-500" />
-                )}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {quotesLoading && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-[1fr_280px] gap-4">
-              <div className="bg-white rounded-2xl border border-gray-200 h-40 animate-pulse" />
-              <div className="bg-white rounded-2xl border border-gray-200 h-40 animate-pulse" />
+        {/* RIGHT — main content */}
+        <div className="flex-1 min-w-0">
+          {/* Quotes tab switcher */}
+          {!quotesLoading && quotes.length > 1 && (
+            <div className="flex items-center gap-2 mb-4">
+              {quotes.map((q, idx) => (
+                <button
+                  key={q.id}
+                  onClick={() => setActiveQuoteIdx(idx)}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold transition"
+                  style={{
+                    border: activeQuoteIdx === idx ? "1px solid #3bb582" : "1px solid #C4DED5",
+                    background: activeQuoteIdx === idx ? "rgba(59,181,130,0.10)" : "transparent",
+                    color: activeQuoteIdx === idx ? "#3bb582" : "#5A7A6E",
+                  }}
+                >
+                  Báo giá #{idx + 1}
+                  {q.status === "APPROVED" && (
+                    <CheckCircle className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
+                  )}
+                </button>
+              ))}
             </div>
-            <div className="bg-white rounded-2xl border border-gray-200 h-48 animate-pulse" />
-          </div>
-        )}
+          )}
 
-        {!quotesLoading && currentDetail && currentQuote && (
-          <QuoteDetail
-            quote={currentQuote}
-            ticketDetail={currentDetail}
-            houseName={houseNames[currentDetail.houseId]}
-            onApproved={handleApproved}
-            onRejected={handleApproved}
-          />
-        )}
-
-        {!quotesLoading && currentDetail && quotes.length === 0 && (
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm py-20 flex flex-col items-center gap-3 text-gray-400">
-            <PackageSearch className="w-12 h-12 text-gray-200" />
-            <p className="text-sm font-semibold">Chưa có báo giá nào</p>
-            <p className="text-xs">
-              Nhân viên chưa gửi báo giá cho yêu cầu này
-            </p>
-          </div>
-        )}
-
-        {!loading && !currentDetail && (
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm flex items-center justify-center py-32">
-            <div className="text-center text-gray-400">
-              <Wrench className="w-10 h-10 mx-auto mb-3 text-gray-200" />
-              <p className="text-sm">Chọn một yêu cầu để xem báo giá</p>
+          {quotesLoading && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-[1fr_280px] gap-4">
+                <div className="rounded-2xl h-40 animate-pulse" style={{ background: "#EAF4F0" }} />
+                <div className="rounded-2xl h-40 animate-pulse" style={{ background: "#EAF4F0" }} />
+              </div>
+              <div className="rounded-2xl h-48 animate-pulse" style={{ background: "#EAF4F0" }} />
             </div>
-          </div>
-        )}
+          )}
+
+          {!quotesLoading && currentDetail && currentQuote && (
+            <QuoteDetail
+              quote={currentQuote}
+              ticketDetail={currentDetail}
+              houseName={houseNames[currentDetail.houseId]}
+              onApproved={handleApproved}
+              onRejected={handleApproved}
+            />
+          )}
+
+          {!quotesLoading && currentDetail && quotes.length === 0 && (
+            <div
+              className="rounded-2xl py-20 flex flex-col items-center gap-3"
+              style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}
+            >
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "#EAF4F0" }}>
+                <PackageSearch className="w-7 h-7" style={{ color: "#3bb582" }} />
+              </div>
+              <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>Chưa có báo giá nào</p>
+              <p className="text-xs" style={{ color: "#5A7A6E" }}>
+                Nhân viên chưa gửi báo giá cho yêu cầu này
+              </p>
+            </div>
+          )}
+
+          {!loading && !currentDetail && (
+            <div
+              className="rounded-2xl flex items-center justify-center py-32"
+              style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}
+            >
+              <div className="text-center">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: "#EAF4F0" }}>
+                  <Wrench className="w-7 h-7" style={{ color: "#3bb582" }} />
+                </div>
+                <p className="text-sm" style={{ color: "#5A7A6E" }}>Chọn một yêu cầu để xem báo giá</p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

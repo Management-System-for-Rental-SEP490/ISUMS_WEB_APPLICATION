@@ -3,8 +3,6 @@
  * Centralized endpoint definitions for the application
  */
 
-import { id } from "zod/v4/locales";
-
 // Auth endpoints
 export const AUTH_ENDPOINTS = {
   GET: "users/{email}",
@@ -20,6 +18,7 @@ export const HOUSES_ENDPOINTS = {
   DELETE: (id) => `/houses/${id}`,
   IMAGES: (id) => `/houses/${id}/images`,
   REGIONS: "/houses/regions",
+  FUNCTIONAL_AREAS: "/houses/functionalAreas",
 };
 
 export const CONTRACTS_ENDPOINTS = {
@@ -119,10 +118,12 @@ export const ISSSUE_ENDPOINTS = {
 export const ASSET_ENDPOINTS = {
   BASE: "/assets",
   ASSET_BY_ID: (id) => `/assets/${id}`,
+  ITEM_BY_ID: (id) => `/assets/items/${id}`,
+  BY_HOUSE: (houseId) => `/assets/items/house/${houseId}`,
   CREATE: "/assets",
   UPDATE: (id) => `/assets/${id}`,
   DELETE: (id) => `/assets/${id}`,
-  PROPERTIES_STATUS: "/assets/events",
+  ASSET_CHANGE_DETAIS: (jobId) => `/assets/items/job/${jobId}`,
 };
 export const BANNER_ENDPOINTS = {
   BASE: "issues/banners",
@@ -134,4 +135,5 @@ export const INSPECTION_ENDPOINTS = {
   CREATE: "maintenances/inspections",
   GET: (id) => `maintenances/inspections/${id}`,
   UPDATE: (id) => `maintenances/inspections/${id}/status`,
+  ASSET_EVENTS: "/assets/events",
 };
