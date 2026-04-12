@@ -1,84 +1,99 @@
 import React from "react";
-import {
-  FileText,
-  CheckCircle,
-  Clock,
-  DollarSign,
-  Banknote,
-} from "lucide-react";
+import { FileText, CheckCircle, Clock, Banknote } from "lucide-react";
+
+const CARDS = [
+  {
+    key: "total",
+    label: "Tổng hợp đồng",
+    icon: FileText,
+    highlight: "Tất cả trạng thái",
+    iconBg: "rgba(59,181,130,0.12)",
+    iconColor: "#3bb582",
+    chipBg: "rgba(59,181,130,0.10)",
+    chipColor: "#3bb582",
+  },
+  {
+    key: "active",
+    label: "Đang hiệu lực",
+    icon: CheckCircle,
+    highlight: "Đang chạy",
+    iconBg: "rgba(32,150,216,0.12)",
+    iconColor: "#2096d8",
+    chipBg: "rgba(32,150,216,0.10)",
+    chipColor: "#2096d8",
+  },
+  {
+    key: "pending",
+    label: "Chờ duyệt",
+    icon: Clock,
+    highlight: "Cần xử lý sớm",
+    iconBg: "rgba(217,95,75,0.10)",
+    iconColor: "#D95F4B",
+    chipBg: "rgba(217,95,75,0.08)",
+    chipColor: "#D95F4B",
+  },
+  {
+    key: "totalRent",
+    label: "Tổng giá trị",
+    icon: Banknote,
+    highlight: "ước tính/tháng",
+    iconBg: "rgba(59,181,130,0.12)",
+    iconColor: "#3bb582",
+    chipBg: "rgba(59,181,130,0.10)",
+    chipColor: "#3bb582",
+    isRent: true,
+  },
+];
 
 export default function ContractsStats({ stats }) {
-  const cards = [
-    {
-      label: "Tổng hợp đồng",
-      icon: FileText,
-      value: stats.total,
-      highlight: "+ Tất cả trạng thái",
-      accent: "from-sky-500/10 via-teal-500/5 to-emerald-500/10",
-      chipColor: "bg-sky-100 text-sky-700",
-    },
-    {
-      label: "Đang hiệu lực",
-      icon: CheckCircle,
-      value: stats.active,
-      highlight: "Hợp đồng đang chạy",
-      accent: "from-emerald-500/10 via-emerald-500/5 to-sky-500/10",
-      chipColor: "bg-emerald-100 text-emerald-700",
-    },
-    {
-      label: "Chờ duyệt",
-      icon: Clock,
-      value: stats.pending,
-      highlight: "Cần xử lý sớm",
-      accent: "from-amber-500/10 via-orange-500/5 to-rose-500/10",
-      chipColor: "bg-amber-100 text-amber-700",
-    },
-    {
-      label: "Tổng giá trị",
-      icon: Banknote,
-      value: `₫${((stats.totalRent || 0) / 1000000).toFixed(1)}M`,
-      subLabel: "Giá trị thuê mỗi tháng (ước tính)",
-      accent: "from-indigo-500/10 via-sky-500/5 to-teal-500/10",
-      chipColor: "bg-indigo-100 text-indigo-700",
-    },
-  ];
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-      {cards.map((card) => {
+      {CARDS.map((card) => {
         const Icon = card.icon;
+        const raw  = stats[card.key] ?? 0;
+        const value = card.isRent
+          ? `₫${((raw) / 1000000).toFixed(1)}M`
+          : raw;
+
         return (
           <div
-            key={card.label}
-            className="relative overflow-hidden rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-150"
+            key={card.key}
+            className="relative overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-1"
+            style={{
+              background: "#FAFFFE",
+              border: "1px solid #C4DED5",
+              boxShadow: "0 4px 20px -2px rgba(59,181,130,0.10)",
+            }}
           >
+            {/* Decoration corner */}
             <div
-              className={`pointer-events-none absolute inset-x-0 -top-10 h-20 bg-gradient-to-r ${card.accent}`}
+              className="absolute -top-6 -right-6 w-24 h-24 rounded-full opacity-[0.07] pointer-events-none"
+              style={{ background: "linear-gradient(135deg, #3bb582 0%, rgba(32,150,216,0.7) 100%)" }}
             />
-            <div className="relative p-5 space-y-3">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 text-slate-50 shadow-md shadow-slate-900/40">
-                    <Icon className="w-4.5 h-4.5" />
-                  </span>
-                  <span className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                    {card.label}
-                  </span>
+
+            <div className="relative p-5 space-y-4">
+              <div className="flex items-start justify-between gap-2">
+                <div
+                  className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: card.iconBg }}
+                >
+                  <Icon className="w-5 h-5" style={{ color: card.iconColor }} />
                 </div>
                 <span
-                  className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium ${card.chipColor}`}
+                  className="text-[11px] font-semibold px-2.5 py-1 rounded-full"
+                  style={{ background: card.chipBg, color: card.chipColor }}
                 >
                   {card.highlight}
                 </span>
               </div>
 
-              <div className="flex flex-col gap-1">
-                <p className="text-2xl font-semibold tracking-tight text-slate-900">
-                  {card.value}
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: "#5A7A6E" }}>
+                  {card.label}
                 </p>
-                {card.subLabel && (
-                  <p className="text-[11px] text-slate-500">{card.subLabel}</p>
-                )}
+                <p className="text-3xl font-heading font-bold tracking-tight" style={{ color: "#1E2D28" }}>
+                  {value}
+                </p>
               </div>
             </div>
           </div>

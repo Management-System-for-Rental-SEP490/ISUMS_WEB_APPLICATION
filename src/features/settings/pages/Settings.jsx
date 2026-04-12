@@ -110,22 +110,26 @@ export default function Settings() {
 
   const renderProfileTab = () => (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl p-6 shadow-sm border">
+      <div className="rounded-2xl p-6" style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
         <h3 className="text-lg font-semibold mb-4">Thông Tin Cá Nhân</h3>
         <div className="space-y-4">
           <div className="flex items-center gap-6 mb-6">
-            <div className="w-20 h-20 bg-teal-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+            <div className="w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-bold" style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}>
               {formData.profile.avatar}
             </div>
             <div>
-              <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition">
+              <button className="px-4 py-2 rounded-full text-sm transition"
+              style={{ border: "1px solid #C4DED5", color: "#5A7A6E" }}
+              onMouseEnter={e => e.currentTarget.style.background = "#EAF4F0"}
+              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+            >
                 Thay đổi ảnh đại diện
               </button>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium mb-2" style={{ color: "#1E2D28" }}>
                 Họ và tên
               </label>
               <input
@@ -134,22 +138,24 @@ export default function Settings() {
                 onChange={(e) =>
                   handleInputChange("profile", "name", e.target.value)
                 }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full px-4 py-2 rounded-xl outline-none transition" style={{ border: "1px solid #C4DED5", background: "#ffffff", color: "#1E2D28" }}
+                onFocus={e => { e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59,181,130,0.12)"; }}
+                onBlur={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.boxShadow = "none"; }}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium mb-2" style={{ color: "#1E2D28" }}>
                 Tên đăng nhập
               </label>
               <input
                 type="text"
                 value={formData.profile.username}
                 readOnly
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+                className="w-full px-4 py-2 rounded-xl" style={{ border: "1px solid #C4DED5", background: "#EAF4F0", color: "#5A7A6E" }}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium mb-2" style={{ color: "#1E2D28" }}>
                 Email
               </label>
               <input
@@ -158,11 +164,13 @@ export default function Settings() {
                 onChange={(e) =>
                   handleInputChange("profile", "email", e.target.value)
                 }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full px-4 py-2 rounded-xl outline-none transition" style={{ border: "1px solid #C4DED5", background: "#ffffff", color: "#1E2D28" }}
+                onFocus={e => { e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59,181,130,0.12)"; }}
+                onBlur={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.boxShadow = "none"; }}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium mb-2" style={{ color: "#1E2D28" }}>
                 Số điện thoại
               </label>
               <input
@@ -171,11 +179,13 @@ export default function Settings() {
                 onChange={(e) =>
                   handleInputChange("profile", "phone", e.target.value)
                 }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full px-4 py-2 rounded-xl outline-none transition" style={{ border: "1px solid #C4DED5", background: "#ffffff", color: "#1E2D28" }}
+                onFocus={e => { e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59,181,130,0.12)"; }}
+                onBlur={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.boxShadow = "none"; }}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium mb-2" style={{ color: "#1E2D28" }}>
                 Chức vụ
               </label>
               <input
@@ -184,7 +194,9 @@ export default function Settings() {
                 onChange={(e) =>
                   handleInputChange("profile", "position", e.target.value)
                 }
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                className="w-full px-4 py-2 rounded-xl outline-none transition" style={{ border: "1px solid #C4DED5", background: "#ffffff", color: "#1E2D28" }}
+                onFocus={e => { e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59,181,130,0.12)"; }}
+                onBlur={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.boxShadow = "none"; }}
               />
             </div>
           </div>
@@ -195,13 +207,13 @@ export default function Settings() {
 
   const renderNotificationsTab = () => (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl p-6 shadow-sm border">
+      <div className="rounded-2xl p-6" style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
         <h3 className="text-lg font-semibold mb-4">Cài Đặt Thông Báo</h3>
         <div className="space-y-4">
           {Object.entries(formData.notifications).map(([key, value]) => (
             <div
               key={key}
-              className="flex items-center justify-between py-3 border-b border-gray-200 last:border-0"
+              className="flex items-center justify-between py-3" style={{ borderBottom: "1px solid #C4DED5" }}
             >
               <div>
                 <label className="text-sm font-medium text-gray-900">
@@ -231,7 +243,7 @@ export default function Settings() {
                   }
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#3bb582]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-green"></div>
               </label>
             </div>
           ))}
@@ -242,11 +254,11 @@ export default function Settings() {
 
   const renderSecurityTab = () => (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl p-6 shadow-sm border">
+      <div className="rounded-2xl p-6" style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
         <h3 className="text-lg font-semibold mb-4">Bảo Mật Tài Khoản</h3>
         <div className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium mb-2" style={{ color: "#1E2D28" }}>
               Xác thực hai yếu tố
             </label>
             <div className="flex items-center justify-between">
@@ -266,12 +278,12 @@ export default function Settings() {
                   }
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#3bb582]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-green"></div>
               </label>
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium mb-2" style={{ color: "#1E2D28" }}>
               Thời gian hết phiên (phút)
             </label>
             <select
@@ -279,7 +291,9 @@ export default function Settings() {
               onChange={(e) =>
                 handleInputChange("security", "sessionTimeout", e.target.value)
               }
-              className="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full md:w-64 px-4 py-2 rounded-xl outline-none transition" style={{ border: "1px solid #C4DED5", background: "#ffffff", color: "#1E2D28" }}
+              onFocus={e => { e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59,181,130,0.12)"; }}
+              onBlur={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.boxShadow = "none"; }}
             >
               <option value="15">15 phút</option>
               <option value="30">30 phút</option>
@@ -288,7 +302,7 @@ export default function Settings() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium mb-2" style={{ color: "#1E2D28" }}>
               Thời hạn mật khẩu (ngày)
             </label>
             <select
@@ -296,7 +310,9 @@ export default function Settings() {
               onChange={(e) =>
                 handleInputChange("security", "passwordExpiry", e.target.value)
               }
-              className="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full md:w-64 px-4 py-2 rounded-xl outline-none transition" style={{ border: "1px solid #C4DED5", background: "#ffffff", color: "#1E2D28" }}
+              onFocus={e => { e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59,181,130,0.12)"; }}
+              onBlur={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.boxShadow = "none"; }}
             >
               <option value="30">30 ngày</option>
               <option value="60">60 ngày</option>
@@ -305,7 +321,11 @@ export default function Settings() {
             </select>
           </div>
           <div>
-            <button className="px-4 py-2 border border-gray-300 rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 transition">
+            <button className="px-4 py-2 rounded-full text-sm flex items-center gap-2 transition"
+              style={{ border: "1px solid #C4DED5", color: "#5A7A6E" }}
+              onMouseEnter={e => e.currentTarget.style.background = "#EAF4F0"}
+              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+            >
               <Key className="w-4 h-4" />
               Đổi mật khẩu
             </button>
@@ -317,11 +337,11 @@ export default function Settings() {
 
   const renderSystemTab = () => (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl p-6 shadow-sm border">
+      <div className="rounded-2xl p-6" style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
         <h3 className="text-lg font-semibold mb-4">Cài Đặt Hệ Thống</h3>
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium mb-2" style={{ color: "#1E2D28" }}>
               Ngôn ngữ
             </label>
             <select
@@ -329,14 +349,16 @@ export default function Settings() {
               onChange={(e) =>
                 handleInputChange("system", "language", e.target.value)
               }
-              className="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full md:w-64 px-4 py-2 rounded-xl outline-none transition" style={{ border: "1px solid #C4DED5", background: "#ffffff", color: "#1E2D28" }}
+              onFocus={e => { e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59,181,130,0.12)"; }}
+              onBlur={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.boxShadow = "none"; }}
             >
               <option value="vi">Tiếng Việt</option>
               <option value="en">English</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium mb-2" style={{ color: "#1E2D28" }}>
               Múi giờ
             </label>
             <select
@@ -344,14 +366,16 @@ export default function Settings() {
               onChange={(e) =>
                 handleInputChange("system", "timezone", e.target.value)
               }
-              className="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full md:w-64 px-4 py-2 rounded-xl outline-none transition" style={{ border: "1px solid #C4DED5", background: "#ffffff", color: "#1E2D28" }}
+              onFocus={e => { e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59,181,130,0.12)"; }}
+              onBlur={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.boxShadow = "none"; }}
             >
               <option value="Asia/Ho_Chi_Minh">Asia/Ho_Chi_Minh (GMT+7)</option>
               <option value="UTC">UTC (GMT+0)</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium mb-2" style={{ color: "#1E2D28" }}>
               Định dạng ngày
             </label>
             <select
@@ -359,7 +383,9 @@ export default function Settings() {
               onChange={(e) =>
                 handleInputChange("system", "dateFormat", e.target.value)
               }
-              className="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full md:w-64 px-4 py-2 rounded-xl outline-none transition" style={{ border: "1px solid #C4DED5", background: "#ffffff", color: "#1E2D28" }}
+              onFocus={e => { e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59,181,130,0.12)"; }}
+              onBlur={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.boxShadow = "none"; }}
             >
               <option value="DD/MM/YYYY">DD/MM/YYYY</option>
               <option value="MM/DD/YYYY">MM/DD/YYYY</option>
@@ -367,7 +393,7 @@ export default function Settings() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium mb-2" style={{ color: "#1E2D28" }}>
               Tiền tệ
             </label>
             <select
@@ -375,7 +401,9 @@ export default function Settings() {
               onChange={(e) =>
                 handleInputChange("system", "currency", e.target.value)
               }
-              className="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-full md:w-64 px-4 py-2 rounded-xl outline-none transition" style={{ border: "1px solid #C4DED5", background: "#ffffff", color: "#1E2D28" }}
+              onFocus={e => { e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59,181,130,0.12)"; }}
+              onBlur={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.boxShadow = "none"; }}
             >
               <option value="VND">VND (₫)</option>
               <option value="USD">USD ($)</option>
@@ -403,11 +431,23 @@ export default function Settings() {
 
   return (
     <div className="space-y-6">
-      {/* Header Actions */}
-      <div className="flex justify-end">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,181,130,0.12)" }}>
+              <SettingsIcon className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
+            </div>
+            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Cài đặt</span>
+          </div>
+          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Cài Đặt Hệ Thống</h2>
+        </div>
         <button
           onClick={handleSave}
-          className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-teal-700 transition"
+          className="px-4 py-2.5 text-white rounded-full text-sm flex items-center gap-2 transition shadow-sm mt-1"
+          style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
+          onMouseEnter={e => e.currentTarget.style.opacity = "0.9"}
+          onMouseLeave={e => e.currentTarget.style.opacity = "1"}
         >
           <Save className="w-4 h-4" />
           Lưu Thay Đổi
@@ -415,21 +455,23 @@ export default function Settings() {
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-xl p-1 shadow-sm border">
-        <div className="flex flex-wrap gap-2">
+      <div className="rounded-2xl p-1" style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
+        <div className="flex flex-wrap gap-1">
           {tabs.map((tab) => {
             const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-3 rounded-lg transition ${
-                  activeTab === tab.id
-                    ? "bg-teal-100 text-teal-700 font-semibold"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl transition text-sm"
+                style={isActive
+                  ? { background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)", color: "#ffffff", fontWeight: 600 }
+                  : { color: "#5A7A6E" }}
+                onMouseEnter={e => !isActive && (e.currentTarget.style.background = "#EAF4F0")}
+                onMouseLeave={e => !isActive && (e.currentTarget.style.background = "transparent")}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className="w-4 h-4" />
                 <span>{tab.label}</span>
               </button>
             );

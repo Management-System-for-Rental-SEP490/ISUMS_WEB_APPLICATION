@@ -5,7 +5,7 @@ import { useContracts } from "../../../features/contracts/hooks/useContract";
 import ContractsListView from "./views/ContractListView";
 import ContractCreateView from "./views/ContractCreateView";
 
-export default function ContractsPage({ onNavigateMenu }) {
+export default function ContractsPage() {
   const navigate = useNavigate();
   const [view, setView] = useState("list");
   const [selectedId, setSelectedId] = useState(null);
@@ -17,6 +17,13 @@ export default function ContractsPage({ onNavigateMenu }) {
     setSearchTerm,
     filterStatus,
     setFilterStatus,
+    sortDir,
+    onToggleSortDir,
+    page,
+    totalPage,
+    totalItems,
+    pageSize,
+    onPageChange,
     stats,
     loading,
     error,
@@ -65,7 +72,6 @@ export default function ContractsPage({ onNavigateMenu }) {
   if (view === "create") {
     return (
       <ContractCreateView
-        onNavigateMenu={onNavigateMenu}
         onBack={goList}
         onCreated={(payload) => {
           if (payload) {
@@ -93,7 +99,6 @@ export default function ContractsPage({ onNavigateMenu }) {
 
   return (
     <ContractsListView
-      onNavigateMenu={onNavigateMenu}
       onCreate={goCreate}
       onViewDetail={goDetail}
       onEdit={goEdit}
@@ -104,10 +109,18 @@ export default function ContractsPage({ onNavigateMenu }) {
       setSearchTerm={setSearchTerm}
       filterStatus={filterStatus}
       setFilterStatus={setFilterStatus}
+      sortDir={sortDir}
+      onToggleSortDir={onToggleSortDir}
+      page={page}
+      totalPage={totalPage}
+      totalItems={totalItems}
+      pageSize={pageSize}
+      onPageChange={onPageChange}
       stats={stats}
       loading={loading}
       error={error}
       onRetry={refetch}
+      onRefresh={refetch}
     />
   );
 }

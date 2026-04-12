@@ -1,14 +1,17 @@
 export const ISSUE_TYPE_CONFIG = {
-  REPAIR:   { label: "Sửa chữa", cls: "bg-orange-100 text-orange-700" },
-  QUESTION: { label: "Câu hỏi",  cls: "bg-blue-100 text-blue-700" },
+  REPAIR:   { label: "Sửa chữa", bg: "rgba(251,146,60,0.12)",  color: "#c2410c" },
+  QUESTION: { label: "Câu hỏi",  bg: "rgba(32,150,216,0.12)",  color: "#2096d8" },
 };
 
 export const ISSUE_STATUS_CONFIG = {
-  CREATED:                  { label: "Mới tạo",        dot: "bg-slate-400",  pill: "bg-slate-50 text-slate-600 border border-slate-200" },
-  WAITING_PAYMENT:          { label: "Chờ thanh toán", dot: "bg-amber-500",  pill: "bg-amber-50 text-amber-700 border border-amber-200" },
-  WAITING_MANAGER_APPROVAL: { label: "Chờ duyệt",      dot: "bg-purple-500", pill: "bg-purple-50 text-purple-700 border border-purple-200" },
-  SCHEDULED:                { label: "Đang xử lý",     dot: "bg-blue-500",   pill: "bg-blue-50 text-blue-700 border border-blue-200" },
-  DONE:                     { label: "Hoàn thành",     dot: "bg-teal-500",   pill: "bg-teal-50 text-teal-700 border border-teal-200" },
+  CREATED:                              { label: "Mới tạo",        bg: "rgba(90,122,110,0.10)",  color: "#5A7A6E",  dot: "#5A7A6E"  },
+  WAITING_PAYMENT:                      { label: "Chờ thanh toán", bg: "rgba(245,158,11,0.12)",  color: "#b45309",  dot: "#f59e0b"  },
+  WAITING_MANAGER_APPROVAL:             { label: "Chờ duyệt",      bg: "rgba(139,92,246,0.10)",  color: "#7c3aed",  dot: "#8b5cf6"  },
+  WAITING_MANAGER_APPROVAL_QUOTE:       { label: "Chờ duyệt BG",   bg: "rgba(245,158,11,0.12)",  color: "#b45309",  dot: "#f59e0b"  },
+  SCHEDULED:                            { label: "Đang xử lý",     bg: "rgba(32,150,216,0.10)",  color: "#2096d8",  dot: "#2096d8"  },
+  DONE:                                 { label: "Hoàn thành",     bg: "rgba(59,181,130,0.10)",  color: "#3bb582",  dot: "#3bb582"  },
+  REJECTED:                             { label: "Từ chối",        bg: "rgba(217,95,75,0.10)",   color: "#D95F4B",  dot: "#D95F4B"  },
+  CANCELLED:                            { label: "Đã hủy",         bg: "rgba(217,95,75,0.10)",   color: "#D95F4B",  dot: "#D95F4B"  },
 };
 
 export const IN_PROGRESS_STATUSES = ["WAITING_PAYMENT", "WAITING_MANAGER_APPROVAL", "SCHEDULED"];

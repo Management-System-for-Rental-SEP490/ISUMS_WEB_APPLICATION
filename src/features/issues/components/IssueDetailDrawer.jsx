@@ -1,183 +1,170 @@
-import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
-import { X, User, Phone, Home, Calendar, Tag, FileText, Wrench, MessageCircle, Clock } from "lucide-react";
-import { getIssueById } from "../api/issues.api";
-import { ISSUE_STATUS_CONFIG, ISSUE_TYPE_CONFIG } from "../constants/issue.constants";
+import { Drawer } from "antd";
+import { MapPin, Clock, MessageSquare, CheckCircle, User } from "lucide-react";
+import { getIssueById, getResponseByTicket } from "../api/issues.api";
+import { getHouseById } from "../../houses/api/houses.api";
+import { ISSUE_STATUS_CONFIG } from "../constants/issue.constants";
 import dayjs from "dayjs";
 
-function Row({ icon: Icon, label, value }) {
+function Avatar({ name, size = "md" }) {
+  const initials = (name ?? "?").split(" ").slice(-2).map((w) => w[0]).join("").toUpperCase();
+  const cls = size === "sm" ? "w-8 h-8 text-xs" : "w-11 h-11 text-sm";
   return (
-    <div className="flex items-start gap-3">
-      <Icon className="w-4 h-4 text-teal-500 flex-shrink-0 mt-0.5" />
-      <div>
-        <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-0.5">{label}</p>
-        <p className="text-sm font-semibold text-slate-700">{value ?? "—"}</p>
-      </div>
+    <div className={`${cls} rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-bold flex-shrink-0`}>
+      {initials}
     </div>
   );
 }
 
-function Section({ title, children }) {
-  return (
-    <div className="bg-slate-50 rounded-2xl p-4 space-y-4">
-      <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">{title}</p>
-      {children}
-    </div>
-  );
-}
-
-export default function IssueDetailDrawer({ open, ticketId, onClose }) {
-  const [detail, setDetail] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+export default function IssueDetailDrawer({ open, ticketId, onClose, showResponse = false }) {
+  const [detail, setDetail]       = useState(null);
+  const [response, setResponse]   = useState(null);
+  const [houseName, setHouseName] = useState(null);
+  const [loading, setLoading]     = useState(false);
+  const [error, setError]         = useState(null);
 
   useEffect(() => {
     if (!open || !ticketId) return;
-    setDetail(null);
-    setError(null);
+    setDetail(null); setResponse(null); setHouseName(null); setError(null);
     setLoading(true);
-    getIssueById(ticketId)
-      .then(setDetail)
+    const requests = [getIssueById(ticketId)];
+    if (showResponse) requests.push(getResponseByTicket(ticketId).catch(() => null));
+    Promise.all(requests)
+      .then(([ticketDetail, resp]) => {
+        setDetail(ticketDetail);
+        if (resp) setResponse(resp);
+        if (ticketDetail?.houseId) {
+          getHouseById(ticketDetail.houseId)
+            .then((h) => setHouseName(h?.name ?? h?.houseName ?? null))
+            .catch(() => null);
+        }
+      })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [open, ticketId]);
-
-  if (!open) return null;
+  }, [open, ticketId, showResponse]);
 
   const status = detail ? (ISSUE_STATUS_CONFIG[detail.status] ?? ISSUE_STATUS_CONFIG.CREATED) : null;
-  const typeLabel = detail ? (ISSUE_TYPE_CONFIG[detail.type]?.label ?? detail.type) : null;
 
-  return createPortal(
-    <>
-      <div className="fixed inset-0 bg-black/30 z-40 backdrop-blur-sm" onClick={onClose} />
-      <div className="fixed right-0 top-0 h-full w-full max-w-lg bg-white z-50 shadow-2xl flex flex-col">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-start justify-between flex-shrink-0">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs text-teal-600 font-semibold mb-1">Chi tiết yêu cầu</p>
-            <h3 className="text-base font-bold text-slate-900 truncate">
-              {loading ? "Đang tải..." : (detail?.title ?? "—")}
-            </h3>
-            {detail && (
-              <p className="text-[11px] font-mono text-slate-400 mt-0.5">
-                #{String(detail.id ?? ticketId).slice(0, 8).toUpperCase()}
-              </p>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-slate-100 text-slate-400 transition flex-shrink-0 ml-3"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-          {loading && (
-            <div className="py-20 text-center text-slate-400 text-sm">Đang tải thông tin...</div>
+  return (
+    <Drawer
+      open={open}
+      onClose={onClose}
+      width={520}
+      destroyOnClose
+      title={
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[11px] font-bold text-teal-600 bg-teal-50 border border-teal-100 px-2.5 py-1 rounded-lg tracking-wide uppercase">
+            Mã câu hỏi: #{String(ticketId ?? "").slice(0, 8).toUpperCase()}
+          </span>
+          {detail?.createdAt && (
+            <span className="text-[11px] text-gray-400">
+              {dayjs(detail.createdAt).format("DD/MM/YYYY · HH:mm")}
+            </span>
           )}
-          {error && (
-            <div className="py-10 text-center text-red-500 text-sm">{error}</div>
-          )}
-
-          {!loading && detail && (
-            <>
-              {/* Status + Type badges */}
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold ${status.pill}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
-                  {status.label}
-                </span>
-                {typeLabel && (
-                  <span className={`text-xs font-semibold px-2.5 py-1 rounded-xl ${ISSUE_TYPE_CONFIG[detail.type]?.cls ?? "bg-gray-100 text-gray-600"}`}>
-                    {typeLabel}
-                  </span>
-                )}
-              </div>
-
-              {/* Mô tả */}
-              {detail.description && (
-                <div className="bg-slate-50 rounded-2xl p-4">
-                  <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-1.5 font-bold">Mô tả</p>
-                  <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{detail.description}</p>
-                </div>
-              )}
-
-              {/* Thời gian */}
-              <Section title="Thời gian">
-                <Row icon={Calendar} label="Ngày tạo" value={detail.createdAt ? dayjs(detail.createdAt).format("DD/MM/YYYY HH:mm") : null} />
-                {detail.updatedAt && (
-                  <Row icon={Clock} label="Cập nhật lần cuối" value={dayjs(detail.updatedAt).format("DD/MM/YYYY HH:mm")} />
-                )}
-                {detail.resolvedAt && (
-                  <Row icon={Clock} label="Ngày giải quyết" value={dayjs(detail.resolvedAt).format("DD/MM/YYYY HH:mm")} />
-                )}
-                {detail.scheduledDate && (
-                  <Row icon={Calendar} label="Ngày hẹn xử lý" value={dayjs(detail.scheduledDate).format("DD/MM/YYYY HH:mm")} />
-                )}
-              </Section>
-
-              {/* Khách thuê */}
-              <Section title="Khách thuê">
-                <Row icon={User}  label="Họ tên"        value={detail.tenantName} />
-                <Row icon={Phone} label="Số điện thoại" value={detail.tenantPhone} />
-                <Row icon={Tag}   label="Vai trò"       value={detail.tenantRole} />
-                {detail.tenantEmail && <Row icon={FileText} label="Email" value={detail.tenantEmail} />}
-              </Section>
-
-              {/* Bất động sản */}
-              <Section title="Bất động sản">
-                <Row icon={Home}     label="Nhà"     value={detail.houseName} />
-                {detail.houseUnit && <Row icon={Home} label="Phòng/Căn" value={detail.houseUnit} />}
-                {detail.houseAddress && <Row icon={Home} label="Địa chỉ" value={detail.houseAddress} />}
-              </Section>
-
-              {/* Nhân viên xử lý */}
-              {(detail.staffName || detail.staffPhone) && (
-                <Section title="Nhân viên xử lý">
-                  <Row icon={User}  label="Họ tên"        value={detail.staffName} />
-                  <Row icon={Phone} label="Số điện thoại" value={detail.staffPhone} />
-                </Section>
-              )}
-
-              {/* Thiết bị / Loại sửa chữa */}
-              {detail.assetName && (
-                <Section title="Thiết bị liên quan">
-                  <Row icon={Wrench}   label="Tên thiết bị" value={detail.assetName} />
-                  {detail.assetType && <Row icon={Tag} label="Loại" value={detail.assetType} />}
-                </Section>
-              )}
-
-              {/* Ghi chú / Phản hồi */}
-              {detail.note && (
-                <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
-                  <p className="text-[10px] text-amber-500 uppercase tracking-wide mb-1.5 font-bold flex items-center gap-1">
-                    <MessageCircle className="w-3.5 h-3.5" /> Ghi chú / Phản hồi
-                  </p>
-                  <p className="text-sm text-amber-900 leading-relaxed whitespace-pre-wrap">{detail.note}</p>
-                </div>
-              )}
-
-              {/* Hình ảnh đính kèm */}
-              {Array.isArray(detail.images) && detail.images.length > 0 && (
-                <div className="bg-slate-50 rounded-2xl p-4">
-                  <p className="text-[10px] text-slate-400 uppercase tracking-wide mb-3 font-bold">Hình ảnh đính kèm</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {detail.images.map((url, idx) => (
-                      <a key={idx} href={url} target="_blank" rel="noreferrer">
-                        <img src={url} alt={`img-${idx}`} className="w-full h-20 object-cover rounded-xl border border-slate-200" />
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
+          {status && (
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg" style={{ background: status.bg, color: status.color }}>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: status.dot }} />
+              {status.label}
+            </span>
           )}
         </div>
+      }
+      styles={{ body: { padding: 0 } }}
+    >
+      {/* Title */}
+      <div className="px-6 py-4 border-b border-gray-100">
+        <h2 className="text-2xl font-bold text-gray-900 leading-snug">
+          {loading ? "Đang tải..." : (detail?.title ?? "—")}
+        </h2>
       </div>
-    </>,
-    document.body
+
+      {/* Body */}
+      <div className="overflow-y-auto">
+        {loading && (
+          <div className="py-24 flex flex-col items-center gap-3 text-gray-400">
+            <div className="w-7 h-7 rounded-full border-2 border-teal-400 border-t-transparent animate-spin" />
+            <p className="text-sm">Đang tải thông tin...</p>
+          </div>
+        )}
+        {error && <div className="py-10 text-center text-red-500 text-sm px-6">{error}</div>}
+
+        {!loading && detail && (
+          <>
+            {/* Resident + Location */}
+            <div className="grid grid-cols-2 gap-3 px-6 pt-5">
+              <div className="bg-gray-50 rounded-2xl p-4 flex items-start gap-3">
+                <Avatar name={detail.tenantName} />
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Khách thuê</p>
+                  <p className="text-sm font-bold text-gray-800 truncate">{detail.tenantName ?? "—"}</p>
+                  {detail.tenantPhone && <p className="text-xs text-gray-500 mt-0.5">{detail.tenantPhone}</p>}
+                </div>
+              </div>
+              <div className="bg-gray-50 rounded-2xl p-4 flex items-start gap-3">
+                <div className="w-11 h-11 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-5 h-5 text-blue-500" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Địa điểm</p>
+                  {detail.houseUnit && <p className="text-sm font-bold text-gray-800 truncate">{detail.houseUnit}</p>}
+                  <p className="text-xs text-gray-500 mt-0.5 truncate">{houseName ?? detail.houseName ?? "—"}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Inquiry */}
+            <div className="px-6 pt-5">
+              <div className="flex items-center gap-2 mb-3">
+                <MessageSquare className="w-4 h-4 text-teal-500" />
+                <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Nội dung thắc mắc</p>
+              </div>
+              <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {detail.description ? `"${detail.description}"` : "—"}
+                </p>
+                <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-200">
+                  <span className="flex items-center gap-1.5 text-[11px] text-gray-400">
+                    <Clock className="w-3.5 h-3.5" />
+                    {dayjs(detail.createdAt).format("DD/MM/YYYY · HH:mm")}
+                  </span>
+                  {detail.houseUnit && (
+                    <span className="flex items-center gap-1.5 text-[11px] text-gray-400">
+                      <MapPin className="w-3.5 h-3.5" /> {detail.houseUnit}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Response */}
+            {response && (
+              <div className="px-6 pt-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <CheckCircle className="w-4 h-4 text-teal-500" />
+                  <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Ban quản lý đã trả lời:</p>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+                  <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{response.content}</p>
+                  {response.createdAt && (
+                    <div className="flex items-center gap-3 mt-4 pt-3 border-t border-gray-100">
+                      <div className="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center flex-shrink-0">
+                        <User className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-gray-700">Ban Quản Lý</p>
+                        <p className="text-[11px] text-teal-500">
+                          {dayjs(response.createdAt).format("DD/MM/YYYY · HH:mm")}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            <div className="h-6" />
+          </>
+        )}
+      </div>
+    </Drawer>
   );
 }

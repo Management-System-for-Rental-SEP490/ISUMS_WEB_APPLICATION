@@ -37,7 +37,7 @@ const getInitialForm = (todayISO) => ({
   disputeForum: "",
   copies: 2,
   eachKeep: 1,
-  purpose: "",
+  purpose: "Để ở",
   area: "",
   structure: "",
   ownershipDocs: "",
@@ -66,10 +66,11 @@ export default function CreateContract({ onCancel, onCreated }) {
       await createContract(form);
       setIsApiDone(true);
     } catch (err) {
+      const status = err?.response?.status;
       const msg =
-        err?.response?.status === 500
-          ? "Tạo hợp đồng lỗi, vui lòng thử lại."
-          : err?.response?.data?.message || err?.message || "Không thể tạo hợp đồng";
+        status === 400 ? "Dữ liệu không hợp lệ hoặc thông tin chủ nhà chưa được cập nhật đầy đủ." :
+        status === 404 ? "Không tìm thấy nhà hoặc email người dùng không tồn tại." :
+        "Tạo hợp đồng thất bại, vui lòng thử lại.";
       setIsError(true);
       setErrorMessage(msg);
       setIsApiDone(true);
@@ -119,6 +120,7 @@ export default function CreateContract({ onCancel, onCreated }) {
         errorMessage={errorMessage}
         onSuccess={handleModalSuccess}
         onRetry={handleRetry}
+        onClose={() => setModalOpen(false)}
       />
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-1">Tạo Hợp Đồng</h2>
