@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { getAllHouses, getHouseImages } from "../api/houses.api";
+import { getAllHouses } from "../api/houses.api";
 import { mapHouseToHouseCard } from "../utils/mapHouseToHouseCard";
 
 /**
@@ -42,15 +42,7 @@ export function useHouses({ page = 1, size = 9, keyword = "", sortBy = "", sortD
           });
         }
 
-        const imageResults = await Promise.allSettled(arr.map((h) => getHouseImages(h.id)));
-        if (cancelled) return;
-
-        const mapped = arr.map((h, i) => {
-          const imagesRaw = imageResults[i].status === "fulfilled" ? imageResults[i].value : [];
-          const images    = Array.isArray(imagesRaw) ? imagesRaw : (imagesRaw?.data ?? []);
-          return mapHouseToHouseCard(h, images[0]?.url ?? null);
-        });
-
+        const mapped = arr.map((h) => mapHouseToHouseCard(h));
         setHouses(mapped);
       } catch (err) {
         if (!cancelled) {

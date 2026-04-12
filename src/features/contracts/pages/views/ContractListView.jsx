@@ -7,7 +7,6 @@ import ContractsFilters from "../../components/list/ContractsFilters";
 import ContractsTable from "../../components/list/ContractsTable";
 
 export default function ContractsListView({
-  onNavigateMenu,
   onCreate,
   onViewDetail,
   onEdit,

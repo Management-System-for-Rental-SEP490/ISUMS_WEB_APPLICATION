@@ -1,38 +1,25 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { Sparkles } from "lucide-react";
 import { LoadingSpinner } from "../../../components/shared/Loading";
 import { getAllContracts } from "../api/contracts.api";
 import { formatDateVi } from "../utils/contract.format";
 import { mapContractFromApi } from "../utils/mapContractFromApi";
 
-/* ------------------------------------------------------------------ */
-/* Helpers                                                              */
-/* ------------------------------------------------------------------ */
-
-function Badge({ children, variant = "teal" }) {
-  const cls = {
-    teal: "bg-teal-50 text-teal-700 border-teal-200",
-    emerald: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    amber: "bg-amber-50 text-amber-700 border-amber-200",
-  }[variant];
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${cls}`}>
-      {children}
-    </span>
-  );
-}
-
 function EmptyState() {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-8 py-16 flex flex-col items-center gap-3 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-500">
-        <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <div
+      className="rounded-2xl px-8 py-16 flex flex-col items-center gap-3 text-center"
+      style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}
+    >
+      <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "#EAF4F0", border: "1px solid #C4DED5" }}>
+        <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: "#3bb582" }}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       </div>
-      <p className="font-semibold text-slate-700">Không có hợp đồng nào chờ ký</p>
-      <p className="text-sm text-slate-400">Tất cả hợp đồng đã được xử lý</p>
+      <p className="font-semibold" style={{ color: "#1E2D28" }}>Không có hợp đồng nào chờ ký</p>
+      <p className="text-sm" style={{ color: "#5A7A6E" }}>Tất cả hợp đồng đã được xử lý</p>
     </div>
   );
 }
@@ -41,31 +28,43 @@ function ContractTable({ contracts, onNavigate }) {
   if (contracts.length === 0) return <EmptyState />;
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+    >
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-slate-100 bg-slate-50">
-              <th className="text-center px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide w-12">STT</th>
-              <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Mã hợp đồng</th>
-              <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Khách thuê</th>
-              <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Ngày bắt đầu</th>
-              <th className="text-right px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Hành động</th>
+            <tr style={{ borderBottom: "1px solid #C4DED5", background: "#EAF4F0" }}>
+              <th className="text-center px-4 py-3.5 text-xs font-semibold uppercase tracking-wide w-12" style={{ color: "#5A7A6E" }}>STT</th>
+              <th className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>Mã hợp đồng</th>
+              <th className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>Khách thuê</th>
+              <th className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>Ngày bắt đầu</th>
+              <th className="text-right px-5 py-3.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>Hành động</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-50">
+          <tbody>
             {contracts.map((contract, idx) => (
-              <tr key={contract.id} className="hover:bg-slate-50/60 transition">
-                <td className="px-4 py-4 text-center text-xs font-medium text-slate-400">{idx + 1}</td>
+              <tr
+                key={contract.id}
+                className="transition"
+                style={{ borderBottom: "1px solid rgba(196,222,213,0.4)" }}
+                onMouseEnter={e => { e.currentTarget.style.background = "#F0FAF6"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+              >
+                <td className="px-4 py-4 text-center text-xs font-medium" style={{ color: "#5A7A6E" }}>{idx + 1}</td>
                 <td className="px-5 py-4">
-                  <span className="font-mono text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+                  <span
+                    className="font-mono text-xs px-2 py-0.5 rounded-full"
+                    style={{ background: "#EAF4F0", color: "#1E2D28" }}
+                  >
                     {contract.contractNumber ?? contract.name ?? contract.id?.slice(0, 8)}
                   </span>
                 </td>
                 <td className="px-5 py-4">
-                  <span className="font-medium text-slate-800">{contract.tenant ?? "—"}</span>
+                  <span className="font-medium" style={{ color: "#1E2D28" }}>{contract.tenant ?? "—"}</span>
                 </td>
-                <td className="px-5 py-4 text-slate-500 text-xs">
+                <td className="px-5 py-4 text-xs" style={{ color: "#5A7A6E" }}>
                   {formatDateVi(contract.startDate)}
                 </td>
                 <td className="px-5 py-4 text-right">
@@ -73,7 +72,10 @@ function ContractTable({ contracts, onNavigate }) {
                     <button
                       type="button"
                       onClick={() => onNavigate(`/contracts/${contract.id}`)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition"
+                      style={{ border: "1px solid #C4DED5", color: "#5A7A6E", background: "transparent" }}
+                      onMouseEnter={e => { e.currentTarget.style.background = "#EAF4F0"; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
                     >
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -84,7 +86,8 @@ function ContractTable({ contracts, onNavigate }) {
                     <button
                       type="button"
                       onClick={() => onNavigate(`/contracts/${contract.id}/sign`)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition shadow-sm"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-white text-xs font-semibold transition shadow-sm"
+                      style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
                     >
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -101,10 +104,6 @@ function ContractTable({ contracts, onNavigate }) {
     </div>
   );
 }
-
-/* ------------------------------------------------------------------ */
-/* Main page                                                            */
-/* ------------------------------------------------------------------ */
 
 export default function ContractsPendingSignPage() {
   const navigate = useNavigate();
@@ -139,41 +138,54 @@ export default function ContractsPendingSignPage() {
     <div className="space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-100 to-emerald-100 flex items-center justify-center text-teal-600 border border-teal-200">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-            </svg>
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,181,130,0.12)" }}>
+              <Sparkles className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
+            </div>
+            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Hợp đồng</span>
           </div>
-          <div>
-            <h2 className="text-lg font-bold text-slate-900">Hợp Đồng Chờ Ký</h2>
-            <p className="text-sm text-slate-500">Danh sách hợp đồng khách thuê đã duyệt, chờ chủ nhà ký</p>
-          </div>
+          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Hợp Đồng Chờ Ký</h2>
+          <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>
+            Danh sách hợp đồng khách thuê đã duyệt, chờ chủ nhà ký
+          </p>
         </div>
         {!loading && contracts.length > 0 && (
-          <Badge variant="amber">
-            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+          <span
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
+            style={{ background: "rgba(245,158,11,0.12)", color: "#b45309", border: "1px solid rgba(245,158,11,0.3)" }}
+          >
+            <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#f59e0b" }} />
             {contracts.length} hợp đồng chờ ký
-          </Badge>
+          </span>
         )}
       </div>
 
       {/* Loading */}
       {loading && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-8 py-12 flex flex-col items-center gap-4">
+        <div
+          className="rounded-2xl px-8 py-12 flex flex-col items-center gap-4"
+          style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}
+        >
           <LoadingSpinner size="lg" showLabel label="Đang tải danh sách..." />
         </div>
       )}
 
       {/* Error */}
       {error && !loading && (
-        <div className="bg-white rounded-xl border border-red-200 px-4 py-3 flex items-center gap-3 shadow-sm">
-          <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center text-red-500 shrink-0">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <div
+          className="rounded-xl px-4 py-3 flex items-center gap-3"
+          style={{ background: "rgba(217,95,75,0.04)", border: "1px solid rgba(217,95,75,0.3)" }}
+        >
+          <div
+            className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+            style={{ background: "rgba(217,95,75,0.10)" }}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: "#D95F4B" }}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <p className="text-sm font-semibold text-red-600">{error}</p>
+          <p className="text-sm font-semibold" style={{ color: "#D95F4B" }}>{error}</p>
         </div>
       )}
 

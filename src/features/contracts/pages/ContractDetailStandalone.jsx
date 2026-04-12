@@ -258,7 +258,7 @@ export default function ContractDetailStandalone() {
   const canLandlordSign = isLandlord && normalizedStatus === "READY";
   const canDownload = normalizedStatus === "COMPLETED" && !!pdfUrl;
 
-  const goBack = () => navigate("/dashboard", { state: { menu: "contracts" } });
+  const goBack = () => navigate("/contracts");
 
   const handleDownload = async () => {
     if (!pdfUrl) return;

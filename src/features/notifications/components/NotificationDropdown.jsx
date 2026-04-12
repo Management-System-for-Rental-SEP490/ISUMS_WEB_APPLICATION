@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Bell, CheckCircle, AlertTriangle, Info, XCircle,
   Check, Loader2, ArrowRight,
 } from "lucide-react";
+
 import { useUnreadCount } from "../hooks/useUnreadCount";
 import { getManagerNotifications, markAllNotificationsRead } from "../api/notifications.api";
 
@@ -51,13 +53,10 @@ function formatTime(dateStr) {
   }
 }
 
-/**
- * Bell icon + dropdown thông báo kiểu Facebook.
- * @param {{ onNavigate: (menu: string) => void }} props
- */
-export default function NotificationDropdown({ onNavigate }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [previews, setPreviews] = useState([]);
+export default function NotificationDropdown() {
+  const navigate = useNavigate();
+  const [isOpen, setIsOpen]       = useState(false);
+  const [previews, setPreviews]   = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isMarkingAll, setIsMarkingAll] = useState(false);
 
@@ -108,12 +107,12 @@ export default function NotificationDropdown({ onNavigate }) {
 
   const handleViewAll = () => {
     setIsOpen(false);
-    onNavigate("notifications");
+    navigate("/notifications");
   };
 
   const handleItemClick = () => {
     setIsOpen(false);
-    onNavigate("notifications");
+    navigate("/notifications");
   };
 
   const handleMarkAllRead = async (e) => {
@@ -165,7 +164,7 @@ export default function NotificationDropdown({ onNavigate }) {
 
       {/* Dropdown panel */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-[380px] bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-[380px] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden" style={{ zIndex: 1001 }}>
           {/* Header */}
           <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
             <div>
@@ -206,45 +205,33 @@ export default function NotificationDropdown({ onNavigate }) {
               </div>
             ) : (
               previews.map((notif) => {
-                const category = notif.category ?? notif.type ?? "";
-                const type = CATEGORY_TYPE[category] ?? category?.toLowerCase() ?? "info";
+                const category    = notif.category ?? notif.type ?? "";
+                const type        = CATEGORY_TYPE[category] ?? category?.toLowerCase() ?? "info";
                 const resolvedType = TYPE_ICON[type] ? type : "info";
-                const isUnread = !notif.read;
-                const metadata = notif.metadata ?? {};
+                const isUnread    = !notif.read;
+                const bodyText    = notif.body ?? notif.message ?? notif.content ?? "";
 
                 return (
                   <button
                     key={notif.id}
                     type="button"
                     onClick={handleItemClick}
-                    className={`w-full text-left px-5 py-3.5 hover:bg-gray-50 transition flex items-start gap-3 ${
-                      isUnread ? "bg-blue-50/60" : ""
-                    }`}
+                    className={`w-full text-left border-b border-gray-50 last:border-0 px-5 py-3.5 flex items-start gap-3 transition-colors ${isUnread ? "bg-blue-50/50" : ""} hover:bg-gray-50/70`}
                   >
-                    {/* Icon */}
-                    <div className="mt-0.5">
-                      {TYPE_ICON[resolvedType] ?? <Bell className="w-4 h-4 text-gray-400 flex-shrink-0" />}
+                    <div className="mt-0.5 flex-shrink-0">
+                      {TYPE_ICON[resolvedType] ?? <Bell className="w-4 h-4 text-gray-400" />}
                     </div>
-
-                    {/* Content */}
                     <div className="flex-1 min-w-0">
                       <p className={`text-sm leading-snug mb-0.5 ${isUnread ? "font-semibold text-gray-900" : "font-medium text-gray-700"}`}>
                         {notif.title ?? category ?? "Thông báo"}
                       </p>
-                      <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
-                        {notif.message ?? notif.content ?? ""}
-                      </p>
-                      {metadata.type && (
-                        <p className="text-[10px] text-gray-400 mt-0.5">
-                          {metadata.type === "CHECK_IN" ? "Bàn giao nhà" : metadata.type === "CHECK_OUT" ? "Kết thúc hợp đồng" : metadata.type}
-                        </p>
+                      {bodyText && (
+                        <p className="text-xs text-gray-500 line-clamp-1 leading-relaxed">{bodyText}</p>
                       )}
                       <p className={`text-[11px] mt-1 font-medium ${TYPE_TEXT_COLOR[resolvedType] ?? "text-gray-400"}`}>
                         {formatTime(notif.createdAt ?? notif.time)}
                       </p>
                     </div>
-
-                    {/* Unread dot */}
                     {isUnread && (
                       <span className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${TYPE_DOT[resolvedType] ?? "bg-blue-500"}`} />
                     )}

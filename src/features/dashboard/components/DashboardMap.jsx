@@ -83,7 +83,7 @@ export default function DashboardMap({ houses = [] }) {
   ];
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden" style={{ isolation: "isolate" }}>
       <div className="px-5 py-4 flex items-center justify-between border-b border-gray-100">
         <div>
           <h3 className="font-semibold text-gray-900 text-sm">
@@ -110,12 +110,12 @@ export default function DashboardMap({ houses = [] }) {
         </div>
       </div>
 
-      <div style={{ height: 500 }}>
+      <div className="w-full" style={{ height: "min(500px, 60vw)", minHeight: 280 }}>
         <MapContainer
           center={[10.7769, 106.7009]}
           zoom={12}
           scrollWheelZoom={false}
-          style={{ height: "100%", width: "100%" }}
+          style={{ height: "100%", width: "100%", minWidth: 0 }}
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
