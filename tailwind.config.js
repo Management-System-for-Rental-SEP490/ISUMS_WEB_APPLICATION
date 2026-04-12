@@ -9,7 +9,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans:    ["Nunito", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans:    ["Plus Jakarta Sans", "ui-sans-serif", "system-ui", "sans-serif"],
         heading: ["Fraunces", "Georgia", "serif"],
         mono:    ["ui-monospace", "SFMono-Regular", "monospace"],
       },

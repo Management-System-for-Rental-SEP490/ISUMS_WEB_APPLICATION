@@ -12,7 +12,6 @@ export const STATUS_BADGE = {
   CONFIRM_BY_TENANT: "bg-cyan-50 text-cyan-700 border border-cyan-200",
   REJECTED_BY_TENANT: "bg-red-50 text-red-600 border border-red-200",
   REJECTED_BY_LANDLORD: "bg-rose-50 text-rose-700 border border-rose-200",
-  PENDING_TERMINATION: "bg-purple-50 text-purple-700 border border-purple-200",
   CANCELLED: "bg-zinc-100 text-zinc-600 border border-zinc-200",
   DELETED: "bg-zinc-50 text-zinc-400 border border-zinc-200",
 };
@@ -31,7 +30,6 @@ export const STATUS_LABEL = {
   CONFIRM_BY_TENANT: "Khách hàng đã đồng ý ký",
   REJECTED_BY_TENANT: "Khách hàng từ chối ký",
   REJECTED_BY_LANDLORD: "Chủ nhà từ chối ký",
-  PENDING_TERMINATION: "Sắp kết thúc hợp đồng",
   CANCELLED: "Đã huỷ",
 };
 

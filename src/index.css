@@ -4,7 +4,7 @@
 
 @layer base {
   html, body, #root {
-    font-family: "Nunito", ui-sans-serif, system-ui, sans-serif;
+    font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
     background-color: #F7FDFB;
     color: #1E2D28;
   }
