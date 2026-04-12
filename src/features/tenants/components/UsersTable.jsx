@@ -8,7 +8,10 @@ function Avatar({ name }) {
     .map((w) => w[0].toUpperCase())
     .join("");
   return (
-    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+    <div
+      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+      style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
+    >
       {initials || "?"}
     </div>
   );
@@ -17,15 +20,18 @@ function Avatar({ name }) {
 function EmptyState({ hasSearch }) {
   return (
     <div className="py-16 flex flex-col items-center gap-3 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
-        <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <div
+        className="w-14 h-14 rounded-2xl flex items-center justify-center"
+        style={{ background: "#EAF4F0", border: "1px solid #C4DED5" }}
+      >
+        <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: "#3bb582" }}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       </div>
-      <p className="font-semibold text-slate-700">
+      <p className="font-semibold" style={{ color: "#1E2D28" }}>
         {hasSearch ? "Không tìm thấy người dùng phù hợp" : "Chưa có người dùng nào"}
       </p>
-      <p className="text-sm text-slate-400">
+      <p className="text-sm" style={{ color: "#5A7A6E" }}>
         {hasSearch ? "Thử thay đổi từ khóa tìm kiếm" : "Dữ liệu sẽ hiển thị tại đây"}
       </p>
     </div>
@@ -35,50 +41,68 @@ function EmptyState({ hasSearch }) {
 export default function UsersTable({ users, loading, searchTerm }) {
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-8 py-16 flex flex-col items-center gap-4">
+      <div
+        className="rounded-2xl px-8 py-16 flex flex-col items-center gap-4"
+        style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}
+      >
         <LoadingSpinner size="lg" showLabel label="Đang tải danh sách người dùng..." />
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div
+      className="rounded-2xl overflow-hidden"
+      style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+    >
       {users.length === 0 ? (
         <EmptyState hasSearch={!!searchTerm} />
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50">
-                <th className="text-center px-4 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide w-12">STT</th>
-                <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Người dùng</th>
-                <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Email</th>
-                <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wide">Số điện thoại</th>
+              <tr style={{ borderBottom: "1px solid #C4DED5", background: "#EAF4F0" }}>
+                <th className="text-center px-4 py-3.5 text-xs font-semibold uppercase tracking-wide w-12" style={{ color: "#5A7A6E" }}>STT</th>
+                <th className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>Người dùng</th>
+                <th className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>Email</th>
+                <th className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>Số điện thoại</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-50">
+            <tbody>
               {users.map((user, idx) => (
-                <tr key={user.id} className="hover:bg-slate-50/60 transition">
-                  <td className="px-4 py-3.5 text-center text-xs font-medium text-slate-400">{idx + 1}</td>
+                <tr
+                  key={user.id}
+                  className="transition"
+                  style={{ borderBottom: "1px solid rgba(196,222,213,0.4)" }}
+                  onMouseEnter={e => e.currentTarget.style.background = "#F0FAF6"}
+                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                >
+                  <td className="px-4 py-3.5 text-center text-xs font-medium" style={{ color: "#5A7A6E" }}>{idx + 1}</td>
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-3">
                       <Avatar name={user.displayName} />
                       <div>
-                        <p className="font-semibold text-slate-800 leading-tight">{user.displayName}</p>
-                        <p className="text-[11px] text-slate-400 font-mono mt-0.5">{user.id.slice(0, 8)}…</p>
+                        <p className="font-semibold leading-tight" style={{ color: "#1E2D28" }}>{user.displayName}</p>
+                        <p className="text-[11px] font-mono mt-0.5" style={{ color: "#5A7A6E" }}>{user.id.slice(0, 8)}…</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-5 py-3.5">
-                    <a href={`mailto:${user.email}`} className="text-blue-600 hover:text-blue-700 hover:underline transition">
+                    <a
+                      href={`mailto:${user.email}`}
+                      className="transition"
+                      style={{ color: "#2096d8" }}
+                      onMouseEnter={e => e.currentTarget.style.textDecoration = "underline"}
+                      onMouseLeave={e => e.currentTarget.style.textDecoration = "none"}
+                    >
                       {user.email}
                     </a>
                   </td>
                   <td className="px-5 py-3.5">
                     {user.phone === "Chưa có" ? (
-                      <span className="text-xs text-slate-400 italic">Chưa có</span>
+                      <span className="text-xs italic" style={{ color: "#5A7A6E" }}>Chưa có</span>
                     ) : (
-                      <span className="font-mono text-xs text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+                      <span className="font-mono text-xs px-2 py-0.5 rounded" style={{ background: "#EAF4F0", color: "#1E4A38" }}>
                         {user.phone}
                       </span>
                     )}

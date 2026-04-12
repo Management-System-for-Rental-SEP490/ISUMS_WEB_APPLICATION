@@ -3,8 +3,6 @@
  * Centralized endpoint definitions for the application
  */
 
-import { id } from "zod/v4/locales";
-
 // Auth endpoints
 export const AUTH_ENDPOINTS = {
   GET: "users/{email}",
@@ -20,6 +18,7 @@ export const HOUSES_ENDPOINTS = {
   DELETE: (id) => `/houses/${id}`,
   IMAGES: (id) => `/houses/${id}/images`,
   REGIONS: "/houses/regions",
+  FUNCTIONAL_AREAS: "/houses/functionalAreas",
 };
 
 export const CONTRACTS_ENDPOINTS = {
@@ -101,6 +100,9 @@ export const SCHEDULE_ENDPOINTS = {
   WORK_SLOTS_CONFIRM_MAINTENANCE: "/schedules/work_slots/confirm-maintenance",
   WORK_SLOTS_MANAGER_CONFIRM: (jobId) =>
     `/schedules/work_slots/manager/confirm-issue/${jobId}`,
+  WORK_SLOTS_SLOTS: "/schedules/work_slots/slots",
+  WORK_SLOTS_SLOTS_STAFF: "/schedules/work_slots/slots/staff",
+  WORK_SLOTS_MANUAL: "/schedules/work_slots/manual",
   TEMPLATES_CURRENT: (date) => `/schedules/templates/current/${date}`,
 };
 export const ISSSUE_ENDPOINTS = {
@@ -116,9 +118,12 @@ export const ISSSUE_ENDPOINTS = {
 export const ASSET_ENDPOINTS = {
   BASE: "/assets",
   ASSET_BY_ID: (id) => `/assets/${id}`,
+  ITEM_BY_ID: (id) => `/assets/items/${id}`,
+  BY_HOUSE: (houseId) => `/assets/items/house/${houseId}`,
   CREATE: "/assets",
   UPDATE: (id) => `/assets/${id}`,
   DELETE: (id) => `/assets/${id}`,
+  ASSET_CHANGE_DETAIS: (jobId) => `/assets/items/job/${jobId}`,
 };
 export const BANNER_ENDPOINTS = {
   BASE: "issues/banners",
@@ -130,4 +135,5 @@ export const INSPECTION_ENDPOINTS = {
   CREATE: "maintenances/inspections",
   GET: (id) => `maintenances/inspections/${id}`,
   UPDATE: (id) => `maintenances/inspections/${id}/status`,
+  ASSET_EVENTS_BY_JOB: (jobId) => `assets/events/job/${jobId}`,
 };

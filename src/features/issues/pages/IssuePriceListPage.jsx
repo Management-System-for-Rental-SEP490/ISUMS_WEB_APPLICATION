@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { RefreshCw, Tag, Plus, X, Pencil, Check } from "lucide-react";
+import { RefreshCw, Tag, Plus, X, Pencil, Check, Sparkles } from "lucide-react";
 import { toast } from "react-toastify";
 import { getBanners, createBanner, updateBannerPrice } from "../api/issues.api";
 
@@ -67,7 +67,7 @@ function CreateBannerModal({ open, onClose, onCreated }) {
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{
-        backgroundColor: "rgba(15,23,42,0.45)",
+        background: "rgba(30,45,40,0.75)",
         backdropFilter: "blur(4px)",
         opacity: visible ? 1 : 0,
         transition: "opacity 250ms ease",
@@ -75,8 +75,9 @@ function CreateBannerModal({ open, onClose, onCreated }) {
       onClick={handleClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+        className="rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
         style={{
+          background: "#FAFFFE",
           transform: visible
             ? "translateY(0) scale(1)"
             : "translateY(20px) scale(0.97)",
@@ -87,19 +88,22 @@ function CreateBannerModal({ open, onClose, onCreated }) {
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 pt-5 pb-4 flex items-center justify-between border-b border-gray-100">
+        <div className="px-6 pt-5 pb-4 flex items-center justify-between" style={{ borderBottom: "1px solid #C4DED5" }}>
           <div>
-            <h3 className="text-lg font-bold text-gray-900">
+            <h3 className="text-lg font-bold" style={{ color: "#1E2D28" }}>
               Thêm báo giá mới
             </h3>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-xs mt-0.5" style={{ color: "#5A7A6E" }}>
               Điền thông tin thiết bị / dịch vụ
             </p>
           </div>
           <button
             type="button"
             onClick={handleClose}
-            className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 transition"
+            className="p-2 rounded-full transition"
+            style={{ color: "#5A7A6E" }}
+            onMouseEnter={e => { e.currentTarget.style.background = "#EAF4F0"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
           >
             <X className="w-4 h-4" />
           </button>
@@ -108,38 +112,26 @@ function CreateBannerModal({ open, onClose, onCreated }) {
         {/* Form */}
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-1.5">
-              Tên dịch vụ / thiết bị <span className="text-red-400">*</span>
+            <label className="block text-xs font-semibold mb-1.5" style={{ color: "#5A7A6E" }}>
+              Tên dịch vụ / thiết bị <span style={{ color: "#D95F4B" }}>*</span>
             </label>
             <input
               name="name"
               value={form.name}
               onChange={handleChange}
               placeholder="VD: Vệ sinh máy lạnh"
-              className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-800 outline-none focus:border-teal-400 transition placeholder-gray-300"
+              className="w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition"
+              style={{ border: "1px solid #C4DED5", color: "#1E2D28", background: "#ffffff" }}
+              onFocus={e => { e.currentTarget.style.borderColor = "#3bb582"; }}
+              onBlur={e => { e.currentTarget.style.borderColor = "#C4DED5"; }}
               required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1.5">
-                Giá mua (đ) <span className="text-red-400">*</span>
-              </label>
-              <input
-                name="price"
-                type="number"
-                min="0"
-                value={form.currentPrice}
-                onChange={handleChange}
-                placeholder="0"
-                className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-800 outline-none focus:border-teal-400 transition placeholder-gray-300"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 mb-1.5">
-                Giá bán (đ) <span className="text-red-400">*</span>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: "#5A7A6E" }}>
+                Giá mua (đ) <span style={{ color: "#D95F4B" }}>*</span>
               </label>
               <input
                 name="estimatedCost"
@@ -148,26 +140,51 @@ function CreateBannerModal({ open, onClose, onCreated }) {
                 value={form.estimatedCost}
                 onChange={handleChange}
                 placeholder="0"
-                className="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm text-gray-800 outline-none focus:border-teal-400 transition placeholder-gray-300"
+                className="w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition"
+                style={{ border: "1px solid #C4DED5", color: "#1E2D28", background: "#ffffff" }}
+                onFocus={e => { e.currentTarget.style.borderColor = "#3bb582"; }}
+                onBlur={e => { e.currentTarget.style.borderColor = "#C4DED5"; }}
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold mb-1.5" style={{ color: "#5A7A6E" }}>
+                Giá bán (đ) <span style={{ color: "#D95F4B" }}>*</span>
+              </label>
+              <input
+                name="currentPrice"
+                type="number"
+                min="0"
+                value={form.currentPrice}
+                onChange={handleChange}
+                placeholder="0"
+                className="w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition"
+                style={{ border: "1px solid #C4DED5", color: "#1E2D28", background: "#ffffff" }}
+                onFocus={e => { e.currentTarget.style.borderColor = "#3bb582"; }}
+                onBlur={e => { e.currentTarget.style.borderColor = "#C4DED5"; }}
                 required
               />
             </div>
           </div>
 
-          {error && <p className="text-xs text-red-500">{error}</p>}
+          {error && <p className="text-xs" style={{ color: "#D95F4B" }}>{error}</p>}
 
           <div className="flex justify-end gap-2 pt-1">
             <button
               type="button"
               onClick={handleClose}
-              className="px-5 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition font-semibold"
+              className="px-5 py-2.5 rounded-full text-sm font-semibold transition"
+              style={{ border: "1px solid #C4DED5", color: "#5A7A6E", background: "transparent" }}
+              onMouseEnter={e => { e.currentTarget.style.background = "#EAF4F0"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
             >
               Hủy
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-sm font-bold transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2.5 rounded-full text-white text-sm font-bold transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
             >
               {submitting ? "Đang tạo..." : "Tạo báo giá"}
             </button>
@@ -185,7 +202,7 @@ function EditPriceInline({ item, onUpdated }) {
   const [saving, setSaving] = useState(false);
 
   const handleOpen = () => {
-    setPrice(String(item.estimatedCost ?? item.currentPrice ?? ""));
+    setPrice(String(item.currentPrice ?? ""));
     setEditing(true);
   };
 
@@ -207,13 +224,16 @@ function EditPriceInline({ item, onUpdated }) {
   if (!editing) {
     return (
       <div className="flex items-center gap-2">
-        <p className="text-sm font-bold text-teal-600">
-          {formatCurrency(item.estimatedCost ?? item.currentPrice)}
+        <p className="text-sm font-bold" style={{ color: "#3bb582" }}>
+          {formatCurrency(item.currentPrice)}
         </p>
         <button
           type="button"
           onClick={handleOpen}
-          className="p-1 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition"
+          className="p-1 rounded-lg transition"
+          style={{ color: "#5A7A6E" }}
+          onMouseEnter={e => { e.currentTarget.style.background = "#EAF4F0"; e.currentTarget.style.color = "#1E2D28"; }}
+          onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#5A7A6E"; }}
         >
           <Pencil className="w-3.5 h-3.5" />
         </button>
@@ -228,7 +248,8 @@ function EditPriceInline({ item, onUpdated }) {
         min="0"
         value={price}
         onChange={(e) => setPrice(e.target.value)}
-        className="w-28 border border-teal-300 rounded-lg px-2 py-1 text-sm outline-none focus:border-teal-500"
+        className="w-28 rounded-lg px-2 py-1 text-sm outline-none"
+        style={{ border: "1px solid #3bb582" }}
         autoFocus
         onKeyDown={(e) => {
           if (e.key === "Enter") handleSave();
@@ -239,14 +260,18 @@ function EditPriceInline({ item, onUpdated }) {
         type="button"
         onClick={handleSave}
         disabled={saving}
-        className="p-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white transition disabled:opacity-50"
+        className="p-1.5 rounded-lg text-white transition disabled:opacity-50"
+        style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
       >
         <Check className="w-3.5 h-3.5" />
       </button>
       <button
         type="button"
         onClick={() => setEditing(false)}
-        className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 transition"
+        className="p-1.5 rounded-lg transition"
+        style={{ color: "#5A7A6E" }}
+        onMouseEnter={e => { e.currentTarget.style.background = "#EAF4F0"; }}
+        onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
       >
         <X className="w-3.5 h-3.5" />
       </button>
@@ -282,25 +307,35 @@ export default function IssuePriceListPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            Bảng giá thiết bị thay thế
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,181,130,0.12)" }}>
+              <Sparkles className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
+            </div>
+            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Báo giá</span>
+          </div>
+          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>
+            Bảng giá dịch vụ
           </h2>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Giá tham khảo cho các dịch vụ sửa chữa
+          <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>
+            Giá tham khảo cho các dịch vụ sửa chữa và thiết bị thay thế
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             onClick={fetchBanners}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 bg-white shadow-sm transition disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition disabled:opacity-50"
+            style={{ border: "1px solid #C4DED5", color: "#5A7A6E", background: "#FAFFFE" }}
+            onMouseEnter={e => { e.currentTarget.style.background = "#EAF4F0"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "#FAFFFE"; }}
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             Làm mới
           </button>
           <button
             onClick={() => setModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold shadow-sm transition"
+            className="flex items-center gap-2 px-4 py-2 rounded-full text-white text-sm font-semibold shadow-sm transition"
+            style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
           >
             <Plus className="w-4 h-4" />
             Thêm báo giá
@@ -309,28 +344,24 @@ export default function IssuePriceListPage() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center justify-between">
-          <p className="text-sm text-red-600">{error}</p>
-          <button
-            onClick={fetchBanners}
-            className="text-xs text-red-600 underline"
-          >
+        <div className="rounded-xl px-4 py-3 flex items-center justify-between" style={{ background: "rgba(217,95,75,0.04)", border: "1px solid rgba(217,95,75,0.3)" }}>
+          <p className="text-sm" style={{ color: "#D95F4B" }}>{error}</p>
+          <button onClick={fetchBanners} className="text-xs underline" style={{ color: "#D95F4B" }}>
             Thử lại
           </button>
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="rounded-2xl overflow-hidden" style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
         {/* Table header */}
-        <div className="grid grid-cols-[48px_minmax(0,1fr)_200px_220px] gap-4 px-6 py-3 border-b border-gray-100 bg-gray-50">
-          {["STT", "Tên dịch vụ / thiết bị", "Giá mua", "Giá bán"].map((h) => (
-            <p
-              key={h}
-              className="text-xs font-semibold text-gray-400 uppercase tracking-wide"
-            >
-              {h}
-            </p>
-          ))}
+        <div className="grid grid-cols-[48px_minmax(0,1fr)_200px_220px] gap-4 px-6 py-3" style={{ borderBottom: "1px solid #C4DED5", background: "#EAF4F0" }}>
+          {["STT", "Tên dịch vụ / thiết bị", "Giá mua vào", "Giá bán"].map(
+            (h) => (
+              <p key={h} className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>
+                {h}
+              </p>
+            ),
+          )}
         </div>
 
         {/* Skeleton */}
@@ -338,20 +369,23 @@ export default function IssuePriceListPage() {
           [...Array(5)].map((_, i) => (
             <div
               key={i}
-              className="grid grid-cols-[48px_minmax(0,1fr)_200px_220px] gap-4 px-6 py-4 border-b border-gray-50 last:border-0 animate-pulse"
+              className="grid grid-cols-[48px_minmax(0,1fr)_200px_220px] gap-4 px-6 py-4 animate-pulse"
+              style={{ borderBottom: "1px solid rgba(196,222,213,0.4)" }}
             >
-              <div className="h-3 bg-gray-100 rounded w-6" />
-              <div className="h-3 bg-gray-100 rounded w-3/4" />
-              <div className="h-3 bg-gray-100 rounded w-24" />
-              <div className="h-3 bg-gray-100 rounded w-24" />
+              <div className="h-3 rounded w-6" style={{ background: "#EAF4F0" }} />
+              <div className="h-3 rounded w-3/4" style={{ background: "#EAF4F0" }} />
+              <div className="h-3 rounded w-24" style={{ background: "#EAF4F0" }} />
+              <div className="h-3 rounded w-24" style={{ background: "#EAF4F0" }} />
             </div>
           ))}
 
         {/* Empty */}
         {!loading && !error && banners.length === 0 && (
-          <div className="py-16 flex flex-col items-center gap-3 text-gray-400">
-            <Tag className="w-10 h-10 text-gray-200" />
-            <p className="text-sm">Chưa có dữ liệu bảng giá</p>
+          <div className="py-16 flex flex-col items-center gap-3">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "#EAF4F0" }}>
+              <Tag className="w-7 h-7" style={{ color: "#3bb582" }} />
+            </div>
+            <p className="text-sm" style={{ color: "#5A7A6E" }}>Chưa có dữ liệu bảng giá</p>
           </div>
         )}
 
@@ -360,17 +394,17 @@ export default function IssuePriceListPage() {
           banners.map((item, index) => (
             <div
               key={item.id}
-              className="grid grid-cols-[48px_minmax(0,1fr)_200px_220px] gap-4 px-6 py-4 border-b border-gray-50 last:border-0 hover:bg-gray-50/60 transition items-center"
+              className="grid grid-cols-[48px_minmax(0,1fr)_200px_220px] gap-4 px-6 py-4 transition items-center"
+              style={{ borderBottom: "1px solid rgba(196,222,213,0.4)" }}
+              onMouseEnter={e => { e.currentTarget.style.background = "#F0FAF6"; }}
+              onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
             >
-              <p className="text-xs font-semibold text-gray-400">{index + 1}</p>
-              <p
-                className="text-sm font-medium text-gray-800 truncate"
-                title={item.name}
-              >
+              <p className="text-xs font-semibold" style={{ color: "#5A7A6E" }}>{index + 1}</p>
+              <p className="text-sm font-medium truncate" style={{ color: "#1E2D28" }} title={item.name}>
                 {item.name}
               </p>
-              <p className="text-sm font-semibold text-gray-600">
-                {formatCurrency(item.price ?? item.currentPrice)}
+              <p className="text-sm font-semibold" style={{ color: "#5A7A6E" }}>
+                {formatCurrency(item.estimatedCost)}
               </p>
               <EditPriceInline item={item} onUpdated={fetchBanners} />
             </div>

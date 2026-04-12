@@ -1,8 +1,9 @@
-import { DatePicker } from "antd";
+import { DatePicker, Select } from "antd";
 import dayjs from "dayjs";
-import { ChevronDown, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
-import { getHouseById, getHouseImages } from "../../../houses/api/houses.api";
+import { getHouseById } from "../../../houses/api/houses.api";
+import ImageCarousel from "../../../../components/shared/ImageCarousel";
 import { AREA_TYPE_CONFIG } from "../../../houses/components/HouseDetailModal";
 
 const labelClass = "block text-sm font-medium text-slate-700 mb-1.5";
@@ -17,27 +18,15 @@ const HOUSE_STATUS = {
 
 export default function StepHouseAndMoney({ form, update, houses, errors = {} }) {
   const [houseDetail, setHouseDetail] = useState(null);
-  const [houseImageUrl, setHouseImageUrl] = useState(null);
   const [loadingHouse, setLoadingHouse] = useState(false);
-  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    if (!form.houseId) {
-      setHouseDetail(null);
-      setHouseImageUrl(null);
-      return;
-    }
+    if (!form.houseId) { setHouseDetail(null); return; }
     setLoadingHouse(true);
-    Promise.all([getHouseById(form.houseId), getHouseImages(form.houseId)])
-      .then(([detail, images]) => {
-        if (cancelled) return;
-        setHouseDetail(detail);
-        setHouseImageUrl(Array.isArray(images) && images.length > 0 ? images[0].url : null);
-      })
-      .catch(() => {
-        if (!cancelled) { setHouseDetail(null); setHouseImageUrl(null); }
-      })
+    getHouseById(form.houseId)
+      .then((detail) => { if (!cancelled) setHouseDetail(detail); })
+      .catch(() => { if (!cancelled) setHouseDetail(null); })
       .finally(() => { if (!cancelled) setLoadingHouse(false); });
     return () => { cancelled = true; };
   }, [form.houseId]);
@@ -84,21 +73,19 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
 
           <div>
             <label className={labelClass}>Các căn nhà trống</label>
-            <div className="relative">
-              <select
-                value={form.houseId ?? ""}
-                onChange={update("houseId")}
-                className={`${inputClass} appearance-none pr-9 ${errors.houseId ? "border-red-400 focus:ring-red-400" : ""}`}
-              >
-                <option value="">-- Chọn nhà --</option>
-                {Array.isArray(houses) && houses.map((h) => (
-                  <option key={h.id} value={h.id}>
-                    {h.name || h.title} — {h.address || ""}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            </div>
+            <Select
+              value={form.houseId ?? undefined}
+              onChange={(val) => update("houseId")({ target: { value: val } })}
+              placeholder="-- Chọn nhà --"
+              showSearch
+              optionFilterProp="label"
+              status={errors.houseId ? "error" : ""}
+              style={{ width: "100%" }}
+              options={Array.isArray(houses) ? houses.map((h) => ({
+                value: h.id,
+                label: `${h.name || h.title}${h.address ? ` — ${h.address}` : ""}`,
+              })) : []}
+            />
             {errors.houseId && <p className="mt-1 text-xs text-red-500">{errors.houseId}</p>}
           </div>
 
@@ -116,25 +103,9 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
           {/* House preview card */}
           {!loadingHouse && houseDetail && (
             <div className="rounded-xl border-2 border-teal-400 bg-white overflow-hidden grid" style={{ gridTemplateColumns: "2fr 3fr", minHeight: 220 }}>
-              {/* Image — click to preview */}
-              <div
-                className={`relative bg-gradient-to-br from-slate-100 to-slate-200 ${houseImageUrl ? "cursor-zoom-in" : ""}`}
-                onClick={() => houseImageUrl && setPreviewOpen(true)}
-              >
-                {houseImageUrl ? (
-                  <img
-                    src={houseImageUrl}
-                    alt={houseDetail.name}
-                    className="absolute inset-0 w-full h-full object-cover hover:brightness-95 transition duration-200"
-                  />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <svg className="w-10 h-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 21V12h6v9" />
-                    </svg>
-                  </div>
-                )}
+              {/* Image carousel */}
+              <div className="overflow-hidden">
+                <ImageCarousel images={houseDetail.images ?? []} alt={houseDetail.name} height="h-full" />
               </div>
 
               {/* Info — right side */}
@@ -237,16 +208,17 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
 
             <div>
               <label className={labelClass}>Chu kỳ thanh toán</label>
-              <div className="relative">
-                <select value={form.payCycle ?? "monthly"} onChange={update("payCycle")}
-                  className={`${inputClass} appearance-none pr-9`}>
-                  <option value="monthly">Hàng tháng</option>
-                  <option value="quarterly">Hàng quý</option>
-                  <option value="biannual">Nửa năm</option>
-                  <option value="annual">Hàng năm</option>
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              </div>
+              <Select
+                value={form.payCycle ?? "monthly"}
+                onChange={(val) => update("payCycle")({ target: { value: val } })}
+                style={{ width: "100%" }}
+                options={[
+                  { value: "monthly",   label: "Hàng tháng" },
+                  { value: "quarterly", label: "Hàng quý"   },
+                  { value: "biannual",  label: "Nửa năm"    },
+                  { value: "annual",    label: "Hàng năm"   },
+                ]}
+              />
             </div>
 
             <div>
@@ -276,39 +248,6 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
         </div>
       </div>
 
-      {/* ── Image Lightbox ───────────────────────────────────── */}
-      {previewOpen && houseImageUrl && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4"
-          onClick={() => setPreviewOpen(false)}
-        >
-          <div
-            className="relative max-w-3xl w-full rounded-2xl overflow-hidden shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img
-              src={houseImageUrl}
-              alt={houseDetail?.name}
-              className="w-full max-h-[80vh] object-contain bg-black"
-            />
-            {/* Caption */}
-            <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/70 to-transparent px-5 py-4">
-              <p className="text-white text-sm font-semibold">{houseDetail?.name}</p>
-              {addressParts && <p className="text-white/60 text-xs mt-0.5">{addressParts}</p>}
-            </div>
-            {/* Close button */}
-            <button
-              type="button"
-              onClick={() => setPreviewOpen(false)}
-              className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-black/50 hover:bg-black/70 text-white transition"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 }

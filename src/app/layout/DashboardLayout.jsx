@@ -1,30 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Breadcrumb } from "antd";
+import { HomeOutlined } from "@ant-design/icons";
 import Sidebar from "../../components/dashboard/Sidebar";
-import DashboardPage from "../../features/dashboard/DashboardPage";
-import Houses from "../../features/houses/pages/Houses";
-import Utilities from "./Utilities";
-import UsersPage from "../../features/tenants/pages/UsersPage";
-import ContractsPage from "../../features/contracts/pages/ContractsPage";
-import ContractsPendingSignPage from "../../features/contracts/pages/ContractsPendingSignPage";
-import SchedulePage from "../../features/schedule/pages/SchedulePage";
-import MaintenancePlansPage from "../../features/maintenance/pages/MaintenancePlansPage";
-import MaintenanceJobsPage from "../../features/maintenance/pages/MaintenanceJobsPage";
-import InspectionsPage from "../../features/maintenance/pages/InspectionsPage";
-import IssueRequestsPage from "../../features/issues/pages/IssueRequestsPage";
-import IssueAssignmentPage from "../../features/issues/pages/IssueAssignmentPage";
-import IssueHistoryByPropertyPage from "../../features/issues/pages/IssueHistoryByPropertyPage";
-import IssuePriceListPage from "../../features/issues/pages/IssuePriceListPage";
-import IssueQuoteApprovalPage from "../../features/issues/pages/IssueQuoteApprovalPage";
-import StaffPage from "../../features/tenants/pages/StaffPage";
-import Reports from "../../features/reports/pages/Reports";
-import Notifications from "../../features/notifications/pages/Notifications";
-import Settings from "../../features/settings/pages/Settings";
 import {
   authActions,
   useAuthStore,
 } from "../../features/auth/store/auth.store";
 import NotificationDropdown from "../../features/notifications/components/NotificationDropdown";
+import { Search, Menu, MapPin, User, LogOut, ChevronDown } from "lucide-react";
+import keycloak from "../../keycloak";
 
 const ROLE_LABELS = {
   LANDLORD: "Chủ nhà",
@@ -37,66 +22,58 @@ function getRoleLabel(roles = []) {
   }
   return roles[0] ?? "Người dùng";
 }
-import {
-  Search,
-  Menu,
-  MapPin,
-  User,
-  LogOut,
-  ChevronDown,
-} from "lucide-react";
-import keycloak from "../../keycloak";
 
-export default function Dashboard() {
+const PATHNAME_TITLES = {
+  "/dashboard": "Dashboard",
+  "/houses": "Bất động sản",
+  "/utilities": "Tiện ích",
+  "/users": "Khách Thuê",
+  "/staff": "Nhân Viên",
+  "/contracts": "Hợp đồng",
+  "/contracts/pending": "Hợp Đồng Cần Ký",
+  "/maintenance": "Lịch Làm Việc",
+  "/maintenance/plans": "Kế Hoạch Bảo Trì",
+  "/maintenance/jobs": "Công Việc Bảo Trì",
+  "/maintenance/inspections": "Kết quả bàn giao",
+  "/maintenance/inspections/:id": "Chi tiết kiểm tra",
+  "/issues": "Danh Sách Yêu Cầu",
+  "/issues/assignment": "Phân Công Xử Lý",
+  "/issues/quotes": "Xác Nhận Báo Giá",
+  "/issues/history": "Lịch Sử Theo BĐS",
+  "/issues/price-list": "Bảng Giá Thiết Bị",
+  "/reports": "Báo cáo",
+  "/notifications": "Thông báo",
+  "/settings": "Cài đặt",
+};
+
+export default function DashboardLayout() {
   if (keycloak?.authenticated) {
     keycloak.updateToken(30);
   }
-  console.log(keycloak?.authenticated);
-  console.log(keycloak?.token);
-  console.log(keycloak?.tokenParsed);
+
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(
     () => window.innerWidth >= 1024,
   );
-  const [activeMenu, setActiveMenu] = useState(
-    () => location.state?.menu ?? "dashboard",
-  );
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const roles = useAuthStore((s) => s.roles ?? []);
   const roleLabel = getRoleLabel(roles);
 
-  useEffect(() => {
-    if (location.state?.menu) {
-      setActiveMenu(location.state.menu);
-    }
-  }, [location.state?.menu]);
-
-  const headerTitles = {
-    dashboard: "Dashboard",
-    houses: "Bất động sản",
-    utilities: "Tiện ích",
-    users: "Khách Thuê",
-    staff: "Nhân Viên",
-    contracts: "Hợp đồng",
-    "contracts-sign": "Hợp Đồng Cần Ký",
-    maintenance: "Lịch Làm Việc",
-    "maintenance-plans": "Kế Hoạch Bảo Trì",
-    "maintenance-jobs": "Công Việc Bảo Trì",
-    "maintenance-inspections": "Kiểm Tra Nhà Cửa",
-    "issue-requests": "Danh Sách Yêu Cầu",
-    "issue-assignment": "Phân Công Xử Lý",
-    "issue-quote-approval": "Xác Nhận Báo Giá",
-    "issue-history": "Lịch Sử Theo BĐS",
-    "issue-price-list": "Bảng Giá Thiết Bị",
-    reports: "Báo cáo",
-    notifications: "Thông báo",
-    settings: "Cài đặt",
-  };
-  const currentTitle = headerTitles[activeMenu] ?? headerTitles.dashboard;
+  const currentTitle =
+    PATHNAME_TITLES[location.pathname] ??
+    Object.entries(PATHNAME_TITLES).find(
+      ([pattern]) =>
+        pattern.includes(":") &&
+        new RegExp("^" + pattern.replace(/:[^/]+/g, "[^/]+") + "$").test(
+          location.pathname,
+        ),
+    )?.[1] ??
+    "Dashboard";
+  const isOnDashboard = location.pathname === "/dashboard";
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 flex items-start">
       {isSidebarOpen && (
         <button
           type="button"
@@ -113,78 +90,98 @@ export default function Dashboard() {
           authActions.logout();
           navigate("/login");
         }}
-        activeMenu={activeMenu}
-        setActiveMenu={setActiveMenu}
       />
 
       <div className="flex-1 flex flex-col min-h-screen">
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-30 px-6 py-3.5 flex items-center gap-4 justify-between">
-          {/* LEFT: Toggle + Breadcrumb */}
+        <header
+          className="sticky top-0 z-30 px-6 py-3.5 flex items-center gap-4 justify-between"
+          style={{
+            background: "#FAFFFE",
+            borderBottom: "1px solid #C4DED5",
+            boxShadow: "0 2px 12px -2px rgba(59,181,130,0.08)",
+          }}
+        >
+          {/* LEFT: Toggle */}
           <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
-            {/* Hamburger — hiện trên màn hình nhỏ (< lg) */}
             <button
               type="button"
               onClick={() => setIsSidebarOpen((v) => !v)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition text-gray-500 hover:text-gray-700"
+              className="lg:hidden p-2 rounded-lg transition"
+              style={{ color: "#5A7A6E" }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.background = "rgba(59,181,130,0.08)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.background = "transparent")
+              }
               aria-label="Mở menu"
             >
               <Menu className="w-5 h-5" />
             </button>
-
-            {/* Divider */}
-            <div className="hidden md:block h-5 w-px bg-gray-200" />
-
-            {/* Breadcrumb */}
-            <nav className="hidden md:flex items-center gap-1.5 text-sm">
-              <button
-                type="button"
-                onClick={() => setActiveMenu("dashboard")}
-                className="text-gray-400 hover:text-teal-600 transition font-medium"
-              >
-                Trang chủ
-              </button>
-              {activeMenu !== "dashboard" && (
-                <>
-                  <span className="text-gray-300">›</span>
-                  <span className="text-gray-700 font-semibold">
-                    {currentTitle}
-                  </span>
-                </>
-              )}
-            </nav>
           </div>
 
           {/* CENTER: Search */}
-          <div className="flex-1 max-w-xl flex items-center bg-gray-50 rounded-xl px-4 py-2 border border-gray-200 focus-within:border-teal-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-teal-500/10 transition-all">
-            <Search className="w-4 h-4 text-gray-400 mr-2.5 flex-shrink-0" />
+          <div
+            className="flex-1 max-w-xl flex items-center rounded-full px-4 py-2 transition-all"
+            style={{ background: "#EAF4F0", border: "1px solid #C4DED5" }}
+            onFocus={(e) => {
+              e.currentTarget.style.background = "#ffffff";
+              e.currentTarget.style.boxShadow =
+                "0 0 0 3px rgba(59,181,130,0.12)";
+              e.currentTarget.style.borderColor = "#3bb582";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.background = "#EAF4F0";
+              e.currentTarget.style.boxShadow = "none";
+              e.currentTarget.style.borderColor = "#C4DED5";
+            }}
+          >
+            <Search
+              className="w-4 h-4 mr-2.5 flex-shrink-0"
+              style={{ color: "#5A7A6E" }}
+            />
             <input
               type="text"
               placeholder="Tìm kiếm hợp đồng, khách thuê, bất động sản..."
-              className="bg-transparent outline-none text-sm w-full text-gray-700 placeholder-gray-400"
+              className="bg-transparent outline-none text-sm w-full"
+              style={{ color: "#1E2D28" }}
             />
           </div>
 
           {/* RIGHT: Actions + User */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Location */}
             <button
               type="button"
-              className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 hover:border-teal-300 transition"
+              className="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium transition"
+              style={{ border: "1px solid #C4DED5", color: "#5A7A6E" }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "#3bb582";
+                e.currentTarget.style.background = "rgba(59,181,130,0.06)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "#C4DED5";
+                e.currentTarget.style.background = "transparent";
+              }}
             >
-              <MapPin className="w-3.5 h-3.5 text-teal-600" />
+              <MapPin className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
               TP. HCM
             </button>
 
-            {/* Divider */}
-            <div className="hidden lg:block h-5 w-px bg-gray-200 mx-1" />
+            <div
+              className="hidden lg:block h-5 w-px mx-1"
+              style={{ background: "#C4DED5" }}
+            />
 
-            {/* Notifications bell + dropdown */}
-            <NotificationDropdown onNavigate={setActiveMenu} />
+            <NotificationDropdown />
 
-            {/* Quick add */}
             <button
               type="button"
-              className="hidden md:flex items-center gap-1.5 px-3.5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg text-xs font-semibold transition shadow-sm"
+              className="hidden md:flex items-center gap-1.5 px-3.5 py-2 text-white rounded-full text-xs font-semibold transition shadow-sm"
+              style={{
+                background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.9")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
             >
               <svg
                 className="w-3.5 h-3.5"
@@ -202,8 +199,7 @@ export default function Dashboard() {
               Thêm mới
             </button>
 
-            {/* Divider */}
-            <div className="h-5 w-px bg-gray-200 mx-1" />
+            <div className="h-5 w-px mx-1" style={{ background: "#C4DED5" }} />
 
             {/* User Menu Dropdown */}
             <div className="relative">
@@ -212,14 +208,26 @@ export default function Dashboard() {
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                 className="flex items-center gap-2.5 pl-1 pr-2 py-1 rounded-lg hover:bg-gray-100 transition"
               >
-                <div className="w-8 h-8 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0">
+                <div
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-sm flex-shrink-0"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)",
+                  }}
+                >
                   A
                 </div>
                 <div className="hidden md:block text-left">
-                  <p className="text-xs font-semibold text-gray-800 leading-tight">
+                  <p
+                    className="text-xs font-semibold leading-tight"
+                    style={{ color: "#1E2D28" }}
+                  >
                     {keycloak?.tokenParsed?.name || "Admin"}
                   </p>
-                  <p className="text-[10px] text-gray-400 leading-tight">
+                  <p
+                    className="text-[10px] leading-tight"
+                    style={{ color: "#5A7A6E" }}
+                  >
                     {roleLabel}
                   </p>
                 </div>
@@ -234,17 +242,36 @@ export default function Dashboard() {
                     onClick={() => setIsUserMenuOpen(false)}
                     aria-label="Close menu"
                   />
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-20">
-                    <div className="px-4 py-3 border-b border-gray-100">
+                  <div
+                    className="absolute right-0 mt-2 w-64 rounded-2xl py-1.5 z-20"
+                    style={{
+                      background: "#FAFFFE",
+                      border: "1px solid #C4DED5",
+                      boxShadow: "0 10px 40px -10px rgba(32,150,216,0.18)",
+                    }}
+                  >
+                    <div
+                      className="px-4 py-3"
+                      style={{ borderBottom: "1px solid #C4DED5" }}
+                    >
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                        <div
+                          className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
+                          style={{
+                            background:
+                              "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)",
+                          }}
+                        >
                           A
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-gray-900">
+                          <p
+                            className="text-sm font-semibold"
+                            style={{ color: "#1E2D28" }}
+                          >
                             {keycloak?.tokenParsed?.name || "Admin User"}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs" style={{ color: "#5A7A6E" }}>
                             {keycloak?.tokenParsed?.email ||
                               "admin@smartutil.vn"}
                           </p>
@@ -257,23 +284,41 @@ export default function Dashboard() {
                         type="button"
                         onClick={() => {
                           setIsUserMenuOpen(false);
-                          setActiveMenu("settings");
+                          navigate("/settings");
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition"
+                        style={{ color: "#1E2D28" }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.background = "#EAF4F0")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.background = "transparent")
+                        }
                       >
-                        <User className="w-4 h-4 text-gray-400" />
+                        <User
+                          className="w-4 h-4"
+                          style={{ color: "#5A7A6E" }}
+                        />
                         Thông tin tài khoản
                       </button>
                       <button
                         type="button"
                         onClick={() => {
                           setIsUserMenuOpen(false);
-                          setActiveMenu("settings");
+                          navigate("/settings");
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition"
+                        style={{ color: "#1E2D28" }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.background = "#EAF4F0")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.background = "transparent")
+                        }
                       >
                         <svg
-                          className="w-4 h-4 text-gray-400"
+                          className="w-4 h-4"
+                          style={{ color: "#5A7A6E" }}
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -294,7 +339,10 @@ export default function Dashboard() {
                       </button>
                     </div>
 
-                    <div className="border-t border-gray-100 pt-1">
+                    <div
+                      className="pt-1"
+                      style={{ borderTop: "1px solid #C4DED5" }}
+                    >
                       <button
                         type="button"
                         onClick={() => {
@@ -302,7 +350,15 @@ export default function Dashboard() {
                           authActions.logout();
                           navigate("/login");
                         }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition"
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition"
+                        style={{ color: "#D95F4B" }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.background =
+                            "rgba(217,95,75,0.06)")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.background = "transparent")
+                        }
                       >
                         <LogOut className="w-4 h-4" />
                         Đăng xuất
@@ -315,30 +371,38 @@ export default function Dashboard() {
           </div>
         </header>
 
-        <main className="flex-1 px-6 pt-6 pb-10 bg-gray-50">
-          {/* Render content dựa trên activeMenu */}
-          {activeMenu === "dashboard" && <DashboardPage />}
-
-          {activeMenu === "houses" && <Houses />}
-          {activeMenu === "utilities" && <Utilities />}
-          {activeMenu === "users" && <UsersPage />}
-          {activeMenu === "staff" && <StaffPage />}
-          {activeMenu === "contracts" && (
-            <ContractsPage onNavigateMenu={setActiveMenu} />
-          )}
-          {activeMenu === "contracts-sign" && <ContractsPendingSignPage />}
-          {activeMenu === "maintenance" && <SchedulePage />}
-          {activeMenu === "maintenance-plans" && <MaintenancePlansPage />}
-          {activeMenu === "maintenance-jobs" && <MaintenanceJobsPage />}
-          {activeMenu === "maintenance-inspections" && <InspectionsPage />}
-          {activeMenu === "issue-requests" && <IssueRequestsPage />}
-          {activeMenu === "issue-assignment" && <IssueAssignmentPage />}
-          {activeMenu === "issue-quote-approval" && <IssueQuoteApprovalPage />}
-          {activeMenu === "issue-history" && <IssueHistoryByPropertyPage />}
-          {activeMenu === "issue-price-list" && <IssuePriceListPage />}
-          {activeMenu === "reports" && <Reports />}
-          {activeMenu === "notifications" && <Notifications />}
-          {activeMenu === "settings" && <Settings />}
+        <main className="flex-1 px-8 pt-6 pb-12 bg-gray-50">
+          {/* Breadcrumb — chuẩn enterprise: trên đầu content, dưới header */}
+          <div className="mb-4">
+            <Breadcrumb
+              items={[
+                {
+                  title: (
+                    <span
+                      className="cursor-pointer flex items-center gap-1 transition"
+                      style={{ color: "#5A7A6E" }}
+                      onClick={() => navigate("/dashboard")}
+                    >
+                      <HomeOutlined />
+                      Trang chủ
+                    </span>
+                  ),
+                },
+                ...(!isOnDashboard
+                  ? [
+                      {
+                        title: (
+                          <span style={{ color: "#1E2D28", fontWeight: 600 }}>
+                            {currentTitle}
+                          </span>
+                        ),
+                      },
+                    ]
+                  : []),
+              ]}
+            />
+          </div>
+          <Outlet />
         </main>
       </div>
     </div>
