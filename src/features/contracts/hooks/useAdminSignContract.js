@@ -74,7 +74,8 @@ export function useAdminSignContract(id) {
     const processId = vnptDoc?.waitingProcess?.id;
     if (!processId) throw new Error("Không tìm thấy tiến trình ký.");
     const signingPage = vnptDoc?.waitingProcess?.pageSign ?? 1;
-    const session = { processId, signingPage };
+    const vnptPosition = vnptDoc?.waitingProcess?.position ?? null;
+    const session = { processId, signingPage, vnptPosition };
     setSigningSession(session);
     return session;
   };
