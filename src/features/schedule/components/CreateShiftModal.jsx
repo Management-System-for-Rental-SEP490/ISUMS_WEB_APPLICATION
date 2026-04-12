@@ -40,7 +40,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
   const [jobSearch, setJobSearch] = useState("");
 
   // Step 2
-  const [selectedDate, setSelectedDate] = useState(localDateStr(today));
+  const [selectedDate, setSelectedDate] = useState("");
   const [timeSlots, setTimeSlots] = useState([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
@@ -72,7 +72,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
     setStep(1);
     setJobType("MAINTENANCE");
     setSelectedJobId(null);
-    setSelectedDate(localDateStr(today));
+    setSelectedDate("");
     setTimeSlots([]);
     setSelectedSlot(null);
     setStaffMode("auto");
@@ -92,9 +92,9 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // ── Force manual for INSPECTION ────────────────────────────────────────────
+  // ── Reset staffMode when jobType changes ───────────────────────────────────
   useEffect(() => {
-    if (jobType === "INSPECTION") setStaffMode("manual");
+    setStaffMode("auto");
   }, [jobType]);
 
   // ── Fetch jobs ─────────────────────────────────────────────────────────────

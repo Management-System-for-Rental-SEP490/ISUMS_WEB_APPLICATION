@@ -100,7 +100,7 @@ export default function InspectionInfoCards({ inspection }) {
                 Hoàn thành dự kiến
               </p>
               <p className="text-xs font-semibold" style={{ color: "#1E2D28" }}>
-                {formatDateTime(inspection?.scheduledAt)}
+                {formatDateTime(inspection?.updatedAt)}
               </p>
             </div>
           </div>

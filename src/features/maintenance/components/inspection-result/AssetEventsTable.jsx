@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { Package, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import { Package, ChevronLeft, ChevronRight } from "lucide-react";
 import AssetRow from "./AssetRow";
 
 const PAGE_SIZE = 5;
-
 const TABLE_HEADERS = ["TÊN TÀI SẢN", "LOẠI SỰ KIỆN", "TRẠNG THÁI KỸ THUẬT", "GHI CHÚ", "THỜI GIAN", ""];
 
-export default function AssetEventsTable({ events = [] }) {
+export default function AssetEventsTable({ events = [], loading }) {
   const [page, setPage] = useState(1);
   const totalPages = Math.ceil(events.length / PAGE_SIZE);
   const pageItems = events.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -27,16 +26,6 @@ export default function AssetEventsTable({ events = [] }) {
             </span>
           </p>
         </div>
-        <button
-          type="button"
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-xl transition"
-          style={{ border: "1px solid #C4DED5", color: "#5A7A6E", background: "#ffffff" }}
-          onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.color = "#3bb582"; e.currentTarget.style.background = "rgba(59,181,130,0.06)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.color = "#5A7A6E"; e.currentTarget.style.background = "#ffffff"; }}
-        >
-          <Plus className="w-3.5 h-3.5" />
-          Thêm tài sản
-        </button>
       </div>
 
       {/* Table */}
@@ -55,7 +44,17 @@ export default function AssetEventsTable({ events = [] }) {
           </tr>
         </thead>
         <tbody>
-          {pageItems.length > 0 ? (
+          {loading ? (
+            [...Array(3)].map((_, i) => (
+              <tr key={i} style={{ borderBottom: "1px solid rgba(196,222,213,0.35)" }}>
+                {[...Array(6)].map((__, j) => (
+                  <td key={j} className="pl-5 pr-4 py-4">
+                    <div className="h-3 rounded animate-pulse" style={{ background: "#EAF4F0", width: j === 0 ? 120 : 80 }} />
+                  </td>
+                ))}
+              </tr>
+            ))
+          ) : pageItems.length > 0 ? (
             pageItems.map((event) => <AssetRow key={event.id} event={event} />)
           ) : (
             <tr>
@@ -64,7 +63,6 @@ export default function AssetEventsTable({ events = [] }) {
                   <Package className="w-5 h-5" style={{ color: "#5A7A6E" }} />
                 </div>
                 <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>Chưa có tài sản nào</p>
-                <p className="text-xs mt-0.5" style={{ color: "#5A7A6E" }}>Nhấn "+ Thêm tài sản" để ghi nhận</p>
               </td>
             </tr>
           )}
@@ -75,29 +73,22 @@ export default function AssetEventsTable({ events = [] }) {
       {totalPages > 1 && (
         <div className="px-5 py-3 flex items-center justify-between" style={{ borderTop: "1px solid rgba(196,222,213,0.5)" }}>
           <p className="text-xs" style={{ color: "#5A7A6E" }}>
-            Hiển thị {Math.min(pageItems.length, PAGE_SIZE)} / {events.length} mục
+            {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, events.length)} / {events.length} tài sản
           </p>
           <div className="flex items-center gap-1.5">
-            <button
-              type="button"
-              disabled={page === 1}
-              onClick={() => setPage((p) => p - 1)}
+            <button type="button" disabled={page === 1} onClick={() => setPage((p) => p - 1)}
               className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg transition disabled:opacity-40"
-              style={{ border: "1px solid #C4DED5", color: "#5A7A6E" }}
-            >
-              <ChevronLeft className="w-3.5 h-3.5" />Trước
+              style={{ border: "1px solid #C4DED5", color: "#5A7A6E" }}>
+              <ChevronLeft className="w-3.5 h-3.5" /> Trước
             </button>
-            <span className="w-7 h-7 flex items-center justify-center rounded-lg text-xs font-bold text-white" style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}>
+            <span className="w-7 h-7 flex items-center justify-center rounded-lg text-xs font-bold text-white"
+              style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}>
               {page}
             </span>
-            <button
-              type="button"
-              disabled={page === totalPages}
-              onClick={() => setPage((p) => p + 1)}
+            <button type="button" disabled={page === totalPages} onClick={() => setPage((p) => p + 1)}
               className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg transition disabled:opacity-40"
-              style={{ border: "1px solid #C4DED5", color: "#5A7A6E" }}
-            >
-              Tiếp<ChevronRight className="w-3.5 h-3.5" />
+              style={{ border: "1px solid #C4DED5", color: "#5A7A6E" }}>
+              Tiếp <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
