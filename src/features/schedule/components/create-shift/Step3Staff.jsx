@@ -1,4 +1,4 @@
-import { Phone, Check, Bot } from "lucide-react";
+import { Phone, Check, Bot, Sparkles, CalendarClock } from "lucide-react";
 
 function Avatar({ name }) {
   const initials = (name ?? "?").split(" ").slice(-2).map((w) => w[0]).join("").toUpperCase();
@@ -12,8 +12,36 @@ function Avatar({ name }) {
 export default function Step3Staff({ jobType, staffMode, setStaffMode, availableStaff, staffLoading, selectedStaffId, setSelectedStaffId, error }) {
   return (
     <div className="space-y-5">
-      {/* Mode toggle — hidden for INSPECTION */}
-      {jobType !== "INSPECTION" && (
+      {/* Mode toggle */}
+      {jobType === "INSPECTION" ? (
+        <div className="space-y-2">
+          <p className="text-sm font-semibold text-slate-700">Chế độ phân công kiểm tra</p>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => { setStaffMode("auto"); setSelectedStaffId(null); }}
+              className={`flex flex-col items-center gap-2 px-4 py-4 rounded-xl border-2 transition-all ${staffMode === "auto" ? "border-teal-500 bg-teal-50" : "border-slate-200 bg-white hover:border-teal-200"}`}
+            >
+              <Sparkles className={`w-5 h-5 ${staffMode === "auto" ? "text-teal-600" : "text-slate-400"}`} />
+              <div className="text-center">
+                <p className={`text-sm font-bold ${staffMode === "auto" ? "text-teal-700" : "text-slate-600"}`}>Tự động</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Hệ thống chọn nhân sự tối ưu</p>
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setStaffMode("manual")}
+              className={`flex flex-col items-center gap-2 px-4 py-4 rounded-xl border-2 transition-all ${staffMode === "manual" ? "border-teal-500 bg-teal-50" : "border-slate-200 bg-white hover:border-teal-200"}`}
+            >
+              <CalendarClock className={`w-5 h-5 ${staffMode === "manual" ? "text-teal-600" : "text-slate-400"}`} />
+              <div className="text-center">
+                <p className={`text-sm font-bold ${staffMode === "manual" ? "text-teal-700" : "text-slate-600"}`}>Thủ công</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Tự chọn nhân viên kiểm tra</p>
+              </div>
+            </button>
+          </div>
+        </div>
+      ) : (
         <div className="flex items-center justify-between px-4 py-3.5 rounded-xl border border-slate-200 bg-white">
           <div>
             <p className="text-sm font-semibold text-slate-700">Chế độ phân công</p>
@@ -31,8 +59,21 @@ export default function Step3Staff({ jobType, staffMode, setStaffMode, available
         </div>
       )}
 
+      {/* Auto INSPECTION info card */}
+      {jobType === "INSPECTION" && staffMode === "auto" && (
+        <div className="flex items-start gap-3 px-4 py-4 rounded-xl border border-teal-200 bg-teal-50">
+          <Sparkles className="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-teal-700">Tự động sắp xếp lịch kiểm tra</p>
+            <p className="text-xs text-teal-600 mt-1 leading-relaxed">
+              Hệ thống sẽ tự động chọn nhân viên kiểm tra phù hợp nhất dựa trên lịch làm việc và vị trí. Thông báo sẽ được gửi ngay khi ca được tạo thành công.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Staff list */}
-      <div>
+      {(jobType !== "INSPECTION" || staffMode === "manual") && <div>
         <div className="flex items-center justify-between mb-3">
           <p className="text-sm font-semibold text-slate-700">Kỹ thuật viên khả dụng</p>
           {!staffLoading && availableStaff.length > 0 && (
@@ -92,9 +133,9 @@ export default function Step3Staff({ jobType, staffMode, setStaffMode, available
             })}
           </div>
         )}
-      </div>
+      </div>}
 
-      {(staffMode === "auto" || selectedStaffId) && (
+      {(staffMode === "auto" || selectedStaffId) && jobType !== "INSPECTION" && (
         <div className="flex items-start gap-2.5 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200">
           <div className="w-4 h-4 rounded-full bg-slate-400 text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">i</div>
           <p className="text-xs text-slate-600 leading-relaxed">

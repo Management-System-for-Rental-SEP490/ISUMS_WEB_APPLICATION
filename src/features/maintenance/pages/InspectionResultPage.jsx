@@ -24,7 +24,7 @@ function normaliseInspection(raw, house) {
     houseAddress: house
       ? [house.address, house.ward, house.commune, house.city].filter(Boolean).join(", ")
       : (raw.houseAddress ?? null),
-    houseThumbnail: house?.thumbnail ?? house?.thumbnailUrl ?? house?.images?.[0] ?? null,
+    houseThumbnail: house?.thumbnail ?? house?.thumbnailUrl ?? house?.images?.[0]?.url ?? house?.images?.[0] ?? null,
     jobId: raw.jobId ?? null,
     houseId: raw.houseId ?? null,
   };
@@ -41,6 +41,8 @@ function normaliseEvent(raw) {
     currentCondition: raw.currentCondition ?? raw.conditionPercent ?? raw.currentConditionPercent ?? null,
     note: raw.note ?? null,
     createdAt: raw.createdAt ?? null,
+    oldImages: Array.isArray(raw.oldImages) ? raw.oldImages : [],
+    images: Array.isArray(raw.images) ? raw.images : [],
   };
 }
 
@@ -53,9 +55,9 @@ export default function InspectionResultPage() {
   const [loadingInspection, setLoadingInspection] = useState(true);
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [error, setError] = useState(null);
-
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [approving, setApproving] = useState(false);
+
 
   const fetchData = async () => {
     if (!id) return;
@@ -94,7 +96,7 @@ export default function InspectionResultPage() {
     setApproving(true);
     try {
       await updateInspectionStatus(id, "APPROVED");
-      message.success("Hoàn thành kiểm tra thành công!");
+      message.success("Xác nhận hoàn thành kiểm tra thành công!");
       setConfirmOpen(false);
       navigate(-1);
     } catch (err) {
@@ -103,6 +105,7 @@ export default function InspectionResultPage() {
       setApproving(false);
     }
   };
+
 
   // ── Loading ──
   if (loadingInspection) {

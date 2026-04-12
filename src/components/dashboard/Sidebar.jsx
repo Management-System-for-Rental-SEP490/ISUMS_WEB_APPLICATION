@@ -117,6 +117,12 @@ export default function Sidebar({
               },
             ]
           : []),
+        {
+          id: "maintenance-inspections",
+          label: "Check-in / Check-out",
+          icon: ClipboardList,
+          path: "/maintenance/inspections",
+        },
       ],
     },
     {
@@ -136,12 +142,6 @@ export default function Sidebar({
           label: "Công việc bảo trì",
           icon: ClipboardList,
           path: "/maintenance/jobs",
-        },
-        {
-          id: "maintenance-inspections",
-          label: "Kết quả bàn giao",
-          icon: ClipboardList,
-          path: "/maintenance/inspections",
         },
       ],
     },

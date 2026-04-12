@@ -15,7 +15,7 @@ export default function ConditionBar({ prev, curr }) {
       </div>
       {prev != null && diff !== 0 && (
         <p className="text-[11px]" style={{ color: "#9CA3AF" }}>
-          {diff > 0 ? "+" : ""}{diff}% (d.d h.)
+          {diff > 0 ? `▲ +${diff}%` : `▼ ${diff}%`} so với trước
         </p>
       )}
     </div>

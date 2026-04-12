@@ -1,6 +1,7 @@
 import { DatePicker } from "antd";
-import { Users } from "lucide-react";
+import { CalendarDays, Users } from "lucide-react";
 import dayjs from "dayjs";
+import { toast } from "react-toastify";
 
 function formatDateVN(iso) {
   if (!iso) return "—";
@@ -23,7 +24,13 @@ export default function Step2TimeSlot({ selectedDate, setSelectedDate, timeSlots
           size="large"
           value={selectedDate ? dayjs(selectedDate) : null}
           disabledDate={(d) => d.isBefore(dayjs().startOf("day"))}
-          onChange={(d) => setSelectedDate(d ? d.format("YYYY-MM-DD") : "")}
+          onChange={(d) => {
+            if (d && d.day() === 0) {
+              toast.warning("Không thể sắp xếp lịch vào ngày nghỉ (Chủ Nhật)");
+              return;
+            }
+            setSelectedDate(d ? d.format("YYYY-MM-DD") : "");
+          }}
         />
       </div>
 
@@ -37,7 +44,12 @@ export default function Step2TimeSlot({ selectedDate, setSelectedDate, timeSlots
           )}
         </div>
 
-        {slotsLoading ? (
+        {!selectedDate ? (
+          <div className="flex flex-col items-center gap-2 py-10 text-slate-400">
+            <CalendarDays className="w-8 h-8" />
+            <p className="text-sm">Vui lòng chọn ngày để xem các khung giờ khả dụng</p>
+          </div>
+        ) : slotsLoading ? (
           <div className="grid grid-cols-3 gap-2">
             {[...Array(6)].map((_, i) => <div key={i} className="h-16 bg-slate-100 rounded-xl animate-pulse" />)}
           </div>
