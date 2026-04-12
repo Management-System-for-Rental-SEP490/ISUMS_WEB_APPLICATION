@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { RefreshCw, ClipboardCheck, Eye, Plus, MapPin, User, Calendar, FileText, Tag, X, Phone } from "lucide-react";
 import { getInspections } from "../api/maintenance.api";
 import { getHouseById } from "../../houses/api/houses.api";
 import { getUserById } from "../../tenants/api/users.api";
 import CreateInspectionModal from "../components/CreateInspectionModal";
-import InspectionResultDrawer from "../components/InspectionResultDrawer";
 
 
 const STATUS_CONFIG = {
@@ -224,9 +224,9 @@ export default function InspectionsPage() {
   const [inspections, setInspections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [resultInspectionId, setResultInspectionId] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [activeTab, setActiveTab] = useState("CHECK_IN");
+  const navigate = useNavigate();
 
   const fetchInspections = () => {
     setLoading(true);
@@ -373,7 +373,7 @@ export default function InspectionsPage() {
                 <p className="text-xs" style={{ color: "#5A7A6E" }}>{formatDate(item.completedAt ?? item.updatedAt)}</p>
                 <button
                   type="button"
-                  onClick={() => setResultInspectionId(item.id)}
+                  onClick={() => navigate(`/maintenance/inspections/${item.id}`)}
                   className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold transition w-fit"
                   style={{ background: "rgba(59,181,130,0.10)", color: "#3bb582" }}
                   onMouseEnter={e => e.currentTarget.style.background = "rgba(59,181,130,0.18)"}
@@ -387,11 +387,6 @@ export default function InspectionsPage() {
           })}
         </div>
       )}
-
-      <InspectionResultDrawer
-        inspectionId={resultInspectionId}
-        onClose={() => setResultInspectionId(null)}
-      />
 
       <CreateInspectionModal
         open={showCreate}

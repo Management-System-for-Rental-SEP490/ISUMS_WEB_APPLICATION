@@ -135,5 +135,5 @@ export const INSPECTION_ENDPOINTS = {
   CREATE: "maintenances/inspections",
   GET: (id) => `maintenances/inspections/${id}`,
   UPDATE: (id) => `maintenances/inspections/${id}/status`,
-  ASSET_EVENTS: "/assets/events",
+  ASSET_EVENTS_BY_JOB: (jobId) => `assets/events/job/${jobId}`,
 };
