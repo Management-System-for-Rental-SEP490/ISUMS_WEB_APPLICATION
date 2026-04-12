@@ -56,13 +56,25 @@ export default function ContractDocumentViewer({
     const wrapper = iframeWrapperRef.current;
     if (!main || !wrapper) return;
 
-    // Tính Y của ô chữ ký trong iframeWrapper (khớp với vị trí mặc định của DragSignatureBox)
+    // Tính Y của ô chữ ký trong iframeWrapper — ưu tiên vị trí VNPT nếu có
     const SEPARATOR_H_PX = 16;
     let pageOffsetY = 0;
     for (let i = 0; i < signingPageIdx; i++) {
       pageOffsetY += (pageInfo[i]?.heightPx ?? 0) + SEPARATOR_H_PX;
     }
-    const boxY = pageOffsetY + Math.round(info.heightPx * 0.6);
+    let boxY;
+    const vnptPos = signingSession?.vnptPosition;
+    if (vnptPos) {
+      const parts = vnptPos.split(",").map(Number);
+      if (parts.length === 4) {
+        const [, , , ury] = parts;
+        // Convert ury (pt, bottom-left origin) → px (top-left origin)
+        const scaleY = info.heightPx / info.heightPt;
+        const yInPage = Math.round((info.heightPt - ury) * scaleY);
+        boxY = pageOffsetY + yInPage;
+      }
+    }
+    if (boxY == null) boxY = pageOffsetY + Math.round(info.heightPx * 0.6);
 
     // Tính offset của iframeWrapper so với top của main (scroll container)
     const mainRect = main.getBoundingClientRect();
@@ -163,6 +175,7 @@ export default function ContractDocumentViewer({
               userName={userName}
               disabled={false}
               pageInfo={pageInfo}
+              defaultVnptPosition={signingSession?.vnptPosition ?? null}
             />
           )}
         </div>

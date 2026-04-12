@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 // Kích thước ô chữ ký mặc định (pt) — khớp với VNPT
 const SIG_W_PT = 170;
@@ -7,11 +7,6 @@ const SIG_H_PT = 90;
 // Chiều cao phần separator giữa các trang PDF (py-2 = 8+8px)
 const SEPARATOR_H_PX = 16;
 
-/**
- * Tính Y offset (px) của trang signingPage trong container,
- * dựa vào chiều cao thực tế của từng trang.
- * pageInfo[i] = { heightPx, widthPt, heightPt }
- */
 function getPageOffsetY(signingPage, pageInfo) {
   let offset = 0;
   for (let i = 0; i < signingPage - 1; i++) {
@@ -23,7 +18,6 @@ function getPageOffsetY(signingPage, pageInfo) {
 /**
  * Chuyển vị trí box (px trong container) sang tọa độ PDF (pt trong trang).
  * Format: "llx,lly,urx,ury" — gốc tọa độ ở góc dưới-trái trang.
- * Dùng kích thước pt thực tế của trang (từ page.originalWidth/Height của react-pdf).
  */
 function toSigningPosition(x, y, containerWidth, signingPage, pageInfo) {
   const info = pageInfo[signingPage - 1];
@@ -35,7 +29,6 @@ function toSigningPosition(x, y, containerWidth, signingPage, pageInfo) {
   const pageOffsetY = getPageOffsetY(signingPage, pageInfo);
   const yInPage = y - pageOffsetY;
 
-  // Scale: px → pt dựa trên kích thước thực tế của trang PDF
   const scaleX = pageWidthPt / containerWidth;
   const scaleY = pageHeightPt / pageHeightPx;
 
@@ -44,21 +37,7 @@ function toSigningPosition(x, y, containerWidth, signingPage, pageInfo) {
   const ury = Math.round(pageHeightPt - yInPage * scaleY);
   const lly = Math.round(ury - SIG_H_PT);
 
-  const result = `${llx},${lly},${urx},${ury}`;
-
-  console.log("[DragSignatureBox] 📍 Vị trí ký:", {
-    "Trang ký (signingPage)": signingPage,
-    "Box px (x,y trong container)": { x: Math.round(x), y: Math.round(y) },
-    "Container width px": Math.round(containerWidth),
-    "Kích thước trang px": `${containerWidth}x${Math.round(pageHeightPx)}`,
-    "Kích thước trang pt (thực tế PDF)": `${pageWidthPt}x${pageHeightPt}`,
-    "Page offset Y px": Math.round(pageOffsetY),
-    "Y trong trang px": Math.round(yInPage),
-    "PDF coords (pt)": { llx, lly, urx, ury },
-    "signingPosition string": result,
-  });
-
-  return result;
+  return `${llx},${lly},${urx},${ury}`;
 }
 
 function getClientXY(e) {
@@ -66,13 +45,6 @@ function getClientXY(e) {
     return { x: e.touches[0].clientX, y: e.touches[0].clientY };
   }
   return { x: e.clientX, y: e.clientY };
-}
-
-function getBoxSizePx(containerWidth, pageWidthPt, pageHeightPx, pageHeightPt) {
-  return {
-    w: Math.round(SIG_W_PT * (containerWidth / pageWidthPt)),
-    h: Math.round(SIG_H_PT * (pageHeightPx / pageHeightPt)),
-  };
 }
 
 export default function DragSignatureBox({
@@ -85,18 +57,19 @@ export default function DragSignatureBox({
   pageInfo = [],
 }) {
   const [containerWidth, setContainerWidth] = useState(0);
-  const [boxSize, setBoxSize] = useState({ w: 170, h: 90 });
-  const [pos, setPos] = useState(null); // khởi tạo sau khi biết containerWidth
+  // dragOffset lưu kèm trang — nếu trang thay đổi, offset tự bị bỏ qua khi render
+  const [dragOffset, setDragOffset] = useState({ page: signingPage, x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef(null);
+
+  // offset thực tế: chỉ dùng nếu đúng trang đang ký
+  const activeOffset = dragOffset.page === signingPage ? dragOffset : { x: 0, y: 0 };
 
   // Đo container width và cập nhật khi resize
   useEffect(() => {
     const update = () => {
       const rect = containerRef.current?.getBoundingClientRect();
-      if (!rect?.width) return;
-      setContainerWidth(rect.width);
-      setPos((prev) => prev ?? { x: 40, y: 200 });
+      if (rect?.width) setContainerWidth(rect.width);
     };
     update();
     const ro = new ResizeObserver(update);
@@ -104,31 +77,33 @@ export default function DragSignatureBox({
     return () => ro.disconnect();
   }, [containerRef]);
 
-  // Cập nhật kích thước box và vị trí mặc định khi pageInfo sẵn sàng
-  useEffect(() => {
-    const info = pageInfo[signingPage - 1];
-    if (!info || !containerWidth) return;
-    setBoxSize(getBoxSizePx(containerWidth, info.widthPt, info.heightPx, info.heightPt));
-    const pageOffsetY = getPageOffsetY(signingPage, pageInfo);
-    setPos((prev) => {
-      if (prev && prev.y !== 200) return prev;
-      return { x: 40, y: pageOffsetY + Math.round(info.heightPx * 0.6) };
-    });
-  }, [pageInfo, signingPage, containerWidth]);
+  const info = pageInfo[signingPage - 1];
 
-  // Log thông tin trang
-  useEffect(() => {
-    if (!containerWidth) return;
-    const info = pageInfo[signingPage - 1];
+  // Kích thước box (px) — tính từ pt theo tỉ lệ trang
+  const boxSize = useMemo(() => {
+    if (!info || !containerWidth) return { w: 170, h: 90 };
+    return {
+      w: Math.round(SIG_W_PT * (containerWidth / info.widthPt)),
+      h: Math.round(SIG_H_PT * (info.heightPx / info.heightPt)),
+    };
+  }, [info, containerWidth]);
+
+  // Vị trí mặc định: chính giữa trang ký
+  const defaultPos = useMemo(() => {
+    if (!info || !containerWidth) return null;
     const pageOffsetY = getPageOffsetY(signingPage, pageInfo);
-    console.log("[DragSignatureBox] 📄 Thông tin trang ký:", {
-      signingPage,
-      "Container width (px)": Math.round(containerWidth),
-      "Kích thước trang pt (thực tế PDF)": info ? `${info.widthPt}x${info.heightPt}` : "chưa sẵn sàng",
-      "Page height px (thực tế)": info ? Math.round(info.heightPx) : "chưa sẵn sàng",
-      "Y offset của trang ký (px)": Math.round(pageOffsetY),
-    });
-  }, [signingPage, containerWidth, pageInfo]);
+    const boxW = Math.round(SIG_W_PT * (containerWidth / info.widthPt));
+    const boxH = Math.round(SIG_H_PT * (info.heightPx / info.heightPt));
+    return {
+      x: Math.round((containerWidth - boxW) / 2),
+      y: Math.round(pageOffsetY + (info.heightPx - boxH) / 2),
+    };
+  }, [info, containerWidth, signingPage, pageInfo]);
+
+  // Vị trí hiện tại = mặc định + offset drag của user
+  const pos = defaultPos
+    ? { x: defaultPos.x + activeOffset.x, y: defaultPos.y + activeOffset.y }
+    : null;
 
   const handleStart = (e) => {
     if (disabled || !pos) return;
@@ -139,8 +114,8 @@ export default function DragSignatureBox({
     dragRef.current = {
       startMouseX: x,
       startMouseY: y,
-      startBoxX: pos.x,
-      startBoxY: pos.y,
+      startOffsetX: activeOffset.x,
+      startOffsetY: activeOffset.y,
       startContainerLeft: rect?.left ?? 0,
       startContainerTop: rect?.top ?? 0,
     };
@@ -151,18 +126,26 @@ export default function DragSignatureBox({
     if (!isDragging) return;
 
     const handleMove = (e) => {
-      if (!dragRef.current) return;
+      if (!dragRef.current || !defaultPos) return;
       e.preventDefault();
       const { x, y } = getClientXY(e);
-      const { startMouseX, startMouseY, startBoxX, startBoxY, startContainerLeft, startContainerTop } = dragRef.current;
+      const {
+        startMouseX, startMouseY,
+        startOffsetX, startOffsetY,
+        startContainerLeft, startContainerTop,
+      } = dragRef.current;
       const rect = containerRef.current?.getBoundingClientRect();
       const cw = rect?.width ?? containerWidth;
       const ch = containerRef.current?.scrollHeight ?? 1200;
       const containerLeftDelta = (rect?.left ?? startContainerLeft) - startContainerLeft;
       const containerTopDelta = (rect?.top ?? startContainerTop) - startContainerTop;
-      const newX = Math.max(0, Math.min(startBoxX + (x - startMouseX) - containerLeftDelta, cw - boxSize.w));
-      const newY = Math.max(0, Math.min(startBoxY + (y - startMouseY) - containerTopDelta, ch - boxSize.h));
-      setPos({ x: newX, y: newY });
+
+      const rawX = defaultPos.x + startOffsetX + (x - startMouseX) - containerLeftDelta;
+      const rawY = defaultPos.y + startOffsetY + (y - startMouseY) - containerTopDelta;
+      const clampedX = Math.max(0, Math.min(rawX, cw - boxSize.w));
+      const clampedY = Math.max(0, Math.min(rawY, ch - boxSize.h));
+
+      setDragOffset({ page: signingPage, x: clampedX - defaultPos.x, y: clampedY - defaultPos.y });
     };
 
     const handleEnd = () => {
@@ -180,7 +163,7 @@ export default function DragSignatureBox({
       window.removeEventListener("touchmove", handleMove);
       window.removeEventListener("touchend", handleEnd);
     };
-  }, [isDragging, containerRef, boxSize, containerWidth]);
+  }, [isDragging, containerRef, boxSize, containerWidth, defaultPos, signingPage]);
 
   const handleConfirm = () => {
     if (!pos || !containerWidth) return;
@@ -203,16 +186,34 @@ export default function DragSignatureBox({
       {/* Draggable box */}
       <div
         className="absolute border-2 border-teal-500 rounded-lg bg-white/95 shadow-xl overflow-hidden select-none"
-        style={{ left: pos.x, top: pos.y, width: boxSize.w, height: boxSize.h, cursor: disabled ? "default" : "move", pointerEvents: disabled ? "none" : "auto", touchAction: "none" }}
+        style={{
+          left: pos.x,
+          top: pos.y,
+          width: boxSize.w,
+          height: boxSize.h,
+          cursor: disabled ? "default" : "move",
+          pointerEvents: disabled ? "none" : "auto",
+          touchAction: "none",
+        }}
         onMouseDown={handleStart}
         onTouchStart={handleStart}
       >
         {signatureImage ? (
           <div className="flex w-full h-full">
-            <img src={`data:image/png;base64,${signatureImage}`} alt="Chữ ký" className="w-1/2 h-full object-contain p-1 pointer-events-none" draggable={false} />
+            <img
+              src={`data:image/png;base64,${signatureImage}`}
+              alt="Chữ ký"
+              className="w-1/2 h-full object-contain p-1 pointer-events-none"
+              draggable={false}
+            />
             <div className="w-1/2 flex flex-col justify-start pt-1 pr-6 text-blue-600 leading-tight" style={{ fontSize: 12 }}>
               <span className="font-medium">{userName}</span>
-              <span>{new Date().toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit" })}</span>
+              <span>
+                {new Date().toLocaleString("vi-VN", {
+                  day: "2-digit", month: "2-digit", year: "numeric",
+                  hour: "2-digit", minute: "2-digit", second: "2-digit",
+                })}
+              </span>
             </div>
           </div>
         ) : (
