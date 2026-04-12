@@ -22,6 +22,7 @@ import SchedulePage from "./features/schedule/pages/SchedulePage";
 import MaintenancePlansPage from "./features/maintenance/pages/MaintenancePlansPage";
 import MaintenanceJobsPage from "./features/maintenance/pages/MaintenanceJobsPage";
 import InspectionsPage from "./features/maintenance/pages/InspectionsPage";
+import InspectionResultPage from "./features/maintenance/pages/InspectionResultPage";
 import IssueRequestsPage from "./features/issues/pages/IssueRequestsPage";
 import IssueAssignmentPage from "./features/issues/pages/IssueAssignmentPage";
 import IssueHistoryByPropertyPage from "./features/issues/pages/IssueHistoryByPropertyPage";
@@ -66,6 +67,7 @@ export const router = createBrowserRouter([
               { path: "/maintenance/plans", element: <MaintenancePlansPage /> },
               { path: "/maintenance/jobs", element: <MaintenanceJobsPage /> },
               { path: "/maintenance/inspections", element: <InspectionsPage /> },
+              { path: "/maintenance/inspections/:id", element: <InspectionResultPage /> },
               { path: "/issues", element: <IssueRequestsPage /> },
               { path: "/issues/assignment", element: <IssueAssignmentPage /> },
               { path: "/issues/quotes", element: <IssueQuoteApprovalPage /> },

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Select } from "antd";
 import {
   ArrowUpDown,
   Building2,
@@ -231,35 +232,28 @@ export default function Houses() {
         </div>
 
         {/* Status filter */}
-        <select
-          value={filterStatus}
-          onChange={(e) => handleStatusChange(e.target.value)}
-          className="px-3 py-2 text-sm rounded-full outline-none transition cursor-pointer"
-          style={{ background: "#EAF4F0", border: "1px solid #C4DED5", color: "#1E2D28" }}
-        >
-          <option value="">Tất cả trạng thái</option>
-          <option value="AVAILABLE">Còn trống</option>
-          <option value="RENTED">Đã thuê</option>
-          <option value="MAINTENANCE">Bảo trì</option>
-        </select>
+        <Select
+          value={filterStatus || undefined}
+          onChange={handleStatusChange}
+          placeholder="Tất cả trạng thái"
+          allowClear
+          style={{ minWidth: 160 }}
+          options={[
+            { value: "AVAILABLE",   label: "Còn trống" },
+            { value: "RENTED",      label: "Đã thuê"   },
+            { value: "MAINTENANCE", label: "Bảo trì"   },
+          ]}
+          onClear={() => handleStatusChange("")}
+        />
 
         {/* Sort */}
-        <div
-          className="flex items-center gap-1.5 px-3 py-2 rounded-full"
-          style={{ background: "#EAF4F0", border: "1px solid #C4DED5" }}
-        >
-          <ArrowUpDown className="w-3.5 h-3.5" style={{ color: "#5A7A6E" }} />
-          <select
-            value={sortValue}
-            onChange={(e) => handleSortChange(e.target.value)}
-            className="text-sm bg-transparent outline-none cursor-pointer"
-            style={{ color: "#1E2D28" }}
-          >
-            {SORT_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
-        </div>
+        <Select
+          value={sortValue}
+          onChange={handleSortChange}
+          style={{ minWidth: 150 }}
+          suffixIcon={<ArrowUpDown className="w-3.5 h-3.5" style={{ color: "#5A7A6E" }} />}
+          options={SORT_OPTIONS}
+        />
 
         {/* View toggle */}
         <div

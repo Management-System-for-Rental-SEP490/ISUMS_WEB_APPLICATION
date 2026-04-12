@@ -139,7 +139,7 @@ export default function Sidebar({
         },
         {
           id: "maintenance-inspections",
-          label: "Kiểm tra nhà cửa",
+          label: "Kết quả bàn giao",
           icon: ClipboardList,
           path: "/maintenance/inspections",
         },
@@ -229,7 +229,7 @@ export default function Sidebar({
         <div className="flex-shrink-0">
           {isExpanded ? (
             <div className="flex items-center gap-3 px-4 py-3.5">
-              <div className="w-8 h-8 rounded-xl overflow-hidden flex-shrink-0 shadow ring-2 ring-[#3bb582]/40">
+              <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 shadow ring-2 ring-[#3bb582]/40">
                 <img
                   src={logo}
                   alt="ISUMS Logo"
@@ -264,7 +264,7 @@ export default function Sidebar({
             </div>
           ) : (
             <div className="flex flex-col items-center py-3.5 gap-2">
-              <div className="w-8 h-8 rounded-xl overflow-hidden shadow ring-2 ring-[#3bb582]/40">
+              <div className="w-8 h-8 rounded-full overflow-hidden shadow ring-2 ring-[#3bb582]/40">
                 <img
                   src={logo}
                   alt="ISUMS Logo"
