@@ -215,17 +215,23 @@ function DetailModal({ inspection, onClose }) {
   );
 }
 
+const TABS = [
+  { key: "CHECK_IN",  label: "Check-in",  color: "#3bb582", bg: "rgba(59,181,130,0.10)" },
+  { key: "CHECK_OUT", label: "Check-out", color: "#D95F4B", bg: "rgba(217,95,75,0.08)" },
+];
+
 export default function InspectionsPage() {
   const [inspections, setInspections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [resultInspectionId, setResultInspectionId] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [activeTab, setActiveTab] = useState("CHECK_IN");
 
   const fetchInspections = () => {
     setLoading(true);
     setError(null);
-    getInspections()
+    getInspections({ status: "DONE", type: activeTab })
       .then((data) =>
         setInspections(
           Array.isArray(data) ? data : (data?.items ?? data?.data ?? []),
@@ -235,11 +241,7 @@ export default function InspectionsPage() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchInspections(); }, []);
-
-  const resultInspections = inspections.filter(
-    (i) => i.status === "DONE" && (i.type === "CHECK_IN" || i.type === "CHECK_OUT"),
-  );
+  useEffect(() => { fetchInspections(); }, [activeTab]);
 
   return (
     <div className="space-y-5">
@@ -284,6 +286,28 @@ export default function InspectionsPage() {
         </div>
       </div>
 
+      {/* Tabs - mỗi tab trigger gọi API riêng với status=DONE&type=CHECK_IN|CHECK_OUT */}
+      <div className="flex items-center gap-1 p-1 rounded-2xl w-fit" style={{ background: "#EAF4F0" }}>
+        {TABS.map((tab) => {
+          const isActive = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              className="px-5 py-2 rounded-xl text-sm font-semibold transition"
+              style={{
+                background: isActive ? "#ffffff" : "transparent",
+                color: isActive ? tab.color : "#5A7A6E",
+                boxShadow: isActive ? "0 1px 4px rgba(59,181,130,0.12)" : "none",
+              }}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Loading */}
       {loading && (
         <div className="rounded-2xl overflow-hidden" style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}>
@@ -309,25 +333,27 @@ export default function InspectionsPage() {
       )}
 
       {/* Empty */}
-      {!loading && !error && resultInspections.length === 0 && (
+      {!loading && !error && inspections.length === 0 && (
         <div className="rounded-2xl p-16 text-center" style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}>
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: "#EAF4F0" }}>
             <ClipboardCheck className="w-7 h-7" style={{ color: "#3bb582" }} />
           </div>
           <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>Chưa có kết quả kiểm tra nào</p>
-          <p className="text-xs mt-1" style={{ color: "#5A7A6E" }}>Chỉ hiển thị các kiểm tra đã hoàn thành (Check-in / Check-out)</p>
+          <p className="text-xs mt-1" style={{ color: "#5A7A6E" }}>
+            Chưa có kết quả kiểm tra {activeTab === "CHECK_IN" ? "Check-in" : "Check-out"} nào hoàn thành
+          </p>
         </div>
       )}
 
       {/* List */}
-      {!loading && !error && resultInspections.length > 0 && (
+      {!loading && !error && inspections.length > 0 && (
         <div className="rounded-2xl overflow-hidden" style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
           <div className="grid grid-cols-[2fr_130px_170px_140px] gap-4 px-5 py-3" style={{ borderBottom: "1px solid #C4DED5", background: "#EAF4F0" }}>
             {["Ghi chú", "Loại", "Hoàn thành lúc", "Thao tác"].map((h) => (
               <p key={h} className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>{h}</p>
             ))}
           </div>
-          {resultInspections.map((item) => {
+          {inspections.map((item) => {
             const tp = TYPE_CONFIG[item.type] ?? { label: item.type, bg: "#EAF4F0", color: "#5A7A6E" };
             return (
               <div

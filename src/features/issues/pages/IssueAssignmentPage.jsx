@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
+import { Steps } from "antd";
+import IssueTimeline from "../components/IssueTimeline";
 import {
   MapPin, Clock, UserCheck, RefreshCw, Wrench, Phone,
   Check, Hash, Tag, CalendarDays, CalendarClock, ArrowRight,
@@ -381,154 +383,59 @@ export default function IssueAssignmentPage() {
             </div>
 
             {/* Detail body */}
-            <div className="px-6 py-6 grid grid-cols-2 gap-6">
+            <div className="px-6 pb-6 space-y-5">
 
-              {/* LEFT column */}
-              <div className="space-y-5">
-
+              {/* ── ROW 1: Mô tả + Thông tin (full width) ── */}
+              <div className="rounded-xl overflow-hidden" style={{ background: "#ffffff", border: `1px solid ${B.border}` }}>
                 {/* Mô tả */}
-                <div>
-                  <SectionLabel>Mô tả</SectionLabel>
-                  <div
-                    className="rounded-2xl p-4"
-                    style={{
-                      background: "#ffffff",
-                      border: `1px solid ${B.border}`,
-                      borderLeft: `3px solid ${B.green}`,
-                    }}
-                  >
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: B.fg }}>
-                      {detail.description ?? "Không có mô tả."}
-                    </p>
-                    <div
-                      className="flex items-center gap-1.5 mt-3 pt-3 text-[11px]"
-                      style={{ borderTop: `1px solid ${B.border}`, color: B.mutedFg }}
-                    >
-                      <Clock className="w-3.5 h-3.5" style={{ color: B.green }} />
-                      {dayjs(detail.createdAt).format("DD/MM/YYYY · HH:mm")}
-                    </div>
+                <div className="px-4 pt-4 pb-3">
+                  <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: B.mutedFg }}>Chi tiết</p>
+                  <p className="text-sm leading-relaxed" style={{ color: B.fg }}>
+                    {detail.description ?? "Không có mô tả."}
+                  </p>
+                  <p className="text-[11px] mt-2 flex items-center gap-1.5" style={{ color: B.mutedFg }}>
+                    <Clock className="w-3 h-3" style={{ color: B.green }} />
+                    {dayjs(detail.createdAt).format("DD/MM/YYYY · HH:mm")}
+                  </p>
+                </div>
+                {/* Meta info dạng row ngang */}
+                <div className="px-4 py-3 grid grid-cols-4 gap-4" style={{ borderTop: `1px solid ${B.border}`, background: "#FAFFFE" }}>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wide mb-0.5" style={{ color: B.mutedFg }}>Mã yêu cầu</p>
+                    <p className="text-xs font-mono font-semibold" style={{ color: B.fg }}>{String(detail.id).slice(0, 8).toUpperCase()}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wide mb-0.5" style={{ color: B.mutedFg }}>Loại</p>
+                    <p className="text-xs font-semibold" style={{ color: B.fg }}>Sửa chữa</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wide mb-0.5" style={{ color: B.mutedFg }}>Ngày tạo</p>
+                    <p className="text-xs font-semibold" style={{ color: B.fg }}>{dayjs(detail.createdAt).format("DD/MM/YYYY HH:mm")}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wide mb-0.5" style={{ color: B.mutedFg }}>SĐT khách</p>
+                    <p className="text-xs font-semibold" style={{ color: B.fg }}>{detail.tenantPhone ?? "—"}</p>
                   </div>
                 </div>
-
-                {/* Ảnh đính kèm */}
-                {(imagesLoading || images.length > 0) && (
-                  <div>
-                    <SectionLabel>
-                      <span className="flex items-center gap-1.5">
-                        <ImageIcon className="w-3.5 h-3.5" />
-                        Ảnh đính kèm
-                        {images.length > 0 && (
-                          <span
-                            className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full"
-                            style={{ background: B.muted, color: B.mutedFg }}
-                          >
-                            {images.length}
-                          </span>
-                        )}
-                      </span>
-                    </SectionLabel>
-                    {imagesLoading ? (
-                      <div className="grid grid-cols-3 gap-2">
-                        {[1, 2, 3].map((i) => (
-                          <div key={i} className="aspect-square rounded-xl animate-pulse" style={{ background: B.muted }} />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-3 gap-2">
-                        {images.map((img, idx) => (
-                          <button
-                            key={img.id}
-                            onClick={() => setLightboxIndex(idx)}
-                            className="block aspect-square rounded-xl overflow-hidden transition-all duration-200 hover:scale-[1.03] hover:shadow-soft"
-                            style={{ border: `1px solid ${B.border}` }}
-                          >
-                            <img src={img.url} alt="Ảnh đính kèm" className="w-full h-full object-cover" />
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Ca làm việc */}
-                {detail.startTime && (
-                  <div>
-                    <SectionLabel>Ca làm việc</SectionLabel>
-                    <div
-                      className="rounded-2xl p-4"
-                      style={{
-                        background: "#ffffff",
-                        border: `1px solid ${B.border}`,
-                        borderLeft: `3px solid ${B.blue}`,
-                      }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex flex-col items-center gap-1">
-                          <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "#f3f4f6" }}>
-                            <CalendarClock className="w-4 h-4" style={{ color: B.green }} />
-                          </div>
-                          <div className="w-px flex-1 min-h-[24px]" style={{ background: B.border }} />
-                          <div className="w-2 h-2 rounded-full" style={{ background: B.green }} />
-                        </div>
-                        <div className="flex-1 space-y-3">
-                          <div>
-                            <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: B.green }}>Bắt đầu</p>
-                            <p className="text-sm font-bold" style={{ color: B.fg }}>
-                              {dayjs(detail.startTime).format("HH:mm")}
-                              <span className="font-normal ml-1.5 text-xs" style={{ color: B.mutedFg }}>
-                                {dayjs(detail.startTime).format("DD/MM/YYYY")}
-                              </span>
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2" style={{ color: B.border }}>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                            <span className="text-[11px]" style={{ color: B.mutedFg }}>
-                              {detail.endTime
-                                ? `${dayjs(detail.endTime).diff(dayjs(detail.startTime), "minute")} phút`
-                                : ""}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: B.green }}>Kết thúc</p>
-                            <p className="text-sm font-bold" style={{ color: B.fg }}>
-                              {detail.endTime ? dayjs(detail.endTime).format("HH:mm") : "—"}
-                              {detail.endTime && (
-                                <span className="font-normal ml-1.5 text-xs" style={{ color: B.mutedFg }}>
-                                  {dayjs(detail.endTime).format("DD/MM/YYYY")}
-                                </span>
-                              )}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
 
-              {/* RIGHT column */}
-              <div className="space-y-5">
+              {/* ── ROW 2: Nhân viên (trái) | Ca làm việc (phải) ── */}
+              <div className="grid grid-cols-2 gap-5">
 
                 {/* Nhân viên xử lý */}
                 <div>
-                  <SectionLabel>Nhân viên xử lý</SectionLabel>
+                  <SectionLabel>Kỹ thuật viên phụ trách</SectionLabel>
                   {detail.assignedStaffId ? (
                     detailLoading || (!staffDetail && detail.assignedStaffId) ? (
-                      <div
-                        className="rounded-2xl p-4 flex items-center gap-3 animate-pulse"
-                        style={{ background: "#ffffff", border: `1px solid ${B.border}` }}
-                      >
-                        <div className="w-12 h-12 rounded-full flex-shrink-0" style={{ background: B.muted }} />
+                      <div className="rounded-xl p-4 flex items-center gap-3 animate-pulse" style={{ background: "#ffffff", border: `1px solid ${B.border}` }}>
+                        <div className="w-11 h-11 rounded-full flex-shrink-0" style={{ background: B.muted }} />
                         <div className="flex-1 space-y-2">
-                          <div className="h-3 rounded-lg w-2/3" style={{ background: B.muted }} />
-                          <div className="h-3 rounded-lg w-1/2" style={{ background: B.muted }} />
+                          <div className="h-3 rounded w-2/3" style={{ background: B.muted }} />
+                          <div className="h-3 rounded w-1/2" style={{ background: B.muted }} />
                         </div>
                       </div>
                     ) : (
-                      <div
-                        className="rounded-2xl p-4 flex items-start gap-3"
-                        style={{ background: "#ffffff", border: `1px solid ${B.border}` }}
-                      >
+                      <div className="rounded-xl p-4 flex items-start gap-3" style={{ background: "#ffffff", border: `1px solid ${B.border}` }}>
                         <Avatar name={staffDetail?.name ?? detail.staffName} size="lg" />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold" style={{ color: B.fg }}>
@@ -536,72 +443,115 @@ export default function IssueAssignmentPage() {
                           </p>
                           {staffDetail?.phoneNumber && (
                             <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: B.mutedFg }}>
-                              <Phone className="w-3 h-3" />
-                              {staffDetail.phoneNumber}
+                              <Phone className="w-3 h-3" />{staffDetail.phoneNumber}
                             </p>
                           )}
                           {staffDetail?.email && (
-                            <p className="text-xs mt-0.5 truncate" style={{ color: B.mutedFg }}>
-                              {staffDetail.email}
-                            </p>
+                            <p className="text-xs mt-0.5 truncate" style={{ color: B.mutedFg }}>{staffDetail.email}</p>
                           )}
-                          {staffDetail?.roles?.[0] && (
-                            <span
-                              className="inline-block text-[10px] font-semibold px-2.5 py-0.5 rounded-full mt-1"
-                              style={{ background: B.blueMuted, color: B.blue }}
-                            >
-                              Nhân viên kỹ thuật
-                            </span>
-                          )}
+                          <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full mt-1.5" style={{ background: B.blueMuted, color: B.blue }}>
+                            Nhân viên kỹ thuật
+                          </span>
                         </div>
                         {(staffDetail?.phoneNumber ?? detail.staffPhone) && (
-                          <a
-                            href={`tel:${staffDetail?.phoneNumber ?? detail.staffPhone}`}
-                            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-white text-xs font-semibold transition-all duration-200 hover:scale-105 hover:shadow-soft"
-                            style={{ background: B.gradient }}
-                          >
-                            <Phone className="w-3.5 h-3.5" />
-                            Gọi
+                          <a href={`tel:${staffDetail?.phoneNumber ?? detail.staffPhone}`}
+                            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-white text-xs font-semibold"
+                            style={{ background: B.gradient }}>
+                            <Phone className="w-3.5 h-3.5" />Gọi
                           </a>
                         )}
                       </div>
                     )
                   ) : (
-                    <div
-                      className="rounded-2xl p-4 flex items-center gap-3"
-                      style={{
-                        background: "rgba(217,95,75,0.06)",
-                        border: "1px solid rgba(217,95,75,0.2)",
-                      }}
-                    >
-                      <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{ background: "rgba(217,95,75,0.10)" }}
-                      >
-                        <Wrench className="w-5 h-5" style={{ color: "#D95F4B" }} />
+                    <div className="rounded-xl p-4 flex items-center gap-3" style={{ background: "rgba(217,95,75,0.06)", border: "1px solid rgba(217,95,75,0.2)" }}>
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(217,95,75,0.10)" }}>
+                        <Wrench className="w-4 h-4" style={{ color: "#D95F4B" }} />
                       </div>
                       <div>
                         <p className="text-sm font-semibold" style={{ color: "#D95F4B" }}>Chưa phân công</p>
-                        <p className="text-xs mt-0.5" style={{ color: "rgba(217,95,75,0.7)" }}>
-                          Nhấn "Gán nhân viên" để phân công
-                        </p>
+                        <p className="text-xs mt-0.5" style={{ color: "rgba(217,95,75,0.7)" }}>Cần gán nhân viên trước khi xác nhận</p>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Ảnh đính kèm (dưới nhân viên nếu có) */}
+                  {(imagesLoading || images.length > 0) && (
+                    <div className="mt-4">
+                      <SectionLabel>
+                        <span className="flex items-center gap-1.5">
+                          <ImageIcon className="w-3 h-3" />Ảnh đính kèm
+                          {images.length > 0 && (
+                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: B.muted, color: B.mutedFg }}>{images.length}</span>
+                          )}
+                        </span>
+                      </SectionLabel>
+                      {imagesLoading ? (
+                        <div className="grid grid-cols-4 gap-2">
+                          {[1,2,3,4].map(i => <div key={i} className="aspect-square rounded-xl animate-pulse" style={{ background: B.muted }} />)}
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-4 gap-2">
+                          {images.map((img, idx) => (
+                            <button key={img.id} onClick={() => setLightboxIndex(idx)}
+                              className="block aspect-square rounded-xl overflow-hidden transition hover:scale-[1.03]"
+                              style={{ border: `1px solid ${B.border}` }}>
+                              <img src={img.url} alt="" className="w-full h-full object-cover" />
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
 
-                {/* Thông tin */}
+                {/* Lịch trình thực hiện */}
                 <div>
-                  <SectionLabel>Thông tin</SectionLabel>
-                  <div
-                    className="rounded-2xl px-4 py-1"
-                    style={{ background: "#ffffff", border: `1px solid ${B.border}` }}
-                  >
-                    <InfoRow icon={Hash}        label="Mã yêu cầu" value={String(detail.id).slice(0, 8).toUpperCase()} valueClass="font-mono" />
-                    <InfoRow icon={Tag}         label="Loại"        value="Sửa chữa" />
-                    <InfoRow icon={CalendarDays} label="Ngày tạo"   value={dayjs(detail.createdAt).format("DD/MM/YYYY HH:mm")} />
-                    <InfoRow icon={Phone}       label="SĐT khách"   value={detail.tenantPhone ?? "—"} />
+                  <SectionLabel>Lịch trình thực hiện</SectionLabel>
+                  <div className="rounded-xl p-4" style={{ background: "#ffffff", border: `1px solid ${B.border}` }}>
+                    <Steps
+                      direction="vertical"
+                      size="small"
+                      current={detail.endTime ? 1 : detail.startTime ? 0 : -1}
+                      items={[
+                        {
+                          title: <span className="text-xs font-semibold" style={{ color: B.fg }}>Bắt đầu</span>,
+                          description: (
+                            <span className="text-xs" style={{ color: B.mutedFg }}>
+                              {detail.startTime
+                                ? dayjs(detail.startTime).format("HH:mm · DD/MM/YYYY")
+                                : "Chưa xác định"}
+                            </span>
+                          ),
+                        },
+                        {
+                          title: <span className="text-xs font-semibold" style={{ color: B.fg }}>Kết thúc dự kiến</span>,
+                          description: (
+                            <div>
+                              <span className="text-xs" style={{ color: B.mutedFg }}>
+                                {detail.endTime
+                                  ? dayjs(detail.endTime).format("HH:mm · DD/MM/YYYY")
+                                  : "Chưa xác định"}
+                              </span>
+                              {detail.startTime && detail.endTime && (
+                                <p className="text-[11px] mt-1" style={{ color: B.green }}>
+                                  ≈ {(dayjs(detail.endTime).diff(dayjs(detail.startTime), "minute") / 60).toFixed(1)} giờ
+                                </p>
+                              )}
+                            </div>
+                          ),
+                        },
+                      ]}
+                    />
                   </div>
+
+                </div>
+              </div>
+
+              {/* ── ROW 3: Lịch sử xử lý (full width) ── */}
+              <div>
+                <SectionLabel>Lịch sử xử lý</SectionLabel>
+                <div className="rounded-xl px-5 py-5" style={{ background: "#ffffff", border: `1px solid ${B.border}` }}>
+                  <IssueTimeline status={detail.status} />
                 </div>
               </div>
             </div>
