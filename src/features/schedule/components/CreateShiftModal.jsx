@@ -9,7 +9,6 @@ import {
   getAvailableSlotsByJob,
   getAvailableStaffForSlot,
 } from "../api/schedule.api";
-import { getUserById, getStaffs } from "../../tenants/api/users.api";
 import {
   getMaintenanceJobsByStatus,
   getMaintenancePlanById,
@@ -17,15 +16,12 @@ import {
 } from "../../maintenance/api/maintenance.api";
 import { getAllIssues } from "../../issues/api/issues.api";
 import { getHouseById } from "../../houses/api/houses.api";
-import { localDateStr } from "../utils/dateHelpers";
 import StepIndicator from "./create-shift/StepIndicator";
 import Step1JobSelect from "./create-shift/Step1JobSelect";
 import Step2TimeSlot from "./create-shift/Step2TimeSlot";
 import Step3Staff from "./create-shift/Step3Staff";
 
 export default function CreateShiftModal({ open, onClose, onCreated }) {
-  const today = new Date();
-
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const [step, setStep] = useState(1);
@@ -167,21 +163,11 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
     setAvailableStaff([]);
     setSelectedStaffId(null);
     setStaffLoading(true);
-    if (jobType === "INSPECTION") {
-      getStaffs()
-        .then((list) => setAvailableStaff(Array.isArray(list) ? list : []))
-        .catch(() => setAvailableStaff([]))
-        .finally(() => setStaffLoading(false));
-    } else {
-      getAvailableStaffForSlot(selectedJobId, selectedDate, selectedSlot.startRaw)
-        .then(async (ids) => {
-          const results = await Promise.allSettled(ids.map((id) => getUserById(id)));
-          setAvailableStaff(results.filter((r) => r.status === "fulfilled").map((r) => r.value));
-        })
-        .catch(() => setAvailableStaff([]))
-        .finally(() => setStaffLoading(false));
-    }
-  }, [step, selectedJobId, selectedDate, selectedSlot, jobType]);
+    getAvailableStaffForSlot(selectedJobId, selectedDate, selectedSlot.startRaw)
+      .then((list) => setAvailableStaff(list))
+      .catch(() => setAvailableStaff([]))
+      .finally(() => setStaffLoading(false));
+  }, [step, selectedJobId, selectedDate, selectedSlot]);
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   const handleClose = () => { setVisible(false); setTimeout(onClose, 300); };
@@ -270,7 +256,6 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
           )}
           {step === 3 && (
             <Step3Staff
-              jobType={jobType}
               staffMode={staffMode} setStaffMode={setStaffMode}
               availableStaff={availableStaff} staffLoading={staffLoading}
               selectedStaffId={selectedStaffId} setSelectedStaffId={setSelectedStaffId}

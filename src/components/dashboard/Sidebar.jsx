@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../features/auth/store/auth.store";
 import {
@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import logo from "../../assets/logo.jpg";
 
-export default function Sidebar({ isOpen, onToggle, onLogout, unreadCount = 0 }) {
+export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
   const roles = useAuthStore((s) => s.roles ?? []);
   const canSeePendingSign = roles.includes("ADMIN") || roles.includes("LANDLORD");
 
@@ -18,10 +18,17 @@ export default function Sidebar({ isOpen, onToggle, onLogout, unreadCount = 0 })
   const location  = useLocation();
   const [openGroups, setOpenGroups] = useState({});
 
+  const [isHovering, setIsHovering] = useState(false);
+
   const toggleGroup = (id) =>
     setOpenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  const isExpanded = isOpen;
+  const isExpanded = isOpen || isHovering;
+
+  // Auto-close all groups when sidebar collapses (not just hover)
+  useEffect(() => {
+    if (!isOpen && !isHovering) setOpenGroups({});
+  }, [isOpen, isHovering]);
 
   const sections = [
     {
@@ -100,6 +107,8 @@ export default function Sidebar({ isOpen, onToggle, onLogout, unreadCount = 0 })
       ].join(" ")}
       style={{ willChange: "width, transform" }}
       aria-label="Sidebar"
+      onMouseEnter={() => { if (!isOpen) setIsHovering(true); }}
+      onMouseLeave={() => setIsHovering(false)}
     >
       <div className="h-full flex flex-col overflow-hidden">
 
@@ -175,9 +184,12 @@ export default function Sidebar({ isOpen, onToggle, onLogout, unreadCount = 0 })
                 </button>
               );
             })}
+
           </div>
 
           {/* ── EXPANDED view (full cards) — always in DOM, opacity toggled ── */}
+          {/* overflow:hidden + height:0 removes from layout flow when collapsed so nav doesn't get extra scroll height */}
+          <div style={{ overflow: "hidden", height: isExpanded ? "auto" : 0 }}>
           <div
             className="space-y-2 transition-opacity duration-200"
             style={{
@@ -282,28 +294,35 @@ export default function Sidebar({ isOpen, onToggle, onLogout, unreadCount = 0 })
               );
             })}
           </div>
+          </div>
         </nav>
 
-        {/* ── Logout ── */}
+        {/* ── Logout — always at bottom ── */}
         <div className="px-2 py-3 flex-shrink-0">
-          <button
-            type="button"
-            onClick={onLogout}
-            title={!isExpanded ? "Đăng Xuất" : undefined}
-            className={[
-              "flex items-center gap-3 py-2.5 rounded-xl w-full transition-colors duration-150",
-              "text-slate-500 hover:bg-red-50 hover:text-red-600",
-              !isExpanded ? "justify-center px-0" : "px-3",
-            ].join(" ")}
-          >
-            <LogOut className="w-[18px] h-[18px] flex-shrink-0" />
-            <span
-              className="text-sm font-medium transition-opacity duration-200"
-              style={{ opacity: isExpanded ? 1 : 0, pointerEvents: isExpanded ? "auto" : "none" }}
+          {/* Collapsed: icon centered exactly like section icons */}
+          {!isExpanded && (
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={onLogout}
+                title="Đăng Xuất"
+                className="flex items-center justify-center w-11 h-11 rounded-xl transition-colors duration-150 text-slate-500 hover:bg-red-50 hover:text-red-600"
+              >
+                <LogOut className="w-[18px] h-[18px]" />
+              </button>
+            </div>
+          )}
+          {/* Expanded: full label button */}
+          {isExpanded && (
+            <button
+              type="button"
+              onClick={onLogout}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl w-full transition-colors duration-150 text-slate-500 hover:bg-red-50 hover:text-red-600"
             >
-              Đăng Xuất
-            </span>
-          </button>
+              <LogOut className="w-[18px] h-[18px] flex-shrink-0" />
+              <span className="text-sm font-medium">Đăng Xuất</span>
+            </button>
+          )}
         </div>
       </div>
     </aside>

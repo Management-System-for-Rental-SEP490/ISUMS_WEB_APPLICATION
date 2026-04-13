@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Breadcrumb } from "antd";
-import { HomeOutlined } from "@ant-design/icons";
+import { HomeOutlined, SettingOutlined } from "@ant-design/icons";
 import Sidebar from "../../components/dashboard/Sidebar";
-import { authActions, useAuthStore } from "../../features/auth/store/auth.store";
+import {
+  authActions,
+  useAuthStore,
+} from "../../features/auth/store/auth.store";
 import NotificationDropdown from "../../features/notifications/components/NotificationDropdown";
 import { Search, Menu, MapPin, User, LogOut, ChevronDown } from "lucide-react";
 import keycloak from "../../keycloak";
@@ -16,26 +19,26 @@ function getRoleLabel(roles = []) {
 }
 
 const PATHNAME_TITLES = {
-  "/dashboard":                   "Dashboard",
-  "/houses":                      "Bất động sản",
-  "/utilities":                   "Tiện ích",
-  "/users":                       "Khách Thuê",
-  "/staff":                       "Nhân Viên",
-  "/contracts":                   "Hợp đồng",
-  "/contracts/pending":           "Hợp Đồng Cần Ký",
-  "/maintenance":                 "Lịch Làm Việc",
-  "/maintenance/plans":           "Kế Hoạch Bảo Trì",
-  "/maintenance/jobs":            "Công Việc Bảo Trì",
-  "/maintenance/inspections":     "Kết quả bàn giao",
+  "/dashboard": "Dashboard",
+  "/houses": "Bất động sản",
+  "/utilities": "Tiện ích",
+  "/users": "Khách Thuê",
+  "/staff": "Nhân Viên",
+  "/contracts": "Hợp đồng",
+  "/contracts/pending": "Hợp Đồng Cần Ký",
+  "/maintenance": "Lịch Làm Việc",
+  "/maintenance/plans": "Kế Hoạch Bảo Trì",
+  "/maintenance/jobs": "Công Việc Bảo Trì",
+  "/maintenance/inspections": "Kết quả bàn giao",
   "/maintenance/inspections/:id": "Chi tiết kiểm tra",
-  "/issues":                      "Danh Sách Yêu Cầu",
-  "/issues/assignment":           "Phân Công Xử Lý",
-  "/issues/quotes":               "Xác Nhận Báo Giá",
-  "/issues/history":              "Lịch Sử Theo BĐS",
-  "/issues/price-list":           "Bảng Giá Thiết Bị",
-  "/reports":                     "Báo cáo",
-  "/notifications":               "Thông báo",
-  "/settings":                    "Cài đặt",
+  "/issues": "Danh Sách Yêu Cầu",
+  "/issues/assignment": "Phân Công Xử Lý",
+  "/issues/quotes": "Xác Nhận Báo Giá",
+  "/issues/history": "Lịch Sử Theo BĐS",
+  "/issues/price-list": "Bảng Giá Thiết Bị",
+  "/reports": "Báo cáo",
+  "/notifications": "Thông báo",
+  "/settings": "Cài đặt",
 };
 
 export default function DashboardLayout() {
@@ -43,10 +46,12 @@ export default function DashboardLayout() {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(() => window.innerWidth >= 1024);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(
+    () => window.innerWidth >= 1024,
+  );
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  const roles     = useAuthStore((s) => s.roles ?? []);
+  const roles = useAuthStore((s) => s.roles ?? []);
   const roleLabel = getRoleLabel(roles);
 
   const isOnDashboard = location.pathname === "/dashboard";
@@ -56,11 +61,17 @@ export default function DashboardLayout() {
     Object.entries(PATHNAME_TITLES).find(
       ([pattern]) =>
         pattern.includes(":") &&
-        new RegExp("^" + pattern.replace(/:[^/]+/g, "[^/]+") + "$").test(location.pathname),
-    )?.[1] ?? "Dashboard";
+        new RegExp("^" + pattern.replace(/:[^/]+/g, "[^/]+") + "$").test(
+          location.pathname,
+        ),
+    )?.[1] ??
+    "Dashboard";
 
   return (
-    <div className="min-h-screen flex items-start" style={{ background: "#F7FBF9" }}>
+    <div
+      className="min-h-screen flex items-start"
+      style={{ background: "#F7FBF9" }}
+    >
       {/* Mobile overlay */}
       {isSidebarOpen && (
         <button
@@ -74,10 +85,16 @@ export default function DashboardLayout() {
       <Sidebar
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen((v) => !v)}
-        onLogout={() => { authActions.logout(); navigate("/login"); }}
+        onLogout={() => {
+          authActions.logout();
+          navigate("/login");
+        }}
       />
 
-      <div className="flex-1 flex flex-col min-h-screen min-w-0">
+      <div
+        className="flex-1 flex flex-col min-h-screen min-w-0 overflow-x-hidden"
+        style={{ transition: "width 250ms ease-in-out" }}
+      >
         {/* ── Topbar ── */}
         <header
           className="sticky top-0 z-30 flex-shrink-0 flex items-center px-4 md:px-6 gap-3"
@@ -94,8 +111,12 @@ export default function DashboardLayout() {
             onClick={() => setIsSidebarOpen((v) => !v)}
             className="p-2 rounded-lg flex-shrink-0 transition"
             style={{ color: "#5A7A6E" }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(59,181,130,0.08)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background = "rgba(59,181,130,0.08)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.background = "transparent")
+            }
             aria-label="Toggle menu"
           >
             <Menu className="w-5 h-5" />
@@ -112,17 +133,21 @@ export default function DashboardLayout() {
                 borderRadius: 12,
               }}
               onFocusCapture={(e) => {
-                e.currentTarget.style.background  = "#ffffff";
+                e.currentTarget.style.background = "#ffffff";
                 e.currentTarget.style.borderColor = "rgba(59,181,130,0.4)";
-                e.currentTarget.style.boxShadow   = "0 0 0 3px rgba(59,181,130,0.1)";
+                e.currentTarget.style.boxShadow =
+                  "0 0 0 3px rgba(59,181,130,0.1)";
               }}
               onBlurCapture={(e) => {
-                e.currentTarget.style.background  = "#F3F4F6";
+                e.currentTarget.style.background = "#F3F4F6";
                 e.currentTarget.style.borderColor = "transparent";
-                e.currentTarget.style.boxShadow   = "none";
+                e.currentTarget.style.boxShadow = "none";
               }}
             >
-              <Search className="w-4 h-4 mr-2.5 flex-shrink-0" style={{ color: "#9CA3AF" }} />
+              <Search
+                className="w-4 h-4 mr-2.5 flex-shrink-0"
+                style={{ color: "#9CA3AF" }}
+              />
               <input
                 type="text"
                 placeholder="Tìm kiếm hợp đồng, khách thuê, bất động sản..."
@@ -141,19 +166,25 @@ export default function DashboardLayout() {
               style={{ border: "1px solid #C4DED5", color: "#5A7A6E" }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = "#3bb582";
-                e.currentTarget.style.background  = "rgba(59,181,130,0.06)";
+                e.currentTarget.style.background = "rgba(59,181,130,0.06)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.borderColor = "#C4DED5";
-                e.currentTarget.style.background  = "transparent";
+                e.currentTarget.style.background = "transparent";
               }}
             >
-              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: "#3bb582" }} />
+              <span
+                className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                style={{ background: "#3bb582" }}
+              />
               <MapPin className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
               TP. HCM
             </button>
 
-            <div className="hidden lg:block h-5 w-px" style={{ background: "#C4DED5" }} />
+            <div
+              className="hidden lg:block h-5 w-px"
+              style={{ background: "#C4DED5" }}
+            />
 
             <NotificationDropdown />
 
@@ -167,16 +198,26 @@ export default function DashboardLayout() {
                 transition: "opacity 0.2s ease, transform 0.2s ease",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.opacity   = "0.9";
+                e.currentTarget.style.opacity = "0.9";
                 e.currentTarget.style.transform = "translateY(-1px)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.opacity   = "1";
+                e.currentTarget.style.opacity = "1";
                 e.currentTarget.style.transform = "translateY(0)";
               }}
             >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              <svg
+                className="w-3.5 h-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 4v16m8-8H4"
+                />
               </svg>
               Thêm mới
             </button>
@@ -192,15 +233,26 @@ export default function DashboardLayout() {
               >
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                  style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)",
+                  }}
                 >
                   A
                 </div>
                 <div className="hidden md:block text-left">
-                  <p className="text-xs font-semibold leading-tight" style={{ color: "#1E2D28" }}>
+                  <p
+                    className="text-xs font-semibold leading-tight"
+                    style={{ color: "#1E2D28" }}
+                  >
                     {keycloak?.tokenParsed?.name || "Admin"}
                   </p>
-                  <p className="text-[10px] leading-tight" style={{ color: "#5A7A6E" }}>{roleLabel}</p>
+                  <p
+                    className="text-[10px] leading-tight"
+                    style={{ color: "#5A7A6E" }}
+                  >
+                    {roleLabel}
+                  </p>
                 </div>
                 <ChevronDown className="w-3.5 h-3.5 text-gray-400 hidden md:block" />
               </button>
@@ -221,20 +273,30 @@ export default function DashboardLayout() {
                       boxShadow: "0 10px 40px -10px rgba(32,150,216,0.18)",
                     }}
                   >
-                    <div className="px-4 py-3" style={{ borderBottom: "1px solid #C4DED5" }}>
+                    <div
+                      className="px-4 py-3"
+                      style={{ borderBottom: "1px solid #C4DED5" }}
+                    >
                       <div className="flex items-center gap-3">
                         <div
                           className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
-                          style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
+                          style={{
+                            background:
+                              "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)",
+                          }}
                         >
                           A
                         </div>
                         <div>
-                          <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>
+                          <p
+                            className="text-sm font-semibold"
+                            style={{ color: "#1E2D28" }}
+                          >
                             {keycloak?.tokenParsed?.name || "Admin User"}
                           </p>
                           <p className="text-xs" style={{ color: "#5A7A6E" }}>
-                            {keycloak?.tokenParsed?.email || "admin@smartutil.vn"}
+                            {keycloak?.tokenParsed?.email ||
+                              "admin@smartutil.vn"}
                           </p>
                         </div>
                       </div>
@@ -243,31 +305,55 @@ export default function DashboardLayout() {
                     <div className="py-1">
                       {[
                         { label: "Thông tin tài khoản", icon: User },
-                        { label: "Cài đặt", icon: null },
+                        { label: "Cài đặt", icon: SettingOutlined },
                       ].map(({ label, icon: Icon }) => (
                         <button
                           key={label}
                           type="button"
-                          onClick={() => { setIsUserMenuOpen(false); navigate("/settings"); }}
+                          onClick={() => {
+                            setIsUserMenuOpen(false);
+                            navigate("/settings");
+                          }}
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition"
                           style={{ color: "#1E2D28" }}
-                          onMouseEnter={(e) => (e.currentTarget.style.background = "#EAF4F0")}
-                          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.background = "#EAF4F0")
+                          }
+                          onMouseLeave={(e) =>
+                            (e.currentTarget.style.background = "transparent")
+                          }
                         >
-                          {Icon && <Icon className="w-4 h-4" style={{ color: "#5A7A6E" }} />}
+                          {Icon && (
+                            <Icon
+                              className="w-4 h-4"
+                              style={{ color: "#5A7A6E" }}
+                            />
+                          )}
                           {label}
                         </button>
                       ))}
                     </div>
 
-                    <div className="pt-1" style={{ borderTop: "1px solid #C4DED5" }}>
+                    <div
+                      className="pt-1"
+                      style={{ borderTop: "1px solid #C4DED5" }}
+                    >
                       <button
                         type="button"
-                        onClick={() => { setIsUserMenuOpen(false); authActions.logout(); navigate("/login"); }}
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          authActions.logout();
+                          navigate("/login");
+                        }}
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition"
                         style={{ color: "#D95F4B" }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(217,95,75,0.06)")}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.background =
+                            "rgba(217,95,75,0.06)")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.background = "transparent")
+                        }
                       >
                         <LogOut className="w-4 h-4" />
                         Đăng xuất
@@ -281,7 +367,10 @@ export default function DashboardLayout() {
         </header>
 
         {/* ── Main content ── */}
-        <main className="flex-1 px-4 pt-4 pb-12 md:px-6 lg:px-8" style={{ background: "#F7FBF9" }}>
+        <main
+          className="flex-1 px-4 pt-4 pb-12 md:px-6 lg:px-8"
+          style={{ background: "#F7FBF9" }}
+        >
           <div className="mb-4">
             <Breadcrumb
               items={[
@@ -298,7 +387,15 @@ export default function DashboardLayout() {
                   ),
                 },
                 ...(!isOnDashboard
-                  ? [{ title: <span style={{ color: "#1E2D28", fontWeight: 600 }}>{currentTitle}</span> }]
+                  ? [
+                      {
+                        title: (
+                          <span style={{ color: "#1E2D28", fontWeight: 600 }}>
+                            {currentTitle}
+                          </span>
+                        ),
+                      },
+                    ]
                   : []),
               ]}
             />
