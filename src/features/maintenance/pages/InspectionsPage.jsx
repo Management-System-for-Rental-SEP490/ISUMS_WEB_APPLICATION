@@ -226,7 +226,16 @@ export default function InspectionsPage() {
   const [error, setError] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [activeTab, setActiveTab] = useState("CHECK_IN");
+  const [slideDir, setSlideDir] = useState("right"); // "right" | "left"
   const navigate = useNavigate();
+
+  const handleTabChange = (key) => {
+    if (key === activeTab) return;
+    const newIdx = TABS.findIndex((t) => t.key === key);
+    const oldIdx = TABS.findIndex((t) => t.key === activeTab);
+    setSlideDir(newIdx > oldIdx ? "right" : "left");
+    setActiveTab(key);
+  };
 
   const fetchInspections = () => {
     setLoading(true);
@@ -286,27 +295,37 @@ export default function InspectionsPage() {
         </div>
       </div>
 
-      {/* Tabs - mỗi tab trigger gọi API riêng với status=DONE&type=CHECK_IN|CHECK_OUT */}
-      <div className="flex items-center gap-1 p-1 rounded-2xl w-fit" style={{ background: "#EAF4F0" }}>
+      {/* Tabs — sliding indicator */}
+      <div className="relative flex items-center gap-1 p-1 rounded-2xl w-fit" style={{ background: "#EAF4F0" }}>
+        {/* Sliding pill */}
+        <div
+          className="absolute top-1 bottom-1 rounded-xl transition-transform duration-250 ease-in-out"
+          style={{
+            width: "calc(50% - 4px)",
+            left: 4,
+            background: "#ffffff",
+            boxShadow: "0 1px 4px rgba(59,181,130,0.14)",
+            transform: `translateX(${activeTab === TABS[0].key ? "0%" : "calc(100% + 4px)"})`,
+          }}
+        />
         {TABS.map((tab) => {
           const isActive = activeTab === tab.key;
           return (
             <button
               key={tab.key}
               type="button"
-              onClick={() => setActiveTab(tab.key)}
-              className="px-5 py-2 rounded-xl text-sm font-semibold transition"
-              style={{
-                background: isActive ? "#ffffff" : "transparent",
-                color: isActive ? tab.color : "#5A7A6E",
-                boxShadow: isActive ? "0 1px 4px rgba(59,181,130,0.12)" : "none",
-              }}
+              onClick={() => handleTabChange(tab.key)}
+              className="relative z-10 px-5 py-2 rounded-xl text-sm font-semibold transition-colors duration-200 min-w-[110px]"
+              style={{ color: isActive ? tab.color : "#5A7A6E" }}
             >
               {tab.label}
             </button>
           );
         })}
       </div>
+
+      {/* Content — key triggers remount + slide animation on tab change */}
+      <div key={activeTab} className={slideDir === "right" ? "slide-from-right" : "slide-from-left"}>
 
       {/* Loading */}
       {loading && (
@@ -387,6 +406,8 @@ export default function InspectionsPage() {
           })}
         </div>
       )}
+
+      </div>{/* end slide wrapper */}
 
       <CreateInspectionModal
         open={showCreate}

@@ -1,5 +1,12 @@
-import { Phone, Calendar, Clock, FileText } from "lucide-react";
+import { Phone, Calendar, Clock, FileText, Mail, MapPin } from "lucide-react";
 import { formatDateTime } from "../../constants/inspection.constants";
+
+const ROLE_LABEL = {
+  TECHNICAL_STAFF: "Nhân viên kỹ thuật",
+  MANAGER:         "Quản lý",
+  LANDLORD:        "Chủ nhà",
+  ADMIN:           "Admin",
+};
 
 function Card({ children }) {
   return (
@@ -18,112 +25,144 @@ function Card({ children }) {
 
 function CardTitle({ children }) {
   return (
-    <p
-      className="text-[11px] font-semibold uppercase tracking-widest mb-4"
-      style={{ color: "#5A7A6E" }}
-    >
+    <p className="text-[11px] font-semibold uppercase tracking-widest mb-4" style={{ color: "#5A7A6E" }}>
       {children}
     </p>
   );
 }
 
-export default function InspectionInfoCards({ inspection }) {
-  const staffInitial = inspection?.staffName
-    ? inspection.staffName.trim().split(" ").pop()[0].toUpperCase()
+function InfoRow({ icon, iconBg, iconColor, label, children }) {
+  const Icon = icon;
+  return (
+    <div className="flex items-start gap-2.5">
+      <div
+        className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+        style={{ background: iconBg }}
+      >
+        <Icon className="w-3.5 h-3.5" style={{ color: iconColor }} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px]" style={{ color: "#5A7A6E" }}>{label}</p>
+        <div className="text-xs font-semibold" style={{ color: "#1E2D28" }}>{children}</div>
+      </div>
+    </div>
+  );
+}
+
+export default function InspectionInfoCards({ inspection, staff }) {
+  const staffInitial = staff?.name
+    ? staff.name.trim().split(" ").pop()[0].toUpperCase()
     : "?";
+
+  const roleLabel = staff?.roles?.[0]
+    ? (ROLE_LABEL[staff.roles[0]] ?? staff.roles[0])
+    : null;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {/* Staff */}
+
+      {/* ── Staff card ── */}
       <Card>
         <CardTitle>Nhân viên được sắp xếp</CardTitle>
-        <div className="flex items-center gap-3">
-          <div
-            className="w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold flex-shrink-0"
-            style={{ background: "rgba(32,150,216,0.12)", color: "#2096d8" }}
-          >
-            {staffInitial}
-          </div>
-          <div className="min-w-0">
-            <p
-              className="text-sm font-bold truncate"
-              style={{ color: "#1E2D28" }}
-            >
-              {inspection?.staffName ?? "—"}
-            </p>
-            {inspection?.staffPhone && (
-              <a
-                href={`tel:${inspection.staffPhone}`}
-                className="inline-flex items-center gap-1 text-xs mt-0.5 transition"
-                style={{ color: "#5A7A6E" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#3bb582")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "#5A7A6E")}
+        {staff ? (
+          <div className="space-y-3">
+            {/* Avatar + tên */}
+            <div className="flex items-center gap-3">
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold flex-shrink-0"
+                style={{ background: "rgba(32,150,216,0.12)", color: "#2096d8" }}
               >
-                <Phone className="w-3 h-3" />
-                {inspection.staffPhone}
-              </a>
-            )}
+                {staffInitial}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-bold truncate" style={{ color: "#1E2D28" }}>
+                  {staff.name}
+                </p>
+                {roleLabel && (
+                  <span
+                    className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full mt-0.5"
+                    style={{ background: "rgba(32,150,216,0.10)", color: "#2096d8" }}
+                  >
+                    {roleLabel}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div className="h-px" style={{ background: "#EAF4F0" }} />
+
+            <div className="space-y-2">
+              {staff.phoneNumber && (
+                <div className="flex items-center gap-2">
+                  <Phone className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#3bb582" }} />
+                  <a
+                    href={`tel:${staff.phoneNumber}`}
+                    className="text-xs transition"
+                    style={{ color: "#5A7A6E" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "#3bb582")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "#5A7A6E")}
+                  >
+                    {staff.phoneNumber}
+                  </a>
+                </div>
+              )}
+              {staff.email && (
+                <div className="flex items-center gap-2 min-w-0">
+                  <Mail className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#2096d8" }} />
+                  <span className="text-xs truncate" style={{ color: "#5A7A6E" }}>{staff.email}</span>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        ) : (
+          /* Skeleton khi chưa load xong */
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl animate-pulse flex-shrink-0" style={{ background: "#EAF4F0" }} />
+              <div className="space-y-2 flex-1">
+                <div className="h-3 w-28 rounded animate-pulse" style={{ background: "#EAF4F0" }} />
+                <div className="h-2.5 w-20 rounded animate-pulse" style={{ background: "#EAF4F0" }} />
+              </div>
+            </div>
+          </div>
+        )}
       </Card>
 
-      {/* Time */}
+      {/* ── Time card ── */}
       <Card>
         <CardTitle>Thời gian thực hiện</CardTitle>
         <div className="space-y-3">
-          <div className="flex items-start gap-2.5">
-            <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-              style={{ background: "#EAF4F0" }}
-            >
-              <Calendar className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
-            </div>
-            <div>
-              <p className="text-[11px]" style={{ color: "#5A7A6E" }}>
-                Ngày tạo
-              </p>
-              <p className="text-xs font-semibold" style={{ color: "#1E2D28" }}>
-                {formatDateTime(inspection?.createdAt)}
-              </p>
-            </div>
-          </div>
+          <InfoRow icon={Calendar} iconBg="#EAF4F0" iconColor="#3bb582" label="Ngày tạo">
+            {formatDateTime(inspection?.createdAt)}
+          </InfoRow>
           <div className="h-px" style={{ background: "#EAF4F0" }} />
-          <div className="flex items-start gap-2.5">
-            <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-              style={{ background: "rgba(32,150,216,0.10)" }}
-            >
-              <Clock className="w-3.5 h-3.5" style={{ color: "#2096d8" }} />
-            </div>
-            <div>
-              <p className="text-[11px]" style={{ color: "#5A7A6E" }}>
-                Hoàn thành dự kiến
-              </p>
-              <p className="text-xs font-semibold" style={{ color: "#1E2D28" }}>
-                {formatDateTime(inspection?.updatedAt)}
-              </p>
-            </div>
-          </div>
+          <InfoRow icon={Clock} iconBg="rgba(32,150,216,0.10)" iconColor="#2096d8" label="Cập nhật lần cuối">
+            {formatDateTime(inspection?.updatedAt)}
+          </InfoRow>
         </div>
       </Card>
 
-      {/* Note */}
+      {/* ── Note + Address card ── */}
       <Card>
-        <CardTitle>Ghi chú kiểm tra</CardTitle>
-        <div className="flex items-start gap-2.5">
-          <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-            style={{ background: "#EAF4F0" }}
-          >
-            <FileText className="w-3.5 h-3.5" style={{ color: "#5A7A6E" }} />
-          </div>
-          <p className="text-xs leading-relaxed" style={{ color: "#1E2D28" }}>
-            {inspection?.note || (
-              <span style={{ color: "#9CA3AF" }}>Không có ghi chú</span>
-            )}
-          </p>
+        <CardTitle>Thông tin thêm</CardTitle>
+        <div className="space-y-3">
+          <InfoRow icon={FileText} iconBg="#EAF4F0" iconColor="#5A7A6E" label="Ghi chú">
+            {inspection?.note
+              ? <span className="leading-relaxed font-normal">{inspection.note}</span>
+              : <span style={{ color: "#9CA3AF", fontWeight: 400 }}>Không có ghi chú</span>
+            }
+          </InfoRow>
+          {inspection?.houseAddress && (
+            <>
+              <div className="h-px" style={{ background: "#EAF4F0" }} />
+              <InfoRow icon={MapPin} iconBg="rgba(59,181,130,0.08)" iconColor="#3bb582" label="Địa chỉ">
+                <span className="leading-relaxed font-normal">{inspection.houseAddress}</span>
+              </InfoRow>
+            </>
+          )}
         </div>
       </Card>
+
     </div>
   );
 }

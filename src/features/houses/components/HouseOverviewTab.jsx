@@ -4,19 +4,19 @@ import {
   Bath,
   Bed,
   Building2,
-  Car,
   Flame,
   ImageOff,
   Package,
   Tag,
   Tv,
-  Utensils,
+  Trees,
   Wind,
 } from "lucide-react";
 import AssetDetailDrawer from "./AssetDetailDrawer";
 
 // ── Shared configs ────────────────────────────────────────────────────────────
 
+// Chỉ chứa các giá trị backend chấp nhận: OTHER, ALL, KITCHEN, GARDEN, HALLWAY, BEDROOM, BATHROOM, LIVINGROOM
 export const AREA_TYPE_CONFIG = {
   BEDROOM: {
     label: "Phòng ngủ",
@@ -63,32 +63,32 @@ export const AREA_TYPE_CONFIG = {
     activeBg: "bg-slate-100",
     accent: "#64748b",
   },
-  GARAGE: {
-    label: "Gara xe",
-    Icon: Car,
-    bg: "bg-yellow-50",
-    text: "text-yellow-600",
-    border: "border-yellow-300",
-    activeBg: "bg-yellow-100",
-    accent: "#eab308",
-  },
-  BALCONY: {
-    label: "Ban công",
-    Icon: Wind,
+  GARDEN: {
+    label: "Sân vườn",
+    Icon: Trees,
     bg: "bg-green-50",
     text: "text-green-600",
     border: "border-green-300",
     activeBg: "bg-green-100",
     accent: "#22c55e",
   },
-  DINING: {
-    label: "Phòng ăn",
-    Icon: Utensils,
-    bg: "bg-amber-50",
-    text: "text-amber-600",
-    border: "border-amber-300",
-    activeBg: "bg-amber-100",
-    accent: "#f59e0b",
+  ALL: {
+    label: "Toàn bộ",
+    Icon: Wind,
+    bg: "bg-teal-50",
+    text: "text-teal-600",
+    border: "border-teal-300",
+    activeBg: "bg-teal-100",
+    accent: "#14b8a6",
+  },
+  OTHER: {
+    label: "Khác",
+    Icon: Package,
+    bg: "bg-gray-50",
+    text: "text-gray-500",
+    border: "border-gray-300",
+    activeBg: "bg-gray-100",
+    accent: "#6b7280",
   },
   default: {
     label: "Khu vực",
@@ -126,14 +126,14 @@ export function conditionColor(pct) {
 
 const ROOM_FLEX = {
   LIVINGROOM: "flex-[3]",
-  BEDROOM: "flex-[2]",
-  KITCHEN: "flex-[2]",
-  BATHROOM: "flex-[1]",
-  HALLWAY: "flex-[1]",
-  DINING: "flex-[2]",
-  BALCONY: "flex-[1]",
-  GARAGE: "flex-[2]",
-  default: "flex-[1]",
+  BEDROOM:    "flex-[2]",
+  KITCHEN:    "flex-[2]",
+  BATHROOM:   "flex-[1]",
+  HALLWAY:    "flex-[1]",
+  GARDEN:     "flex-[2]",
+  ALL:        "flex-[3]",
+  OTHER:      "flex-[1]",
+  default:    "flex-[1]",
 };
 
 function RoomBox({ area, isSelected, assetCount, onClick }) {

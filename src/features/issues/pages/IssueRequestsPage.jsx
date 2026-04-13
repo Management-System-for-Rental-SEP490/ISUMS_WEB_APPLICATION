@@ -3,6 +3,7 @@ import {
   Search, Download, RefreshCw, MessageCircle,
   CheckCircle2, Eye, Send, Home, Clock, AlertCircle, Sparkles,
 } from "lucide-react";
+import { Pagination } from "antd";
 import dayjs from "dayjs";
 import { ISSUE_STATUS_CONFIG } from "../constants/issue.constants";
 import { getAllIssues } from "../api/issues.api";
@@ -311,46 +312,19 @@ export default function IssueRequestsPage() {
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {filtered.length > PAGE_SIZE && (
           <div
-            className="flex items-center justify-between px-5 py-3"
-            style={{ borderTop: "1px solid #C4DED5", background: "#EAF4F0" }}
+            className="flex justify-end px-5 py-3"
+            style={{ borderTop: "1px solid #C4DED5" }}
           >
-            <p className="text-xs" style={{ color: "#5A7A6E" }}>
-              {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} / {filtered.length} câu hỏi
-            </p>
-            <div className="flex items-center gap-1">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage((p) => p - 1)}
-                className="w-7 h-7 rounded-lg text-sm transition disabled:opacity-30"
-                style={{ color: "#5A7A6E" }}
-                onMouseEnter={e => e.currentTarget.style.background = "#C4DED5"}
-                onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-              >‹</button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  className="w-7 h-7 rounded-lg text-sm font-medium transition"
-                  style={p === page
-                    ? { background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)", color: "#ffffff" }
-                    : { color: "#5A7A6E" }}
-                  onMouseEnter={e => p !== page && (e.currentTarget.style.background = "#C4DED5")}
-                  onMouseLeave={e => p !== page && (e.currentTarget.style.background = "transparent")}
-                >
-                  {p}
-                </button>
-              ))}
-              <button
-                disabled={page === totalPages}
-                onClick={() => setPage((p) => p + 1)}
-                className="w-7 h-7 rounded-lg text-sm transition disabled:opacity-30"
-                style={{ color: "#5A7A6E" }}
-                onMouseEnter={e => e.currentTarget.style.background = "#C4DED5"}
-                onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-              >›</button>
-            </div>
+            <Pagination
+              current={page}
+              total={filtered.length}
+              pageSize={PAGE_SIZE}
+              onChange={(p) => setPage(p)}
+              showSizeChanger={false}
+              size="small"
+            />
           </div>
         )}
       </div>

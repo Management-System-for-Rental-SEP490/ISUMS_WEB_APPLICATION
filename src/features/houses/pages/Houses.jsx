@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Select } from "antd";
+import { Select, Pagination } from "antd";
 import {
   ArrowUpDown,
   Building2,
-  ChevronLeft,
-  ChevronRight,
   LayoutGrid,
   List,
   Plus,
@@ -32,70 +30,6 @@ const STATUS_BADGE = {
   default:     { label: "—",         cls: "bg-gray-50 text-gray-500 border-gray-200"          },
 };
 
-function Pagination({ current, total, onChange }) {
-  if (total <= 1) return null;
-
-  const pages = [];
-  if (total <= 7) {
-    for (let i = 1; i <= total; i++) pages.push(i);
-  } else {
-    pages.push(1);
-    if (current > 3) pages.push("...");
-    for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) pages.push(i);
-    if (current < total - 2) pages.push("...");
-    pages.push(total);
-  }
-
-  return (
-    <div className="flex items-center justify-center gap-1.5 mt-8">
-      <button
-        type="button"
-        onClick={() => onChange(current - 1)}
-        disabled={current === 1}
-        className="w-9 h-9 flex items-center justify-center rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
-        style={{ border: "1px solid #C4DED5", color: "#5A7A6E" }}
-        onMouseEnter={e => !e.currentTarget.disabled && (e.currentTarget.style.background = "#EAF4F0")}
-        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-      >
-        <ChevronLeft className="w-4 h-4" />
-      </button>
-
-      {pages.map((p, i) =>
-        p === "..." ? (
-          <span key={`ellipsis-${i}`} className="w-9 h-9 flex items-center justify-center text-sm" style={{ color: "#5A7A6E" }}>
-            ...
-          </span>
-        ) : (
-          <button
-            key={p}
-            type="button"
-            onClick={() => onChange(p)}
-            className="w-9 h-9 flex items-center justify-center rounded-xl text-sm font-medium transition"
-            style={p === current
-              ? { background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)", color: "#ffffff", boxShadow: "0 4px 12px -2px rgba(59,181,130,0.35)" }
-              : { border: "1px solid #C4DED5", color: "#5A7A6E" }}
-            onMouseEnter={e => p !== current && (e.currentTarget.style.background = "#EAF4F0")}
-            onMouseLeave={e => p !== current && (e.currentTarget.style.background = "transparent")}
-          >
-            {p}
-          </button>
-        )
-      )}
-
-      <button
-        type="button"
-        onClick={() => onChange(current + 1)}
-        disabled={current === total}
-        className="w-9 h-9 flex items-center justify-center rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
-        style={{ border: "1px solid #C4DED5", color: "#5A7A6E" }}
-        onMouseEnter={e => !e.currentTarget.disabled && (e.currentTarget.style.background = "#EAF4F0")}
-        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-      >
-        <ChevronRight className="w-4 h-4" />
-      </button>
-    </div>
-  );
-}
 
 function ListRow({ house }) {
   const b     = STATUS_BADGE[house?.status] ?? STATUS_BADGE.default;
@@ -339,11 +273,13 @@ export default function Houses() {
 
           <Pagination
             current={page}
-            total={pagination.totalPages}
+            total={pagination.total}
+            pageSize={PAGE_SIZE}
             onChange={(p) => {
               setPage(p);
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
+            showSizeChanger={false}
           />
         </>
       )}
