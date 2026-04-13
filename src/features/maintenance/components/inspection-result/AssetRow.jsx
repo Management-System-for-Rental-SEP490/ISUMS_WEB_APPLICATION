@@ -43,13 +43,22 @@ function Lightbox({ images, startIndex, onClose }) {
 function ImagePanel({ images, label, accentColor, accentBg }) {
   const [lightboxIdx, setLightboxIdx] = useState(null);
   const hasImages = images?.length > 0;
+  // Lấy timestamp từ ảnh đầu tiên (tất cả ảnh cùng batch upload nên thời gian giống nhau)
+  const uploadedAt = hasImages ? images[0].createdAt : null;
 
   return (
     <div className="flex-1 flex flex-col gap-2">
-      <span className="text-[11px] font-bold px-2.5 py-1 rounded-full w-fit"
-        style={{ background: accentBg, color: accentColor }}>
-        {label}
-      </span>
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <span className="text-[11px] font-bold px-2.5 py-1 rounded-full"
+          style={{ background: accentBg, color: accentColor }}>
+          {label}
+        </span>
+        {uploadedAt && (
+          <span className="text-[10px] font-medium" style={{ color: "#9CA3AF" }}>
+            {formatDateTime(uploadedAt)}
+          </span>
+        )}
+      </div>
 
       {hasImages ? (
         <>

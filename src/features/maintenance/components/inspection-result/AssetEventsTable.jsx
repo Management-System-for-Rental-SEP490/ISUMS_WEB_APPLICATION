@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Package, ChevronLeft, ChevronRight } from "lucide-react";
+import { Package } from "lucide-react";
+import { Pagination } from "antd";
 import AssetRow from "./AssetRow";
 
 const PAGE_SIZE = 5;
@@ -70,27 +71,16 @@ export default function AssetEventsTable({ events = [], loading }) {
       </table>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="px-5 py-3 flex items-center justify-between" style={{ borderTop: "1px solid rgba(196,222,213,0.5)" }}>
-          <p className="text-xs" style={{ color: "#5A7A6E" }}>
-            {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, events.length)} / {events.length} tài sản
-          </p>
-          <div className="flex items-center gap-1.5">
-            <button type="button" disabled={page === 1} onClick={() => setPage((p) => p - 1)}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg transition disabled:opacity-40"
-              style={{ border: "1px solid #C4DED5", color: "#5A7A6E" }}>
-              <ChevronLeft className="w-3.5 h-3.5" /> Trước
-            </button>
-            <span className="w-7 h-7 flex items-center justify-center rounded-lg text-xs font-bold text-white"
-              style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}>
-              {page}
-            </span>
-            <button type="button" disabled={page === totalPages} onClick={() => setPage((p) => p + 1)}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg transition disabled:opacity-40"
-              style={{ border: "1px solid #C4DED5", color: "#5A7A6E" }}>
-              Tiếp <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
+      {events.length > PAGE_SIZE && (
+        <div className="px-5 py-3 flex justify-end" style={{ borderTop: "1px solid rgba(196,222,213,0.5)" }}>
+          <Pagination
+            current={page}
+            total={events.length}
+            pageSize={PAGE_SIZE}
+            onChange={setPage}
+            showSizeChanger={false}
+            size="small"
+          />
         </div>
       )}
     </div>

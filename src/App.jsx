@@ -20,7 +20,7 @@ export default function App() {
       locale={viVN}
       theme={{
         token: {
-          fontFamily: "'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif",
+          fontFamily: "'Outfit', ui-sans-serif, system-ui, sans-serif",
         },
       }}
     >

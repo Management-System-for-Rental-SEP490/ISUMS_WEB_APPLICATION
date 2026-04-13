@@ -4,22 +4,22 @@ import { message, Spin } from "antd";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { getInspectionById, getAssetEventsByJob, updateInspectionStatus } from "../api/inspections.api";
 import { getHouseById } from "../../houses/api/houses.api";
+import { getUserById } from "../../tenants/api/users.api";
 import InspectionHeader from "../components/inspection-result/InspectionHeader";
 import InspectionInfoCards from "../components/inspection-result/InspectionInfoCards";
 import AssetEventsTable from "../components/inspection-result/AssetEventsTable";
-import InspectionHistoryTimeline from "../components/inspection-result/InspectionHistoryTimeline";
 import InspectionConfirmModal from "../components/inspection-result/InspectionConfirmModal";
 
 // Normalise inspection response → shape dùng trong UI
 function normaliseInspection(raw, house) {
   return {
     id: raw.id,
-    staffName: raw.staffName ?? raw.staff?.name ?? null,
-    staffPhone: raw.staffPhone ?? raw.staff?.phoneNumber ?? null,
+    assignedStaffId: raw.assignedStaffId ?? null,
     status: raw.status,
     type: raw.type,
     note: raw.note ?? raw.inspectionNotes ?? null,
     createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt ?? null,
     scheduledAt: raw.scheduledAt ?? raw.completedAt ?? null,
     houseAddress: house
       ? [house.address, house.ward, house.commune, house.city].filter(Boolean).join(", ")
@@ -51,13 +51,13 @@ export default function InspectionResultPage() {
   const navigate = useNavigate();
 
   const [inspection, setInspection] = useState(null);
+  const [staff, setStaff] = useState(null);
   const [events, setEvents] = useState([]);
   const [loadingInspection, setLoadingInspection] = useState(true);
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [error, setError] = useState(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [approving, setApproving] = useState(false);
-
 
   const fetchData = async () => {
     if (!id) return;
@@ -66,12 +66,14 @@ export default function InspectionResultPage() {
     try {
       const raw = await getInspectionById(id);
 
-      // Fetch house details in parallel if houseId exists
-      const house = raw.houseId
-        ? await getHouseById(raw.houseId).catch(() => null)
-        : null;
+      // Fetch house + staff in parallel
+      const [house, staffData] = await Promise.all([
+        raw.houseId ? getHouseById(raw.houseId).catch(() => null) : null,
+        raw.assignedStaffId ? getUserById(raw.assignedStaffId).catch(() => null) : null,
+      ]);
 
       setInspection(normaliseInspection(raw, house));
+      setStaff(staffData);
 
       // Fetch asset events — dùng jobId nếu có, fallback về inspection id
       const jobId = raw.jobId ?? id;
@@ -139,9 +141,8 @@ export default function InspectionResultPage() {
   return (
     <div className="space-y-5 pb-12">
       <InspectionHeader inspection={inspection} id={id} onComplete={() => setConfirmOpen(true)} />
-      <InspectionInfoCards inspection={inspection} />
+      <InspectionInfoCards inspection={inspection} staff={staff} />
       <AssetEventsTable events={events} loading={loadingEvents} />
-      <InspectionHistoryTimeline history={[]} inspection={inspection} />
       <InspectionConfirmModal
         open={confirmOpen}
         onCancel={() => setConfirmOpen(false)}
