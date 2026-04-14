@@ -25,9 +25,6 @@ export default function IssueHistoryByPropertyPage() {
           <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Lịch sử</span>
         </div>
         <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Lịch sử theo BĐS</h2>
-        <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>
-          Tổng quan sự cố theo từng bất động sản để hỗ trợ quyết định bảo trì chủ động
-        </p>
       </div>
 
       {/* Summary cards */}

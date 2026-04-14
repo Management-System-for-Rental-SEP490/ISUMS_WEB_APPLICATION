@@ -128,10 +128,6 @@ export default function Houses() {
           <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>
             Quản lý Bất động sản
           </h2>
-          <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>
-            Tổng số {pagination.total} bất động sản đang quản lý
-            {loading && " • Đang tải..."}
-          </p>
         </div>
         <button
           type="button"

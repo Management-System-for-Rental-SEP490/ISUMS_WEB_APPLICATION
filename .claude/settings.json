@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "Bash(npm install:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm ls:*)",
+      "Bash(npm outdated)",
+      "Bash(npx:*)",
+
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch:*)",
+      "Bash(git blame:*)",
+      "Bash(git stash list)",
+      "Bash(git remote -v)",
+
+      "Bash(node -v)",
+      "Bash(node --version)",
+      "Bash(npm -v)",
+      "Bash(npm --version)",
+      "Bash(cat package.json)",
+      "Bash(cat tsconfig.json)",
+      "Bash(cat vite.config.*)"
+    ],
+    "deny": [
+      "Bash(rm -rf /*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean -fd:*)"
+    ]
+  }
+}

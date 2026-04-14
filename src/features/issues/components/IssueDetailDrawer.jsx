@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Drawer } from "antd";
-import { MapPin, Clock, MessageSquare, CheckCircle, User } from "lucide-react";
+import { MapPin, Clock, MessageSquare, CheckCircle, User, ImageIcon, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { getIssueById, getResponseByTicket } from "../api/issues.api";
 import { getHouseById } from "../../houses/api/houses.api";
 import { ISSUE_STATUS_CONFIG } from "../constants/issue.constants";
@@ -16,16 +17,67 @@ function Avatar({ name, size = "md" }) {
   );
 }
 
+function ImageLightbox({ images, index, onClose, onNext, onPrev }) {
+  if (index === null || !images[index]) return null;
+  return createPortal(
+    <div
+      className="fixed inset-0 flex items-center justify-center backdrop-blur-sm"
+      style={{ background: "rgba(30,45,40,0.85)", zIndex: 1200 }}
+      onClick={onClose}
+    >
+      {images.length > 1 && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onPrev(); }}
+          className="absolute left-4 p-3 rounded-full"
+          style={{ background: "rgba(255,255,255,0.12)", color: "#fff" }}
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </button>
+      )}
+      <img
+        src={images[index].url}
+        alt="Ảnh đính kèm"
+        className="max-h-[85vh] max-w-[85vw] rounded-2xl object-contain"
+        style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}
+        onClick={(e) => e.stopPropagation()}
+      />
+      {images.length > 1 && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onNext(); }}
+          className="absolute right-4 p-3 rounded-full"
+          style={{ background: "rgba(255,255,255,0.12)", color: "#fff" }}
+        >
+          <ChevronRight className="w-6 h-6" />
+        </button>
+      )}
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 p-2.5 rounded-full"
+        style={{ background: "rgba(255,255,255,0.12)", color: "#fff" }}
+      >
+        <X className="w-5 h-5" />
+      </button>
+      {images.length > 1 && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs px-3 py-1.5 rounded-full" style={{ background: "rgba(0,0,0,0.45)", color: "rgba(255,255,255,0.8)" }}>
+          {index + 1} / {images.length}
+        </div>
+      )}
+    </div>,
+    document.body
+  );
+}
+
 export default function IssueDetailDrawer({ open, ticketId, onClose, showResponse = false }) {
   const [detail, setDetail]       = useState(null);
   const [response, setResponse]   = useState(null);
   const [houseName, setHouseName] = useState(null);
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState(null);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
 
   useEffect(() => {
     if (!open || !ticketId) return;
-    setDetail(null); setResponse(null); setHouseName(null); setError(null);
+    setDetail(null); setResponse(null); setHouseName(null); setError(null); setLightboxIndex(null);
     setLoading(true);
     const requests = [getIssueById(ticketId)];
     if (showResponse) requests.push(getResponseByTicket(ticketId).catch(() => null));
@@ -46,6 +98,7 @@ export default function IssueDetailDrawer({ open, ticketId, onClose, showRespons
   const status = detail ? (ISSUE_STATUS_CONFIG[detail.status] ?? ISSUE_STATUS_CONFIG.CREATED) : null;
 
   return (
+    <>
     <Drawer
       open={open}
       onClose={onClose}
@@ -136,6 +189,32 @@ export default function IssueDetailDrawer({ open, ticketId, onClose, showRespons
               </div>
             </div>
 
+            {/* Images */}
+            {detail.images?.length > 0 && (
+              <div className="px-6 pt-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <ImageIcon className="w-4 h-4 text-teal-500" />
+                  <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">
+                    Ảnh đính kèm
+                    <span className="ml-1.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-teal-50 text-teal-600">
+                      {detail.images.length}
+                    </span>
+                  </p>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {detail.images.map((img, idx) => (
+                    <button
+                      key={img.id}
+                      onClick={() => setLightboxIndex(idx)}
+                      className="block aspect-square rounded-xl overflow-hidden border border-gray-100 transition hover:scale-[1.03]"
+                    >
+                      <img src={img.url} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Response */}
             {response && (
               <div className="px-6 pt-5">
@@ -166,5 +245,13 @@ export default function IssueDetailDrawer({ open, ticketId, onClose, showRespons
         )}
       </div>
     </Drawer>
+    <ImageLightbox
+      images={detail?.images ?? []}
+      index={lightboxIndex}
+      onClose={() => setLightboxIndex(null)}
+      onNext={() => setLightboxIndex((i) => (i + 1) % (detail?.images?.length ?? 1))}
+      onPrev={() => setLightboxIndex((i) => (i - 1 + (detail?.images?.length ?? 1)) % (detail?.images?.length ?? 1))}
+    />
+    </>
   );
 }

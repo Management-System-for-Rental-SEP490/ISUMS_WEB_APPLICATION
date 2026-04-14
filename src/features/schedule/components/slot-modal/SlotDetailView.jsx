@@ -69,10 +69,38 @@ function issueStatusCfg(status) { return ISSUE_STATUS_CFG[status?.toUpperCase()]
 const JOB_TYPE_LABELS = { MAINTENANCE: "Bảo trì", ISSUE: "Sửa chữa", INSPECTION: "Kiểm duyệt" };
 function jobTypeLabel(t) { return JOB_TYPE_LABELS[t?.toUpperCase()] ?? t ?? "—"; }
 
-const STATUS_LABELS = { booked: "ĐÃ ĐẶT", cancelled: "ĐÃ HỦY", inprogress: "ĐANG XỬ LÝ" };
+const JOB_TYPE_THEME = {
+  MAINTENANCE: {
+    heroBg: "linear-gradient(180deg, #ecfdf5 0%, #ffffff 100%)",
+    avatarBg: "bg-teal-50", avatarRing: "ring-teal-100", avatarText: "text-teal-600",
+    chip: "bg-teal-50 text-teal-700 border-teal-200",
+    accent: "text-teal-600",
+  },
+  ISSUE: {
+    heroBg: "linear-gradient(180deg, #fff7ed 0%, #ffffff 100%)",
+    avatarBg: "bg-orange-50", avatarRing: "ring-orange-100", avatarText: "text-orange-600",
+    chip: "bg-orange-50 text-orange-700 border-orange-200",
+    accent: "text-orange-600",
+  },
+  INSPECTION: {
+    heroBg: "linear-gradient(180deg, #eff6ff 0%, #ffffff 100%)",
+    avatarBg: "bg-blue-50", avatarRing: "ring-blue-100", avatarText: "text-blue-600",
+    chip: "bg-blue-50 text-blue-700 border-blue-200",
+    accent: "text-blue-600",
+  },
+};
+function jobTypeTheme(t) {
+  return JOB_TYPE_THEME[t?.toUpperCase()] ?? {
+    heroBg: "linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)",
+    avatarBg: "bg-slate-100", avatarRing: "ring-slate-200", avatarText: "text-slate-600",
+    chip: "bg-slate-100 text-slate-600 border-slate-200",
+    accent: "text-slate-600",
+  };
+}
 
 export default function SlotDetailView({ slot, jobDetails, houseDetails, staffDetails, onBack, onClose }) {
   const cfg = slotCfg(slot.status);
+  const theme = jobTypeTheme(slot.jobType);
   const isIssue = slot.jobType?.toUpperCase() === "ISSUE";
   const isInspection = slot.jobType?.toUpperCase() === "INSPECTION";
   const staff = slot.staffId ? staffDetails[slot.staffId] : undefined;
@@ -86,38 +114,39 @@ export default function SlotDetailView({ slot, jobDetails, houseDetails, staffDe
   const avatarText = staffName ? initials(staffName) : null;
   const houseAddress = house ? [house.address, house.ward, house.commune, house.city].filter(Boolean).join(", ") : null;
   const issueStatusBadge = isIssue ? issueStatusCfg(job?.status) : null;
-  const statusKey = slot.status?.toLowerCase().replace(/_/g, "") ?? "booked";
-  const statusLabel = STATUS_LABELS[statusKey] ?? slot.status?.toUpperCase() ?? "ĐÃ ĐẶT";
 
   return (
     <div className="flex flex-col max-h-[90vh] overflow-y-auto bg-white">
-      <div className="flex items-center justify-between px-4 pt-4 pb-1">
-        <button type="button" onClick={onBack} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition">
-          <ArrowLeft className="w-4 h-4 text-slate-500" />
-        </button>
-        <button type="button" onClick={onClose} className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition">
-          <X className="w-4 h-4 text-slate-500" />
-        </button>
-      </div>
-
-      <div className="px-6 pt-2 pb-5 text-center">
-        <div className="relative inline-block">
-          <div className="w-20 h-20 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center mx-auto overflow-hidden">
-            {avatarText ? <span className="text-2xl font-bold text-slate-600">{avatarText}</span> : <User className="w-10 h-10 text-slate-400" />}
-          </div>
-          <span className={`absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${cfg.dot}`} />
+      {/* Hero — tinted by job type */}
+      <div className="relative" style={{ background: theme.heroBg }}>
+        <div className="flex items-center justify-between px-4 pt-4 pb-1">
+          <button type="button" onClick={onBack} className="w-8 h-8 rounded-full bg-white/70 hover:bg-white shadow-sm flex items-center justify-center transition">
+            <ArrowLeft className="w-4 h-4 text-slate-500" />
+          </button>
+          <button type="button" onClick={onClose} className="w-8 h-8 rounded-full bg-white/70 hover:bg-white shadow-sm flex items-center justify-center transition">
+            <X className="w-4 h-4 text-slate-500" />
+          </button>
         </div>
-        {staffLoading ? <Skeleton className="h-5 w-36 mx-auto mt-3 mb-1" /> : (
-          <h3 className="text-lg font-bold text-slate-800 mt-3 leading-tight">{staffName ?? "Nhân viên"}</h3>
-        )}
-        <p className="text-sm text-slate-400 mt-0.5">ID: {slot.staffId ? slot.staffId.slice(-8).toUpperCase() : "—"}</p>
-        <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
-          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wide">{jobTypeLabel(slot.jobType)}</span>
-          {isIssue && issueStatusBadge ? (
-            <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${issueStatusBadge.badge}`}>{issueStatusBadge.label}</span>
-          ) : (
-            <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${cfg.badge}`}>{cfg.label}</span>
+
+        <div className="px-6 pt-2 pb-5 text-center">
+          <div className="relative inline-block">
+            <div className={`w-20 h-20 rounded-full ${theme.avatarBg} ring-4 ${theme.avatarRing} flex items-center justify-center mx-auto overflow-hidden`}>
+              {avatarText ? <span className={`text-2xl font-bold ${theme.avatarText}`}>{avatarText}</span> : <User className={`w-10 h-10 ${theme.avatarText}`} />}
+            </div>
+            <span className={`absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full border-2 border-white ${cfg.dot}`} />
+          </div>
+          {staffLoading ? <Skeleton className="h-5 w-36 mx-auto mt-3 mb-1" /> : (
+            <h3 className="text-lg font-bold text-slate-800 mt-3 leading-tight">{staffName ?? "Nhân viên"}</h3>
           )}
+          <p className="text-xs text-slate-400 mt-0.5">ID: {slot.staffId ? slot.staffId.slice(-8).toUpperCase() : "—"}</p>
+          <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold border uppercase tracking-wide ${theme.chip}`}>{jobTypeLabel(slot.jobType)}</span>
+            {isIssue && issueStatusBadge ? (
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${issueStatusBadge.badge}`}>{issueStatusBadge.label}</span>
+            ) : (
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${cfg.badge}`}>{cfg.label}</span>
+            )}
+          </div>
         </div>
       </div>
 

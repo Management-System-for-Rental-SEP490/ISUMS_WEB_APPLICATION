@@ -78,9 +78,6 @@ export default function SchedulePage() {
         <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>
           Lịch làm việc chi tiết
         </h2>
-        <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>
-          Theo dõi và quản lý lịch sửa chữa, bảo trì hệ thống
-        </p>
       </div>
 
       {/* Stats */}

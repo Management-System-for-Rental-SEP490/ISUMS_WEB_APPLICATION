@@ -20,8 +20,15 @@ function slotCfg(status) {
   return SLOT_STATUS_CFG[status?.toLowerCase().replace(/_/g, "")] ?? SLOT_STATUS_CFG.booked;
 }
 
-const JOB_TYPE_LABELS = { MAINTENANCE: "Bảo trì", ISSUE: "Sửa chữa", INSPECTION: "Kiểm duyệt" };
-function jobTypeLabel(t) { return JOB_TYPE_LABELS[t?.toUpperCase()] ?? t ?? "—"; }
+const JOB_TYPE_CFG = {
+  MAINTENANCE: { label: "Bảo trì",   color: "#14b8a6", bar: "bg-teal-500",   ring: "ring-teal-200",   avatarBg: "bg-teal-50",   avatarText: "text-teal-600",   badge: "bg-teal-50 text-teal-700 border-teal-200",     hoverBg: "hover:bg-teal-50/40"   },
+  ISSUE:       { label: "Sửa chữa",  color: "#f97316", bar: "bg-orange-500", ring: "ring-orange-200", avatarBg: "bg-orange-50", avatarText: "text-orange-600", badge: "bg-orange-50 text-orange-700 border-orange-200", hoverBg: "hover:bg-orange-50/40" },
+  INSPECTION:  { label: "Kiểm duyệt", color: "#3b82f6", bar: "bg-blue-500",   ring: "ring-blue-200",   avatarBg: "bg-blue-50",   avatarText: "text-blue-600",   badge: "bg-blue-50 text-blue-700 border-blue-200",     hoverBg: "hover:bg-blue-50/40"   },
+};
+
+function jobTypeCfg(t) {
+  return JOB_TYPE_CFG[t?.toUpperCase()] ?? { label: t ?? "—", color: "#94a3b8", bar: "bg-slate-400", ring: "ring-slate-200", avatarBg: "bg-slate-50", avatarText: "text-slate-600", badge: "bg-slate-50 text-slate-700 border-slate-200", hoverBg: "hover:bg-slate-50" };
+}
 
 export default function SlotListView({ slots, jobDetails, houseDetails, staffDetails, onSelectSlot, onClose, dateFmt, timeSlot }) {
   return (
@@ -47,17 +54,22 @@ export default function SlotListView({ slots, jobDetails, houseDetails, staffDet
         </div>
       </div>
 
-      <div className="px-5 py-2.5 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between">
+      <div className="px-5 py-2.5 bg-slate-50/70 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
         <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Có {slots.length} ca làm việc trong khung giờ này</span>
-        <div className="flex items-center gap-3 text-[11px] text-slate-400">
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-teal-500 inline-block" />Đã đặt</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-400 inline-block" />Đang thực hiện</span>
+        <div className="flex items-center gap-3 text-[11px] text-slate-500">
+          {Object.entries(JOB_TYPE_CFG).map(([key, cfg]) => (
+            <span key={key} className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full inline-block" style={{ background: cfg.color }} />
+              {cfg.label}
+            </span>
+          ))}
         </div>
       </div>
 
-      <div className="divide-y divide-slate-100 max-h-[340px] overflow-y-auto">
+      <div className="divide-y divide-slate-100 max-h-[380px] overflow-y-auto">
         {slots.map((slot) => {
           const cfg = slotCfg(slot.status);
+          const tCfg = jobTypeCfg(slot.jobType);
           const staff = slot.staffId ? staffDetails[slot.staffId] : undefined;
           const job = slot.jobId ? jobDetails[slot.jobId] : undefined;
           const house = job?.houseId ? houseDetails[job.houseId] : undefined;
@@ -65,20 +77,28 @@ export default function SlotListView({ slots, jobDetails, houseDetails, staffDet
           const displayName = staffName ? staffName : staff === undefined && slot.staffId ? null : "Nhân viên";
           const avatarText = staffName ? initials(staffName) : null;
           return (
-            <button key={slot.id} type="button" onClick={() => onSelectSlot(slot)} className="w-full flex items-center gap-3 px-5 py-3.5 hover:bg-teal-50/40 transition text-left group">
+            <button
+              key={slot.id}
+              type="button"
+              onClick={() => onSelectSlot(slot)}
+              className={`relative w-full flex items-center gap-3 pl-5 pr-4 py-3.5 ${tCfg.hoverBg} transition text-left group`}
+            >
+              {/* Job-type color bar on the left edge */}
+              <span className={`absolute left-0 top-2 bottom-2 w-1 rounded-r ${tCfg.bar}`} />
+
               <div className="relative flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-teal-50 border border-teal-100 flex items-center justify-center">
-                  {avatarText ? <span className="text-sm font-bold text-teal-600">{avatarText}</span> : <User className="w-5 h-5 text-teal-400" />}
+                <div className={`w-10 h-10 rounded-full ${tCfg.avatarBg} ring-2 ${tCfg.ring} flex items-center justify-center`}>
+                  {avatarText ? <span className={`text-sm font-bold ${tCfg.avatarText}`}>{avatarText}</span> : <User className={`w-5 h-5 ${tCfg.avatarText}`} />}
                 </div>
                 <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white ${cfg.dot}`} />
               </div>
               <div className="flex-1 min-w-0">
                 {displayName === null ? <Skeleton className="h-3.5 w-28 mb-1" /> : (
-                  <p className="text-sm font-semibold text-slate-800 truncate group-hover:text-teal-700 transition">{displayName}</p>
+                  <p className="text-sm font-semibold text-slate-800 truncate transition">{displayName}</p>
                 )}
                 <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-wide">{jobTypeLabel(slot.jobType)}</span>
-                  {house === undefined && job?.houseId ? <Skeleton className="h-3 w-20 inline-block" /> : house?.name ? <span className="text-[10px] text-slate-400 truncate max-w-[130px]">{house.name}</span> : null}
+                  <span className={`px-1.5 py-0.5 rounded border text-[10px] font-bold uppercase tracking-wide ${tCfg.badge}`}>{tCfg.label}</span>
+                  {house === undefined && job?.houseId ? <Skeleton className="h-3 w-20 inline-block" /> : house?.name ? <span className="text-[10px] text-slate-400 truncate max-w-[140px]">{house.name}</span> : null}
                 </div>
               </div>
               <div className="flex-shrink-0 flex items-center gap-2">
@@ -86,7 +106,7 @@ export default function SlotListView({ slots, jobDetails, houseDetails, staffDet
                   <span className={`inline-block text-[11px] font-bold px-2.5 py-1 rounded-full ${cfg.badge}`}>{cfg.label}</span>
                   <p className="text-[10px] text-slate-400 mt-1">{slot.status === "booked" ? `Cập nhật lúc ${slot.startTimeStr}` : `Bắt đầu lúc ${slot.startTimeStr}`}</p>
                 </div>
-                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-teal-500 transition flex-shrink-0" />
+                <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition flex-shrink-0" />
               </div>
             </button>
           );

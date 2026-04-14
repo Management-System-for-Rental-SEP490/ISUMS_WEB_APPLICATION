@@ -146,9 +146,6 @@ export default function ContractsPendingSignPage() {
             <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Hợp đồng</span>
           </div>
           <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Hợp Đồng Chờ Ký</h2>
-          <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>
-            Danh sách hợp đồng khách thuê đã duyệt, chờ chủ nhà ký
-          </p>
         </div>
         {!loading && contracts.length > 0 && (
           <span

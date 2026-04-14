@@ -37,7 +37,6 @@ export default function StaffPage() {
             <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Nhân viên</span>
           </div>
           <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Nhân Viên</h2>
-          <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>{MOCK_STAFF.length} nhân viên trong hệ thống</p>
         </div>
         <button
           className="flex items-center gap-2 px-4 py-2.5 text-white rounded-full text-sm font-semibold transition shadow-sm"

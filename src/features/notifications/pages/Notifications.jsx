@@ -147,9 +147,6 @@ export default function Notifications() {
             <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Thông báo</span>
           </div>
           <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Thông báo</h2>
-          <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>
-            Quản lý các cập nhật quan trọng từ hệ thống.
-          </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0 mt-1">
           <button

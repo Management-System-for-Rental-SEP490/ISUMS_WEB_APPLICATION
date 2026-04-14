@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, Clock, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, CheckCircle2, XCircle, RefreshCw, Layers } from "lucide-react";
 import { DAY_NAMES_LONG } from "../constants";
 import { getWeekDays, isSameDay, localDateStr } from "../utils/dateHelpers";
 import SlotModal from "./SlotModal";
@@ -13,27 +13,44 @@ const JOB_TYPE_CFG = {
   MAINTENANCE: {
     bg: "bg-teal-50", border: "border-l-teal-500",
     badge: "bg-teal-100 text-teal-700", label: "Bảo trì",
+    dot: "bg-teal-500", color: "#14b8a6",
   },
   ISSUE: {
     bg: "bg-orange-50", border: "border-l-orange-500",
     badge: "bg-orange-100 text-orange-700", label: "Sửa chữa",
+    dot: "bg-orange-500", color: "#f97316",
   },
   INSPECTION: {
     bg: "bg-blue-50", border: "border-l-blue-500",
     badge: "bg-blue-100 text-blue-700", label: "Kiểm tra",
+    dot: "bg-blue-500", color: "#3b82f6",
   },
   CLEANING: {
     bg: "bg-purple-50", border: "border-l-purple-500",
     badge: "bg-purple-100 text-purple-700", label: "Vệ sinh",
+    dot: "bg-purple-500", color: "#a855f7",
   },
   SUPPORT: {
     bg: "bg-slate-50", border: "border-l-slate-400",
     badge: "bg-slate-100 text-slate-600", label: "Hỗ trợ",
+    dot: "bg-slate-400", color: "#94a3b8",
   },
 };
 
 function jobTypeCfg(type) {
   return JOB_TYPE_CFG[type?.toUpperCase()] ?? JOB_TYPE_CFG.MAINTENANCE;
+}
+
+// Group slots by job type, returning ordered [{ key, cfg, count }] entries
+function typeBreakdown(slots) {
+  const counts = {};
+  const order = [];
+  for (const s of slots) {
+    const key = s.jobType?.toUpperCase() ?? "MAINTENANCE";
+    if (!(key in counts)) order.push(key);
+    counts[key] = (counts[key] ?? 0) + 1;
+  }
+  return order.map((key) => ({ key, cfg: jobTypeCfg(key), count: counts[key] }));
 }
 
 // Status provides the icon + Vietnamese label shown on the badge
@@ -68,25 +85,73 @@ function EventBlock({ group, dayStartMins, onClick }) {
   const height = Math.max(48, ((toMins(group.endTimeStr) - toMins(group.startTimeStr)) / 60) * PX_PER_HOUR - 3);
   const pctW   = 100 / group.colCount;
 
-  const slot      = group.slots[0];
-  const typeCfg   = jobTypeCfg(slot?.jobType);
-  const sCfg      = statusCfg(slot?.status);
-  const { Icon }  = sCfg;
+  const breakdown = typeBreakdown(group.slots);
+  const isMixed   = breakdown.length > 1;
+
+  const positionStyle = {
+    top:    `${top}px`,
+    height: `${height}px`,
+    left:   `calc(${group.colIdx * pctW}% + 3px)`,
+    width:  `calc(${pctW}% - 7px)`,
+  };
+
+  // ── Mixed types: summary card — click to see breakdown ──
+  if (isMixed) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="absolute rounded-xl text-left overflow-hidden shadow-sm transition hover:shadow-md hover:brightness-[0.98] hover:z-20 bg-white border border-slate-200"
+        style={positionStyle}
+      >
+        {/* Segmented left accent — one color per job type */}
+        <div className="absolute left-0 top-0 bottom-0 w-1 flex flex-col">
+          {breakdown.map(({ key, cfg }) => (
+            <div key={key} className="flex-1" style={{ background: cfg.color }} />
+          ))}
+        </div>
+
+        <div className="flex flex-col p-2 pl-2.5 h-full">
+          <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold w-fit bg-slate-800 text-white">
+            <Layers className="w-3 h-3 flex-shrink-0" />
+            {group.slots.length} ca làm việc
+          </div>
+
+          {height > 52 && (
+            <p className="text-[11px] font-bold text-slate-700 leading-tight mt-1">
+              {breakdown.length} loại công việc
+            </p>
+          )}
+
+          {/* Color dots only — compact type indicator */}
+          <div className="flex items-center gap-1 mt-1">
+            {breakdown.map(({ key, cfg }) => (
+              <span key={key} className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: cfg.color }} />
+            ))}
+          </div>
+
+          <p className="text-[9px] text-slate-400 leading-none truncate mt-auto pt-1">
+            {group.startTimeStr} – {group.endTimeStr}
+          </p>
+        </div>
+      </button>
+    );
+  }
+
+  // ── Single type: original colored card ──
+  const slot     = group.slots[0];
+  const typeCfg  = breakdown[0].cfg;
+  const sCfg     = statusCfg(slot?.status);
+  const { Icon } = sCfg;
 
   return (
     <button
       type="button"
       onClick={onClick}
       className={`absolute rounded-xl border-l-[3px] text-left overflow-hidden shadow-sm transition hover:shadow-md hover:brightness-[0.97] hover:z-20 ${typeCfg.border} ${typeCfg.bg}`}
-      style={{
-        top:    `${top}px`,
-        height: `${height}px`,
-        left:   `calc(${group.colIdx * pctW}% + 3px)`,
-        width:  `calc(${pctW}% - 7px)`,
-      }}
+      style={positionStyle}
     >
       <div className="flex flex-col p-2 h-full">
-        {/* Status badge — Vietnamese label, job-type color */}
         <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold w-fit ${typeCfg.badge}`}>
           <Icon className="w-2.5 h-2.5 flex-shrink-0" />
           {sCfg.label}
@@ -97,14 +162,12 @@ function EventBlock({ group, dayStartMins, onClick }) {
           )}
         </div>
 
-        {/* Job type as title */}
         {height > 52 && (
           <p className="text-[11px] font-bold text-slate-800 leading-tight truncate mt-1">
             {typeCfg.label}
           </p>
         )}
 
-        {/* Time range — pinned to bottom */}
         <p className="text-[9px] text-slate-400 leading-none truncate mt-auto pt-1">
           {group.startTimeStr} – {group.endTimeStr}
         </p>

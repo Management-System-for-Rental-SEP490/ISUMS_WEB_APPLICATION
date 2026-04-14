@@ -97,7 +97,6 @@ export default function MaintenancePlansPage() {
             <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Bảo trì</span>
           </div>
           <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Kế hoạch bảo trì</h2>
-          <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>Quản lý lịch bảo trì định kỳ cho các bất động sản</p>
         </div>
         <div className="flex items-center gap-2 mt-1">
           <button

@@ -65,7 +65,6 @@ export default function MaintenanceJobsPage() {
             <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Bảo trì</span>
           </div>
           <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Công việc bảo trì</h2>
-          <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>Danh sách toàn bộ công việc bảo trì trong hệ thống</p>
         </div>
         <button
           type="button"

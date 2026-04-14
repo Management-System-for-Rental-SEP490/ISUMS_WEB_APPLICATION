@@ -316,9 +316,6 @@ export default function IssuePriceListPage() {
           <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>
             Bảng giá dịch vụ
           </h2>
-          <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>
-            Giá tham khảo cho các dịch vụ sửa chữa và thiết bị thay thế
-          </p>
         </div>
         <div className="flex items-center gap-2">
           <button

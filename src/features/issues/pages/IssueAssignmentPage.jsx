@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { UserCheck, RefreshCw, Wrench } from "lucide-react";
-import { getAllIssues, getIssueById, getTicketImages } from "../api/issues.api";
+import { getAllIssues, getIssueById } from "../api/issues.api";
 import { getHouseById } from "../../houses/api/houses.api";
 import { getUserById } from "../../tenants/api/users.api";
 import { confirmManagerWorkSlot } from "../../maintenance/api/maintenance.api";
@@ -26,7 +26,6 @@ export default function IssueAssignmentPage() {
   const [houseNames, setHouseNames] = useState({});
   const [staffDetail, setStaffDetail] = useState(null);
   const [images, setImages] = useState([]);
-  const [imagesLoading, setImagesLoading] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(null);
 
   const fetchIssues = useCallback(async () => {
@@ -57,14 +56,10 @@ export default function IssueAssignmentPage() {
     setStaffDetail(null);
     setImages([]);
     setDetailLoading(true);
-    setImagesLoading(true);
     try {
-      const [detail, imgs] = await Promise.all([
-        getIssueById(issue.id),
-        getTicketImages(issue.id).catch(() => []),
-      ]);
+      const detail = await getIssueById(issue.id);
       setSelectedDetail(detail);
-      setImages(Array.isArray(imgs) ? imgs : []);
+      setImages(Array.isArray(detail?.images) ? detail.images : []);
       if (detail?.houseId && !houseNames[detail.houseId]) {
         getHouseById(detail.houseId)
           .then((h) => setHouseNames((prev) => ({ ...prev, [detail.houseId]: h?.name ?? h?.houseName ?? "—" })))
@@ -77,7 +72,6 @@ export default function IssueAssignmentPage() {
       // fallback to list data
     } finally {
       setDetailLoading(false);
-      setImagesLoading(false);
     }
   };
 
@@ -113,9 +107,6 @@ export default function IssueAssignmentPage() {
             <span className="text-xs font-bold uppercase tracking-widest" style={{ color: B.green }}>Sửa chữa</span>
           </div>
           <h2 className="font-heading text-3xl font-bold" style={{ color: B.fg }}>Phân công xử lý</h2>
-          <p className="text-sm mt-1" style={{ color: B.mutedFg }}>
-            {loading ? "Đang tải..." : `${issues.length} yêu cầu sửa chữa chờ xử lý`}
-          </p>
         </div>
         <button
           onClick={fetchIssues}
@@ -146,7 +137,7 @@ export default function IssueAssignmentPage() {
             houseNames={houseNames}
             staffDetail={staffDetail}
             images={images}
-            imagesLoading={imagesLoading}
+            imagesLoading={detailLoading}
             onConfirm={handleConfirm}
             confirming={confirming}
             onOpenLightbox={setLightboxIndex}
