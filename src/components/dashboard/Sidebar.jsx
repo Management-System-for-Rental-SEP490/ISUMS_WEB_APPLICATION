@@ -1,354 +1,328 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../features/auth/store/auth.store";
 import {
-  AlertCircle,
-  BarChart2,
-  Bell,
-  Building2,
-  CalendarDays,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ClipboardList,
-  FileText,
-  Home,
-  LogOut,
-  CheckCircle,
-  MailQuestionIcon,
-  PenLine,
-  Tag,
-  Settings,
-  UserCheck,
-  Users,
-  X,
-  Zap,
+  AlertCircle, BarChart2, Bell, Building2, CalendarDays,
+  ChevronDown, ClipboardList,
+  FileText, Home, LogOut, CheckCircle, MailQuestionIcon,
+  PenLine, Tag, Settings, UserCheck, Users, UserCog,
+  Wrench, Zap, LayoutDashboard,
 } from "lucide-react";
 import logo from "../../assets/logo.jpg";
 
-export default function Sidebar({
-  isOpen,
-  onToggle,
-  onLogout,
-  activeMenu,
-  setActiveMenu,
-}) {
+export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
   const roles = useAuthStore((s) => s.roles ?? []);
-  const canSeePendingSign =
-    roles.includes("ADMIN") || roles.includes("LANDLORD");
+  const canSeePendingSign = roles.includes("ADMIN") || roles.includes("LANDLORD");
 
-  // Group đang mở — bấm vào để toggle
+  const navigate  = useNavigate();
+  const location  = useLocation();
   const [openGroups, setOpenGroups] = useState({});
+
+  const [isHovering, setIsHovering] = useState(false);
 
   const toggleGroup = (id) =>
     setOpenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  const handleNavClick = (e, menuId) => {
-    e.preventDefault();
-    setActiveMenu(menuId);
-  };
+  const isExpanded = isOpen || isHovering;
 
-  const activeCls = "bg-teal-500 text-white shadow-sm shadow-teal-200";
-  const inactiveCls = "text-slate-600 hover:bg-slate-100 hover:text-slate-900";
-  const subActiveCls = "bg-teal-50 text-teal-700 font-semibold";
-  const subInactiveCls =
-    "text-slate-500 hover:bg-slate-100 hover:text-slate-800";
+  // Auto-close all groups when sidebar collapses (not just hover)
+  useEffect(() => {
+    if (!isOpen && !isHovering) setOpenGroups({});
+  }, [isOpen, isHovering]);
 
-  // navItems: item thường hoặc group có children (hover để xổ)
-  const navItems = [
-    { id: "dashboard", label: "Bảng Điều Khiển", icon: Home },
-    { id: "houses", label: "Bất Động Sản", icon: Building2 },
-    { id: "utilities", label: "Tiện Ích", icon: Zap },
-    { id: "users", label: "Người Dùng", icon: Users },
-    { id: "maintenance", label: "Lịch làm việc", icon: CalendarDays },
+  const sections = [
     {
-      id: "bao-tri-group",
-      label: "Bảo Trì",
-      icon: ClipboardList,
-      children: [
-        {
-          id: "maintenance-plans",
-          label: "Kế hoạch bảo trì",
-          icon: ClipboardList,
-        },
-        {
-          id: "maintenance-jobs",
-          label: "Danh sách công việc",
-          icon: ClipboardList,
-        },
-        {
-          id: "maintenance-inspections",
-          label: "Kiểm tra nhà cửa",
-          icon: ClipboardList,
-        },
+      id: "tong-quan", label: "Tổng Quan", icon: LayoutDashboard, collapsible: false,
+      items: [
+        { id: "dashboard",   label: "Dashboard",     icon: Home,         path: "/dashboard" },
+        { id: "utilities",   label: "Tiện Ích",       icon: Zap,          path: "/utilities" },
+        { id: "maintenance", label: "Lịch Làm Việc",  icon: CalendarDays, path: "/maintenance" },
       ],
     },
     {
-      id: "sua-chua-group",
-      label: "Sửa Chữa",
-      icon: AlertCircle,
-      children: [
-        {
-          id: "issue-requests",
-          label: "Danh sách thắc mắc",
-          icon: MailQuestionIcon,
-        },
-        { id: "issue-assignment", label: "Phân công xử lý", icon: UserCheck },
-        { id: "issue-quote-approval", label: "Xác nhận báo giá", icon: CheckCircle },
-        { id: "issue-history", label: "Lịch sử theo BĐS", icon: BarChart2 },
-        { id: "issue-price-list", label: "Bảng giá thiết bị", icon: Tag },
+      id: "bat-dong-san-group", label: "Bất Động Sản", icon: Building2, collapsible: true,
+      items: [
+        { id: "houses", label: "Quản lý nhà",        icon: Building2, path: "/houses" },
+        { id: "assets", label: "Thiết bị trong nhà",  icon: Wrench,    disabled: true },
       ],
     },
     {
-      id: "hop-dong-group",
-      label: "Hợp Đồng",
-      icon: FileText,
-      children: [
-        { id: "contracts", label: "Quản lý hợp đồng", icon: FileText },
-        ...(canSeePendingSign
-          ? [
-              {
-                id: "contracts-sign",
-                label: "Hợp đồng cần xử lý",
-                icon: PenLine,
-              },
-            ]
-          : []),
+      id: "nguoi-dung-group", label: "Người Dùng", icon: Users, collapsible: true,
+      items: [
+        { id: "users", label: "Khách thuê", icon: Users,   path: "/users" },
+        { id: "staff", label: "Nhân viên",  icon: UserCog, path: "/staff" },
+      ],
+    },
+    {
+      id: "hop-dong-group", label: "Hợp Đồng", icon: FileText, collapsible: true,
+      items: [
+        { id: "contracts",               label: "Quản lý hợp đồng",    icon: FileText,      path: "/contracts" },
+        ...(canSeePendingSign ? [{
+          id: "contracts-sign",          label: "Hợp đồng cần xử lý",  icon: PenLine,       path: "/contracts/pending",
+        }] : []),
+        { id: "maintenance-inspections", label: "Check-in / Check-out", icon: ClipboardList, path: "/maintenance/inspections" },
+      ],
+    },
+    {
+      id: "bao-tri-group", label: "Bảo Trì", icon: ClipboardList, collapsible: true,
+      items: [
+        { id: "maintenance-plans", label: "Kế hoạch bảo trì",  icon: ClipboardList, path: "/maintenance/plans" },
+        { id: "maintenance-jobs",  label: "Công việc bảo trì", icon: ClipboardList, path: "/maintenance/jobs" },
+      ],
+    },
+    {
+      id: "sua-chua-group", label: "Sửa Chữa", icon: AlertCircle, collapsible: true,
+      items: [
+        { id: "issue-requests",       label: "Danh sách thắc mắc", icon: MailQuestionIcon, path: "/issues" },
+        { id: "issue-assignment",     label: "Phân công xử lý",    icon: UserCheck,        path: "/issues/assignment" },
+        { id: "issue-quote-approval", label: "Xác nhận báo giá",   icon: CheckCircle,      path: "/issues/quotes" },
+        { id: "issue-history",        label: "Lịch sử theo BĐS",   icon: BarChart2,        path: "/issues/history" },
+        { id: "issue-price-list",     label: "Bảng giá thiết bị",  icon: Tag,              path: "/issues/price-list" },
+      ],
+    },
+    {
+      id: "he-thong", label: "Hệ Thống", icon: Settings, collapsible: false,
+      items: [
+        { id: "notifications", label: "Thông báo", icon: Bell,     path: "/notifications", badge: unreadCount },
+        { id: "settings",      label: "Cài Đặt",   icon: Settings, path: "/settings" },
       ],
     },
   ];
 
-  const hasActiveChild = (item) =>
-    item.children?.some((c) => c.id === activeMenu);
+  const isItemActive   = (item)    => location.pathname === item.path;
+  const hasActiveChild = (section) => section.items?.some((i) => i.path && location.pathname === i.path);
+
+  const brandGradientStyle = { background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" };
 
   return (
     <aside
       className={[
-        "bg-white border-r border-slate-200 text-slate-800 fixed left-0 inset-y-0 z-40",
+        "bg-slate-100 border-r border-slate-200 text-slate-800 fixed left-0 inset-y-0 z-40",
         "lg:sticky lg:top-0 lg:h-screen",
-        "transition-all duration-300 ease-in-out",
-        isOpen ? "translate-x-0 w-64" : "-translate-x-full w-64",
+        // Only animate transform (mobile) and width (desktop) — NOT transition-all
+        "transition-[width,transform] duration-250 ease-in-out",
+        isOpen ? "translate-x-0" : "-translate-x-full",
         "lg:translate-x-0",
-        !isOpen ? "lg:w-20" : "lg:w-64",
+        isExpanded ? "lg:w-[260px]" : "lg:w-[72px]",
       ].join(" ")}
+      style={{ willChange: "width, transform" }}
       aria-label="Sidebar"
+      onMouseEnter={() => { if (!isOpen) setIsHovering(true); }}
+      onMouseLeave={() => setIsHovering(false)}
     >
       <div className="h-full flex flex-col overflow-hidden">
-        {/* Header */}
-        <div
-          className={[
-            "px-4 py-4 border-b border-slate-100",
-            !isOpen ? "lg:px-2" : "",
-          ].join(" ")}
-        >
+
+        {/* ── Logo ── */}
+        <div className="flex-shrink-0">
           <div
-            className={[
-              "flex items-center gap-3",
-              isOpen
-                ? "justify-between"
-                : "lg:flex-col lg:gap-2 justify-center",
-            ].join(" ")}
+            className="flex items-center gap-3 px-4"
+            style={{ height: 64, minHeight: 64 }}
           >
-            <div
-              className={[
-                "flex items-center gap-2.5 min-w-0",
-                !isOpen ? "lg:flex-col" : "",
-              ].join(" ")}
-            >
-              <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 shadow-md ring-2 ring-teal-200">
-                <img
-                  src={logo}
-                  alt="ISUMS Logo"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              {isOpen && (
-                <div className="min-w-0">
-                  <h1 className="font-extrabold text-base text-teal-700 leading-tight tracking-wide truncate">
-                    ISUMS
-                  </h1>
-                  <p className="text-[10px] font-medium text-slate-400 leading-snug whitespace-normal">
-                    Hệ thống nhà cho thuê
-                    <br />
-                    thông minh
-                  </p>
-                </div>
-              )}
+            <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 shadow ring-2 ring-[#3bb582]/40">
+              <img src={logo} alt="ISUMS Logo" className="w-full h-full object-cover" />
             </div>
-            <button
-              type="button"
-              onClick={onToggle}
-              className="p-1.5 rounded-lg hover:bg-slate-100 transition flex-shrink-0 flex items-center justify-center text-slate-400 hover:text-slate-600"
-              aria-label={isOpen ? "Thu nhỏ menu" : "Mở rộng menu"}
+            {/* Text fades — no mount/unmount */}
+            <h1
+              className="font-bold tracking-wide truncate transition-opacity duration-200"
+              style={{
+                fontSize: 16,
+                lineHeight: 1,
+                background: "linear-gradient(135deg, #3bb582, #2096d8)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                opacity: isExpanded ? 1 : 0,
+                pointerEvents: isExpanded ? "auto" : "none",
+              }}
             >
-              <span className="lg:hidden">
-                <X className="w-4 h-4" />
-              </span>
-              <span className="hidden lg:block">
-                {isOpen ? (
-                  <ChevronLeft className="w-4 h-4" />
-                ) : (
-                  <ChevronRight className="w-4 h-4" />
-                )}
-              </span>
-            </button>
+              ISUMS
+            </h1>
           </div>
+          <div
+            className="mx-4"
+            style={{
+              height: 1,
+              background: "linear-gradient(90deg, rgba(59,181,130,0.25), rgba(59,181,130,0.04))",
+            }}
+          />
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 py-3 overflow-y-auto px-3">
-          <div className="space-y-0.5">
-            {navItems.map((item) => {
-              // --- Group item (có children, bấm để xổ/thu) ---
-              if (item.children) {
-                const isExpanded = !!openGroups[item.id];
-                const parentActive = hasActiveChild(item);
+        {/* ── Nav ── */}
+        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-1 overflow-x-hidden">
 
-                return (
-                  <div key={item.id}>
-                    {/* Parent row — bấm để toggle */}
-                    <button
-                      type="button"
-                      onClick={() => toggleGroup(item.id)}
-                      title={!isOpen ? item.label : undefined}
-                      className={[
-                        "flex items-center gap-3 py-2.5 px-3 rounded-xl w-full transition",
-                        !isOpen ? "lg:justify-center" : "",
-                        parentActive ? activeCls : inactiveCls,
-                      ].join(" ")}
-                    >
-                      <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
-                      {isOpen && (
-                        <>
-                          <span className="text-sm flex-1 text-left">
-                            {item.label}
-                          </span>
-                          <ChevronDown
-                            className={[
-                              "w-3.5 h-3.5 transition-transform duration-200",
-                              isExpanded ? "rotate-180" : "rotate-0",
-                            ].join(" ")}
-                          />
-                        </>
-                      )}
-                    </button>
-
-                    {/* Sub-items — chỉ hiện khi sidebar mở và đã bấm mở */}
-                    {isOpen && isExpanded && (
-                      <div className="mt-0.5 mb-1 space-y-0.5 pl-2">
-                        {item.children.map((child) => {
-                          const isActive = activeMenu === child.id;
-                          return (
-                            <a
-                              key={child.id}
-                              href="#"
-                              onClick={(e) => handleNavClick(e, child.id)}
-                              className={[
-                                "flex items-center gap-3 py-2 px-3 rounded-xl transition",
-                                isActive ? subActiveCls : subInactiveCls,
-                              ].join(" ")}
-                            >
-                              <child.icon className="w-4 h-4 flex-shrink-0" />
-                              <span className="text-sm">{child.label}</span>
-                            </a>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                );
-              }
-
-              // --- Item thường ---
-              const isActive = activeMenu === item.id;
+          {/* ── COLLAPSED view (icons only) — always in DOM, opacity toggled ── */}
+          <div
+            className="flex flex-col items-center gap-1 transition-opacity duration-200"
+            style={{
+              opacity: isExpanded ? 0 : 1,
+              pointerEvents: isExpanded ? "none" : "auto",
+              position: isExpanded ? "absolute" : "relative",
+            }}
+          >
+            {sections.map((section) => {
+              const SectionIcon = section.icon;
+              const isActive    = hasActiveChild(section);
               return (
-                <a
-                  key={item.id}
-                  href="#"
-                  onClick={(e) => handleNavClick(e, item.id)}
-                  title={!isOpen ? item.label : undefined}
+                <button
+                  key={section.id}
+                  type="button"
+                  onClick={() => {
+                    const first = section.items.find((i) => !i.disabled && i.path);
+                    if (first) navigate(first.path);
+                  }}
+                  title={section.label}
+                  style={isActive ? brandGradientStyle : undefined}
                   className={[
-                    "flex items-center gap-3 py-2.5 px-3 rounded-xl transition",
-                    !isOpen ? "lg:justify-center" : "",
-                    isActive ? activeCls : inactiveCls,
+                    "relative flex items-center justify-center w-11 h-11 rounded-xl transition-colors duration-150",
+                    isActive ? "text-white shadow-sm" : "text-slate-400 hover:bg-white hover:shadow-sm",
                   ].join(" ")}
                 >
-                  <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
-                  {isOpen && (
-                    <span className="text-sm font-medium">{item.label}</span>
+                  <SectionIcon className="w-[18px] h-[18px]" />
+                  {section.items.some((i) => i.badge > 0) && (
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
                   )}
-                </a>
+                </button>
+              );
+            })}
+
+          </div>
+
+          {/* ── EXPANDED view (full cards) — always in DOM, opacity toggled ── */}
+          {/* overflow:hidden + height:0 removes from layout flow when collapsed so nav doesn't get extra scroll height */}
+          <div style={{ overflow: "hidden", height: isExpanded ? "auto" : 0 }}>
+          <div
+            className="space-y-2 transition-opacity duration-200"
+            style={{
+              opacity: isExpanded ? 1 : 0,
+              pointerEvents: isExpanded ? "auto" : "none",
+            }}
+          >
+            {sections.map((section) => {
+              const isGroupExpanded  = !!openGroups[section.id];
+              const sectionHasActive = hasActiveChild(section);
+
+              return (
+                <div
+                  key={section.id}
+                  className="rounded-2xl border border-slate-200 bg-white overflow-hidden"
+                  style={{ boxShadow: "0px 1px 2px 0px rgba(16,24,40,0.05)" }}
+                >
+                  {section.collapsible ? (
+                    <button
+                      type="button"
+                      onClick={() => toggleGroup(section.id)}
+                      className={[
+                        "w-full flex items-center justify-between px-4 py-3 transition-colors hover:bg-slate-50",
+                        isGroupExpanded ? "border-b border-slate-100" : "",
+                      ].join(" ")}
+                    >
+                      <span
+                        className="text-[11px] font-bold uppercase tracking-widest"
+                        style={sectionHasActive ? { color: "#3bb582" } : { color: "#94a3b8" }}
+                      >
+                        {section.label}
+                      </span>
+                      <ChevronDown
+                        className={`w-3.5 h-3.5 transition-transform duration-200 ${isGroupExpanded ? "rotate-180" : ""}`}
+                        style={sectionHasActive ? { color: "#3bb582" } : { color: "#cbd5e1" }}
+                      />
+                    </button>
+                  ) : (
+                    <div className="px-4 py-3 border-b border-slate-100">
+                      <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+                        {section.label}
+                      </span>
+                    </div>
+                  )}
+
+                  {(!section.collapsible || isGroupExpanded) && (
+                    <div className="p-1.5 space-y-0.5">
+                      {section.items.map((item) => {
+                        const isActive = isItemActive(item);
+                        const Icon     = item.icon;
+
+                        if (item.disabled) {
+                          return (
+                            <div
+                              key={item.id}
+                              className="flex items-center gap-3 px-3 py-2 rounded-xl opacity-40 cursor-not-allowed"
+                            >
+                              <Icon className="w-4 h-4 flex-shrink-0 text-slate-400" />
+                              <span className="text-sm text-slate-400 flex-1">{item.label}</span>
+                              <span className="text-[10px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded font-medium">
+                                Soon
+                              </span>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => navigate(item.path)}
+                            style={isActive ? brandGradientStyle : undefined}
+                            className={[
+                              "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-150",
+                              isActive
+                                ? "text-white shadow-sm"
+                                : "text-slate-600 hover:bg-[#3bb582]/10 hover:text-[#3bb582]",
+                            ].join(" ")}
+                          >
+                            <Icon
+                              className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-white" : "text-slate-400"}`}
+                            />
+                            <span className={`text-sm flex-1 text-left ${isActive ? "font-semibold" : ""}`}>
+                              {item.label}
+                            </span>
+                            {item.badge > 0 && (
+                              <span
+                                className={[
+                                  "min-w-[20px] h-5 text-[10px] font-bold rounded-full flex items-center justify-center px-1",
+                                  isActive ? "bg-white/30 text-white" : "bg-red-500 text-white",
+                                ].join(" ")}
+                              >
+                                {item.badge > 9 ? "9+" : item.badge}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
-
-          {/* System */}
-          <div className="mt-4">
-            {isOpen ? (
-              <p className="px-2 text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
-                Hệ Thống
-              </p>
-            ) : (
-              <div className="my-2 border-t border-slate-100 mx-1" />
-            )}
-            <div className="space-y-0.5">
-              <a
-                href="#"
-                onClick={(e) => handleNavClick(e, "notifications")}
-                title={!isOpen ? "Thông báo" : undefined}
-                className={[
-                  "flex items-center gap-3 py-2.5 px-3 relative rounded-xl transition",
-                  !isOpen && "lg:justify-center",
-                  activeMenu === "notifications" ? activeCls : inactiveCls,
-                ].join(" ")}
-              >
-                <Bell className="w-[18px] h-[18px] flex-shrink-0" />
-                {isOpen && (
-                  <span className="text-sm font-medium">Thông báo</span>
-                )}
-                {isOpen ? (
-                  <span className="absolute right-3 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold">
-                    4
-                  </span>
-                ) : (
-                  <span className="absolute lg:right-2 lg:top-2 right-4 top-3 w-2 h-2 bg-red-500 rounded-full" />
-                )}
-              </a>
-              <a
-                href="#"
-                onClick={(e) => handleNavClick(e, "settings")}
-                title={!isOpen ? "Cài đặt" : undefined}
-                className={[
-                  "flex items-center gap-3 py-2.5 px-3 rounded-xl transition",
-                  !isOpen && "lg:justify-center",
-                  activeMenu === "settings" ? activeCls : inactiveCls,
-                ].join(" ")}
-              >
-                <Settings className="w-[18px] h-[18px] flex-shrink-0" />
-                {isOpen && <span className="text-sm font-medium">Cài Đặt</span>}
-              </a>
-            </div>
           </div>
         </nav>
 
-        {/* Footer */}
-        <div
-          className={[
-            "px-3 py-3 border-t border-slate-100",
-            !isOpen ? "lg:px-2" : "",
-          ].join(" ")}
-        >
-          <button
-            type="button"
-            onClick={onLogout}
-            title={!isOpen ? "Đăng Xuất" : undefined}
-            className={[
-              "flex items-center gap-3 py-2.5 px-3 text-slate-500 hover:bg-red-50 hover:text-red-600 rounded-xl w-full transition",
-              !isOpen && "lg:justify-center",
-            ].join(" ")}
-          >
-            <LogOut className="w-[18px] h-[18px] flex-shrink-0" />
-            {isOpen && <span className="text-sm font-medium">Đăng Xuất</span>}
-          </button>
+        {/* ── Logout — always at bottom ── */}
+        <div className="px-2 py-3 flex-shrink-0">
+          {/* Collapsed: icon centered exactly like section icons */}
+          {!isExpanded && (
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={onLogout}
+                title="Đăng Xuất"
+                className="flex items-center justify-center w-11 h-11 rounded-xl transition-colors duration-150 text-slate-500 hover:bg-red-50 hover:text-red-600"
+              >
+                <LogOut className="w-[18px] h-[18px]" />
+              </button>
+            </div>
+          )}
+          {/* Expanded: full label button */}
+          {isExpanded && (
+            <button
+              type="button"
+              onClick={onLogout}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl w-full transition-colors duration-150 text-slate-500 hover:bg-red-50 hover:text-red-600"
+            >
+              <LogOut className="w-[18px] h-[18px] flex-shrink-0" />
+              <span className="text-sm font-medium">Đăng Xuất</span>
+            </button>
+          )}
         </div>
       </div>
     </aside>

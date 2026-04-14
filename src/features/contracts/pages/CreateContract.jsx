@@ -120,6 +120,7 @@ export default function CreateContract({ onCancel, onCreated }) {
         errorMessage={errorMessage}
         onSuccess={handleModalSuccess}
         onRetry={handleRetry}
+        onClose={() => setModalOpen(false)}
       />
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-1">Tạo Hợp Đồng</h2>

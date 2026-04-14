@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -23,6 +23,7 @@ export default function ContractDocumentViewer({
   const [pageWidth, setPageWidth] = useState(null);
   // pageInfo[i] = { heightPx, widthPt, heightPt } — kích thước thực tế từ react-pdf
   const [pageInfo, setPageInfo] = useState([]);
+  const hasScrolledRef = useRef(false);
 
   // Đo width thực của iframeWrapperRef để Page fill đúng
   useEffect(() => {
@@ -38,6 +39,53 @@ export default function ContractDocumentViewer({
   const onDocumentLoadSuccess = useCallback(({ numPages }) => {
     setNumPages(numPages);
   }, []);
+
+  // Auto-scroll đến vị trí ô chữ ký sau khi vẽ xong và pageInfo đã sẵn sàng
+  useEffect(() => {
+    if (!showDragBox) {
+      hasScrolledRef.current = false;
+      return;
+    }
+    if (hasScrolledRef.current) return;
+
+    const signingPageIdx = (signingSession?.signingPage ?? 1) - 1;
+    const info = pageInfo[signingPageIdx];
+    if (!info) return; // chờ trang PDF load xong
+
+    const main = mainRef.current;
+    const wrapper = iframeWrapperRef.current;
+    if (!main || !wrapper) return;
+
+    // Tính Y của ô chữ ký trong iframeWrapper — ưu tiên vị trí VNPT nếu có
+    const SEPARATOR_H_PX = 16;
+    let pageOffsetY = 0;
+    for (let i = 0; i < signingPageIdx; i++) {
+      pageOffsetY += (pageInfo[i]?.heightPx ?? 0) + SEPARATOR_H_PX;
+    }
+    let boxY;
+    const vnptPos = signingSession?.vnptPosition;
+    if (vnptPos) {
+      const parts = vnptPos.split(",").map(Number);
+      if (parts.length === 4) {
+        const [, , , ury] = parts;
+        // Convert ury (pt, bottom-left origin) → px (top-left origin)
+        const scaleY = info.heightPx / info.heightPt;
+        const yInPage = Math.round((info.heightPt - ury) * scaleY);
+        boxY = pageOffsetY + yInPage;
+      }
+    }
+    if (boxY == null) boxY = pageOffsetY + Math.round(info.heightPx * 0.6);
+
+    // Tính offset của iframeWrapper so với top của main (scroll container)
+    const mainRect = main.getBoundingClientRect();
+    const wrapperRect = wrapper.getBoundingClientRect();
+    const wrapperTopInMain = wrapperRect.top - mainRect.top + main.scrollTop;
+
+    // Scroll để ô chữ ký hiện ra giữa màn hình
+    const scrollTarget = wrapperTopInMain + boxY - main.clientHeight / 2;
+    main.scrollTo({ top: Math.max(0, scrollTarget), behavior: "smooth" });
+    hasScrolledRef.current = true;
+  }, [showDragBox, pageInfo, signingSession, mainRef, iframeWrapperRef]);
 
   const pdfUrl = contract?.pdfUrl ?? null;
 
@@ -127,6 +175,7 @@ export default function ContractDocumentViewer({
               userName={userName}
               disabled={false}
               pageInfo={pageInfo}
+              defaultVnptPosition={signingSession?.vnptPosition ?? null}
             />
           )}
         </div>

@@ -1,42 +1,31 @@
 import { useEffect, useState } from "react";
-import { RefreshCw, ClipboardCheck, Eye, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { RefreshCw, ClipboardCheck, Eye, Plus, MapPin, User, Calendar, FileText, Tag, X, Phone } from "lucide-react";
 import { getInspections } from "../api/maintenance.api";
 import { getHouseById } from "../../houses/api/houses.api";
 import { getUserById } from "../../tenants/api/users.api";
 import CreateInspectionModal from "../components/CreateInspectionModal";
 
+
 const STATUS_CONFIG = {
-  DONE: {
-    label: "Hoàn thành",
-    bg: "bg-green-50",
-    text: "text-green-700",
-    dot: "bg-green-400",
-  },
-  PENDING: {
-    label: "Chờ thực hiện",
-    bg: "bg-yellow-50",
-    text: "text-yellow-700",
-    dot: "bg-yellow-400",
-  },
-  IN_PROGRESS: {
-    label: "Đang tiến hành",
-    bg: "bg-blue-50",
-    text: "text-blue-700",
-    dot: "bg-blue-400",
-  },
-  CANCELLED: {
-    label: "Đã hủy",
-    bg: "bg-red-50",
-    text: "text-red-600",
-    dot: "bg-red-400",
-  },
+  CREATED:     { label: "Mới tạo",          bg: "rgba(90,122,110,0.08)",  color: "#5A7A6E", dot: "#5A7A6E" },
+  SCHEDULED:   { label: "Đã lên lịch",      bg: "rgba(32,150,216,0.10)",  color: "#2096d8", dot: "#2096d8" },
+  IN_PROGRESS: { label: "Đang tiến hành",   bg: "rgba(59,181,130,0.10)",  color: "#3bb582", dot: "#3bb582" },
+  DONE:        { label: "Hoàn thành",        bg: "rgba(59,181,130,0.10)",  color: "#3bb582", dot: "#3bb582" },
+  CANCELLED:   { label: "Đã hủy",           bg: "rgba(217,95,75,0.10)",   color: "#D95F4B", dot: "#D95F4B" },
+};
+
+const TYPE_CONFIG = {
+  CHECK_IN:  { label: "Check-in",  bg: "rgba(59,181,130,0.10)", color: "#3bb582" },
+  CHECK_OUT: { label: "Check-out", bg: "rgba(217,95,75,0.08)",  color: "#D95F4B" },
 };
 
 const STATUS_FILTER_OPTIONS = [
   { value: "", label: "Tất cả" },
-  { value: "DONE", label: "Hoàn thành" },
-  { value: "PENDING", label: "Chờ thực hiện" },
+  { value: "CREATED", label: "Mới tạo" },
+  { value: "SCHEDULED", label: "Đã lên lịch" },
   { value: "IN_PROGRESS", label: "Đang tiến hành" },
+  { value: "DONE", label: "Hoàn thành" },
   { value: "CANCELLED", label: "Đã hủy" },
 ];
 
@@ -72,132 +61,233 @@ function DetailModal({ inspection, onClose }) {
   }, [inspection]);
 
   if (!inspection) return null;
-  const st = STATUS_CONFIG[inspection.status] ?? {
-    label: inspection.status,
-    bg: "bg-slate-50",
-    text: "text-slate-600",
-    dot: "bg-slate-300",
-  };
+  const st = STATUS_CONFIG[inspection.status] ?? { label: inspection.status, bg: "#EAF4F0", color: "#5A7A6E", dot: "#5A7A6E" };
+  const tp = inspection.type ? (TYPE_CONFIG[inspection.type] ?? { label: inspection.type, bg: "#EAF4F0", color: "#5A7A6E" }) : null;
 
   const houseName = house?.name ?? house?.houseName ?? null;
+  const houseAddress = fetching ? null : ([house?.address, house?.ward, house?.city].filter(Boolean).join(", ") || null);
   const staffName = staff?.fullName ?? staff?.name ?? null;
+  const staffPhone = staff?.phoneNumber ?? null;
+  const staffEmail = staff?.email ?? null;
+  const staffRole = staff?.roles?.[0] ?? null;
+  const staffInitial = staffName ? staffName.trim().split(" ").pop()[0].toUpperCase() : null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6">
-        <div className="flex items-center justify-between mb-5">
-          <h3 className="text-base font-bold text-slate-900">Chi tiết kiểm tra</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm" style={{ background: "rgba(30,45,40,0.75)" }}>
+      <div className="rounded-3xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" style={{ background: "#FAFFFE" }}>
+
+        {/* Banner */}
+        <div className="relative h-28 px-6 pt-5" style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}>
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-teal-100 text-xs font-medium mb-1">Chi tiết kiểm tra</p>
+              <p className="text-white text-xs font-mono opacity-60 truncate max-w-[260px]">#{inspection.id?.slice(0, 8).toUpperCase()}</p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          {/* Badges float on banner */}
+          <div className="absolute -bottom-4 left-6 flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-md" style={{ background: st.bg, color: st.color, border: "1px solid rgba(255,255,255,0.6)" }}>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: st.dot }} />
+              {st.label}
+            </span>
+            {tp && (
+              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold shadow-md" style={{ background: tp.bg, color: tp.color, border: "1px solid rgba(255,255,255,0.6)" }}>
+                {tp.label}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="px-6 pt-8 pb-6 space-y-4">
+
+          {/* House card */}
+          <div className="rounded-2xl p-4 flex items-start gap-3" style={{ background: "#ffffff", border: "1px solid #C4DED5" }}>
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "#EAF4F0" }}>
+              <MapPin className="w-4 h-4" style={{ color: "#3bb582" }} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium mb-0.5" style={{ color: "#5A7A6E" }}>Thông tin nhà</p>
+              {fetching ? (
+                <div className="space-y-1.5">
+                  <div className="h-3 w-36 rounded animate-pulse" style={{ background: "#EAF4F0" }} />
+                  <div className="h-3 w-48 rounded animate-pulse" style={{ background: "#EAF4F0" }} />
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm font-semibold truncate" style={{ color: "#1E2D28" }}>{houseName ?? "—"}</p>
+                  {houseAddress && <p className="text-xs mt-0.5 leading-relaxed" style={{ color: "#5A7A6E" }}>{houseAddress}</p>}
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Staff card */}
+          <div className="rounded-2xl p-4 flex items-start gap-3" style={{ background: "#ffffff", border: "1px solid #C4DED5" }}>
+            {fetching ? (
+              <div className="w-10 h-10 rounded-xl animate-pulse flex-shrink-0" style={{ background: "#EAF4F0" }} />
+            ) : staffInitial ? (
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "rgba(32,150,216,0.12)" }}>
+                <span className="text-sm font-bold" style={{ color: "#2096d8" }}>{staffInitial}</span>
+              </div>
+            ) : (
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "#EAF4F0" }}>
+                <User className="w-4 h-4" style={{ color: "#5A7A6E" }} />
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium mb-1" style={{ color: "#5A7A6E" }}>Nhân viên phụ trách</p>
+              {fetching ? (
+                <div className="space-y-1.5">
+                  <div className="h-3 w-32 rounded animate-pulse" style={{ background: "#EAF4F0" }} />
+                  <div className="h-3 w-24 rounded animate-pulse" style={{ background: "#EAF4F0" }} />
+                </div>
+              ) : staffName ? (
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>{staffName}</p>
+                  {staffPhone && (
+                    <p className="text-xs flex items-center gap-1" style={{ color: "#5A7A6E" }}>
+                      <Phone className="w-3 h-3" style={{ color: "#5A7A6E" }} />
+                      <a href={`tel:${staffPhone}`} className="transition" style={{ color: "#5A7A6E" }}
+                        onMouseEnter={e => e.currentTarget.style.color = "#3bb582"}
+                        onMouseLeave={e => e.currentTarget.style.color = "#5A7A6E"}
+                      >{staffPhone}</a>
+                    </p>
+                  )}
+                  {staffEmail && <p className="text-xs truncate" style={{ color: "#5A7A6E" }}>{staffEmail}</p>}
+                  {staffRole && (
+                    <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full mt-0.5" style={{ background: "rgba(32,150,216,0.10)", color: "#2096d8" }}>
+                      {staffRole}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm" style={{ color: "#5A7A6E" }}>Chưa phân công</p>
+              )}
+            </div>
+          </div>
+
+          {/* Note + Dates */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2 rounded-2xl px-4 py-3 flex items-start gap-2.5" style={{ background: "#ffffff", border: "1px solid #C4DED5" }}>
+              <FileText className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "#5A7A6E" }} />
+              <div className="min-w-0">
+                <p className="text-xs font-medium mb-0.5" style={{ color: "#5A7A6E" }}>Ghi chú</p>
+                <p className="text-sm leading-relaxed" style={{ color: "#1E2D28" }}>{inspection.note || "—"}</p>
+              </div>
+            </div>
+            <div className="rounded-2xl px-4 py-3 flex items-start gap-2.5" style={{ background: "#ffffff", border: "1px solid #C4DED5" }}>
+              <Calendar className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "#5A7A6E" }} />
+              <div>
+                <p className="text-xs font-medium mb-0.5" style={{ color: "#5A7A6E" }}>Ngày tạo</p>
+                <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>{formatDate(inspection.createdAt)}</p>
+              </div>
+            </div>
+            <div className="rounded-2xl px-4 py-3 flex items-start gap-2.5" style={{ background: "#ffffff", border: "1px solid #C4DED5" }}>
+              <Tag className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "#5A7A6E" }} />
+              <div>
+                <p className="text-xs font-medium mb-0.5" style={{ color: "#5A7A6E" }}>Cập nhật</p>
+                <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>{formatDate(inspection.updatedAt)}</p>
+              </div>
+            </div>
+          </div>
+
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-slate-100 transition text-slate-400"
+            className="w-full py-2.5 rounded-2xl text-sm font-semibold transition"
+            style={{ background: "#EAF4F0", color: "#5A7A6E" }}
+            onMouseEnter={e => e.currentTarget.style.background = "#C4DED5"}
+            onMouseLeave={e => e.currentTarget.style.background = "#EAF4F0"}
           >
-            ✕
+            Đóng
           </button>
         </div>
-        <dl className="space-y-3 text-sm">
-          {[
-            { label: "Tòa nhà", value: fetching ? "Đang tải..." : (houseName ?? "—") },
-            { label: "Địa chỉ", value: fetching ? "Đang tải..." : ([house?.address, house?.ward, house?.city].filter(Boolean).join(", ") || "—") },
-            { label: "Nhân viên", value: fetching ? "Đang tải..." : (staffName ?? "Chưa phân công") },
-            { label: "Ghi chú", value: inspection.note || "—" },
-            { label: "Ngày tạo", value: formatDate(inspection.createdAt) },
-            { label: "Cập nhật", value: formatDate(inspection.updatedAt) },
-          ].map(({ label, value }) => (
-            <div key={label} className="flex gap-3">
-              <dt className="w-32 flex-shrink-0 text-slate-400 font-medium">{label}</dt>
-              <dd className="text-slate-700 break-words flex-1">{value}</dd>
-            </div>
-          ))}
-          <div className="flex gap-3 items-center">
-            <dt className="w-32 flex-shrink-0 text-slate-400 font-medium">Trạng thái</dt>
-            <dd>
-              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold ${st.bg} ${st.text}`}>
-                <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
-                {st.label}
-              </span>
-            </dd>
-          </div>
-        </dl>
-        <button
-          type="button"
-          onClick={onClose}
-          className="mt-6 w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold transition"
-        >
-          Đóng
-        </button>
       </div>
     </div>
   );
 }
 
+const TABS = [
+  { key: "CHECK_IN",  label: "Check-in",  color: "#3bb582", bg: "rgba(59,181,130,0.10)" },
+  { key: "CHECK_OUT", label: "Check-out", color: "#D95F4B", bg: "rgba(217,95,75,0.08)" },
+];
+
 export default function InspectionsPage() {
   const [inspections, setInspections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [statusFilter, setStatusFilter] = useState("");
-  const [selectedInspection, setSelectedInspection] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [activeTab, setActiveTab] = useState("CHECK_IN");
+  const [slideDir, setSlideDir] = useState("right"); // "right" | "left"
+  const navigate = useNavigate();
 
-  const fetchInspections = (status = statusFilter) => {
+  const handleTabChange = (key) => {
+    if (key === activeTab) return;
+    const newIdx = TABS.findIndex((t) => t.key === key);
+    const oldIdx = TABS.findIndex((t) => t.key === activeTab);
+    setSlideDir(newIdx > oldIdx ? "right" : "left");
+    setActiveTab(key);
+  };
+
+  const fetchInspections = () => {
     setLoading(true);
     setError(null);
-    getInspections(status || undefined)
-      .then((data) => setInspections(Array.isArray(data) ? data : (data?.data ?? [])))
+    getInspections({ status: "DONE", type: activeTab })
+      .then((data) =>
+        setInspections(
+          Array.isArray(data) ? data : (data?.items ?? data?.data ?? []),
+        ),
+      )
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => {
-    fetchInspections();
-  }, []);
-
-  const handleStatusChange = (e) => {
-    const val = e.target.value;
-    setStatusFilter(val);
-    fetchInspections(val);
-  };
-
-  const statusCounts = inspections.reduce((acc, item) => {
-    acc[item.status] = (acc[item.status] ?? 0) + 1;
-    return acc;
-  }, {});
+  useEffect(() => { fetchInspections(); }, [activeTab]);
 
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="text-xl font-bold text-slate-900">Kiểm tra nhà cửa</h2>
-          <p className="text-sm text-slate-400 mt-0.5">
-            Danh sách các lần kiểm tra bất động sản trong hệ thống
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,181,130,0.12)" }}>
+              <ClipboardCheck className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
+            </div>
+            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Kiểm tra</span>
+          </div>
+          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Kết quả bàn giao</h2>
+          <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>
+            Các lần kiểm tra đã hoàn thành khi bắt đầu / kết thúc hợp đồng
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <select
-            value={statusFilter}
-            onChange={handleStatusChange}
-            className="text-sm border border-slate-200 rounded-xl px-3 py-2 bg-white text-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
-          >
-            {STATUS_FILTER_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+        <div className="flex items-center gap-2 mt-1">
           <button
             type="button"
-            onClick={() => fetchInspections()}
+            onClick={fetchInspections}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-sm font-semibold rounded-xl transition disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold rounded-full transition disabled:opacity-50"
+            style={{ border: "1px solid #C4DED5", color: "#5A7A6E", background: "#ffffff" }}
+            onMouseEnter={e => e.currentTarget.style.background = "#EAF4F0"}
+            onMouseLeave={e => e.currentTarget.style.background = "#ffffff"}
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} style={{ color: "#3bb582" }} />
             Làm mới
           </button>
           <button
             type="button"
             onClick={() => setShowCreate(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold rounded-xl shadow-sm transition"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-full shadow-sm transition"
+            style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
+            onMouseEnter={e => e.currentTarget.style.opacity = "0.9"}
+            onMouseLeave={e => e.currentTarget.style.opacity = "1"}
           >
             <Plus className="w-4 h-4" />
             Tạo kiểm tra
@@ -205,32 +295,47 @@ export default function InspectionsPage() {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[
-          { label: "Tổng", value: inspections.length, color: "text-slate-700" },
-          { label: "Hoàn thành", value: statusCounts.DONE ?? 0, color: "text-green-600" },
-          { label: "Chờ thực hiện", value: statusCounts.PENDING ?? 0, color: "text-yellow-600" },
-          { label: "Đang tiến hành", value: statusCounts.IN_PROGRESS ?? 0, color: "text-blue-600" },
-        ].map((s) => (
-          <div key={s.label} className="bg-white border border-slate-200 rounded-2xl px-4 py-3 shadow-sm">
-            <p className="text-xs text-slate-400">{s.label}</p>
-            <p className={`text-xl font-bold mt-0.5 ${s.color}`}>
-              {loading ? "—" : String(s.value).padStart(2, "0")}
-            </p>
-          </div>
-        ))}
+      {/* Tabs — sliding indicator */}
+      <div className="relative flex items-center gap-1 p-1 rounded-2xl w-fit" style={{ background: "#EAF4F0" }}>
+        {/* Sliding pill */}
+        <div
+          className="absolute top-1 bottom-1 rounded-xl transition-transform duration-250 ease-in-out"
+          style={{
+            width: "calc(50% - 4px)",
+            left: 4,
+            background: "#ffffff",
+            boxShadow: "0 1px 4px rgba(59,181,130,0.14)",
+            transform: `translateX(${activeTab === TABS[0].key ? "0%" : "calc(100% + 4px)"})`,
+          }}
+        />
+        {TABS.map((tab) => {
+          const isActive = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => handleTabChange(tab.key)}
+              className="relative z-10 px-5 py-2 rounded-xl text-sm font-semibold transition-colors duration-200 min-w-[110px]"
+              style={{ color: isActive ? tab.color : "#5A7A6E" }}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
+
+      {/* Content — key triggers remount + slide animation on tab change */}
+      <div key={activeTab} className={slideDir === "right" ? "slide-from-right" : "slide-from-left"}>
 
       {/* Loading */}
       {loading && (
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div className="rounded-2xl overflow-hidden" style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}>
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="px-5 py-4 border-b border-slate-100 last:border-0 flex items-center gap-4">
-              <div className="w-20 h-3 bg-slate-100 rounded animate-pulse" />
-              <div className="w-28 h-3 bg-slate-100 rounded animate-pulse" />
-              <div className="flex-1 h-3 bg-slate-100 rounded animate-pulse" />
-              <div className="w-20 h-3 bg-slate-100 rounded animate-pulse" />
+            <div key={i} className="px-5 py-4 flex items-center gap-4" style={{ borderBottom: "1px solid rgba(196,222,213,0.4)" }}>
+              <div className="w-20 h-3 rounded animate-pulse" style={{ background: "#EAF4F0" }} />
+              <div className="w-28 h-3 rounded animate-pulse" style={{ background: "#EAF4F0" }} />
+              <div className="flex-1 h-3 rounded animate-pulse" style={{ background: "#EAF4F0" }} />
+              <div className="w-20 h-3 rounded animate-pulse" style={{ background: "#EAF4F0" }} />
             </div>
           ))}
         </div>
@@ -238,13 +343,9 @@ export default function InspectionsPage() {
 
       {/* Error */}
       {!loading && error && (
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center">
-          <p className="text-sm font-semibold text-red-600">{error}</p>
-          <button
-            type="button"
-            onClick={() => fetchInspections()}
-            className="mt-3 text-xs font-semibold text-red-500 hover:text-red-600 transition underline"
-          >
+        <div className="rounded-2xl p-6 text-center" style={{ background: "rgba(217,95,75,0.04)", border: "1px solid rgba(217,95,75,0.3)" }}>
+          <p className="text-sm font-semibold" style={{ color: "#D95F4B" }}>{error}</p>
+          <button type="button" onClick={fetchInspections} className="mt-3 text-xs font-semibold underline" style={{ color: "#D95F4B" }}>
             Thử lại
           </button>
         </div>
@@ -252,53 +353,53 @@ export default function InspectionsPage() {
 
       {/* Empty */}
       {!loading && !error && inspections.length === 0 && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-16 text-center shadow-sm">
-          <ClipboardCheck className="w-12 h-12 mx-auto mb-3 text-slate-200" />
-          <p className="text-sm font-semibold text-slate-500">Chưa có dữ liệu kiểm tra</p>
+        <div className="rounded-2xl p-16 text-center" style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}>
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: "#EAF4F0" }}>
+            <ClipboardCheck className="w-7 h-7" style={{ color: "#3bb582" }} />
+          </div>
+          <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>Chưa có kết quả kiểm tra nào</p>
+          <p className="text-xs mt-1" style={{ color: "#5A7A6E" }}>
+            Chưa có kết quả kiểm tra {activeTab === "CHECK_IN" ? "Check-in" : "Check-out"} nào hoàn thành
+          </p>
         </div>
       )}
 
-      {/* Table */}
+      {/* List */}
       {!loading && !error && inspections.length > 0 && (
-        <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
-          {/* Header */}
-          <div className="grid grid-cols-[40px_2fr_120px_110px_80px] gap-4 px-5 py-3 border-b border-slate-100 bg-slate-50">
-            {["STT", "Ghi chú", "Ngày tạo", "Trạng thái", "Thao tác"].map((h) => (
-              <p key={h} className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                {h}
-              </p>
+        <div className="rounded-2xl overflow-hidden" style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
+          <div className="grid grid-cols-[2fr_130px_170px_140px] gap-4 px-5 py-3" style={{ borderBottom: "1px solid #C4DED5", background: "#EAF4F0" }}>
+            {["Ghi chú", "Loại", "Hoàn thành lúc", "Thao tác"].map((h) => (
+              <p key={h} className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>{h}</p>
             ))}
           </div>
-
-          {/* Rows */}
-          {inspections.map((item, index) => {
-            const st = STATUS_CONFIG[item.status] ?? {
-              label: item.status,
-              bg: "bg-slate-50",
-              text: "text-slate-600",
-              dot: "bg-slate-300",
-            };
+          {inspections.map((item) => {
+            const tp = TYPE_CONFIG[item.type] ?? { label: item.type, bg: "#EAF4F0", color: "#5A7A6E" };
             return (
               <div
                 key={item.id}
-                className="grid grid-cols-[40px_2fr_120px_110px_80px] gap-4 px-5 py-3.5 border-b border-slate-50 last:border-0 hover:bg-slate-50/60 transition items-center"
+                className="grid grid-cols-[2fr_130px_170px_140px] gap-4 px-5 py-3.5 transition items-center"
+                style={{ borderBottom: "1px solid rgba(196,222,213,0.4)" }}
+                onMouseEnter={e => e.currentTarget.style.background = "#F0FAF6"}
+                onMouseLeave={e => e.currentTarget.style.background = "transparent"}
               >
-                <p className="text-xs font-semibold text-slate-400">{index + 1}</p>
-                <p className="text-xs text-slate-600 truncate" title={item.note}>
-                  {item.note || "—"}
-                </p>
-                <p className="text-xs text-slate-500">{formatDate(item.createdAt)}</p>
-                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold w-fit ${st.bg} ${st.text}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
-                  {st.label}
+                <p className="text-xs truncate" style={{ color: "#5A7A6E" }}>{item.note || "—"}</p>
+                <span
+                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold w-fit"
+                  style={{ background: tp.bg, color: tp.color }}
+                >
+                  {tp.label}
                 </span>
+                <p className="text-xs" style={{ color: "#5A7A6E" }}>{formatDate(item.completedAt ?? item.updatedAt)}</p>
                 <button
                   type="button"
-                  onClick={() => setSelectedInspection(item)}
-                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-teal-600 bg-teal-50 hover:bg-teal-100 transition"
+                  onClick={() => navigate(`/maintenance/inspections/${item.id}`)}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold transition w-fit"
+                  style={{ background: "rgba(59,181,130,0.10)", color: "#3bb582" }}
+                  onMouseEnter={e => e.currentTarget.style.background = "rgba(59,181,130,0.18)"}
+                  onMouseLeave={e => e.currentTarget.style.background = "rgba(59,181,130,0.10)"}
                 >
                   <Eye className="w-3.5 h-3.5" />
-                  Chi tiết
+                  Xem kết quả
                 </button>
               </div>
             );
@@ -306,20 +407,12 @@ export default function InspectionsPage() {
         </div>
       )}
 
-      {/* Detail Modal */}
-      <DetailModal
-        inspection={selectedInspection}
-        onClose={() => setSelectedInspection(null)}
-      />
+      </div>{/* end slide wrapper */}
 
-      {/* Create Modal */}
       <CreateInspectionModal
         open={showCreate}
         onClose={() => setShowCreate(false)}
-        onCreated={() => {
-          setShowCreate(false);
-          fetchInspections();
-        }}
+        onCreated={() => { setShowCreate(false); fetchInspections(); }}
       />
     </div>
   );

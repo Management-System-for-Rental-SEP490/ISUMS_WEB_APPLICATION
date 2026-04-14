@@ -1,10 +1,12 @@
 import React, { useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Breadcrumbs from "../../../../components/shared/Breadcrumbs";
 import ContractHtmlEditor from "../../components/editor/ContractHtmlEditor";
 import { updateContractHtml } from "../../api/contracts.api";
 import { extractBodyFromHtml, wrapBodyWithFullDocument } from "../../utils/contractHtml.utils";
 
-export default function ContractEditView({ contract, onBack, onNavigateMenu, onSaved }) {
+export default function ContractEditView({ contract, onBack, onSaved }) {
+  const navigate = useNavigate();
   const initialBodyHtml = useMemo(
     () => extractBodyFromHtml(contract?.html ?? ""),
     [contract?.html],
@@ -39,7 +41,7 @@ export default function ContractEditView({ contract, onBack, onNavigateMenu, onS
     <div className="space-y-4">
       <Breadcrumbs
         items={[
-          { label: "Trang chủ", onClick: () => onNavigateMenu?.("dashboard") },
+          { label: "Trang chủ", onClick: () => navigate("/dashboard") },
           { label: "Quản lý hợp đồng", onClick: onBack },
           { label: contract?.contractNumber ?? contract?.name ?? "Chi tiết" },
           { label: "Chỉnh sửa" },

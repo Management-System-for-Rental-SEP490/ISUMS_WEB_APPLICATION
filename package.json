@@ -40,6 +40,7 @@
     "react-router-dom": "^7.13.0",
     "react-tailwindcss-datepicker": "^2.0.0",
     "react-toastify": "^11.0.5",
+    "recharts": "^3.8.1",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
     "tinymce": "^7.9.2",

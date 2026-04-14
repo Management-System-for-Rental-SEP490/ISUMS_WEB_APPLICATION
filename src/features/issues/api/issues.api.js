@@ -104,3 +104,12 @@ export async function updateBannerPrice(id, price) {
     throw new Error(getErrorMessage(error));
   }
 }
+
+export async function getTicketImages(issueId) {
+  try {
+    const response = await api.get(ISSSUE_ENDPOINTS.TICKET_IMAGE(issueId));
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}

@@ -22,7 +22,7 @@ export function mapContractFromApi(item) {
     paymentType: item.paymentType ?? "monthly",
     autoRenew: item.autoRenew ?? false,
     html: item.html,
-    pdfUrl: item.pdfUrl ?? null,
+    pdfUrl: item.pdfUrl ?? (item.snapshotKey ? `https://isums-contract.s3.ap-southeast-1.amazonaws.com/${item.snapshotKey}` : null),
     createdAt: item.createdAt,
   };
 }

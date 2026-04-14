@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Select } from "antd";
 import { useVietnamAddress } from "../../hooks/useVietnamAddress";
 
 const selectClass =
@@ -50,13 +51,13 @@ export default function AddressPicker({ value, onChange, onPartsChange, error, l
     onPartsRef.current?.({ street: s.trim(), ward: ward?.name ?? "", city: province?.name ?? "" });
   };
 
-  const handleProvinceChange = (e) => {
-    const found = selectProvince(e.target.value);
+  const handleProvinceChange = (val) => {
+    const found = selectProvince(val);
     emit(street, null, found);
   };
 
-  const handleWardChange = (e) => {
-    const found = selectWard(e.target.value);
+  const handleWardChange = (val) => {
+    const found = selectWard(val);
     emit(street, found, selectedProvince);
   };
 
@@ -80,34 +81,34 @@ export default function AddressPicker({ value, onChange, onPartsChange, error, l
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className={labelClass}>Tỉnh / Thành phố</label>
-          <select
-            value={selectedProvince?.code ?? ""}
+          <Select
+            value={selectedProvince?.code ?? undefined}
             onChange={handleProvinceChange}
             disabled={loadingProvinces}
-            className={`${selectClass} ${!selectedProvince && error ? "border-red-500" : ""}`}
-          >
-            <option value="">{loadingProvinces ? "Đang tải..." : "Chọn tỉnh / thành phố"}</option>
-            {provinces.map((p) => (
-              <option key={p.code} value={p.code}>{p.name}</option>
-            ))}
-          </select>
+            loading={loadingProvinces}
+            placeholder="Chọn tỉnh / thành phố"
+            showSearch
+            optionFilterProp="label"
+            style={{ width: "100%" }}
+            status={!selectedProvince && error ? "error" : ""}
+            options={provinces.map((p) => ({ value: p.code, label: p.name }))}
+          />
         </div>
 
         <div>
           <label className={labelClass}>Phường / Xã</label>
-          <select
-            value={selectedWard?.code ?? ""}
+          <Select
+            value={selectedWard?.code ?? undefined}
             onChange={handleWardChange}
             disabled={!selectedProvince || loadingWards}
-            className={`${selectClass} ${!selectedWard && error ? "border-red-500" : ""}`}
-          >
-            <option value="">
-              {loadingWards ? "Đang tải..." : !selectedProvince ? "Chọn tỉnh trước" : "Chọn phường / xã"}
-            </option>
-            {wards.map((w) => (
-              <option key={w.code} value={w.code}>{w.name}</option>
-            ))}
-          </select>
+            loading={loadingWards}
+            placeholder={!selectedProvince ? "Chọn tỉnh trước" : "Chọn phường / xã"}
+            showSearch
+            optionFilterProp="label"
+            style={{ width: "100%" }}
+            status={!selectedWard && error ? "error" : ""}
+            options={wards.map((w) => ({ value: w.code, label: w.name }))}
+          />
         </div>
       </div>
 

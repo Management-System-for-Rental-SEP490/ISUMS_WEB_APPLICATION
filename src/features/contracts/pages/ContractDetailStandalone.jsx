@@ -10,105 +10,43 @@ import {
 import Icons from "../components/standalone/ContractDetailIcons";
 import ContractPdfViewer from "../components/shared/ContractPdfViewer";
 import { useAuthStore } from "../../../features/auth/store/auth.store";
+import { STATUS_LABEL } from "../utils/contract.constants";
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
-const STATUS_CONFIG = {
-  DRAFT: {
-    label: "Bản nháp",
-    bg: "rgba(148,163,184,0.12)",
-    color: "#475569",
-    border: "rgba(148,163,184,0.4)",
-    dot: "#94a3b8",
-  },
-  PENDING_TENANT_REVIEW: {
-    label: "Chờ khách thuê xác nhận",
-    bg: "rgba(14,165,233,0.1)",
-    color: "#0369a1",
-    border: "rgba(14,165,233,0.3)",
-    dot: "#0ea5e9",
-  },
-  READY: {
-    label: "Chờ chủ nhà ký",
-    bg: "rgba(59,130,246,0.1)",
-    color: "#1e40af",
-    border: "rgba(59,130,246,0.3)",
-    dot: "#3b82f6",
-  },
-  IN_PROGRESS: {
-    label: "Đang chờ khách hàng ký",
-    bg: "rgba(245,158,11,0.1)",
-    color: "#92400e",
-    border: "rgba(245,158,11,0.3)",
-    dot: "#f59e0b",
-  },
-  CONFIRM_BY_TENANT: {
-    label: "Khách hàng đã đồng ý ký",
-    bg: "rgba(6,182,212,0.1)",
-    color: "#0e7490",
-    border: "rgba(6,182,212,0.3)",
-    dot: "#06b6d4",
-  },
-  COMPLETED: {
-    label: "Đã hoàn thành",
-    bg: "rgba(16,185,129,0.1)",
-    color: "#065f46",
-    border: "rgba(16,185,129,0.3)",
-    dot: "#10b981",
-  },
-  CORRECTING: {
-    label: "Đang sửa",
-    bg: "rgba(249,115,22,0.1)",
-    color: "#9a3412",
-    border: "rgba(249,115,22,0.3)",
-    dot: "#f97316",
-  },
-  CANCELLED: {
-    label: "Đã huỷ",
-    bg: "rgba(113,113,122,0.1)",
-    color: "#3f3f46",
-    border: "rgba(113,113,122,0.3)",
-    dot: "#71717a",
-  },
-  REJECTED_BY_TENANT: {
-    label: "Khách hàng từ chối ký",
-    bg: "rgba(239,68,68,0.1)",
-    color: "#991b1b",
-    border: "rgba(239,68,68,0.3)",
-    dot: "#ef4444",
-  },
-  REJECTED_BY_LANDLORD: {
-    label: "Chủ nhà từ chối ký",
-    bg: "rgba(244,63,94,0.1)",
-    color: "#9f1239",
-    border: "rgba(244,63,94,0.3)",
-    dot: "#f43f5e",
-  },
-  default: {
-    label: "Không rõ",
-    bg: "rgba(107,114,128,0.1)",
-    color: "#374151",
-    border: "rgba(107,114,128,0.2)",
-    dot: "#9ca3af",
-  },
+const STATUS_STYLE = {
+  DRAFT:                  { bg: "rgba(148,163,184,0.12)", color: "#475569", border: "rgba(148,163,184,0.4)", dot: "#94a3b8" },
+  PENDING_TENANT_REVIEW:  { bg: "rgba(14,165,233,0.1)",  color: "#0369a1", border: "rgba(14,165,233,0.3)",  dot: "#0ea5e9" },
+  READY:                  { bg: "rgba(59,130,246,0.1)",   color: "#1e40af", border: "rgba(59,130,246,0.3)",  dot: "#3b82f6" },
+  IN_PROGRESS:            { bg: "rgba(245,158,11,0.1)",   color: "#92400e", border: "rgba(245,158,11,0.3)",  dot: "#f59e0b" },
+  CONFIRM_BY_TENANT:      { bg: "rgba(6,182,212,0.1)",    color: "#0e7490", border: "rgba(6,182,212,0.3)",   dot: "#06b6d4" },
+  COMPLETED:              { bg: "rgba(16,185,129,0.1)",   color: "#065f46", border: "rgba(16,185,129,0.3)",  dot: "#10b981" },
+  CORRECTING:             { bg: "rgba(249,115,22,0.1)",   color: "#9a3412", border: "rgba(249,115,22,0.3)",  dot: "#f97316" },
+  CANCELLED:              { bg: "rgba(113,113,122,0.1)",  color: "#3f3f46", border: "rgba(113,113,122,0.3)", dot: "#71717a" },
+  CANCELLED_BY_TENANT:    { bg: "rgba(239,68,68,0.1)",    color: "#991b1b", border: "rgba(239,68,68,0.3)",   dot: "#ef4444" },
+  CANCELLED_BY_LANDLORD:  { bg: "rgba(244,63,94,0.1)",    color: "#9f1239", border: "rgba(244,63,94,0.3)",   dot: "#f43f5e" },
+  REJECTED_BY_TENANT:     { bg: "rgba(239,68,68,0.1)",    color: "#991b1b", border: "rgba(239,68,68,0.3)",   dot: "#ef4444" },
+  REJECTED_BY_LANDLORD:   { bg: "rgba(244,63,94,0.1)",    color: "#9f1239", border: "rgba(244,63,94,0.3)",   dot: "#f43f5e" },
+  default:                { bg: "rgba(107,114,128,0.1)",  color: "#374151", border: "rgba(107,114,128,0.2)", dot: "#9ca3af" },
 };
 
 function StatusBadge({ status }) {
-  const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.default;
+  const style = STATUS_STYLE[status] ?? STATUS_STYLE.default;
+  const label = STATUS_LABEL[status] ?? "Không rõ";
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12px] font-semibold tracking-wide"
       style={{
-        background: cfg.bg,
-        color: cfg.color,
-        borderColor: cfg.border,
+        background: style.bg,
+        color: style.color,
+        borderColor: style.border,
         borderWidth: 1,
       }}
     >
       <span
         className="h-1.5 w-1.5 rounded-full flex-shrink-0"
-        style={{ background: cfg.dot, boxShadow: `0 0 0 3px ${cfg.bg}` }}
+        style={{ background: style.dot, boxShadow: `0 0 0 3px ${style.bg}` }}
       />
-      {cfg.label}
+      {label}
     </span>
   );
 }
@@ -217,6 +155,7 @@ export default function ContractDetailStandalone() {
 
   // Manager confirm dialog (DRAFT → PENDING_TENANT_REVIEW)
   const [showManagerConfirm, setShowManagerConfirm] = useState(false);
+  const [showResendConfirm, setShowResendConfirm] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
@@ -281,6 +220,31 @@ export default function ContractDetailStandalone() {
     }
   };
 
+  // Gửi lại hợp đồng cho người thuê (PENDING_TENANT_REVIEW → gọi lại confirm)
+  const handleResend = async () => {
+    if (!id || confirming) return;
+    setShowResendConfirm(false);
+    setConfirming(true);
+    try {
+      await confirmByAdmin(id);
+      toast.success("Đã gửi lại hợp đồng cho người thuê xem xét.");
+      await refetchContract();
+    } catch (err) {
+      const httpStatus = err?.response?.status;
+      const msg =
+        httpStatus === 400
+          ? "Không thể gửi lại hợp đồng này."
+          : httpStatus === 403
+            ? "Bạn không có quyền thực hiện thao tác này."
+            : httpStatus === 404
+              ? "Không tìm thấy hợp đồng."
+              : "Gửi lại thất bại, vui lòng thử lại.";
+      toast.error(msg);
+    } finally {
+      setConfirming(false);
+    }
+  };
+
   const normalizedStatus = (status ?? "").toUpperCase();
   const isDraft =
     normalizedStatus === "DRAFT" ||
@@ -290,10 +254,11 @@ export default function ContractDetailStandalone() {
 
   // Điều kiện hiển thị buttons
   const canConfirm = normalizedStatus === "DRAFT";
+  const canResend  = normalizedStatus === "PENDING_TENANT_REVIEW";
   const canLandlordSign = isLandlord && normalizedStatus === "READY";
   const canDownload = normalizedStatus === "COMPLETED" && !!pdfUrl;
 
-  const goBack = () => navigate("/dashboard", { state: { menu: "contracts" } });
+  const goBack = () => navigate("/contracts");
 
   const handleDownload = async () => {
     if (!pdfUrl) return;
@@ -310,6 +275,8 @@ export default function ContractDetailStandalone() {
       toast.error("Không thể tải file, vui lòng thử lại.");
     }
   };
+
+  console.log("DEBUG", { status, normalizedStatus, pdfUrl, canDownload });
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans">
@@ -363,6 +330,16 @@ export default function ContractDetailStandalone() {
                 {confirming ? "Đang xử lý..." : "Xác nhận hợp đồng"}
               </ActionButton>
             )}
+            {canResend && (
+              <ActionButton
+                onClick={() => setShowResendConfirm(true)}
+                disabled={confirming || loading || !!error}
+                variant="primary"
+                icon={confirming ? <Icons.Loader /> : <Icons.Send />}
+              >
+                {confirming ? "Đang gửi..." : "Gửi lại cho người thuê"}
+              </ActionButton>
+            )}
             {canLandlordSign && (
               <ActionButton
                 onClick={() => navigate(`/contracts/${id}/sign`)}
@@ -390,7 +367,7 @@ export default function ContractDetailStandalone() {
             {canDownload && (
               <ActionButton
                 onClick={handleDownload}
-                variant="outline"
+                variant="teal"
                 icon={<Icons.Download />}
               >
                 Tải về
@@ -466,8 +443,19 @@ export default function ContractDetailStandalone() {
         onConfirm={handleManagerConfirm}
         confirming={confirming}
         title="Xác nhận hợp đồng"
-        description="Hợp đồng sẽ được gửi cho chủ nhà xem xét và xác nhận. Bạn vẫn có thể chỉnh sửa nếu chủ nhà yêu cầu."
+        description="Hợp đồng sẽ được gửi cho người thuê xem và xác nhận. Bạn vẫn có thể chỉnh sửa nếu chủ nhà yêu cầu."
         confirmLabel="Xác nhận & Gửi"
+      />
+
+      {/* Dialog: Gửi lại cho người thuê (PENDING_TENANT_REVIEW) */}
+      <ConfirmDialog
+        open={showResendConfirm}
+        onClose={() => !confirming && setShowResendConfirm(false)}
+        onConfirm={handleResend}
+        confirming={confirming}
+        title="Gửi lại cho người thuê"
+        description="Hệ thống sẽ gửi lại email thông báo cho người thuê để xem xét và xác nhận hợp đồng."
+        confirmLabel="Gửi lại"
       />
     </div>
   );

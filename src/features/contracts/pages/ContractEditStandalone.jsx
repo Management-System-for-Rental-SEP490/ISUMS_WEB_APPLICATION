@@ -123,7 +123,7 @@ export default function ContractEditStandalone() {
             <button
               type="button"
               onClick={() =>
-                navigate("/dashboard", { state: { menu: "contracts" } })
+                navigate("/contracts")
               }
               disabled={saving}
               className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3.5 py-2 text-[13px] font-semibold text-slate-600 bg-transparent hover:bg-slate-50 disabled:opacity-60 disabled:cursor-not-allowed transition"

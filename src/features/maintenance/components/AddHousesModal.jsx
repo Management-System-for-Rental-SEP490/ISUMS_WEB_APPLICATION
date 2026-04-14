@@ -31,11 +31,19 @@ export default function AddHousesModal({
         requestAnimationFrame(() => setVisible(true)),
       );
       setLoading(true);
-      getAllHouses()
-        .then((data) =>
-          setHouses(Array.isArray(data) ? data : (data?.data ?? [])),
-        )
-        .catch(() => setHouses([]))
+      getAllHouses({ page: 1, size: 100 })
+        .then((data) => {
+          const list = Array.isArray(data)
+            ? data
+            : Array.isArray(data?.items)
+              ? data.items
+              : [];
+          setHouses(list);
+        })
+        .catch((err) => {
+          setHouses([]);
+          setError(err?.message ?? "Không thể tải danh sách bất động sản");
+        })
         .finally(() => setLoading(false));
     } else {
       setVisible(false);
@@ -91,7 +99,7 @@ export default function AddHousesModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[1100] flex items-center justify-center p-4"
       style={{
         backgroundColor: "rgba(15,23,42,0.5)",
         backdropFilter: "blur(3px)",

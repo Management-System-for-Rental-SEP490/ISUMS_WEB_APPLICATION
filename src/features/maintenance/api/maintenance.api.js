@@ -148,9 +148,11 @@ export async function getInspectionById(id) {
  * @param {string} [status] - optional filter by status
  * @returns {Promise<Array>}
  */
-export async function getInspections(status) {
+export async function getInspections({ status, type } = {}) {
   try {
-    const params = status ? { status } : {};
+    const params = {};
+    if (status) params.status = status;
+    if (type)   params.type   = type;
     const response = await api.get(INSPECTION_ENDPOINTS.BASE, { params });
     return extractResponseData(response);
   } catch (error) {
