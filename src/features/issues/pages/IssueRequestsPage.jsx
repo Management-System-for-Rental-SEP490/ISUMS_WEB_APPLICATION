@@ -330,7 +330,7 @@ export default function IssueRequestsPage() {
 
       <IssueDetailDrawer
         open={!!drawerTicketId} ticketId={drawerTicketId}
-        onClose={() => setDrawerTicketId(null)} showResponse={activeTab === "DONE"}
+        onClose={() => setDrawerTicketId(null)}
       />
       <IssueReplyModal
         open={!!replyTicketId} ticketId={replyTicketId}

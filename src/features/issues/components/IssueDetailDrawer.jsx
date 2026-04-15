@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Drawer } from "antd";
-import { MapPin, Clock, MessageSquare, CheckCircle, User, ImageIcon, X, ChevronLeft, ChevronRight } from "lucide-react";
-import { getIssueById, getResponseByTicket } from "../api/issues.api";
+import { MapPin, Clock, MessageSquare, ImageIcon, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { getIssueById } from "../api/issues.api";
 import { getHouseById } from "../../houses/api/houses.api";
 import { ISSUE_STATUS_CONFIG } from "../constants/issue.constants";
 import dayjs from "dayjs";
@@ -67,9 +67,8 @@ function ImageLightbox({ images, index, onClose, onNext, onPrev }) {
   );
 }
 
-export default function IssueDetailDrawer({ open, ticketId, onClose, showResponse = false }) {
+export default function IssueDetailDrawer({ open, ticketId, onClose }) {
   const [detail, setDetail]       = useState(null);
-  const [response, setResponse]   = useState(null);
   const [houseName, setHouseName] = useState(null);
   const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState(null);
@@ -77,14 +76,11 @@ export default function IssueDetailDrawer({ open, ticketId, onClose, showRespons
 
   useEffect(() => {
     if (!open || !ticketId) return;
-    setDetail(null); setResponse(null); setHouseName(null); setError(null); setLightboxIndex(null);
+    setDetail(null); setHouseName(null); setError(null); setLightboxIndex(null);
     setLoading(true);
-    const requests = [getIssueById(ticketId)];
-    if (showResponse) requests.push(getResponseByTicket(ticketId).catch(() => null));
-    Promise.all(requests)
-      .then(([ticketDetail, resp]) => {
+    getIssueById(ticketId)
+      .then((ticketDetail) => {
         setDetail(ticketDetail);
-        if (resp) setResponse(resp);
         if (ticketDetail?.houseId) {
           getHouseById(ticketDetail.houseId)
             .then((h) => setHouseName(h?.name ?? h?.houseName ?? null))
@@ -93,7 +89,7 @@ export default function IssueDetailDrawer({ open, ticketId, onClose, showRespons
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [open, ticketId, showResponse]);
+  }, [open, ticketId]);
 
   const status = detail ? (ISSUE_STATUS_CONFIG[detail.status] ?? ISSUE_STATUS_CONFIG.CREATED) : null;
 
@@ -215,31 +211,6 @@ export default function IssueDetailDrawer({ open, ticketId, onClose, showRespons
               </div>
             )}
 
-            {/* Response */}
-            {response && (
-              <div className="px-6 pt-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <CheckCircle className="w-4 h-4 text-teal-500" />
-                  <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Ban quản lý đã trả lời:</p>
-                </div>
-                <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
-                  <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{response.content}</p>
-                  {response.createdAt && (
-                    <div className="flex items-center gap-3 mt-4 pt-3 border-t border-gray-100">
-                      <div className="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center flex-shrink-0">
-                        <User className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-gray-700">Ban Quản Lý</p>
-                        <p className="text-[11px] text-teal-500">
-                          {dayjs(response.createdAt).format("DD/MM/YYYY · HH:mm")}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
             <div className="h-6" />
           </>
         )}
