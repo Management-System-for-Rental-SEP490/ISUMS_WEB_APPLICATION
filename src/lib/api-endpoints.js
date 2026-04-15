@@ -130,6 +130,10 @@ export const BANNER_ENDPOINTS = {
   CREATE: "issues/banners",
   UPDATE: (id) => `issues/banners/${id}/price`,
 };
+export const DASHBOARD_ENDPOINTS = {
+  BASE: "/econtracts/dashboard",
+};
+
 export const INSPECTION_ENDPOINTS = {
   BASE: "maintenances/inspections",
   CREATE: "maintenances/inspections",
