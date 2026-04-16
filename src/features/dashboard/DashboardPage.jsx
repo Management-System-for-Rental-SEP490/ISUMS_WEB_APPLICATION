@@ -30,17 +30,13 @@ function KpiCard({ title, value, subtitle, icon: Icon, color, loading, isGood })
   return (
     <div
       className="rounded-2xl flex flex-col overflow-hidden transition-all duration-200 hover:-translate-y-0.5 group relative"
-      style={{
-        background: "#FAFFFE",
-        border: `1px solid ${c.border}`,
-        boxShadow: "0px 1px 3px 0px rgba(16,24,40,0.08), 0px 1px 2px 0px rgba(16,24,40,0.04)",
-      }}
+      style={{ background: "#FAFFFE", border: `1px solid ${c.border}`, boxShadow: "0px 1px 3px 0px rgba(16,24,40,0.08)" }}
     >
       <div className="h-[3px] w-full flex-shrink-0" style={{ background: BRAND_GRADIENT }} />
       <div className="p-5 flex items-start gap-4 flex-1">
         <div className="absolute -top-4 -right-4 w-20 h-20 rounded-full opacity-[0.05] pointer-events-none" style={{ background: c.accentColor }} />
         <div
-          className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-transform duration-200 group-hover:scale-105"
+          className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform duration-200"
           style={{ background: c.iconBg }}
         >
           <Icon className="w-6 h-6" style={{ color: c.iconColor }} />
@@ -52,7 +48,7 @@ function KpiCard({ title, value, subtitle, icon: Icon, color, loading, isGood })
           ) : isEmpty ? (
             <div className="flex items-center gap-1">
               <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: BRAND_GREEN }} />
-              <p className="text-xs font-semibold leading-snug" style={{ color: BRAND_GREEN }}>Tất cả trong hạn ✓</p>
+              <p className="text-xs font-semibold" style={{ color: BRAND_GREEN }}>Tất cả trong hạn ✓</p>
             </div>
           ) : (
             <p className="text-2xl font-bold leading-tight" style={{ color: "#1E2D28" }}>
@@ -138,10 +134,10 @@ export default function DashboardPage() {
   });
 
   const kpiCards = [
-    { key: "total",       title: "Tổng bất động sản", value: propertyStats.total,        subtitle: "Trong hệ thống",      icon: Building2,    color: "teal"  },
-    { key: "rented",      title: "Đang cho thuê",      value: propertyStats.rented,       subtitle: "Đang có hợp đồng",    icon: Home,         color: "blue"  },
-    { key: "available",   title: "Còn trống",           value: propertyStats.available,    subtitle: "Sẵn sàng cho thuê",   icon: Home,         color: "amber" },
-    { key: "expiringSoon",title: "Sắp hết hạn",         value: propertyStats.expiringSoon, subtitle: "Trong 30 ngày tới",   icon: CalendarClock,color: "red", isGood: true },
+    { key: "total",        title: "Tổng bất động sản", value: propertyStats.total,        subtitle: "Trong hệ thống",    icon: Building2,    color: "teal"  },
+    { key: "rented",       title: "Đang cho thuê",      value: propertyStats.rented,       subtitle: "Đang có hợp đồng",  icon: Home,         color: "blue"  },
+    { key: "available",    title: "Còn trống",           value: propertyStats.available,    subtitle: "Sẵn sàng cho thuê", icon: Home,         color: "amber" },
+    { key: "expiringSoon", title: "Sắp hết hạn",         value: propertyStats.expiringSoon, subtitle: "Trong 30 ngày tới", icon: CalendarClock,color: "red", isGood: true },
   ];
 
   return (
@@ -159,7 +155,7 @@ export default function DashboardPage() {
         <p className="text-sm mt-0.5 capitalize" style={{ color: "#5A7A6E" }}>{today}</p>
       </div>
 
-      {/* Error banner */}
+      {/* Error */}
       {error && !loading && (
         <div className="rounded-xl px-4 py-3 flex items-center gap-2" style={{ background: "rgba(217,95,75,0.06)", border: "1px solid rgba(217,95,75,0.25)" }}>
           <AlertCircle className="w-4 h-4 flex-shrink-0" style={{ color: "#D95F4B" }} />
@@ -167,16 +163,19 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Row 1: 4 KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      {/* ── Row 1: 4 KPI — tổng quan BĐS ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
         {kpiCards.map((s) => (
           <KpiCard key={s.key} {...s} loading={loading} />
         ))}
       </div>
 
-      {/* Row 2: Line Chart (60%) + Donut (40%) */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-6">
-        <div className="lg:col-span-3 flex flex-col" style={{ minHeight: 300 }}>
+      {/* ── Row 2: Tình trạng BĐS (donut 40%) + HĐ theo tháng (area 60%) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-5" style={{ minHeight: 320 }}>
+        <div className="lg:col-span-2 flex flex-col">
+          <HouseStatusDonut propertyStats={propertyStats} loading={loading} />
+        </div>
+        <div className="lg:col-span-3 flex flex-col">
           <ContractsByMonthLine
             timeSeries={contractTimeSeries}
             period={period}
@@ -184,14 +183,11 @@ export default function DashboardPage() {
             loading={loading}
           />
         </div>
-        <div className="lg:col-span-2 flex flex-col" style={{ minHeight: 300 }}>
-          <HouseStatusDonut propertyStats={propertyStats} loading={loading} />
-        </div>
       </div>
 
-      {/* Row 3: Bar Chart + Recent Contracts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-        {/* ContractStatusBar — đặt trong flex column để h-full resolve đúng */}
+      {/* ── Row 3: Phân loại HĐ (bar 50%) + Danh sách HĐ gần nhất (50%) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
+        {/* Bar chart */}
         <div className="flex flex-col" style={{ minHeight: 320 }}>
           <ContractStatusBar breakdown={contractStatusBreakdown} loading={loading} />
         </div>
@@ -199,12 +195,7 @@ export default function DashboardPage() {
         {/* Recent contracts */}
         <div
           className="rounded-2xl flex flex-col overflow-hidden"
-          style={{
-            background: "#FAFFFE",
-            border: "1px solid #C4DED5",
-            boxShadow: "0px 1px 3px 0px rgba(16,24,40,0.08), 0px 1px 2px 0px rgba(16,24,40,0.04)",
-            minHeight: 320,
-          }}
+          style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0px 1px 3px 0px rgba(16,24,40,0.08)", minHeight: 320 }}
         >
           <div className="h-[3px] w-full flex-shrink-0" style={{ background: BRAND_GRADIENT }} />
           <div
@@ -267,7 +258,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Row 4: Map */}
+      {/* ── Row 4: Bản đồ vị trí BĐS ── */}
       <DashboardMap houses={houses} />
 
     </div>
