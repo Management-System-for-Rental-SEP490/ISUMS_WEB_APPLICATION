@@ -1,0 +1,136 @@
+import { useEffect, useState } from "react";
+import { Drawer, Badge, Progress, Tag, Descriptions, Alert, Spin, Typography } from "antd";
+import { Package } from "lucide-react";
+import ImageCarousel from "../../../components/shared/ImageCarousel";
+import { getAssetById } from "../api/houses.api";
+import { ASSET_STATUS } from "./HouseOverviewTab";
+
+const STATUS_BADGE = {
+  IN_USE:       "success",
+  UNDER_REPAIR: "warning",
+  BROKEN:       "error",
+  DISPOSED:     "error",
+  default:      "default",
+};
+
+const CONDITION_STROKE = (pct) => {
+  if (pct >= 80) return "#10b981";
+  if (pct >= 50) return "#f59e0b";
+  return "#ef4444";
+};
+
+export default function AssetDetailDrawer({ assetId, onClose }) {
+  const [asset, setAsset]     = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState(null);
+
+  useEffect(() => {
+    if (!assetId) return;
+    setLoading(true); setError(null); setAsset(null);
+    getAssetById(assetId)
+      .then(setAsset)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [assetId]);
+
+  const status    = asset ? (ASSET_STATUS[asset.status] ?? ASSET_STATUS.default) : null;
+  const badgeStatus = asset ? (STATUS_BADGE[asset.status] ?? STATUS_BADGE.default) : "default";
+  const pct       = asset?.conditionPercent ?? 0;
+
+  return (
+    <Drawer
+      open={!!assetId}
+      onClose={onClose}
+      classNames={{ wrapper: "!w-[480px]" }}
+      autoFocus={false}
+      title={
+        <div className="flex items-center gap-2">
+          <Package className="w-4 h-4 text-gray-400" />
+          <span className="text-sm font-semibold text-gray-700">Chi tiết tài sản</span>
+        </div>
+      }
+      styles={{ body: { padding: 0 } }}
+    >
+      {loading && (
+        <div className="flex flex-col items-center justify-center h-64 gap-2 text-gray-400">
+          <Spin size="large" />
+          <span className="text-sm">Đang tải...</span>
+        </div>
+      )}
+
+      {error && (
+        <div className="p-5">
+          <Alert type="error" showIcon description={error} />
+        </div>
+      )}
+
+      {asset && (
+        <div>
+          {/* Carousel */}
+          <ImageCarousel images={asset.images ?? []} alt={asset.displayName} height="h-64" />
+
+          <div className="p-5 space-y-5">
+            {/* Header: tên + badge trạng thái */}
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <Typography.Title level={5} className="!mb-0.5">{asset.displayName}</Typography.Title>
+                <Typography.Text type="secondary" className="font-mono text-xs">{asset.serialNumber ?? "—"}</Typography.Text>
+              </div>
+              <Badge status={badgeStatus} text={<span className="text-xs font-medium">{status.label}</span>} />
+            </div>
+
+            {/* Tình trạng */}
+            <div className="bg-gray-50 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-gray-600">Tình trạng thiết bị</span>
+                <span className="text-sm font-bold" style={{ color: CONDITION_STROKE(pct) }}>{pct}%</span>
+              </div>
+              <Progress
+                percent={pct}
+                showInfo={false}
+                strokeColor={CONDITION_STROKE(pct)}
+                size={["100%", 8]}
+                styles={{ trail: { background: "#e5e7eb" } }}
+              />
+              <p className="text-[11px] text-gray-400 mt-1.5">
+                {pct >= 80 ? "Tốt — hoạt động bình thường" : pct >= 50 ? "Trung bình — cần theo dõi" : "Kém — cần sửa chữa hoặc thay thế"}
+              </p>
+            </div>
+
+            {/* Thông tin chung */}
+            <Descriptions column={1} size="small" bordered labelStyle={{ width: 130, color: "#6b7280", fontSize: 12 }} contentStyle={{ fontSize: 12 }}>
+              <Descriptions.Item label="Mã serial">{asset.serialNumber ?? "—"}</Descriptions.Item>
+              <Descriptions.Item label="Cập nhật lần cuối">
+                {asset.updateAt ? new Date(asset.updateAt).toLocaleDateString("vi-VN") : "—"}
+              </Descriptions.Item>
+              {asset.categoryId && (
+                <Descriptions.Item label="Category ID">
+                  <span className="font-mono text-[11px] text-gray-400">{asset.categoryId}</span>
+                </Descriptions.Item>
+              )}
+            </Descriptions>
+
+            {/* Tags */}
+            {(asset.nfcTag || asset.qrTag) && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 mb-2">Tags</p>
+                <div className="flex gap-2 flex-wrap">
+                  {asset.nfcTag && <Tag color="blue">NFC: {asset.nfcTag}</Tag>}
+                  {asset.qrTag  && <Tag color="purple">QR: {asset.qrTag}</Tag>}
+                </div>
+              </div>
+            )}
+
+            {/* Ghi chú */}
+            {asset.note && (
+              <div>
+                <p className="text-xs font-semibold text-gray-500 mb-1.5">Ghi chú</p>
+                <Alert type="info" description={asset.note} showIcon />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </Drawer>
+  );
+}

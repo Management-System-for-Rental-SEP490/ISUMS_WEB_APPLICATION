@@ -1,394 +1,299 @@
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import { createPortal } from "react-dom";
-import { X, Wrench, AlertTriangle, ChevronDown, Clock } from "lucide-react";
-import { DAY_NAMES_LONG, MONTH_NAMES } from "../constants";
+import { X, ChevronRight, ChevronLeft, CheckCircle2 } from "lucide-react";
+import {
+  confirmStaffWorkSlot,
+  confirmIssueWorkSlot,
+  createManualWorkSlot,
+  getAvailableSlotsByJob,
+  getAvailableStaffForSlot,
+} from "../api/schedule.api";
+import {
+  getMaintenanceJobsByStatus,
+  getMaintenancePlanById,
+  getInspections,
+} from "../../maintenance/api/maintenance.api";
+import { getAllIssues } from "../../issues/api/issues.api";
+import { getHouseById } from "../../houses/api/houses.api";
+import StepIndicator from "./create-shift/StepIndicator";
+import Step1JobSelect from "./create-shift/Step1JobSelect";
+import Step2TimeSlot from "./create-shift/Step2TimeSlot";
+import Step3Staff from "./create-shift/Step3Staff";
 
-// ─── Mock data ────────────────────────────────────────────────────────────────
-
-const MOCK_STAFF = [
-  {
-    id: "1",
-    name: "Anh Tuấn",
-    status: "available",
-    statusLabel: "SẴN SÀNG",
-    avatar: "AT",
-    avatarBg: "bg-slate-600",
-  },
-  {
-    id: "2",
-    name: "Minh Hạnh",
-    status: "busy",
-    statusLabel: "Bận (1h)",
-    avatar: "MH",
-    avatarBg: "bg-slate-400",
-  },
-  {
-    id: "3",
-    name: "Trọng Nghĩa",
-    status: "available",
-    statusLabel: "Sẵn sàng",
-    avatar: "TN",
-    avatarBg: "bg-slate-700",
-  },
-];
-
-const MOCK_PROJECTS = [
-  {
-    id: "1",
-    name: "Vinhomes Central Park",
-    location: "Lô L4-2201 • Tầng 22",
-  },
-  { id: "2", name: "The Sun Avenue", location: "Block B • Tầng 10" },
-  { id: "3", name: "Masteri Thảo Điền", location: "T1 • Tầng 15" },
-];
-
-const MOCK_TIME_SLOTS = [
-  "08:00-09:00",
-  "09:15-10:15",
-  "10:30-11:30",
-  "13:00-14:00",
-];
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatDateBadge(date) {
-  const d = date instanceof Date ? date : new Date();
-  const dayIdx = (d.getDay() + 6) % 7;
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${DAY_NAMES_LONG[dayIdx]}, ${day} ${MONTH_NAMES[d.getMonth()]}`;
-}
-
-// ─── CreateShiftModal ─────────────────────────────────────────────────────────
-
-/**
- * Props:
- *   open      boolean
- *   onClose   () => void
- *   onSubmit  (data) => void   (optional)
- */
-export default function CreateShiftModal({ open, onClose, onSubmit }) {
+export default function CreateShiftModal({ open, onClose, onCreated }) {
+  const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [step, setStep] = useState(1);
 
-  const [jobType, setJobType] = useState("maintenance"); // "maintenance" | "issue"
-  const [selectedStaffId, setSelectedStaffId] = useState("1");
-  const [selectedProjectId, setSelectedProjectId] = useState("1");
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState("09:15-10:15");
-  const [projectOpen, setProjectOpen] = useState(false);
+  // Step 1
+  const [jobType, setJobType] = useState("MAINTENANCE");
+  const [jobs, setJobs] = useState([]);
+  const [planNames, setPlanNames] = useState({});
+  const [houseNames, setHouseNames] = useState({});
+  const [jobsLoading, setJobsLoading] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState(null);
+  const [jobSearch, setJobSearch] = useState("");
 
-  // Animate in/out
+  // Step 2
+  const [selectedDate, setSelectedDate] = useState("");
+  const [timeSlots, setTimeSlots] = useState([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState(null);
+
+  // Step 3
+  const [staffMode, setStaffMode] = useState("auto");
+  const [availableStaff, setAvailableStaff] = useState([]);
+  const [staffLoading, setStaffLoading] = useState(false);
+  const [selectedStaffId, setSelectedStaffId] = useState(null);
+
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
+  // ── Animation ──────────────────────────────────────────────────────────────
   useEffect(() => {
     if (open) {
-      const raf = requestAnimationFrame(() => setVisible(true));
-      return () => cancelAnimationFrame(raf);
+      setMounted(true);
+      requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
+    } else {
+      setVisible(false);
+      const t = setTimeout(() => setMounted(false), 300);
+      return () => clearTimeout(t);
     }
   }, [open]);
 
-  // Close with animation
-  const handleClose = () => {
-    setVisible(false);
-    setTimeout(onClose, 200);
-  };
-
-  // Escape key
+  // ── Reset on open ──────────────────────────────────────────────────────────
   useEffect(() => {
     if (!open) return;
-    const handler = (e) => {
-      if (e.key === "Escape") handleClose();
-    };
+    setStep(1);
+    setJobType("MAINTENANCE");
+    setSelectedJobId(null);
+    setSelectedDate("");
+    setTimeSlots([]);
+    setSelectedSlot(null);
+    setStaffMode("auto");
+    setAvailableStaff([]);
+    setSelectedStaffId(null);
+    setError(null);
+    setJobSearch("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  // ── ESC key ────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => { if (e.key === "Escape") handleClose(); };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const handleSubmit = () => {
-    const project = MOCK_PROJECTS.find((p) => p.id === selectedProjectId);
-    const staff = MOCK_STAFF.find((s) => s.id === selectedStaffId);
-    const data = { jobType, staff, project, timeSlot: selectedTimeSlot };
-    onSubmit?.(data);
-    handleClose();
+  // ── Reset staffMode when jobType changes ───────────────────────────────────
+  useEffect(() => {
+    setStaffMode("auto");
+  }, [jobType]);
+
+  // ── Fetch jobs ─────────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!open) return;
+    setSelectedJobId(null);
+    setJobSearch("");
+    setJobsLoading(true);
+    const fetcher =
+      jobType === "ISSUE"
+        ? getAllIssues({ status: "WAITING_MANAGER_CONFIRM", type: "REPAIR" })
+        : jobType === "INSPECTION"
+          ? getInspections("CREATED")
+          : getMaintenanceJobsByStatus("CREATED");
+    fetcher
+      .then(async (data) => {
+        const list = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : Array.isArray(data?.data) ? data.data : [];
+        setJobs(list);
+        if (jobType === "MAINTENANCE") {
+          const planIds = [...new Set(list.map((j) => j.planId).filter(Boolean))];
+          const houseIds = [...new Set(list.map((j) => j.houseId).filter(Boolean))];
+          const [planRes, houseRes] = await Promise.all([
+            Promise.allSettled(planIds.map((id) => getMaintenancePlanById(id))),
+            Promise.allSettled(houseIds.map((id) => getHouseById(id))),
+          ]);
+          const pm = {};
+          planRes.forEach((r, i) => { if (r.status === "fulfilled") pm[planIds[i]] = r.value?.name; });
+          setPlanNames(pm);
+          const hm = {};
+          houseRes.forEach((r, i) => { if (r.status === "fulfilled") hm[houseIds[i]] = r.value?.name ?? r.value?.houseName ?? "—"; });
+          setHouseNames(hm);
+        }
+        if (jobType === "INSPECTION") {
+          const houseIds = [...new Set(list.map((j) => j.houseId).filter(Boolean))];
+          const houseRes = await Promise.allSettled(houseIds.map((id) => getHouseById(id)));
+          const hm = {};
+          houseRes.forEach((r, i) => { if (r.status === "fulfilled") hm[houseIds[i]] = r.value?.name ?? r.value?.houseName ?? "—"; });
+          setHouseNames(hm);
+        }
+      })
+      .catch(() => setJobs([]))
+      .finally(() => setJobsLoading(false));
+  }, [open, jobType]);
+
+  // ── Fetch slots on job+date change ─────────────────────────────────────────
+  useEffect(() => {
+    setSelectedSlot(null);
+    setTimeSlots([]);
+    if (!selectedJobId || !selectedDate) return;
+    setSlotsLoading(true);
+    getAvailableSlotsByJob(selectedJobId, selectedDate)
+      .then((slots) =>
+        setTimeSlots(
+          slots.map((s) => ({
+            start: s.startTime.substring(0, 5),
+            end: s.endTime.substring(0, 5),
+            startRaw: s.startTime,
+            status: s.status,
+            availableStaffCount: s.availableStaffCount ?? 0,
+          })),
+        ),
+      )
+      .catch(() => setTimeSlots([]))
+      .finally(() => setSlotsLoading(false));
+  }, [selectedJobId, selectedDate]);
+
+  // ── Fetch staff when entering step 3 ──────────────────────────────────────
+  useEffect(() => {
+    if (step !== 3 || !selectedJobId || !selectedDate || !selectedSlot) return;
+    setAvailableStaff([]);
+    setSelectedStaffId(null);
+    setStaffLoading(true);
+    getAvailableStaffForSlot(selectedJobId, selectedDate, selectedSlot.startRaw)
+      .then((list) => setAvailableStaff(list))
+      .catch(() => setAvailableStaff([]))
+      .finally(() => setStaffLoading(false));
+  }, [step, selectedJobId, selectedDate, selectedSlot]);
+
+  // ── Handlers ───────────────────────────────────────────────────────────────
+  const handleClose = () => { setVisible(false); setTimeout(onClose, 300); };
+
+  const handleSubmit = async () => {
+    if (!selectedJobId || !selectedSlot || !selectedDate) return;
+    setError(null);
+    setSubmitting(true);
+    try {
+      const startTime = `${selectedDate}T${selectedSlot.start}:00`;
+      if (staffMode === "manual") {
+        await createManualWorkSlot({ jobId: selectedJobId, staffId: selectedStaffId, startTime, jobType });
+      } else if (jobType === "MAINTENANCE" || jobType === "INSPECTION") {
+        await confirmStaffWorkSlot({ jobId: selectedJobId, startTime });
+      } else {
+        await confirmIssueWorkSlot(selectedJobId);
+      }
+      toast.success(`Đã tạo ca làm việc — ${selectedDate} lúc ${selectedSlot.start}`);
+      onCreated?.();
+      handleClose();
+    } catch (e) {
+      const msg = e.message?.toLowerCase();
+      const finalMsg = msg?.includes("staff already has job in this time")
+        ? "Nhân viên đã có lịch trong khung giờ này."
+        : (e.message ?? "Đã xảy ra lỗi, vui lòng thử lại.");
+      setError(finalMsg);
+      toast.error(finalMsg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  if (!open) return null;
+  const canGoStep2 = !!selectedJobId;
+  const canGoStep3 = !!selectedSlot;
+  const canSubmit = !submitting && (staffMode === "auto" || !!selectedStaffId);
 
-  const today = new Date();
-  const dateBadge = formatDateBadge(today);
-  const selectedProject = MOCK_PROJECTS.find((p) => p.id === selectedProjectId);
+  if (!mounted) return null;
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-200"
-      style={{
-        backgroundColor: "rgba(30,41,59,0.45)",
-        backdropFilter: "blur(3px)",
-        opacity: visible ? 1 : 0,
-      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: "rgba(15,23,42,0.5)", backdropFilter: "blur(4px)", opacity: visible ? 1 : 0, transition: "opacity 300ms ease" }}
       onClick={handleClose}
     >
-      {/* Modal card */}
       <div
-        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transition-all duration-200 ease-out"
+        className="relative bg-white rounded-2xl shadow-2xl w-full flex flex-col"
         style={{
-          transform: visible
-            ? "translateY(0) scale(1)"
-            : "translateY(24px) scale(0.96)",
+          maxWidth: 700, maxHeight: "92vh",
+          transform: visible ? "translateY(0) scale(1)" : "translateY(24px) scale(0.96)",
           opacity: visible ? 1 : 0,
+          transition: "transform 300ms cubic-bezier(0.34,1.2,0.64,1), opacity 300ms ease",
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* ── Header ── */}
-        <div className="px-6 pt-6 pb-4 border-b border-slate-100">
-          <div className="flex items-start justify-between gap-3">
+        {/* Header */}
+        <div className="px-7 pt-6 pb-5 border-b border-slate-100 flex-shrink-0">
+          <div className="flex items-start justify-between mb-5">
             <div>
-              <h3 className="text-[17px] font-bold text-slate-800 leading-tight">
-                Tạo ca làm việc mới
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Thiết lập thông tin điều phối công việc IoT
-              </p>
+              <h3 className="text-xl font-bold text-slate-800">Tạo Ca Làm Mới</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Vui lòng hoàn tất thông tin để điều phối nhân sự</p>
             </div>
-            <button
-              type="button"
-              onClick={handleClose}
-              className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition flex-shrink-0"
-            >
+            <button type="button" onClick={handleClose} className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 transition">
               <X className="w-4 h-4" />
             </button>
           </div>
+          <StepIndicator current={step} />
         </div>
 
-        {/* ── Body ── */}
-        <div className="px-6 py-5 space-y-5">
-
-          {/* Loại công việc */}
-          <div>
-            <p className="text-[13px] font-semibold text-slate-700 mb-2.5">
-              Loại công việc
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setJobType("maintenance")}
-                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-sm font-semibold transition
-                  ${
-                    jobType === "maintenance"
-                      ? "bg-slate-800 text-white border-slate-800 shadow-sm"
-                      : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
-                  }`}
-              >
-                <Wrench className="w-3.5 h-3.5" />
-                Bảo trì
-              </button>
-              <button
-                type="button"
-                onClick={() => setJobType("issue")}
-                className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border text-sm font-semibold transition
-                  ${
-                    jobType === "issue"
-                      ? "bg-slate-800 text-white border-slate-800 shadow-sm"
-                      : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
-                  }`}
-              >
-                <AlertTriangle className="w-3.5 h-3.5" />
-                Xử lý vấn đề
-              </button>
-            </div>
-          </div>
-
-          {/* Nhân viên thực hiện */}
-          <div>
-            <div className="flex items-center justify-between mb-2.5">
-              <p className="text-[13px] font-semibold text-slate-700">
-                Nhân viên thực hiện
-              </p>
-              <button
-                type="button"
-                className="text-[11px] font-bold text-teal-600 hover:text-teal-700 uppercase tracking-wide transition"
-              >
-                XEM TẤT CẢ
-              </button>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {MOCK_STAFF.map((staff) => {
-                const isSelected = selectedStaffId === staff.id;
-                const isAvailable = staff.status === "available";
-                return (
-                  <button
-                    key={staff.id}
-                    type="button"
-                    onClick={() => setSelectedStaffId(staff.id)}
-                    className={`relative flex flex-col items-center gap-2 py-3 px-2 rounded-xl border text-center transition
-                      ${
-                        isSelected
-                          ? "border-teal-400 bg-teal-50/50 shadow-sm"
-                          : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
-                      }`}
-                  >
-                    {/* Avatar */}
-                    <div className="relative">
-                      <div
-                        className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-bold ${staff.avatarBg}`}
-                      >
-                        {staff.avatar}
-                      </div>
-                      {/* Status dot */}
-                      {isSelected && (
-                        <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-teal-500 border-2 border-white flex items-center justify-center">
-                          <svg
-                            className="w-2 h-2 text-white"
-                            viewBox="0 0 8 8"
-                            fill="none"
-                          >
-                            <path
-                              d="M1.5 4L3.2 5.7L6.5 2.5"
-                              stroke="currentColor"
-                              strokeWidth="1.4"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-[12px] font-semibold text-slate-700 leading-tight">
-                        {staff.name}
-                      </p>
-                      <p
-                        className={`text-[10px] font-semibold mt-0.5 ${
-                          isAvailable && isSelected
-                            ? "text-teal-600"
-                            : isAvailable
-                              ? "text-slate-500"
-                              : "text-amber-500"
-                        }`}
-                      >
-                        {staff.statusLabel}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Dự án & Vị trí */}
-          <div>
-            <p className="text-[13px] font-semibold text-slate-700 mb-2.5">
-              Dự án &amp; Vị trí
-            </p>
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setProjectOpen((v) => !v)}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border-l-4 border border-teal-400 bg-white hover:bg-slate-50 transition text-left shadow-sm"
-              >
-                <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-                  <svg
-                    className="w-4 h-4 text-slate-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={1.8}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0H5m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 8v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                    />
-                  </svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-bold text-slate-800 truncate">
-                    {selectedProject?.name}
-                  </p>
-                  <p className="text-[11px] text-slate-400 mt-0.5 truncate">
-                    {selectedProject?.location}
-                  </p>
-                </div>
-                <ChevronDown
-                  className={`w-4 h-4 text-slate-400 flex-shrink-0 transition-transform ${projectOpen ? "rotate-180" : ""}`}
-                />
-              </button>
-
-              {/* Dropdown */}
-              {projectOpen && (
-                <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
-                  {MOCK_PROJECTS.map((project) => (
-                    <button
-                      key={project.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedProjectId(project.id);
-                        setProjectOpen(false);
-                      }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition hover:bg-slate-50
-                        ${project.id === selectedProjectId ? "bg-teal-50" : ""}`}
-                    >
-                      <div>
-                        <p className="text-[13px] font-semibold text-slate-800">
-                          {project.name}
-                        </p>
-                        <p className="text-[11px] text-slate-400 mt-0.5">
-                          {project.location}
-                        </p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Khung giờ làm việc */}
-          <div>
-            <div className="flex items-center justify-between mb-2.5">
-              <p className="text-[13px] font-semibold text-slate-700">
-                Khung giờ làm việc
-              </p>
-              <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg">
-                {dateBadge}
-              </span>
-            </div>
-            <div className="flex gap-2 flex-wrap">
-              {MOCK_TIME_SLOTS.map((slot) => {
-                const isSelected = selectedTimeSlot === slot;
-                return (
-                  <button
-                    key={slot}
-                    type="button"
-                    onClick={() => setSelectedTimeSlot(slot)}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[12px] font-semibold border transition
-                      ${
-                        isSelected
-                          ? "border-teal-600 text-teal-700 bg-white shadow-sm"
-                          : "border-slate-200 text-slate-600 bg-white hover:border-slate-300 hover:bg-slate-50"
-                      }`}
-                  >
-                    <Clock className="w-3 h-3" />
-                    {slot}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+        {/* Body */}
+        <div className="flex-1 overflow-y-auto px-7 py-5">
+          {step === 1 && (
+            <Step1JobSelect
+              jobType={jobType} setJobType={setJobType}
+              jobs={jobs} jobsLoading={jobsLoading}
+              selectedJobId={selectedJobId} setSelectedJobId={setSelectedJobId}
+              jobSearch={jobSearch} setJobSearch={setJobSearch}
+              planNames={planNames} houseNames={houseNames}
+            />
+          )}
+          {step === 2 && (
+            <Step2TimeSlot
+              selectedDate={selectedDate} setSelectedDate={setSelectedDate}
+              timeSlots={timeSlots} slotsLoading={slotsLoading}
+              selectedSlot={selectedSlot} setSelectedSlot={setSelectedSlot}
+            />
+          )}
+          {step === 3 && (
+            <Step3Staff
+              staffMode={staffMode} setStaffMode={setStaffMode}
+              availableStaff={availableStaff} staffLoading={staffLoading}
+              selectedStaffId={selectedStaffId} setSelectedStaffId={setSelectedStaffId}
+              error={error}
+            />
+          )}
         </div>
 
-        {/* ── Footer ── */}
-        <div className="px-6 pb-6 pt-2 flex gap-3">
+        {/* Footer */}
+        <div className="px-7 py-4 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
           <button
             type="button"
-            onClick={handleClose}
-            className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition"
+            onClick={step === 1 ? handleClose : () => setStep((s) => s - 1)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition"
           >
-            Hủy
+            {step > 1 && <ChevronLeft className="w-4 h-4" />}
+            {step === 1 ? "Hủy bỏ" : "Quay lại"}
           </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            className="flex-[2] py-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold transition shadow-sm"
-          >
-            Tạo ca làm việc
-          </button>
+
+          {step < 3 ? (
+            <button
+              type="button"
+              disabled={step === 1 ? !canGoStep2 : !canGoStep3}
+              onClick={() => setStep((s) => s + 1)}
+              className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-sm font-bold transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Tiếp theo <ChevronRight className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={!canSubmit}
+              onClick={handleSubmit}
+              className="flex items-center gap-2 px-7 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-sm font-bold transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {submitting ? "Đang tạo..." : <><CheckCircle2 className="w-4 h-4" /> Hoàn tất tạo ca làm việc</>}
+            </button>
+          )}
         </div>
       </div>
     </div>,

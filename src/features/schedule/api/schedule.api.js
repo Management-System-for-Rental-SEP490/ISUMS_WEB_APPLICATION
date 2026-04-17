@@ -3,7 +3,11 @@ import {
   MAINTENANCE_ENDPOINTS,
   SCHEDULE_ENDPOINTS,
 } from "../../../lib/api-endpoints";
-import { extractResponseData, getErrorMessage } from "../../../lib/api-helpers";
+import {
+  extractResponseData,
+  getErrorMessage,
+  throwApiError,
+} from "../../../lib/api-helpers";
 
 /**
  * Get all slots within a date range (used by week view).
@@ -132,54 +136,104 @@ export async function getWorkSlotsInRange(start, end) {
 }
 
 /**
- * Get a maintenance plan by ID.
- * @param {string} planId
- * @returns {Promise<Object>} Plan detail { id, name, frequencyType, frequencyValue, effectiveFrom, effectiveTo, nextRunAt, houseIds }
+ * Create a new work slot.
+ * @param {{ staffId: string, jobId: string, jobType: string, startTime: string }} payload
+ * @returns {Promise<Object>} Created work slot
  */
-export async function getMaintenancePlanById(planId) {
+export async function createWorkSlot(payload) {
   try {
-    const response = await api.get(MAINTENANCE_ENDPOINTS.PLANS_BY_ID(planId));
+    const response = await api.post(SCHEDULE_ENDPOINTS.WORK_SLOTS, payload);
     return extractResponseData(response);
   } catch (error) {
-    throw new Error(getErrorMessage(error));
+    throwApiError(error);
   }
 }
 
 /**
- * Get all maintenance plans.
- * @returns {Promise<Array>} List of plans
+ * Auto-assign maintenance job (MAINTENANCE type).
+ * @param {{ jobId: string, startTime: string }} payload - startTime: "YYYY-MM-DDTHH:MM:SS"
  */
-export async function getMaintenancePlans() {
+export async function confirmStaffWorkSlot(payload) {
   try {
-    const response = await api.get(MAINTENANCE_ENDPOINTS.PLANS);
+    const response = await api.post(
+      SCHEDULE_ENDPOINTS.WORK_SLOTS_CONFIRM_MAINTENANCE,
+      payload,
+    );
     return extractResponseData(response);
   } catch (error) {
-    throw new Error(getErrorMessage(error));
+    throwApiError(error);
   }
 }
 
 /**
- * Get all maintenance jobs.
- * @returns {Promise<Array>} List of jobs { id, planId, houseId, periodStartDate, dueDate, status }
- */
-export async function getMaintenanceJobs() {
-  try {
-    const response = await api.get(MAINTENANCE_ENDPOINTS.JOBS);
-    return extractResponseData(response);
-  } catch (error) {
-    throw new Error(getErrorMessage(error));
-  }
-}
-
-/**
- * Get a maintenance job by ID.
+ * Auto-assign issue job (ISSUE type).
  * @param {string} jobId
- * @returns {Promise<Object>} Job detail { id, planId, houseId, periodStartDate, dueDate, status }
  */
-export async function getJobById(jobId) {
+export async function confirmIssueWorkSlot(jobId) {
   try {
-    const response = await api.get(MAINTENANCE_ENDPOINTS.JOBS_BY_ID(jobId));
+    const response = await api.post(
+      SCHEDULE_ENDPOINTS.WORK_SLOTS_MANAGER_CONFIRM(jobId),
+    );
     return extractResponseData(response);
+  } catch (error) {
+    throwApiError(error);
+  }
+}
+
+/**
+ * Manually assign a staff to any job type.
+ * @param {{ jobId: string, staffId: string, startTime: string, jobType: string }} payload
+ */
+export async function createManualWorkSlot(payload) {
+  try {
+    const response = await api.post(SCHEDULE_ENDPOINTS.WORK_SLOTS_MANUAL, payload);
+    return extractResponseData(response);
+  } catch (error) {
+    throwApiError(error);
+  }
+}
+
+/**
+ * Get available work slots for a specific job and date.
+ * Returns list of slots with availableStaffCount.
+ * @param {string} jobId - UUID of the job
+ * @param {string} date  - "YYYY-MM-DD"
+ * @returns {Promise<Array<{ startTime: string, endTime: string, status: string, availableStaffCount: number }>>}
+ */
+export async function getAvailableSlotsByJob(jobId, date) {
+  try {
+    const response = await api.get(SCHEDULE_ENDPOINTS.WORK_SLOTS_SLOTS, {
+      params: { jobId, date },
+    });
+    const data = extractResponseData(response);
+    // API trả về data: [{ date, slots: [...] }]
+    const dayList = Array.isArray(data) ? data : [];
+    return dayList.flatMap((day) => day.slots ?? []);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Get available staff for a specific job slot.
+ * @param {string} jobId     - UUID of the job
+ * @param {string} date      - "YYYY-MM-DD"
+ * @param {string} startTime - "HH:MM:SS"
+ * @returns {Promise<Array<{id,name,email,phone}>>} Array of staff objects
+ */
+export async function getAvailableStaffForSlot(jobId, date, startTime) {
+  try {
+    const response = await api.get(SCHEDULE_ENDPOINTS.WORK_SLOTS_SLOTS_STAFF, {
+      params: { jobId, date, startTime },
+    });
+    const data = extractResponseData(response);
+    if (!Array.isArray(data)) return [];
+    return data.map((item) => ({
+      id: item.staffId ?? item.info?.id,
+      name: item.info?.name ?? "—",
+      email: item.info?.email ?? null,
+      phone: item.info?.phone ?? item.info?.phoneNumber ?? null,
+    }));
   } catch (error) {
     throw new Error(getErrorMessage(error));
   }

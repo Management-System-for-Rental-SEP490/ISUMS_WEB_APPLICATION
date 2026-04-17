@@ -153,7 +153,10 @@ export default function SigningActionsSidebar({
                   className="w-1/2 h-full object-contain p-1"
                 />
                 {/* Nửa phải: text căn trên */}
-                <div className="w-1/2 flex flex-col justify-start pt-1 pr-1 text-blue-600 leading-tight" style={{ fontSize: 12 }}>
+                <div
+                  className="w-1/2 flex flex-col justify-start pt-1 pr-1 text-blue-600 leading-tight"
+                  style={{ fontSize: 12 }}
+                >
                   <div className="font-medium">{userName}</div>
                   <div>
                     {new Date().toLocaleString("vi-VN", {
@@ -259,7 +262,7 @@ export default function SigningActionsSidebar({
             />
           </svg>
           <span className="text-[10px] font-medium uppercase tracking-wide">
-            Bảo mật bởi VNPT eSign
+            Bảo mật bởi VNPT eContract
           </span>
         </div>
       </div>

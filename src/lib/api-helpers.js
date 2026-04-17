@@ -20,11 +20,26 @@ const STATUS_MESSAGES = {
   503: "Dịch vụ đang bảo trì, vui lòng thử lại sau.",
 };
 
+/**
+ * Throw a standardized API error that preserves HTTP status.
+ * Usage: catch (error) { throwApiError(error); }
+ * Caller can check: e.status === 500
+ */
+export function throwApiError(error) {
+  const err = new Error(getErrorMessage(error));
+  err.status = error.response?.status ?? null;
+  throw err;
+}
+
 export function getErrorMessage(error) {
   if (error.response) {
     const { status, data } = error.response;
-    // Ưu tiên message từ server nếu có, fallback về status message
-    const serverMsg = data?.message || data?.error || data?.msg;
+    // Ưu tiên errors[0].message → message → fallback status
+    const serverMsg =
+      data?.errors?.[0]?.message ||
+      data?.message ||
+      data?.error ||
+      data?.msg;
     return serverMsg || STATUS_MESSAGES[status] || `Lỗi ${status}: ${error.response.statusText}`;
   } else if (error.request) {
     return "Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.";

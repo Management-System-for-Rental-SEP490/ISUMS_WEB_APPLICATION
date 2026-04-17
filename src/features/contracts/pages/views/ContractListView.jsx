@@ -1,4 +1,5 @@
 import React from "react";
+import { Pagination } from "antd";
 import Breadcrumbs from "../../../../components/shared/Breadcrumbs";
 import ContractsHeader from "../../components/list/ContractsHeader";
 import ContractsStats from "../../components/list/ContractsStats";
@@ -6,7 +7,6 @@ import ContractsFilters from "../../components/list/ContractsFilters";
 import ContractsTable from "../../components/list/ContractsTable";
 
 export default function ContractsListView({
-  onNavigateMenu,
   onCreate,
   onViewDetail,
   onEdit,
@@ -17,14 +17,22 @@ export default function ContractsListView({
   setSearchTerm,
   filterStatus,
   setFilterStatus,
+  sortDir,
+  onToggleSortDir,
+  page,
+  totalPage,
+  totalItems,
+  pageSize,
+  onPageChange,
   stats,
   loading,
   error,
   onRetry,
+  onRefresh,
 }) {
   return (
     <div className="space-y-6">
-      <ContractsHeader total={contracts.length} onCreate={onCreate} />
+      <ContractsHeader total={totalItems} onCreate={onCreate} />
       <ContractsStats stats={stats} />
 
       <ContractsFilters
@@ -32,6 +40,10 @@ export default function ContractsListView({
         onSearch={setSearchTerm}
         filterStatus={filterStatus}
         onFilter={setFilterStatus}
+        sortDir={sortDir}
+        onToggleSortDir={onToggleSortDir}
+        onRefresh={onRefresh}
+        refreshing={loading}
       />
 
       {error && (
@@ -56,6 +68,18 @@ export default function ContractsListView({
         onDelete={onDelete}
         loading={loading}
       />
+
+      {!loading && !error && totalItems > 0 && (
+        <div className="flex justify-end">
+          <Pagination
+            current={page}
+            total={totalItems}
+            pageSize={pageSize}
+            onChange={onPageChange}
+            showSizeChanger={false}
+          />
+        </div>
+      )}
     </div>
   );
 }

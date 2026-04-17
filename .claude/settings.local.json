@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "Bash(npm install:*)",
+      "Bash(rm -rf src/features/schedule/components/maintenance)",
+      "Bash(rm src/features/schedule/components/GenerateJobsResultModal.jsx)",
+      "Bash(rm src/features/schedule/pages/MaintenancePlansPage.jsx)",
+      "Bash(rm src/features/schedule/pages/MaintenanceJobsPage.jsx)",
+      "Bash(ls \"d:\\\\University\\\\Semester_9th\\\\SEP490\\\\ISUMS_WEB\\\\ISUMS_WEB_APPLICATION\\\\src\\\\pages\\\\\\\\\")",
+      "Bash(dir \"d:/University/Semester_9th/SEP490/ISUMS_WEB/ISUMS_WEB_APPLICATION/src\" /b)",
+      "Bash(grep -n \"VITE_\\\\|S3\\\\|snapshot\\\\|snapshotKey\" src/features/contracts/utils/mapContractFromApi.js src/lib/axios.js .env*)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); const deps={...p.dependencies,...p.devDependencies}; ['antd','@ant-design','@radix-ui','shadcn','@headlessui'].forEach\\(k=>Object.keys\\(deps\\).filter\\(d=>d.includes\\(k\\)\\).forEach\\(d=>console.log\\(d,deps[d]\\)\\)\\)\")",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:api.github.com)"
+    ]
+  }
+}

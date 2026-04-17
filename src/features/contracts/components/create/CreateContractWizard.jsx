@@ -2,10 +2,12 @@ import React, { useState, useCallback } from "react";
 import { ArrowLeft, ArrowRight, Save } from "lucide-react";
 import StepGeneralInfo from "./StepGeneralInfo";
 import StepHouseAndMoney from "./StepHouseAndMoney";
+import StepContractClauses from "./StepContractClauses";
 
 const STEPS = [
-  { id: 1, title: "Thông tin người thuê", component: StepGeneralInfo },
-  { id: 2, title: "Nhà và chi phí liên quan", component: StepHouseAndMoney },
+  { id: 1, title: "Thông tin người thuê" },
+  { id: 2, title: "Nhà & chi phí" },
+  { id: 3, title: "Điều khoản" },
 ];
 
 export default function CreateContractWizard({
@@ -120,11 +122,26 @@ export default function CreateContractWizard({
     }
 
     const depositRaw = safeTrim(currentForm.depositAmount);
-    if (depositRaw) {
+    if (!depositRaw) {
+      newErrors.depositAmount = "Vui lòng nhập tiền cọc";
+    } else {
       const deposit = Number(depositRaw);
       if (Number.isNaN(deposit) || deposit < 0) {
         newErrors.depositAmount = "Tiền cọc phải là số không âm";
+      } else {
+        const rent = Number(safeTrim(currentForm.rentAmount));
+        if (rent > 0 && (deposit < rent || deposit > rent * 3)) {
+          newErrors.depositAmount = "Tiền cọc thông thường từ 1 đến 3 tháng tiền thuê";
+        }
       }
+    }
+
+    if (!safeTrim(currentForm.depositDate)) {
+      newErrors.depositDate = "Vui lòng chọn ngày đặt cọc";
+    }
+
+    if (!safeTrim(currentForm.handoverDate)) {
+      newErrors.handoverDate = "Vui lòng chọn ngày bàn giao";
     }
 
     const payDateNumber = Number(currentForm.payDate);
@@ -165,13 +182,71 @@ export default function CreateContractWizard({
     return newErrors;
   };
 
+  const validateStep3 = (currentForm) => {
+    const newErrors = {};
+    const safeTrim = (v) => String(v ?? "").trim();
+
+    if (!safeTrim(currentForm.area)) newErrors.area = "Thông tin không được trống";
+    if (!safeTrim(currentForm.structure)) newErrors.structure = "Thông tin không được trống";
+    if (!safeTrim(currentForm.ownershipDocs)) newErrors.ownershipDocs = "Thông tin không được trống";
+
+    const numericFields = [
+      { key: "lateDays", label: "Số ngày ân hạn", min: 0 },
+      { key: "maxLateDays", label: "Số ngày trễ tối đa", min: 0 },
+      { key: "cureDays", label: "Số ngày khắc phục", min: 0 },
+      { key: "renewNoticeDays", label: "Ngày báo trước gia hạn", min: 0 },
+      { key: "landlordNoticeDays", label: "Ngày chủ nhà báo trước", min: 0 },
+      { key: "forceMajeureNoticeHours", label: "Giờ thông báo bất khả kháng", min: 0 },
+      { key: "disputeDays", label: "Số ngày thương lượng", min: 0 },
+      { key: "eachKeep", label: "Số bản mỗi bên giữ", min: 1 },
+    ];
+    for (const { key, label, min } of numericFields) {
+      const raw = safeTrim(currentForm[key]);
+      if (!raw) {
+        newErrors[key] = "Thông tin không được trống";
+      } else {
+        const n = Number(raw);
+        if (Number.isNaN(n) || n < min) {
+          newErrors[key] = `${label} phải là số${min > 0 ? ` ít nhất là ${min}` : " không âm"}`;
+        }
+      }
+    }
+
+    if (!safeTrim(currentForm.disputeForum)) newErrors.disputeForum = "Thông tin không được trống";
+
+    const penaltyRaw = safeTrim(currentForm.latePenaltyPercent);
+    if (!penaltyRaw) {
+      newErrors.latePenaltyPercent = "Thông tin không được trống";
+    } else {
+      const penalty = Number(penaltyRaw);
+      if (Number.isNaN(penalty) || penalty < 0 || penalty > 100) {
+        newErrors.latePenaltyPercent = "Phần trăm phạt phải từ 0 đến 100";
+      }
+    }
+
+    const copiesRaw = safeTrim(currentForm.copies);
+    if (!copiesRaw) {
+      newErrors.copies = "Thông tin không được trống";
+    } else {
+      const copies = Number(copiesRaw);
+      if (Number.isNaN(copies) || copies < 1) {
+        newErrors.copies = "Số bản hợp đồng phải ít nhất là 1";
+      }
+    }
+
+    return newErrors;
+  };
+
   const handleNext = () => {
     if (currentStep === 1) {
       const stepErrors = validateStep1(form);
       setErrors(stepErrors);
-      if (Object.keys(stepErrors).length > 0) {
-        return;
-      }
+      if (Object.keys(stepErrors).length > 0) return;
+    }
+    if (currentStep === 2) {
+      const stepErrors = validateStep2(form);
+      setErrors(stepErrors);
+      if (Object.keys(stepErrors).length > 0) return;
     }
     if (currentStep < STEPS.length) setCurrentStep((s) => s + 1);
   };
@@ -186,7 +261,8 @@ export default function CreateContractWizard({
 
     const step1Errors = validateStep1(form);
     const step2Errors = validateStep2(form);
-    const combinedErrors = { ...step1Errors, ...step2Errors };
+    const step3Errors = validateStep3(form);
+    const combinedErrors = { ...step1Errors, ...step2Errors, ...step3Errors };
     setErrors(combinedErrors);
     if (Object.keys(combinedErrors).length > 0 || !canSubmitStep2) {
       return;
@@ -194,8 +270,6 @@ export default function CreateContractWizard({
 
     onCreated?.(form);
   };
-
-  const StepComponent = STEPS[currentStep - 1].component;
 
   return (
     <div className="space-y-6">
@@ -231,16 +305,9 @@ export default function CreateContractWizard({
         onSubmit={handleSubmit}
         className="space-y-6"
       >
-        {currentStep === 1 ? (
-          <StepGeneralInfo form={form} update={update} errors={errors} />
-        ) : (
-          <StepHouseAndMoney
-            form={form}
-            update={update}
-            houses={houses}
-            errors={errors}
-          />
-        )}
+        {currentStep === 1 && <StepGeneralInfo form={form} update={update} errors={errors} />}
+        {currentStep === 2 && <StepHouseAndMoney form={form} update={update} houses={houses} errors={errors} />}
+        {currentStep === 3 && <StepContractClauses form={form} update={update} errors={errors} />}
 
         <div className="flex items-center justify-between gap-4 pt-4 border-t border-gray-200">
           <div className="flex gap-2">

@@ -26,17 +26,18 @@ export default function UsersPage() {
       <UsersHeader total={stats.total} loading={loading} onRefresh={handleRefresh} />
 
       {error && (
-        <div className="bg-white rounded-xl border border-red-200 px-4 py-3 flex items-center gap-3 shadow-sm">
-          <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center text-red-500 shrink-0">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <div className="rounded-2xl px-4 py-3 flex items-center gap-3" style={{ background: "#FAFFFE", border: "1px solid rgba(217,95,75,0.3)" }}>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(217,95,75,0.08)" }}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: "#D95F4B" }}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <p className="text-sm font-semibold text-red-600 flex-1">{error}</p>
+          <p className="text-sm font-semibold flex-1" style={{ color: "#D95F4B" }}>{error}</p>
           <button
             type="button"
             onClick={refetch}
-            className="text-xs font-semibold text-red-600 hover:text-red-700 underline underline-offset-2 transition flex-shrink-0"
+            className="text-xs font-semibold underline underline-offset-2 transition flex-shrink-0"
+            style={{ color: "#D95F4B" }}
           >
             Thử lại
           </button>

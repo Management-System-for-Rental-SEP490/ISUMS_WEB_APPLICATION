@@ -1,57 +1,63 @@
-import { useEffect, useState } from "react";
-import { getAllHouses, getHouseImages } from "../api/houses.api";
+import { useCallback, useEffect, useState } from "react";
+import { getAllHouses } from "../api/houses.api";
 import { mapHouseToHouseCard } from "../utils/mapHouseToHouseCard";
 
-export function useHouses() {
+/**
+ * @param {{ page?: number, size?: number, keyword?: string, sortBy?: string, sortDir?: string, status?: string }} params
+ */
+export function useHouses({ page = 1, size = 9, keyword = "", sortBy = "", sortDir = "", status = "" } = {}) {
   const [houses, setHouses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const refetch = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const raw = await getAllHouses();
-      const arr = Array.isArray(raw) ? raw : (raw?.data ?? []);
-      console.log("Fetched houses:", raw);
-      if (raw && typeof raw.success === "boolean" && !raw.success) {
-        throw new Error("Không thể tải danh sách nhà. Vui lòng thử lại sau.");
-      }
-      if (!Array.isArray(arr)) {
-        setHouses([]);
-        return;
-      }
-
-      // Fetch images for all houses in parallel
-      const imageResults = await Promise.allSettled(
-        arr.map((h) => getHouseImages(h.id))
-      );
-
-      const mapped = arr.map((h, i) => {
-        const imagesRaw = imageResults[i].status === "fulfilled" ? imageResults[i].value : [];
-        const images = Array.isArray(imagesRaw) ? imagesRaw : (imagesRaw?.data ?? []);
-        const imageUrl = images[0]?.url ?? null;
-        return mapHouseToHouseCard(h, imageUrl);
-      });
-
-      setHouses(mapped);
-    } catch (err) {
-      setError(err?.message ?? String(err));
-      setHouses([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [pagination, setPagination] = useState({ total: 0, totalPages: 1, currentPage: 1, pageSize: size });
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
-    refetch();
-  }, []);
+    let cancelled = false;
 
-  return {
-    houses,
-    loading,
-    error,
-    refetch,
-    isEmpty: houses.length === 0,
-  };
+    const params = {};
+    if (page)    params.page    = page;
+    if (size)    params.size    = size;
+    if (keyword) params.keyword = keyword;
+    if (sortBy)  params.sortBy  = sortBy;
+    if (sortDir) params.sortDir = sortDir;
+    if (status)  params.status  = status;
+
+    setLoading(true);
+    setError(null);
+
+    (async () => {
+      try {
+        const raw = await getAllHouses(params);
+        if (cancelled) return;
+
+        const arr = Array.isArray(raw) ? raw : (raw?.items ?? []);
+
+        if (!Array.isArray(raw) && raw) {
+          setPagination({
+            total:       raw.total       ?? arr.length,
+            totalPages:  raw.totalPages  ?? 1,
+            currentPage: raw.currentPage ?? page,
+            pageSize:    raw.pageSize    ?? size,
+          });
+        }
+
+        const mapped = arr.map((h) => mapHouseToHouseCard(h));
+        setHouses(mapped);
+      } catch (err) {
+        if (!cancelled) {
+          setError(err?.message ?? String(err));
+          setHouses([]);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [page, size, keyword, sortBy, sortDir, status, tick]);
+
+  const refetch = useCallback(() => setTick((t) => t + 1), []);
+
+  return { houses, loading, error, refetch, isEmpty: houses.length === 0, pagination };
 }
