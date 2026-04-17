@@ -10,7 +10,7 @@ const inp = "w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus
 const lbl = "block text-sm font-semibold text-slate-700 mb-1.5";
 
 export default function CreateHousePage({ onBack, onSubmit }) {
-  const [form, setForm]         = useState({ name: "", description: "" });
+  const [form, setForm]         = useState({ name: "", description: "", numberOfFloors: "" });
   const [address, setAddress]   = useState("");
   const [addrParts, setAddrParts] = useState({ street: "", ward: "", city: "" });
   const [regionId, setRegionId] = useState("");
@@ -53,6 +53,7 @@ export default function CreateHousePage({ onBack, onSubmit }) {
         commune:     "",
         city:        addrParts.city,
         description: form.description,
+        numberOfFloors: form.numberOfFloors ? Number(form.numberOfFloors) : 0,
         houseImages: [],
       };
       const created = await createHouse(payload);
@@ -140,6 +141,18 @@ export default function CreateHousePage({ onBack, onSubmit }) {
                 className={`${inp} ${errors.name ? "border-red-400" : ""}`}
               />
               {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
+            </div>
+
+            <div>
+              <label className={lbl}>Số tầng</label>
+              <input
+                type="number"
+                min={1}
+                value={form.numberOfFloors}
+                onChange={(e) => setField("numberOfFloors", e.target.value)}
+                placeholder="VD: 3"
+                className={inp}
+              />
             </div>
 
             <div>

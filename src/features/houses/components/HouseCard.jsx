@@ -1,6 +1,6 @@
 import { Bath, Bed, Heart, MapPin, Maximize2, Pencil } from "lucide-react";
 import { AREA_TYPE_CONFIG } from "./HouseDetailModal";
-import ImageCarousel from "@/components/shared/ImageCarousel";
+import ImageCarousel from "../../../components/shared/ImageCarousel";
 
 const STATUS_CONFIG = {
   AVAILABLE: { label: "CHƯA CÓ KHÁCH THUÊ", bg: "bg-emerald-500" },
