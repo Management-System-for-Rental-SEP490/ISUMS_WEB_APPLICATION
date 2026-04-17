@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { getDashboardStats } from "../api/dashboard.api";
 import { getAllContracts } from "../../contracts/api/contracts.api";
 import { mapContractFromApi } from "../../contracts/utils/mapContractFromApi";
-import { getAllHouses } from "../../houses/api/houses.api";
+import { getAllUsers } from "../../tenants/api/users.api";
 
 const DEFAULT_PROPERTY_STATS = { total: 0, rented: 0, available: 0, expiringSoon: 0 };
 
@@ -25,7 +25,8 @@ export function useDashboardStats(period = "6M") {
   const [contractTimeSeries, setContractTimeSeries]     = useState([]);
   const [contractStatusBreakdown, setContractStatusBreakdown] = useState([]);
   const [recentContracts, setRecentContracts]           = useState([]);
-  const [houses, setHouses]                             = useState([]);
+  const [totalContracts, setTotalContracts]             = useState(0);
+  const [totalUsers, setTotalUsers]                     = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
 
@@ -33,10 +34,10 @@ export function useDashboardStats(period = "6M") {
     setLoading(true);
     setError(null);
     try {
-      const [dashResult, contractsResult, housesResult] = await Promise.allSettled([
+      const [dashResult, contractsResult, usersResult] = await Promise.allSettled([
         getDashboardStats(period),
         getAllContracts({ page: 1, size: 5, sorts: "createdAt:DESC" }),
-        getAllHouses({ page: 1, size: 200 }),
+        getAllUsers(),
       ]);
 
       if (dashResult.status === "fulfilled") {
@@ -51,11 +52,16 @@ export function useDashboardStats(period = "6M") {
       if (contractsResult.status === "fulfilled") {
         const raw = contractsResult.value;
         setRecentContracts(toArray(raw).map(mapContractFromApi).filter(Boolean));
+        const total = raw?.total ?? raw?.totalElements ?? toArray(raw).length;
+        setTotalContracts(typeof total === "number" ? total : 0);
       }
 
-      if (housesResult.status === "fulfilled") {
-        setHouses(toArray(housesResult.value));
+      if (usersResult.status === "fulfilled") {
+        const raw = usersResult.value;
+        const arr = Array.isArray(raw) ? raw : (Array.isArray(raw?.data) ? raw.data : []);
+        setTotalUsers(raw?.total ?? raw?.totalElements ?? arr.length ?? 0);
       }
+
     } finally {
       setLoading(false);
     }
@@ -63,5 +69,5 @@ export function useDashboardStats(period = "6M") {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  return { propertyStats, contractTimeSeries, contractStatusBreakdown, recentContracts, houses, loading, error, refetch: fetchAll };
+  return { propertyStats, contractTimeSeries, contractStatusBreakdown, recentContracts, totalContracts, totalUsers, loading, error, refetch: fetchAll };
 }

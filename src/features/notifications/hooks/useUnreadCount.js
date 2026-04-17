@@ -3,20 +3,20 @@ import keycloak from "../../../keycloak";
 import { getManagerUnreadCount } from "../api/notifications.api";
 import { NOTIFICATIONS_ENDPOINTS } from "../../../lib/api-endpoints";
 
-const BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_BASE_URL || "";
-
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_BASE_URL || "";
 const RECONNECT_DELAY_MS = 3000;
 
 /**
- * Hook nhẹ chỉ quản lý unread count + lắng nghe SSE event.
- * Dùng trong Header để hiển thị badge bell icon.
+ * Hook quản lý unread count + danh sách live notification qua SSE.
+ * connStatus: "connecting" | "connected" | "reconnecting" | "disconnected" | "error"
  */
 export function useUnreadCount() {
-  const [unreadCount, setUnreadCount] = useState(0);
-  const abortControllerRef = useRef(null);
-  const reconnectTimerRef = useRef(null);
-  const isMountedRef = useRef(true);
+  const [unreadCount, setUnreadCount]   = useState(0);
+  const [liveNotifs, setLiveNotifs]     = useState([]);
+  const [connStatus, setConnStatus]     = useState("connecting");
+  const abortControllerRef              = useRef(null);
+  const reconnectTimerRef               = useRef(null);
+  const isMountedRef                    = useRef(true);
 
   const fetchCount = useCallback(async () => {
     try {
@@ -25,25 +25,28 @@ export function useUnreadCount() {
         setUnreadCount(typeof count === "number" ? count : (count?.data ?? 0));
       }
     } catch {
-      // Silent — badge sẽ giữ giá trị cũ
+      // Silent — badge giữ nguyên giá trị cũ
     }
   }, []);
 
-  const connectSSE = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
+  const prependNotif = useCallback((data) => {
+    if (!data?.id) return;
+    setLiveNotifs((prev) => {
+      if (prev.some((n) => n.id === data.id)) return prev; // dedupe
+      return [data, ...prev].slice(0, 20);
+    });
+  }, []);
 
+  const connectSSE = useCallback(() => {
+    if (abortControllerRef.current) abortControllerRef.current.abort();
     const controller = new AbortController();
     abortControllerRef.current = controller;
-
     const url = `${BASE_URL}${NOTIFICATIONS_ENDPOINTS.MANAGER_STREAM}`;
 
     const run = async () => {
+      if (isMountedRef.current) setConnStatus("connecting");
       try {
-        if (keycloak?.authenticated) {
-          await keycloak.updateToken(30);
-        }
+        if (keycloak?.authenticated) await keycloak.updateToken(30);
         const token = keycloak?.token;
 
         const response = await fetch(url, {
@@ -59,6 +62,11 @@ export function useUnreadCount() {
           const err = new Error(`SSE HTTP ${response.status}`);
           err.httpStatus = response.status;
           throw err;
+        }
+
+        if (isMountedRef.current) {
+          setConnStatus("connected");
+          console.log("[SSE] Kết nối thành công:", url);
         }
 
         const reader = response.body.getReader();
@@ -79,11 +87,8 @@ export function useUnreadCount() {
             let dataStr = "";
 
             for (const line of lines) {
-              if (line.startsWith("event:")) {
-                eventType = line.slice(6).trim();
-              } else if (line.startsWith("data:")) {
-                dataStr += line.slice(5).trim();
-              }
+              if (line.startsWith("event:"))      eventType = line.slice(6).trim();
+              else if (line.startsWith("data:")) dataStr  += line.slice(5).trim();
             }
 
             if (!dataStr) continue;
@@ -92,13 +97,10 @@ export function useUnreadCount() {
               if (!isMountedRef.current) return;
 
               if (eventType === "notification" || eventType === "message") {
-                if (!data.read) {
-                  setUnreadCount((prev) => prev + 1);
-                }
-              } else if (eventType === "unread-count") {
-                setUnreadCount(
-                  typeof data === "number" ? data : (data?.count ?? data)
-                );
+                prependNotif(data);
+                if (!data.read) setUnreadCount((prev) => prev + 1);
+              } else if (eventType === "unread_count" || eventType === "unread-count") {
+                setUnreadCount(typeof data === "number" ? data : (data?.count ?? 0));
               }
             } catch {
               // heartbeat / non-JSON — ignore
@@ -109,32 +111,35 @@ export function useUnreadCount() {
         if (err.name === "AbortError") return;
         if (!isMountedRef.current) return;
 
-        // Không retry khi 4xx — endpoint chưa tồn tại trên server
         const status = err.httpStatus;
         if (status && status >= 400 && status < 500) {
-          console.warn(`[SSE] Endpoint trả về ${status} — dừng retry. Backend chưa implement SSE.`);
+          console.warn(`[SSE] Endpoint trả về ${status} — dừng retry.`);
+          setConnStatus("error");
           return;
         }
 
-        console.warn("[SSE] Kết nối bị đứt, thử lại sau 3s...", err.message);
+        setConnStatus("reconnecting");
         reconnectTimerRef.current = setTimeout(() => {
-          if (isMountedRef.current) connectSSE();
+          if (isMountedRef.current) {
+            fetchCount(); // sync count sau khi reconnect
+            connectSSE();
+          }
         }, RECONNECT_DELAY_MS);
       }
     };
 
     run();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [prependNotif, fetchCount]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     isMountedRef.current = true;
     fetchCount();
     connectSSE();
-
     return () => {
       isMountedRef.current = false;
       abortControllerRef.current?.abort();
       clearTimeout(reconnectTimerRef.current);
+      setConnStatus("disconnected");
     };
   }, [fetchCount, connectSSE]);
 
@@ -144,5 +149,5 @@ export function useUnreadCount() {
 
   const resetCount = useCallback(() => setUnreadCount(0), []);
 
-  return { unreadCount, decrementCount, resetCount };
+  return { unreadCount, decrementCount, resetCount, liveNotifs, connStatus };
 }

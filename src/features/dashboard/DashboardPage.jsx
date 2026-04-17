@@ -1,10 +1,9 @@
 import { useState } from "react";
 import {
   Building2, Home, CalendarClock, AlertCircle,
-  CheckCircle2, FileText, Clock, ArrowUpRight,
+  CheckCircle2, FileText, Clock, ArrowUpRight, Users,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import DashboardMap from "./components/DashboardMap";
 import HouseStatusDonut from "./components/HouseStatusDonut";
 import ContractsByMonthLine from "./components/ContractsByMonthLine";
 import ContractStatusBar from "./components/ContractStatusBar";
@@ -126,7 +125,7 @@ function ContractRow({ contract }) {
 // ── Main Page ────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const [period, setPeriod] = useState("6M");
-  const { propertyStats, contractTimeSeries, contractStatusBreakdown, houses, recentContracts, loading, error } = useDashboardStats(period);
+  const { propertyStats, contractTimeSeries, contractStatusBreakdown, recentContracts, totalContracts, totalUsers, loading, error } = useDashboardStats(period);
   const navigate = useNavigate();
 
   const today = new Date().toLocaleDateString("vi-VN", {
@@ -134,10 +133,10 @@ export default function DashboardPage() {
   });
 
   const kpiCards = [
-    { key: "total",        title: "Tổng bất động sản", value: propertyStats.total,        subtitle: "Trong hệ thống",    icon: Building2,    color: "teal"  },
-    { key: "rented",       title: "Đang cho thuê",      value: propertyStats.rented,       subtitle: "Đang có hợp đồng",  icon: Home,         color: "blue"  },
-    { key: "available",    title: "Còn trống",           value: propertyStats.available,    subtitle: "Sẵn sàng cho thuê", icon: Home,         color: "amber" },
-    { key: "expiringSoon", title: "Sắp hết hạn",         value: propertyStats.expiringSoon, subtitle: "Trong 30 ngày tới", icon: CalendarClock,color: "red", isGood: true },
+    { key: "totalContracts", title: "Tổng hợp đồng",    value: totalContracts,             subtitle: "Trong hệ thống",    icon: FileText,     color: "teal"  },
+    { key: "totalHouses",    title: "Tổng số nhà",       value: propertyStats.total,        subtitle: "Bất động sản",      icon: Building2,    color: "blue"  },
+    { key: "totalUsers",     title: "Tổng người dùng",   value: totalUsers,                 subtitle: "Đã đăng ký",        icon: Users,        color: "amber" },
+    { key: "rented",         title: "Nhà đang cho thuê", value: propertyStats.rented,       subtitle: "Đang có hợp đồng",  icon: Home,         color: "red"   },
   ];
 
   return (
@@ -165,13 +164,13 @@ export default function DashboardPage() {
 
       {/* ── Row 1: 4 KPI — tổng quan BĐS ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
-        {kpiCards.map((s) => (
-          <KpiCard key={s.key} {...s} loading={loading} />
+        {kpiCards.map(({ key, ...s }) => (
+          <KpiCard key={key} {...s} loading={loading} />
         ))}
       </div>
 
       {/* ── Row 2: Tình trạng BĐS (donut 40%) + HĐ theo tháng (area 60%) ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-5" style={{ minHeight: 320 }}>
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-5" style={{ height: 380 }}>
         <div className="lg:col-span-2 flex flex-col">
           <HouseStatusDonut propertyStats={propertyStats} loading={loading} />
         </div>
@@ -188,14 +187,14 @@ export default function DashboardPage() {
       {/* ── Row 3: Phân loại HĐ (bar 50%) + Danh sách HĐ gần nhất (50%) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
         {/* Bar chart */}
-        <div className="flex flex-col" style={{ minHeight: 320 }}>
+        <div className="flex flex-col" style={{ height: 380 }}>
           <ContractStatusBar breakdown={contractStatusBreakdown} loading={loading} />
         </div>
 
         {/* Recent contracts */}
         <div
           className="rounded-2xl flex flex-col overflow-hidden"
-          style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0px 1px 3px 0px rgba(16,24,40,0.08)", minHeight: 320 }}
+          style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0px 1px 3px 0px rgba(16,24,40,0.08)", height: 380 }}
         >
           <div className="h-[3px] w-full flex-shrink-0" style={{ background: BRAND_GRADIENT }} />
           <div
@@ -257,9 +256,6 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
-
-      {/* ── Row 4: Bản đồ vị trí BĐS ── */}
-      <DashboardMap houses={houses} />
 
     </div>
   );

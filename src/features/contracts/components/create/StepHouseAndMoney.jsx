@@ -6,6 +6,12 @@ import { getHouseById } from "../../../houses/api/houses.api";
 import ImageCarousel from "../../../../components/shared/ImageCarousel";
 import { AREA_TYPE_CONFIG } from "../../../houses/components/HouseDetailModal";
 
+function formatMoney(val) {
+  if (val === "" || val == null) return "";
+  const digits = String(val).replace(/\D/g, "");
+  return digits ? Number(digits).toLocaleString("en-US") : "";
+}
+
 const labelClass = "block text-sm font-medium text-slate-700 mb-1.5";
 const inputClass =
   "w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/60 focus:border-teal-400 transition placeholder:text-slate-400";
@@ -19,6 +25,11 @@ const HOUSE_STATUS = {
 export default function StepHouseAndMoney({ form, update, houses, errors = {} }) {
   const [houseDetail, setHouseDetail] = useState(null);
   const [loadingHouse, setLoadingHouse] = useState(false);
+
+  const handleMoneyChange = (field) => (e) => {
+    const digits = e.target.value.replace(/\D/g, "");
+    update(field)({ target: { value: digits ? Number(digits) : "" } });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -180,7 +191,7 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
             <div>
               <label className={labelClass}>Tiền thuê (VNĐ) *</label>
               <div className="relative">
-                <input inputMode="numeric" value={form.rentAmount ?? ""} onChange={update("rentAmount")}
+                <input inputMode="numeric" value={formatMoney(form.rentAmount)} onChange={handleMoneyChange("rentAmount")}
                   placeholder="7,000,000"
                   className={`${inputClass} pr-14 ${errors.rentAmount ? "border-red-400 focus:ring-red-400" : ""}`} />
                 <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-400">VNĐ</span>
@@ -191,7 +202,7 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
             <div>
               <label className={labelClass}>Tiền cọc (VNĐ)</label>
               <div className="relative">
-                <input inputMode="numeric" value={form.depositAmount ?? ""} onChange={update("depositAmount")}
+                <input inputMode="numeric" value={formatMoney(form.depositAmount)} onChange={handleMoneyChange("depositAmount")}
                   placeholder="14,000,000"
                   className={`${inputClass} pr-14 ${errors.depositAmount ? "border-red-400 focus:ring-red-400" : ""}`} />
                 <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-400">VNĐ</span>
