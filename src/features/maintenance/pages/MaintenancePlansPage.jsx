@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ClipboardList, Plus, RefreshCw, Sparkles, Wrench } from "lucide-react";
+import { ClipboardList, Plus, RefreshCw, Wrench } from "lucide-react";
 import MaintenancePlanList from "../components/MaintenancePlanList";
 import CreatePlanDrawer from "../components/CreatePlanDrawer";
 import PlanJobsDrawer from "../components/PlanJobsDrawer";
@@ -90,13 +90,7 @@ export default function MaintenancePlansPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,181,130,0.12)" }}>
-              <Sparkles className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
-            </div>
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Bảo trì</span>
-          </div>
-          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Kế hoạch bảo trì</h2>
+<h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Kế hoạch bảo trì</h2>
         </div>
         <div className="flex items-center gap-2 mt-1">
           <button

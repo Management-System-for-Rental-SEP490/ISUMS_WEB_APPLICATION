@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Search, Download, RefreshCw, MessageCircle,
-  CheckCircle2, Eye, Send, Home, Clock, AlertCircle, Sparkles,
+  CheckCircle2, Eye, Send, Home, Clock, AlertCircle,
 } from "lucide-react";
 import { Pagination } from "antd";
 import dayjs from "dayjs";
@@ -156,13 +156,7 @@ export default function IssueRequestsPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,181,130,0.12)" }}>
-              <Sparkles className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
-            </div>
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Yêu cầu</span>
-          </div>
-          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Danh sách thắc mắc</h2>
+<h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Danh sách thắc mắc</h2>
         </div>
         <div className="flex items-center gap-2 mt-1">
           <button

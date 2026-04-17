@@ -143,12 +143,17 @@ export default function NotificationDropdown() {
               {notif.body}
             </p>
           )}
-          <p
-            className="text-[11px] mt-1.5 font-medium"
-            style={{ color: accent }}
-          >
-            Vừa xong
-          </p>
+          <div className="flex items-center justify-between mt-1.5">
+            <p className="text-[11px] font-medium" style={{ color: accent }}>
+              Vừa xong
+            </p>
+            <span
+              className="text-[11px] font-semibold flex items-center gap-0.5"
+              style={{ color: accent }}
+            >
+              Xem chi tiết →
+            </span>
+          </div>
         </div>
       </div>,
       {
@@ -156,7 +161,10 @@ export default function NotificationDropdown() {
         autoClose: 6000,
         className:
           "!rounded-2xl !shadow-lg !border !border-gray-100 !bg-white !p-4",
-        progressStyle: { background: accent, height: 2 },
+        progressStyle: {
+          background: "linear-gradient(90deg, #3bb582 0%, #2096d8 100%)",
+          height: 3,
+        },
       },
     );
   }, [liveNotifs, navigate]);
