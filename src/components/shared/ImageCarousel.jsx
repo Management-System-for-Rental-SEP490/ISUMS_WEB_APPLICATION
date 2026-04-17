@@ -26,14 +26,22 @@ const ImageCarousel = ({ images = [], alt = "image", height = "h-56", showThumbn
         >
           {images.map((img) => (
             <div key={img.id}>
-              <div className={`${height} bg-gray-100 overflow-hidden`}>
-                <Image
-                  src={img.url}
-                  alt={alt}
-                  className="!w-full !h-full object-cover"
-                  preview={preview ? { mask: "Xem ảnh" } : false}
-                  wrapperClassName="!w-full !h-full"
-                />
+              <div className={`${height} bg-gray-100 overflow-hidden relative`}>
+                {preview ? (
+                  <Image
+                    src={img.url}
+                    alt={alt}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    wrapperStyle={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+                    preview={{ mask: "Xem ảnh" }}
+                  />
+                ) : (
+                  <img
+                    src={img.url}
+                    alt={alt}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                )}
               </div>
             </div>
           ))}
