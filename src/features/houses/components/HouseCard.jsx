@@ -1,5 +1,6 @@
 import { Bath, Bed, Heart, MapPin, Maximize2, Pencil } from "lucide-react";
 import { AREA_TYPE_CONFIG } from "./HouseDetailModal";
+import ImageCarousel from "@/components/shared/ImageCarousel";
 
 const STATUS_CONFIG = {
   AVAILABLE: { label: "CHƯA CÓ KHÁCH THUÊ", bg: "bg-emerald-500" },
@@ -44,35 +45,8 @@ export default function HouseCard({ house, onView, onEdit }) {
   return (
     <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-200 border border-slate-100 group flex flex-col">
       {/* Image */}
-      <div className="relative aspect-[4/3] overflow-hidden flex-shrink-0">
-        {house?.imageUrl ? (
-          <img
-            src={house.imageUrl}
-            alt={name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-teal-50 to-cyan-100">
-            <svg
-              className="w-16 h-16 text-teal-200"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 21V12h6v9"
-              />
-            </svg>
-          </div>
-        )}
+      <div className="relative h-52 overflow-hidden flex-shrink-0">
+        <ImageCarousel images={house?.images ?? []} alt={name} height="h-52" showThumbnails={false} />
 
         {/* Status badge */}
         <span
