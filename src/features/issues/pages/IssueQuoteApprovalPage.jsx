@@ -9,7 +9,6 @@ import {
   Home,
   X,
   Info,
-  Sparkles,
   ImageIcon,
   ChevronLeft,
   ChevronRight,
@@ -506,13 +505,7 @@ export default function IssueQuoteApprovalPage() {
     <div className="space-y-5">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,181,130,0.12)" }}>
-            <Sparkles className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
-          </div>
-          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Phê duyệt</span>
-        </div>
-        <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Xác nhận báo giá</h2>
+<h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Xác nhận báo giá</h2>
       </div>
 
       {error && (

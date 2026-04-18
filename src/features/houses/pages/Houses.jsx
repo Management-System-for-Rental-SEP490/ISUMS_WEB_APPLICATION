@@ -8,7 +8,6 @@ import {
   List,
   Plus,
   Search,
-  Sparkles,
 } from "lucide-react";
 import { useHouses } from "../hooks/useHouses";
 import HouseCard from "../components/HouseCard";
@@ -117,15 +116,7 @@ export default function Houses() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,181,130,0.12)" }}>
-              <Sparkles className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
-            </div>
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>
-              Bất động sản
-            </span>
-          </div>
-          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>
+<h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>
             Quản lý Bất động sản
           </h2>
         </div>

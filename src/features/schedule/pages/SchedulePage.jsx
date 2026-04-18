@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Download, Plus, RefreshCw, Sparkles } from "lucide-react";
+import { Download, Plus, RefreshCw } from "lucide-react";
 import { AVATARS } from "../constants";
 import { getWeekDays, localDateStr } from "../utils/dateHelpers";
 import { useWorkSchedule, useMonthSchedule } from "../hooks/useSchedule";
@@ -69,13 +69,7 @@ export default function SchedulePage() {
     <div className="space-y-5">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,181,130,0.12)" }}>
-            <Sparkles className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
-          </div>
-          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Lịch làm việc</span>
-        </div>
-        <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>
+<h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>
           Lịch làm việc chi tiết
         </h2>
       </div>

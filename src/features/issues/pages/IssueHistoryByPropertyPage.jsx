@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Sparkles } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { ISSUE_STATUS_CONFIG, ISSUE_TYPE_CONFIG } from "../constants/issue.constants";
 
 const propertiesWithIssues = [];
@@ -18,13 +18,7 @@ export default function IssueHistoryByPropertyPage() {
     <div className="space-y-5">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,181,130,0.12)" }}>
-            <Sparkles className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
-          </div>
-          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Lịch sử</span>
-        </div>
-        <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Lịch sử theo BĐS</h2>
+<h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Lịch sử theo BĐS</h2>
       </div>
 
       {/* Summary cards */}
