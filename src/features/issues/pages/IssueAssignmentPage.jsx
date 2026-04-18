@@ -33,7 +33,7 @@ export default function IssueAssignmentPage() {
     setError(null);
     try {
       const data = await getAllIssues({ type: "REPAIR", status: "WAITING_MANAGER_CONFIRM" });
-      const list = Array.isArray(data) ? data : [];
+      const list = Array.isArray(data) ? data : (Array.isArray(data?.items) ? data.items : []);
       setIssues(list);
       if (list.length > 0) setSelected(list[0]);
       const ids = [...new Set(list.map((i) => i.houseId).filter(Boolean))];
@@ -54,12 +54,14 @@ export default function IssueAssignmentPage() {
     setSelected(issue);
     setSelectedDetail(null);
     setStaffDetail(null);
-    setImages([]);
+    setImages(Array.isArray(issue.images) ? issue.images : []);
     setDetailLoading(true);
     try {
       const detail = await getIssueById(issue.id);
       setSelectedDetail(detail);
-      setImages(Array.isArray(detail?.images) ? detail.images : []);
+      if (Array.isArray(detail?.images) && detail.images.length > 0) {
+        setImages(detail.images);
+      }
       if (detail?.houseId && !houseNames[detail.houseId]) {
         getHouseById(detail.houseId)
           .then((h) => setHouseNames((prev) => ({ ...prev, [detail.houseId]: h?.name ?? h?.houseName ?? "—" })))

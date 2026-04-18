@@ -95,38 +95,46 @@ export default function IssueDetailPanel({ detail, houseNames, staffDetail, imag
           <div>
             <SectionLabel>Kỹ thuật viên phụ trách</SectionLabel>
             {detail.assignedStaffId ? (
-              !staffDetail ? (
-                <div className="rounded-xl p-4 flex items-center gap-3 animate-pulse" style={{ background: "#ffffff", border: `1px solid ${B.border}` }}>
-                  <div className="w-11 h-11 rounded-full flex-shrink-0" style={{ background: B.muted }} />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-3 rounded w-2/3" style={{ background: B.muted }} />
-                    <div className="h-3 rounded w-1/2" style={{ background: B.muted }} />
-                  </div>
-                </div>
-              ) : (
-                <div className="rounded-xl p-4 flex items-start gap-3" style={{ background: "#ffffff", border: `1px solid ${B.border}` }}>
-                  <Avatar name={staffDetail?.name ?? detail.staffName} />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold" style={{ color: B.fg }}>{staffDetail?.name ?? detail.staffName ?? "Nhân viên"}</p>
-                    {staffDetail?.phoneNumber && (
-                      <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: B.mutedFg }}>
-                        <Phone className="w-3 h-3" />{staffDetail.phoneNumber}
-                      </p>
+              (() => {
+                const name  = staffDetail?.name ?? detail.staffName;
+                const phone = staffDetail?.phoneNumber ?? detail.staffPhone;
+                const email = staffDetail?.email;
+                if (!name && !staffDetail) {
+                  return (
+                    <div className="rounded-xl p-4 flex items-center gap-3 animate-pulse" style={{ background: "#ffffff", border: `1px solid ${B.border}` }}>
+                      <div className="w-11 h-11 rounded-full flex-shrink-0" style={{ background: B.muted }} />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3 rounded w-2/3" style={{ background: B.muted }} />
+                        <div className="h-3 rounded w-1/2" style={{ background: B.muted }} />
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <div className="rounded-xl p-4 flex items-start gap-3" style={{ background: "#ffffff", border: `1px solid ${B.border}` }}>
+                    <Avatar name={name} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold" style={{ color: B.fg }}>{name ?? "Nhân viên"}</p>
+                      {phone && (
+                        <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: B.mutedFg }}>
+                          <Phone className="w-3 h-3" />{phone}
+                        </p>
+                      )}
+                      {email && <p className="text-xs mt-0.5 truncate" style={{ color: B.mutedFg }}>{email}</p>}
+                      <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full mt-1.5" style={{ background: B.blueMuted, color: B.blue }}>Nhân viên kỹ thuật</span>
+                    </div>
+                    {phone && (
+                      <a
+                        href={`tel:${phone}`}
+                        className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-white text-xs font-semibold"
+                        style={{ background: B.gradient }}
+                      >
+                        <Phone className="w-3.5 h-3.5" />Gọi
+                      </a>
                     )}
-                    {staffDetail?.email && <p className="text-xs mt-0.5 truncate" style={{ color: B.mutedFg }}>{staffDetail.email}</p>}
-                    <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full mt-1.5" style={{ background: B.blueMuted, color: B.blue }}>Nhân viên kỹ thuật</span>
                   </div>
-                  {(staffDetail?.phoneNumber ?? detail.staffPhone) && (
-                    <a
-                      href={`tel:${staffDetail?.phoneNumber ?? detail.staffPhone}`}
-                      className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-white text-xs font-semibold"
-                      style={{ background: B.gradient }}
-                    >
-                      <Phone className="w-3.5 h-3.5" />Gọi
-                    </a>
-                  )}
-                </div>
-              )
+                );
+              })()
             ) : (
               <div className="rounded-xl p-4 flex items-center gap-3" style={{ background: "rgba(217,95,75,0.06)", border: "1px solid rgba(217,95,75,0.2)" }}>
                 <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(217,95,75,0.10)" }}>
@@ -140,29 +148,21 @@ export default function IssueDetailPanel({ detail, houseNames, staffDetail, imag
             )}
 
             {/* Images */}
-            {(imagesLoading || images.length > 0) && (
+            {images.length > 0 && (
               <div className="mt-4">
                 <SectionLabel>
                   <span className="flex items-center gap-1.5">
                     <ImageIcon className="w-3 h-3" />Ảnh đính kèm
-                    {images.length > 0 && (
-                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: B.muted, color: B.mutedFg }}>{images.length}</span>
-                    )}
+                    <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: B.muted, color: B.mutedFg }}>{images.length}</span>
                   </span>
                 </SectionLabel>
-                {imagesLoading ? (
-                  <div className="grid grid-cols-4 gap-2">
-                    {[1, 2, 3, 4].map((i) => <div key={i} className="aspect-square rounded-xl animate-pulse" style={{ background: B.muted }} />)}
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-4 gap-2">
-                    {images.map((img, idx) => (
-                      <button key={img.id} onClick={() => onOpenLightbox(idx)} className="block aspect-square rounded-xl overflow-hidden transition hover:scale-[1.03]" style={{ border: `1px solid ${B.border}` }}>
-                        <img src={img.url} alt="" className="w-full h-full object-cover" />
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <div className="grid grid-cols-4 gap-2">
+                  {images.map((img, idx) => (
+                    <button key={img.id ?? idx} onClick={() => onOpenLightbox(idx)} className="block aspect-square rounded-xl overflow-hidden transition hover:scale-[1.03]" style={{ border: `1px solid ${B.border}` }}>
+                      <img src={img.url} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </div>

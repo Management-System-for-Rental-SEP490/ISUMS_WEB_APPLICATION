@@ -13,14 +13,31 @@ import keycloak from "../../keycloak";
 
 const ROLE_LABELS = { LANDLORD: "Chủ nhà", MANAGER: "Quản lý" };
 
+function resolvePathPattern(pathPattern, matchedPattern, pathname) {
+  const patternParts = matchedPattern.split("/");
+  const pathParts = pathname.split("/");
+  const params = {};
+  patternParts.forEach((part, i) => {
+    if (part.startsWith(":")) params[part.slice(1)] = pathParts[i];
+  });
+  return pathPattern.replace(/:([^/]+)/g, (_, key) => params[key] ?? "");
+}
+
 function getRoleLabel(roles = []) {
   for (const role of roles) if (ROLE_LABELS[role]) return ROLE_LABELS[role];
   return roles[0] ?? "Người dùng";
 }
 
+const BREADCRUMB_PARENTS = {
+  "/houses/:id":                   [{ label: "Quản lý bất động sản", path: "/houses" }],
+  "/houses/:id/floors/:floorNo":   [{ label: "Quản lý bất động sản", path: "/houses" }, { label: "Chi tiết bất động sản", path: "/houses/:id" }],
+  "/maintenance/inspections/:id":  [{ label: "Kết quả bàn giao", path: "/maintenance/inspections" }],
+};
+
 const PATHNAME_TITLES = {
   "/dashboard": "Dashboard",
-  "/houses": "Bất động sản",
+  "/houses": "Quản lý bất động sản",
+  "/houses/:id": "Chi tiết bất động sản",
   "/utilities": "Tiện ích",
   "/users": "Khách Thuê",
   "/staff": "Nhân Viên",
@@ -31,6 +48,7 @@ const PATHNAME_TITLES = {
   "/maintenance/jobs": "Công Việc Bảo Trì",
   "/maintenance/inspections": "Kết quả bàn giao",
   "/maintenance/inspections/:id": "Chi tiết kiểm tra",
+  "/houses/:id/floors/:floorNo": "Chi tiết tầng",
   "/issues": "Danh Sách Yêu Cầu",
   "/issues/assignment": "Phân Công Xử Lý",
   "/issues/quotes": "Xác Nhận Báo Giá",
@@ -56,16 +74,27 @@ export default function DashboardLayout() {
 
   const isOnDashboard = location.pathname === "/dashboard";
 
+  const matchedPattern = Object.keys(PATHNAME_TITLES).find(
+    (pattern) =>
+      pattern.includes(":") &&
+      new RegExp("^" + pattern.replace(/:[^/]+/g, "[^/]+") + "$").test(
+        location.pathname,
+      ),
+  );
+
   const currentTitle =
     PATHNAME_TITLES[location.pathname] ??
-    Object.entries(PATHNAME_TITLES).find(
-      ([pattern]) =>
-        pattern.includes(":") &&
-        new RegExp("^" + pattern.replace(/:[^/]+/g, "[^/]+") + "$").test(
-          location.pathname,
-        ),
-    )?.[1] ??
+    (matchedPattern ? PATHNAME_TITLES[matchedPattern] : null) ??
     "Dashboard";
+
+  const parentCrumbs = matchedPattern
+    ? (BREADCRUMB_PARENTS[matchedPattern] ?? []).map((crumb) => ({
+        ...crumb,
+        path: crumb.path.includes(":")
+          ? resolvePathPattern(crumb.path, matchedPattern, location.pathname)
+          : crumb.path,
+      }))
+    : [];
 
   return (
     <div
@@ -388,6 +417,17 @@ export default function DashboardLayout() {
                 },
                 ...(!isOnDashboard
                   ? [
+                      ...parentCrumbs.map((crumb) => ({
+                        title: (
+                          <span
+                            className="cursor-pointer transition"
+                            style={{ color: "#5A7A6E" }}
+                            onClick={() => navigate(crumb.path)}
+                          >
+                            {crumb.label}
+                          </span>
+                        ),
+                      })),
                       {
                         title: (
                           <span style={{ color: "#1E2D28", fontWeight: 600 }}>

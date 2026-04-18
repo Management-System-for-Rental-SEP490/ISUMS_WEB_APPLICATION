@@ -56,6 +56,7 @@ export default function AddressPicker({
   value,
   onChange,
   onPartsChange,
+  onWardChange,
   error,
   label = "Địa chỉ thường trú",
   showMap = false,
@@ -82,25 +83,35 @@ export default function AddressPicker({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
 
-  const emit = (s, ward, province) => {
+  // Sync combined address string (for validation / parent display)
+  const emitAddress = (s, ward, province) => {
     const parts = [s.trim(), ward?.name, province?.name].filter(Boolean);
     onChangeRef.current?.({ target: { value: parts.join(", ") } });
-    onPartsRef.current?.({ street: s.trim(), ward: ward?.name ?? "", city: province?.name ?? "" });
   };
+
+  // Always keep addrParts in sync with local state — avoids stale closure bugs
+  useEffect(() => {
+    onPartsRef.current?.({
+      street: street.trim(),
+      ward: selectedWard?.name ?? "",
+      city: selectedProvince?.name ?? "",
+    });
+  }, [street, selectedWard, selectedProvince]);
 
   const handleProvinceChange = (val) => {
     const found = selectProvince(val);
-    emit(street, null, found);
+    emitAddress(street, null, found);
   };
 
   const handleWardChange = (val) => {
     const found = selectWard(val);
-    emit(street, found, selectedProvince);
+    emitAddress(street, found, selectedProvince);
+    onWardChange?.(found?.name ?? "");
   };
 
   const handleStreetChange = (e) => {
     setStreet(e.target.value);
-    emit(e.target.value, selectedWard, selectedProvince);
+    emitAddress(e.target.value, selectedWard, selectedProvince);
   };
 
   const preview = [street.trim(), selectedWard?.name, selectedProvince?.name].filter(Boolean).join(", ");

@@ -147,6 +147,84 @@ export async function createFunctionalArea(payload) {
 }
 
 /**
+ * Get assets by functional area
+ * @param {string} houseId
+ * @param {string} areaId
+ * @returns {Promise<Array>}
+ */
+export async function getAssetsByFunctionArea(houseId, areaId) {
+  try {
+    const response = await api.get(ASSET_ENDPOINTS.BY_FUNCTION_AREA(houseId, areaId));
+    const data = extractResponseData(response);
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Get house activity history
+ * @param {string} houseId
+ * @returns {Promise<Array>}
+ */
+export async function getHouseHistory(houseId) {
+  try {
+    const response = await api.get(HOUSES_ENDPOINTS.HISTORY(houseId));
+    const data = extractResponseData(response);
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Get asset categories
+ * @returns {Promise<Array>}
+ */
+export async function getAssetCategories() {
+  try {
+    const response = await api.get(ASSET_ENDPOINTS.CATEGORY);
+    const data = extractResponseData(response);
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Create a new asset item
+ * @param {Object} payload
+ * @returns {Promise<Object>}
+ */
+export async function createAsset(payload) {
+  try {
+    const response = await api.post(ASSET_ENDPOINTS.CREATE_ITEM, payload);
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Upload images for an asset
+ * @param {string} assetId
+ * @param {File[]} files
+ * @returns {Promise<Object>}
+ */
+export async function uploadAssetImages(assetId, files) {
+  try {
+    const formData = new FormData();
+    files.forEach((file) => formData.append("files", file));
+    const response = await api.post(ASSET_ENDPOINTS.ITEM_IMAGES(assetId), formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
  * Get single asset detail by ID
  * @param {string} assetId
  * @returns {Promise<Object>}

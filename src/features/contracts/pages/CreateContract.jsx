@@ -42,6 +42,7 @@ const getInitialForm = (todayISO) => ({
   structure: "",
   ownershipDocs: "",
   taxFeeNote: "",
+  hasPowerCutClause: false,
 });
 
 export default function CreateContract({ onCancel, onCreated }) {

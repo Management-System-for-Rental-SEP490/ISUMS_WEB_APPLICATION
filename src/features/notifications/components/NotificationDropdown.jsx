@@ -210,8 +210,13 @@ export default function NotificationDropdown() {
   const handleItemClick = useCallback(
     (notif) => {
       setIsOpen(false);
-      markNotificationRead(notif.id).catch(() => {});
-      if (!notif.read) decrementCount();
+      if (!notif.read) {
+        markNotificationRead(notif.id).catch(() => {});
+        decrementCount();
+        setFetched((prev) =>
+          prev.map((n) => (n.id === notif.id ? { ...n, read: true } : n)),
+        );
+      }
       navigate(notif.actionUrl ?? "/notifications");
     },
     [navigate, decrementCount],

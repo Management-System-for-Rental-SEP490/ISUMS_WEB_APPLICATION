@@ -7,6 +7,7 @@ import {
   LayoutGrid,
   List,
   Plus,
+  RefreshCw,
   Search,
 } from "lucide-react";
 import { useHouses } from "../hooks/useHouses";
@@ -120,17 +121,30 @@ export default function Houses() {
             Quản lý Bất động sản
           </h2>
         </div>
-        <button
-          type="button"
-          className="flex items-center gap-2 px-4 py-2.5 text-white text-sm font-semibold rounded-full shadow-sm transition"
-          style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
-          onMouseEnter={e => e.currentTarget.style.opacity = "0.9"}
-          onMouseLeave={e => e.currentTarget.style.opacity = "1"}
-          onClick={() => setShowCreate(true)}
-        >
-          <Plus className="w-4 h-4" />
-          Thêm bất động sản
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold rounded-full transition"
+            style={{ border: "1px solid #C4DED5", color: "#5A7A6E", background: "#ffffff" }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.color = "#3bb582"; e.currentTarget.style.background = "rgba(59,181,130,0.06)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.color = "#5A7A6E"; e.currentTarget.style.background = "#ffffff"; }}
+          >
+            <RefreshCw className="w-4 h-4" />
+            Làm mới
+          </button>
+          <button
+            type="button"
+            className="flex items-center gap-2 px-4 py-2.5 text-white text-sm font-semibold rounded-full shadow-sm transition"
+            style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
+            onMouseEnter={e => e.currentTarget.style.opacity = "0.9"}
+            onMouseLeave={e => e.currentTarget.style.opacity = "1"}
+            onClick={() => setShowCreate(true)}
+          >
+            <Plus className="w-4 h-4" />
+            Thêm bất động sản
+          </button>
+        </div>
       </div>
 
       {/* Filter bar */}
@@ -258,16 +272,18 @@ export default function Houses() {
             </div>
           )}
 
-          <Pagination
-            current={page}
-            total={pagination.total}
-            pageSize={PAGE_SIZE}
-            onChange={(p) => {
-              setPage(p);
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-            showSizeChanger={false}
-          />
+          <div className="flex justify-end">
+            <Pagination
+              current={page}
+              total={pagination.total}
+              pageSize={PAGE_SIZE}
+              onChange={(p) => {
+                setPage(p);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              showSizeChanger={false}
+            />
+          </div>
         </>
       )}
 

@@ -13,6 +13,7 @@ export default function CreateHousePage({ onBack, onSubmit }) {
   const [form, setForm]           = useState({ name: "", description: "", numberOfFloors: "" });
   const [address, setAddress]     = useState("");
   const [addrParts, setAddrParts] = useState({ street: "", ward: "", city: "" });
+  const [wardName, setWardName]   = useState("");
   const [regionId, setRegionId]   = useState("");
   const [regions, setRegions]     = useState([]);
   const [regionsLoading, setRegionsLoading] = useState(true);
@@ -49,7 +50,7 @@ export default function CreateHousePage({ onBack, onSubmit }) {
         name:          form.name.trim(),
         address:       addrParts.street,
         regionId,
-        ward:          addrParts.ward,
+        ward:          wardName,
         commune:       "",
         city:          addrParts.city,
         description:   form.description,
@@ -195,6 +196,7 @@ export default function CreateHousePage({ onBack, onSubmit }) {
                 if (errors.address) setErrors((p) => ({ ...p, address: undefined }));
               }}
               onPartsChange={(parts) => setAddrParts(parts)}
+              onWardChange={(name) => setWardName(name)}
               error={errors.address}
               label="Địa chỉ bất động sản"
               showMap

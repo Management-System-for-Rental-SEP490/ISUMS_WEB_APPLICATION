@@ -1,9 +1,3 @@
-/**
- * API Endpoints Constants
- * Centralized endpoint definitions for the application
- */
-
-// Auth endpoints
 export const AUTH_ENDPOINTS = {
   GET: "users/{email}",
   ME: "/users/me",
@@ -19,6 +13,7 @@ export const HOUSES_ENDPOINTS = {
   IMAGES: (id) => `/houses/${id}/images`,
   REGIONS: "/houses/regions",
   FUNCTIONAL_AREAS: "/houses/functionalAreas",
+  HISTORY: (id) => `/houses/${id}/history`,
 };
 
 export const CONTRACTS_ENDPOINTS = {
@@ -33,6 +28,10 @@ export const CONTRACTS_ENDPOINTS = {
   CCCD_STATUS: (id) => `/econtracts/${id}/cccd-status`,
   GET_VNPT_DOCUMENT: (documentId) => `/econtracts/vnpt-document/${documentId}`,
   ADMIN_SIGN: "/econtracts/sign-admin",
+  CONFIRM_REFUND: (id) => `/econtracts/${id}/confirm-refund`,
+  CONFIRM_TERMINATION_OVERDUE: (id) =>
+    `/econtracts/${id}/confirm-termination-overdue`,
+  CONFIRM_POWER_CUT: (id) => `/econtracts/${id}/confirm-power-cut`,
 };
 
 // Users endpoints
@@ -120,10 +119,15 @@ export const ASSET_ENDPOINTS = {
   ASSET_BY_ID: (id) => `/assets/${id}`,
   ITEM_BY_ID: (id) => `/assets/items/${id}`,
   BY_HOUSE: (houseId) => `/assets/items/house/${houseId}`,
+  BY_FUNCTION_AREA: (houseId, areaId) => `/assets/items/house/${houseId}/function-area/${areaId}`,
   CREATE: "/assets",
   UPDATE: (id) => `/assets/${id}`,
   DELETE: (id) => `/assets/${id}`,
   ASSET_CHANGE_DETAIS: (jobId) => `/assets/items/job/${jobId}`,
+  CREATE_ITEM: "/assets/items",
+  ITEM_IMAGES: (id) => `/assets/items/${id}/images`,
+  CATEGORY: "/assets/categories",
+  CATEGORY_DETAIL: (id) => `/assets/categories/${id}`,
 };
 export const BANNER_ENDPOINTS = {
   BASE: "issues/banners",
