@@ -58,6 +58,7 @@ export const router = createBrowserRouter([
             children: [
               { path: "/dashboard", element: <DashboardPage /> },
               { path: "/houses", element: <Houses /> },
+              { path: "/houses/:id", element: <HouseDetailPage /> },
               { path: "/utilities", element: <Utilities /> },
               { path: "/users", element: <UsersPage /> },
               { path: "/staff", element: <StaffPage /> },
@@ -78,7 +79,6 @@ export const router = createBrowserRouter([
               { path: "/settings", element: <Settings /> },
             ],
           },
-          { path: "/houses/:id", element: <HouseDetailPage /> },
           { path: "/contracts/:id", element: <ContractDetailStandalone /> },
           { path: "/contracts/:id/edit", element: <ContractEditStandalone /> },
           { path: "/contracts/:id/sign", element: <AdminSignContract /> },

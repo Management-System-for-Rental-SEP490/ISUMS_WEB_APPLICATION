@@ -16,12 +16,12 @@ export function useHouseDetail(houseId) {
     setLoading(true);
     setError(null);
     try {
-      const [houseRes, assetsRes] = await Promise.all([
-        getHouseById(houseId),
-        getAssetsByHouse(houseId),
-      ]);
+      const houseRes = await getHouseById(houseId);
       setHouse(houseRes);
-      setAssets(assetsRes);
+      // Assets fetch is non-blocking — page still loads if this fails
+      getAssetsByHouse(houseId)
+        .then((res) => setAssets(Array.isArray(res) ? res : []))
+        .catch(() => setAssets([]));
     } catch (e) {
       setError(e.message ?? "Không thể tải dữ liệu.");
     } finally {

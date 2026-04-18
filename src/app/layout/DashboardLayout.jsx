@@ -18,9 +18,14 @@ function getRoleLabel(roles = []) {
   return roles[0] ?? "Người dùng";
 }
 
+const BREADCRUMB_PARENTS = {
+  "/houses/:id": { label: "Quản lý nhà", path: "/houses" },
+};
+
 const PATHNAME_TITLES = {
   "/dashboard": "Dashboard",
-  "/houses": "Bất động sản",
+  "/houses": "Quản lý bất động sản",
+  "/houses/:id": "Chi tiết bất động sản",
   "/utilities": "Tiện ích",
   "/users": "Khách Thuê",
   "/staff": "Nhân Viên",
@@ -56,16 +61,22 @@ export default function DashboardLayout() {
 
   const isOnDashboard = location.pathname === "/dashboard";
 
+  const matchedPattern = Object.keys(PATHNAME_TITLES).find(
+    (pattern) =>
+      pattern.includes(":") &&
+      new RegExp("^" + pattern.replace(/:[^/]+/g, "[^/]+") + "$").test(
+        location.pathname,
+      ),
+  );
+
   const currentTitle =
     PATHNAME_TITLES[location.pathname] ??
-    Object.entries(PATHNAME_TITLES).find(
-      ([pattern]) =>
-        pattern.includes(":") &&
-        new RegExp("^" + pattern.replace(/:[^/]+/g, "[^/]+") + "$").test(
-          location.pathname,
-        ),
-    )?.[1] ??
+    (matchedPattern ? PATHNAME_TITLES[matchedPattern] : null) ??
     "Dashboard";
+
+  const parentCrumb = matchedPattern
+    ? BREADCRUMB_PARENTS[matchedPattern]
+    : null;
 
   return (
     <div
@@ -388,6 +399,21 @@ export default function DashboardLayout() {
                 },
                 ...(!isOnDashboard
                   ? [
+                      ...(parentCrumb
+                        ? [
+                            {
+                              title: (
+                                <span
+                                  className="cursor-pointer transition"
+                                  style={{ color: "#5A7A6E" }}
+                                  onClick={() => navigate(parentCrumb.path)}
+                                >
+                                  {parentCrumb.label}
+                                </span>
+                              ),
+                            },
+                          ]
+                        : []),
                       {
                         title: (
                           <span style={{ color: "#1E2D28", fontWeight: 600 }}>

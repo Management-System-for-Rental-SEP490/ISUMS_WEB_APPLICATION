@@ -8,18 +8,17 @@ const AREA_TYPE_OPTIONS = Object.entries(AREA_TYPE_CONFIG)
   .filter(([key]) => key !== "default" && key !== "ALL")
   .map(([key, cfg]) => ({ value: key, label: cfg.label }));
 
-const FLOOR_OPTIONS = [
-  { value: "0", label: "Tầng trệt" },
-  { value: "1", label: "Tầng 1" },
-  { value: "2", label: "Tầng 2" },
-  { value: "3", label: "Tầng 3" },
-  { value: "4", label: "Tầng 4" },
-  { value: "5", label: "Tầng 5" },
-];
+function buildFloorOptions(numberOfFloors) {
+  const count = numberOfFloors ?? 3;
+  return Array.from({ length: count }, (_, i) => ({
+    value: String(i + 1),
+    label: `Tầng ${i + 1}`,
+  }));
+}
 
 const INITIAL = { name: "", areaType: "BEDROOM", floorNo: "1", description: "", customTypeName: "" };
 
-export default function AddAreaModal({ houseId, onClose, onSuccess }) {
+export default function AddAreaModal({ houseId, numberOfFloors, onClose, onSuccess }) {
   const [form, setForm]       = useState(INITIAL);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState(null);
@@ -27,6 +26,7 @@ export default function AddAreaModal({ houseId, onClose, onSuccess }) {
   const setVal = (field) => (val) => setForm((f) => ({ ...f, [field]: val }));
 
   const isOther = form.areaType === "OTHER";
+  const floorOptions = buildFloorOptions(numberOfFloors);
 
   const handleSubmit = async () => {
     if (!form.name.trim()) return setError("Vui lòng nhập tên khu vực.");
@@ -105,7 +105,7 @@ export default function AddAreaModal({ houseId, onClose, onSuccess }) {
             <Select
               value={form.floorNo}
               onChange={setVal("floorNo")}
-              options={FLOOR_OPTIONS}
+              options={floorOptions}
               style={{ width: "100%" }}
             />
           </div>
