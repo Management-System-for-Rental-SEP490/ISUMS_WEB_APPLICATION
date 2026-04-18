@@ -100,23 +100,25 @@ export default function AssetDetailDrawer({ assetId, onClose }) {
             {/* Thông tin chung */}
             <Descriptions column={1} size="small" bordered labelStyle={{ width: 130, color: "#6b7280", fontSize: 12 }} contentStyle={{ fontSize: 12 }}>
               <Descriptions.Item label="Mã serial">{asset.serialNumber ?? "—"}</Descriptions.Item>
+              {asset.category?.name && (
+                <Descriptions.Item label="Loại tài sản">{asset.category?.name}</Descriptions.Item>
+              )}
+              {asset.description && (
+                <Descriptions.Item label="Mô tả">{asset.description}</Descriptions.Item>
+              )}
               <Descriptions.Item label="Cập nhật lần cuối">
                 {asset.updateAt ? new Date(asset.updateAt).toLocaleDateString("vi-VN") : "—"}
               </Descriptions.Item>
-              {asset.categoryId && (
-                <Descriptions.Item label="Category ID">
-                  <span className="font-mono text-[11px] text-gray-400">{asset.categoryId}</span>
-                </Descriptions.Item>
-              )}
             </Descriptions>
 
             {/* Tags */}
-            {(asset.nfcTag || asset.qrTag) && (
+            {asset.tags?.length > 0 && (
               <div>
                 <p className="text-xs font-semibold text-gray-500 mb-2">Tags</p>
                 <div className="flex gap-2 flex-wrap">
-                  {asset.nfcTag && <Tag color="blue">NFC: {asset.nfcTag}</Tag>}
-                  {asset.qrTag  && <Tag color="purple">QR: {asset.qrTag}</Tag>}
+                  {asset.tags.map((tag, i) => (
+                    <Tag key={tag.id ?? i} color="blue">{tag.tagValue} {tag.tagType ? `(${tag.tagType})` : ""}</Tag>
+                  ))}
                 </div>
               </div>
             )}

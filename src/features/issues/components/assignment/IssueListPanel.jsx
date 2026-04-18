@@ -25,7 +25,7 @@ export default function IssueListPanel({ issues, loading, selected, onSelect }) 
         </span>
       </div>
 
-      <div className="overflow-y-auto max-h-[calc(100vh-260px)]">
+      <div>
         {loading && [1, 2, 3, 4].map((i) => (
           <div key={i} className="px-4 py-3.5 space-y-2 animate-pulse" style={{ borderBottom: `1px solid rgba(196,222,213,0.3)` }}>
             <div className="h-3 rounded-lg w-1/3" style={{ background: B.muted }} />

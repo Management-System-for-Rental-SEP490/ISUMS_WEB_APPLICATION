@@ -13,6 +13,7 @@ export const HOUSES_ENDPOINTS = {
   IMAGES: (id) => `/houses/${id}/images`,
   REGIONS: "/houses/regions",
   FUNCTIONAL_AREAS: "/houses/functionalAreas",
+  HISTORY: (id) => `/houses/${id}/history`,
 };
 
 export const CONTRACTS_ENDPOINTS = {
@@ -118,10 +119,13 @@ export const ASSET_ENDPOINTS = {
   ASSET_BY_ID: (id) => `/assets/${id}`,
   ITEM_BY_ID: (id) => `/assets/items/${id}`,
   BY_HOUSE: (houseId) => `/assets/items/house/${houseId}`,
+  BY_FUNCTION_AREA: (houseId, areaId) => `/assets/items/house/${houseId}/function-area/${areaId}`,
   CREATE: "/assets",
   UPDATE: (id) => `/assets/${id}`,
   DELETE: (id) => `/assets/${id}`,
   ASSET_CHANGE_DETAIS: (jobId) => `/assets/items/job/${jobId}`,
+  CREATE_ITEM: "/assets/items",
+  ITEM_IMAGES: (id) => `/assets/items/${id}/images`,
   CATEGORY: "/assets/categories",
   CATEGORY_DETAIL: (id) => `/assets/categories/${id}`,
 };
