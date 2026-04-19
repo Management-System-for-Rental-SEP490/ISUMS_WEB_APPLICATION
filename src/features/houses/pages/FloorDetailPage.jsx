@@ -201,7 +201,7 @@ export default function FloorDetailPage() {
       {floorAreas.length === 0 ? (
         <div
           className="flex flex-col items-center justify-center py-24 gap-3 rounded-2xl"
-          style={{ background: "#FAFFFE", border: `1px solid ${B.border}` }}
+          style={{ background: "#FFFFFF", border: `1px solid ${B.border}` }}
         >
           <Package className="w-10 h-10" style={{ color: B.border }} />
           <p className="text-sm" style={{ color: B.mutedFg }}>Tầng này chưa có khu vực nào</p>
@@ -211,7 +211,7 @@ export default function FloorDetailPage() {
           {/* Trái: danh sách khu vực */}
           <div
             className="w-72 flex-shrink-0 rounded-2xl overflow-hidden"
-            style={{ background: "#FAFFFE", border: `1px solid ${B.border}`, boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+            style={{ background: "#FFFFFF", border: `1px solid ${B.border}`, boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
           >
             <div className="px-4 py-3.5" style={{ borderBottom: `1px solid ${B.border}` }}>
               <p className="text-xs font-bold uppercase tracking-widest" style={{ color: B.mutedFg }}>Khu vực chức năng</p>
@@ -273,7 +273,7 @@ export default function FloorDetailPage() {
             ) : areaAssets.length === 0 ? (
               <div
                 className="flex flex-col items-center justify-center py-16 gap-3 rounded-2xl"
-                style={{ background: "#FAFFFE", border: `1px solid ${B.border}` }}
+                style={{ background: "#FFFFFF", border: `1px solid ${B.border}` }}
               >
                 <Package className="w-10 h-10" style={{ color: B.border }} />
                 <p className="text-sm" style={{ color: B.mutedFg }}>Khu vực này chưa có tài sản</p>

@@ -124,7 +124,7 @@ function CompareModal({ event, onClose }) {
       style={{ background: "rgba(15,23,42,0.6)", backdropFilter: "blur(4px)" }}
       onClick={onClose}>
       <div className="w-full rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-        style={{ maxWidth: 720, maxHeight: "90vh", background: "#FAFFFE" }}
+        style={{ maxWidth: 720, maxHeight: "90vh", background: "#FFFFFF" }}
         onClick={(e) => e.stopPropagation()}>
 
         {/* Modal header */}

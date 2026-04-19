@@ -173,7 +173,7 @@ export default function Notifications() {
           <div
             key={label}
             className="rounded-2xl px-5 py-4 flex items-center justify-between transition-all duration-300 hover:-translate-y-1"
-            style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.10)" }}
+            style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.10)" }}
           >
             <div className="flex flex-col gap-2">
               <p className="text-xs font-semibold uppercase tracking-wider leading-none" style={{ color: "#5A7A6E" }}>
@@ -193,7 +193,7 @@ export default function Notifications() {
       {/* ── List Panel ── */}
       <div
         className="rounded-2xl overflow-hidden"
-        style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+        style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
       >
         {/* Search + Tabs + Sort */}
         <div style={{ borderBottom: "1px solid #C4DED5" }}>

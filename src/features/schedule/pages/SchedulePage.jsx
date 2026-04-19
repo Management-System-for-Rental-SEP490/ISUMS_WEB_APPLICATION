@@ -126,10 +126,10 @@ export default function SchedulePage() {
               style={
                 viewMode === mode
                   ? { background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)", color: "#ffffff" }
-                  : { background: "#FAFFFE", color: "#5A7A6E" }
+                  : { background: "#FFFFFF", color: "#5A7A6E" }
               }
               onMouseEnter={e => { if (viewMode !== mode) e.currentTarget.style.background = "#EAF4F0"; }}
-              onMouseLeave={e => { if (viewMode !== mode) e.currentTarget.style.background = "#FAFFFE"; }}
+              onMouseLeave={e => { if (viewMode !== mode) e.currentTarget.style.background = "#FFFFFF"; }}
             >
               {mode === "week" ? "Theo tuần" : "Theo tháng"}
             </button>
@@ -153,9 +153,9 @@ export default function SchedulePage() {
             onClick={viewMode === "week" ? refetchWeek : refetchMonth}
             disabled={viewMode === "week" ? weekLoading : monthLoading}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold rounded-full transition disabled:opacity-50"
-            style={{ border: "1px solid #C4DED5", background: "#FAFFFE", color: "#5A7A6E" }}
+            style={{ border: "1px solid #C4DED5", background: "#FFFFFF", color: "#5A7A6E" }}
             onMouseEnter={e => { e.currentTarget.style.background = "#EAF4F0"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "#FAFFFE"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "#FFFFFF"; }}
           >
             <RefreshCw
               className={["w-4 h-4", (viewMode === "week" ? weekLoading : monthLoading) ? "animate-spin" : ""].join(" ")}

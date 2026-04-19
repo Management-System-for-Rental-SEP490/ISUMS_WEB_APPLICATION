@@ -32,7 +32,7 @@ export default function ContractsFilters({
   return (
     <div
       className="rounded-2xl p-4 md:p-5"
-      style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+      style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
     >
       <div className="flex flex-col gap-3 md:gap-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">

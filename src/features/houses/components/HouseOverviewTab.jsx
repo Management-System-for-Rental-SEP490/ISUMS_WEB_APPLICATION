@@ -126,7 +126,7 @@ function FloorCard({ floor, areas, houseId, navigate }) {
       onClick={() => navigate(`/houses/${houseId}/floors/${floor}`)}
       className="w-full text-left rounded-2xl overflow-hidden transition-all duration-150"
       style={{
-        background: "#FAFFFE",
+        background: "#FFFFFF",
         border: `1px solid ${hasIssue ? "#fca5a5" : B.border}`,
         borderLeft: `4px solid ${hasIssue ? "#ef4444" : B.green}`,
       }}
@@ -137,7 +137,7 @@ function FloorCard({ floor, areas, houseId, navigate }) {
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.boxShadow = "none";
-        e.currentTarget.style.background = "#FAFFFE";
+        e.currentTarget.style.background = "#FFFFFF";
       }}
     >
       <div className="flex items-center justify-between px-5 py-4">
@@ -202,7 +202,7 @@ export default function HouseOverviewTab({ house }) {
     return (
       <div
         className="flex flex-col items-center justify-center py-24 gap-3 rounded-2xl"
-        style={{ background: "#FAFFFE", border: `1px solid ${B.border}` }}
+        style={{ background: "#FFFFFF", border: `1px solid ${B.border}` }}
       >
         <div
           className="w-14 h-14 rounded-2xl flex items-center justify-center"

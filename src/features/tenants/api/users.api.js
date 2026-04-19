@@ -28,3 +28,17 @@ export async function getStaffs() {
     throw new Error(getErrorMessage(error));
   }
 }
+
+export async function createStaff({ name, email, phoneNumber, identityNumber }) {
+  try {
+    const response = await api.post(USERS_ENDPOINTS.CREATE_STAFF, {
+      name,
+      email,
+      phoneNumber,
+      identityNumber,
+    });
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}

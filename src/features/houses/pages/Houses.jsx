@@ -150,7 +150,7 @@ export default function Houses() {
       {/* Filter bar */}
       <div
         className="rounded-2xl px-4 py-3 flex flex-wrap items-center gap-3"
-        style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+        style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
       >
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
@@ -222,7 +222,7 @@ export default function Houses() {
       {loading && (
         <div
           className="rounded-2xl p-12 flex justify-center"
-          style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}
+          style={{ background: "#FFFFFF", border: "1px solid #C4DED5" }}
         >
           <LoadingSpinner size="lg" showLabel label="Đang tải danh sách nhà..." />
         </div>
@@ -230,7 +230,7 @@ export default function Houses() {
 
       {/* Error */}
       {!loading && error && (
-        <div className="rounded-2xl p-6" style={{ background: "#FAFFFE", border: "1px solid rgba(217,95,75,0.3)" }}>
+        <div className="rounded-2xl p-6" style={{ background: "#FFFFFF", border: "1px solid rgba(217,95,75,0.3)" }}>
           <p className="font-medium text-sm" style={{ color: "#D95F4B" }}>
             Không tải được danh sách nhà. Vui lòng thử lại sau.
           </p>
@@ -239,7 +239,7 @@ export default function Houses() {
 
       {/* Empty */}
       {!loading && !error && houses.length === 0 && (
-        <div className="rounded-2xl p-16 text-center" style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}>
+        <div className="rounded-2xl p-16 text-center" style={{ background: "#FFFFFF", border: "1px solid #C4DED5" }}>
           <div className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: "#EAF4F0" }}>
             <Building2 className="w-8 h-8" style={{ color: "#3bb582" }} />
           </div>

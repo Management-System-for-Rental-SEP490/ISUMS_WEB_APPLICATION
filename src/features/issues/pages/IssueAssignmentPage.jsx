@@ -10,7 +10,7 @@ import IssueDetailPanel from "../components/assignment/IssueDetailPanel";
 import ImageLightbox from "../components/assignment/ImageLightbox";
 
 const B = {
-  green: "#3bb582", card: "#FAFFFE", muted: "#EAF4F0",
+  green: "#3bb582", card: "#FFFFFF", muted: "#EAF4F0",
   border: "#C4DED5", fg: "#1E2D28", mutedFg: "#5A7A6E",
   gradient: "linear-gradient(135deg, #3bb582 0%, rgba(32,150,216,0.7) 100%)",
 };

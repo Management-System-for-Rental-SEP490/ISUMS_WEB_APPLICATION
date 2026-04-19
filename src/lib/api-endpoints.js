@@ -39,6 +39,7 @@ export const USERS_ENDPOINTS = {
   BASE: "/users",
   BY_ID: (id) => `/users/byId/${id}`,
   GET_STAFF: "/users/staffs",
+  CREATE_STAFF: "/users/technical-staff",
 };
 
 // Tenants endpoints

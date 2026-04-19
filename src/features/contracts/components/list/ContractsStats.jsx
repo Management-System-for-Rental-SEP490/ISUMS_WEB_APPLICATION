@@ -60,7 +60,7 @@ export default function ContractsStats({ stats }) {
             key={card.key}
             className="relative overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-1"
             style={{
-              background: "#FAFFFE",
+              background: "#FFFFFF",
               border: "1px solid #C4DED5",
               boxShadow: "0 4px 20px -2px rgba(59,181,130,0.10)",
             }}

@@ -98,7 +98,7 @@ function QuoteDetail({ quote, ticketDetail, houseName, onApproved, onRejected })
         <div
           className="rounded-2xl p-5"
           style={{
-            background: "#FAFFFE",
+            background: "#FFFFFF",
             border: "1px solid #C4DED5",
             borderLeft: "4px solid #3bb582",
             boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)",
@@ -150,7 +150,7 @@ function QuoteDetail({ quote, ticketDetail, houseName, onApproved, onRejected })
         {/* Technician card */}
         <div
           className="rounded-2xl p-5 flex flex-col"
-          style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+          style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
         >
           <p className="text-[10px] font-bold uppercase tracking-widest mb-4" style={{ color: "#5A7A6E" }}>
             Kỹ thuật viên
@@ -195,7 +195,7 @@ function QuoteDetail({ quote, ticketDetail, houseName, onApproved, onRejected })
       {images.length > 0 && (
         <div
           className="rounded-2xl p-5"
-          style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+          style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
         >
           <div className="flex items-center gap-2 mb-3">
             <ImageIcon className="w-4 h-4" style={{ color: "#3bb582" }} />
@@ -224,7 +224,7 @@ function QuoteDetail({ quote, ticketDetail, houseName, onApproved, onRejected })
       {/* Quote table */}
       <div
         className="rounded-2xl overflow-hidden"
-        style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+        style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
       >
         <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid #C4DED5" }}>
           <p className="text-base font-bold" style={{ color: "#1E2D28" }}>
@@ -285,7 +285,7 @@ function QuoteDetail({ quote, ticketDetail, houseName, onApproved, onRejected })
       {/* Total + actions bar */}
       <div
         className="rounded-2xl p-5 flex items-center gap-5"
-        style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+        style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
       >
         <div
           className="flex-1 min-w-0 rounded-xl px-5 py-4"
@@ -521,7 +521,7 @@ export default function IssueQuoteApprovalPage() {
         {/* LEFT — ticket list */}
         <div
           className="w-64 flex-shrink-0 rounded-2xl overflow-hidden sticky top-0"
-          style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+          style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
         >
           <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid #C4DED5" }}>
             <p className="text-sm font-bold" style={{ color: "#1E2D28" }}>Chờ duyệt</p>
@@ -649,7 +649,7 @@ export default function IssueQuoteApprovalPage() {
           {!quotesLoading && currentDetail && quotes.length === 0 && (
             <div
               className="rounded-2xl py-20 flex flex-col items-center gap-3"
-              style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}
+              style={{ background: "#FFFFFF", border: "1px solid #C4DED5" }}
             >
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "#EAF4F0" }}>
                 <PackageSearch className="w-7 h-7" style={{ color: "#3bb582" }} />
@@ -664,7 +664,7 @@ export default function IssueQuoteApprovalPage() {
           {!loading && !currentDetail && (
             <div
               className="rounded-2xl flex items-center justify-center py-32"
-              style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}
+              style={{ background: "#FFFFFF", border: "1px solid #C4DED5" }}
             >
               <div className="text-center">
                 <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: "#EAF4F0" }}>

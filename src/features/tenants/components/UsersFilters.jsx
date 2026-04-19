@@ -2,7 +2,7 @@ export default function UsersFilters({ searchTerm, onSearch }) {
   return (
     <div
       className="rounded-2xl px-4 py-3"
-      style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+      style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
     >
       <div className="relative max-w-sm">
         <svg
