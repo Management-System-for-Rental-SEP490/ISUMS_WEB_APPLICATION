@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import {
   RefreshCw,
   Wrench,
@@ -8,7 +9,9 @@ import {
   Home,
   X,
   Info,
-  Sparkles,
+  ImageIcon,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -53,6 +56,8 @@ function StaffAvatar({ name }) {
 function QuoteDetail({ quote, ticketDetail, houseName, onApproved, onRejected }) {
   const [confirming, setConfirming] = useState(false);
   const [rejecting, setRejecting] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
+  const images = Array.isArray(ticketDetail.images) ? ticketDetail.images : [];
   const isApproved = quote.status === "APPROVED";
   const isRejected = quote.status === "REJECTED";
 
@@ -85,6 +90,7 @@ function QuoteDetail({ quote, ticketDetail, houseName, onApproved, onRejected })
   const s = ISSUE_STATUS_CONFIG[ticketDetail.status] ?? ISSUE_STATUS_CONFIG.CREATED;
 
   return (
+    <>
     <div className="space-y-5">
       {/* Top two-column cards */}
       <div className="grid grid-cols-[1fr_280px] gap-4">
@@ -184,6 +190,36 @@ function QuoteDetail({ quote, ticketDetail, houseName, onApproved, onRejected })
           )}
         </div>
       </div>
+
+      {/* Images */}
+      {images.length > 0 && (
+        <div
+          className="rounded-2xl p-5"
+          style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <ImageIcon className="w-4 h-4" style={{ color: "#3bb582" }} />
+            <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "#5A7A6E" }}>
+              Ảnh đính kèm
+            </p>
+            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: "#EAF4F0", color: "#5A7A6E" }}>
+              {images.length}
+            </span>
+          </div>
+          <div className="grid grid-cols-6 gap-2">
+            {images.map((img, idx) => (
+              <button
+                key={img.id}
+                onClick={() => setLightboxIndex(idx)}
+                className="block aspect-square rounded-xl overflow-hidden transition hover:scale-[1.03]"
+                style={{ border: "1px solid #C4DED5" }}
+              >
+                <img src={img.url} alt="" className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Quote table */}
       <div
@@ -328,6 +364,53 @@ function QuoteDetail({ quote, ticketDetail, houseName, onApproved, onRejected })
         </div>
       </div>
     </div>
+    {lightboxIndex !== null && createPortal(
+      <div
+        className="fixed inset-0 flex items-center justify-center backdrop-blur-sm"
+        style={{ background: "rgba(30,45,40,0.85)", zIndex: 1200 }}
+        onClick={() => setLightboxIndex(null)}
+      >
+        {images.length > 1 && (
+          <button
+            onClick={(e) => { e.stopPropagation(); setLightboxIndex((i) => (i - 1 + images.length) % images.length); }}
+            className="absolute left-4 p-3 rounded-full"
+            style={{ background: "rgba(255,255,255,0.12)", color: "#fff" }}
+          >
+            <ChevronLeft className="w-6 h-6" />
+          </button>
+        )}
+        <img
+          src={images[lightboxIndex]?.url}
+          alt="Ảnh đính kèm"
+          className="max-h-[85vh] max-w-[85vw] rounded-2xl object-contain"
+          style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}
+          onClick={(e) => e.stopPropagation()}
+        />
+        {images.length > 1 && (
+          <button
+            onClick={(e) => { e.stopPropagation(); setLightboxIndex((i) => (i + 1) % images.length); }}
+            className="absolute right-4 p-3 rounded-full"
+            style={{ background: "rgba(255,255,255,0.12)", color: "#fff" }}
+          >
+            <ChevronRight className="w-6 h-6" />
+          </button>
+        )}
+        <button
+          onClick={() => setLightboxIndex(null)}
+          className="absolute top-4 right-4 p-2.5 rounded-full"
+          style={{ background: "rgba(255,255,255,0.12)", color: "#fff" }}
+        >
+          <X className="w-5 h-5" />
+        </button>
+        {images.length > 1 && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs px-3 py-1.5 rounded-full" style={{ background: "rgba(0,0,0,0.45)", color: "rgba(255,255,255,0.8)" }}>
+            {lightboxIndex + 1} / {images.length}
+          </div>
+        )}
+      </div>,
+      document.body
+    )}
+    </>
   );
 }
 
@@ -422,16 +505,7 @@ export default function IssueQuoteApprovalPage() {
     <div className="space-y-5">
       {/* Header */}
       <div>
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,181,130,0.12)" }}>
-            <Sparkles className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
-          </div>
-          <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Phê duyệt</span>
-        </div>
-        <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Xác nhận báo giá</h2>
-        <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>
-          {loading ? "Đang tải..." : `${tickets.length} yêu cầu đang chờ duyệt`}
-        </p>
+<h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Xác nhận báo giá</h2>
       </div>
 
       {error && (

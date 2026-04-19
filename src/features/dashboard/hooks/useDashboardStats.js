@@ -1,16 +1,10 @@
-import { useEffect, useState } from "react";
-import { getAllHouses } from "../../houses/api/houses.api";
-import { getAllUsers } from "../../tenants/api/users.api";
+import { useEffect, useState, useCallback } from "react";
+import { getDashboardStats } from "../api/dashboard.api";
 import { getAllContracts } from "../../contracts/api/contracts.api";
 import { mapContractFromApi } from "../../contracts/utils/mapContractFromApi";
+import { getAllUsers } from "../../tenants/api/users.api";
 
-/**
- * Trích xuất mảng từ nhiều dạng response khác nhau:
- * - response là mảng thẳng
- * - response.data là mảng
- * - response.items là mảng (pagination)
- * - response.content là mảng (Spring pagination)
- */
+const DEFAULT_PROPERTY_STATS = { total: 0, rented: 0, available: 0, expiringSoon: 0 };
 
 function toArray(raw) {
   if (Array.isArray(raw)) return raw;
@@ -21,97 +15,59 @@ function toArray(raw) {
 }
 
 /**
- * Hook tổng hợp thống kê cho Dashboard.
- * Gọi 3 API song song, 1 cái lỗi không ảnh hưởng 2 cái còn lại.
- *
- * @returns {{
- *   stats: {
- *     properties: { total: number },
- *     users:      { total: number },
- *     contracts:  { total: number, active: number, expiring: number },
- *   },
- *   recentContracts: Array,
- *   loading: boolean,
- *   errors: { properties: string|null, users: string|null, contracts: string|null },
- *   refetch: () => void,
- * }}
+ * Hook thống kê dashboard.
+ * - Gọi API dashboard mới (propertyStats, contractTimeSeries, contractStatusBreakdown)
+ * - Đồng thời lấy houses (cho map) và recentContracts (danh sách gần nhất)
+ * @param {"3M"|"6M"|"12M"} period
  */
-export function useDashboardStats() {
-  const [stats, setStats] = useState({
-    properties: { total: 0 },
-    users: { total: 0 },
-    contracts: { total: 0, active: 0, expiring: 0 },
-  });
-  const [houses, setHouses] = useState([]);
-  const [recentContracts, setRecentContracts] = useState([]);
+export function useDashboardStats(period = "6M") {
+  const [propertyStats, setPropertyStats]               = useState(DEFAULT_PROPERTY_STATS);
+  const [contractTimeSeries, setContractTimeSeries]     = useState([]);
+  const [contractStatusBreakdown, setContractStatusBreakdown] = useState([]);
+  const [recentContracts, setRecentContracts]           = useState([]);
+  const [totalContracts, setTotalContracts]             = useState(0);
+  const [totalUsers, setTotalUsers]                     = useState(0);
   const [loading, setLoading] = useState(true);
-  const [errors, setErrors] = useState({
-    properties: null,
-    users: null,
-    contracts: null,
-  });
-  const fetchAll = async () => {
+  const [error, setError]     = useState(null);
+
+  const fetchAll = useCallback(async () => {
     setLoading(true);
-    setErrors({ properties: null, users: null, contracts: null });
-    const [housesResult, usersResult, contractsResult] =
-      await Promise.allSettled([
-        getAllHouses(),
+    setError(null);
+    try {
+      const [dashResult, contractsResult, usersResult] = await Promise.allSettled([
+        getDashboardStats(period),
+        getAllContracts({ page: 1, size: 5, sorts: "createdAt:DESC" }),
         getAllUsers(),
-        getAllContracts({
-          page: 1,
-          size: 5,
-          sorts: "createdAt:DESC",
-        }),
       ]);
 
-    const newErrors = { properties: null, users: null, contracts: null };
-    let propertiesTotal = 0;
-    let housesArr = [];
-    if (housesResult.status === "fulfilled") {
-      housesArr = toArray(housesResult.value);
-      propertiesTotal = housesArr.length;
-    } else {
-      newErrors.properties = housesResult.reason?.message ?? "Lỗi tải BĐS";
+      if (dashResult.status === "fulfilled") {
+        const data = dashResult.value;
+        setPropertyStats(data?.propertyStats ?? DEFAULT_PROPERTY_STATS);
+        setContractTimeSeries(Array.isArray(data?.contractTimeSeries) ? data.contractTimeSeries : []);
+        setContractStatusBreakdown(Array.isArray(data?.contractStatusBreakdown) ? data.contractStatusBreakdown : []);
+      } else {
+        setError(dashResult.reason?.message ?? "Không thể tải dữ liệu dashboard");
+      }
+
+      if (contractsResult.status === "fulfilled") {
+        const raw = contractsResult.value;
+        setRecentContracts(toArray(raw).map(mapContractFromApi).filter(Boolean));
+        const total = raw?.total ?? raw?.totalElements ?? toArray(raw).length;
+        setTotalContracts(typeof total === "number" ? total : 0);
+      }
+
+      if (usersResult.status === "fulfilled") {
+        const raw = usersResult.value;
+        const arr = Array.isArray(raw) ? raw : (Array.isArray(raw?.data) ? raw.data : []);
+        setTotalUsers(raw?.total ?? raw?.totalElements ?? arr.length ?? 0);
+      }
+
+    } finally {
+      setLoading(false);
     }
+  }, [period]);
 
-    let usersTotal = 0;
-    if (usersResult.status === "fulfilled") {
-      usersTotal = toArray(usersResult.value).length;
-    } else {
-      newErrors.users = usersResult.reason?.message ?? "Lỗi tải người dùng";
-    }
+  useEffect(() => { fetchAll(); }, [fetchAll]);
 
-    // --- Contracts ---
-    // Chỉ lấy page 0 size 5 để hiển thị danh sách gần nhất.
-    // total lấy từ metadata response; active/expiring để backend cung cấp sau nếu cần.
-    let contractsTotal = 0;
-    let recent = [];
-    if (contractsResult.status === "fulfilled") {
-      const raw = contractsResult.value;
-      const arr = toArray(raw).map(mapContractFromApi).filter(Boolean);
-      // TODO: Confirm field tổng số: raw.total / raw.totalElements / raw.totalItems
-      contractsTotal = raw?.total ?? raw?.totalElements ?? raw?.totalItems ?? arr.length;
-      recent = arr;
-    } else {
-      newErrors.contracts =
-        contractsResult.reason?.message ?? "Lỗi tải hợp đồng";
-    }
-
-    setStats({
-      properties: { total: propertiesTotal },
-      users: { total: usersTotal },
-      contracts: { total: contractsTotal },
-    });
-    setHouses(housesArr);
-    setRecentContracts(recent);
-    setErrors(newErrors);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchAll();
-  }, []);
-
-  return { stats, houses, recentContracts, loading, errors, refetch: fetchAll };
+  return { propertyStats, contractTimeSeries, contractStatusBreakdown, recentContracts, totalContracts, totalUsers, loading, error, refetch: fetchAll };
 }

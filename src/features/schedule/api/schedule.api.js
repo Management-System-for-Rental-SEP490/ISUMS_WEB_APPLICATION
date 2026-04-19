@@ -215,11 +215,11 @@ export async function getAvailableSlotsByJob(jobId, date) {
 }
 
 /**
- * Get available staff IDs for a specific job slot.
+ * Get available staff for a specific job slot.
  * @param {string} jobId     - UUID of the job
  * @param {string} date      - "YYYY-MM-DD"
  * @param {string} startTime - "HH:MM:SS"
- * @returns {Promise<string[]>} Array of staff UUIDs
+ * @returns {Promise<Array<{id,name,email,phone}>>} Array of staff objects
  */
 export async function getAvailableStaffForSlot(jobId, date, startTime) {
   try {
@@ -227,7 +227,13 @@ export async function getAvailableStaffForSlot(jobId, date, startTime) {
       params: { jobId, date, startTime },
     });
     const data = extractResponseData(response);
-    return Array.isArray(data) ? data : [];
+    if (!Array.isArray(data)) return [];
+    return data.map((item) => ({
+      id: item.staffId ?? item.info?.id,
+      name: item.info?.name ?? "—",
+      email: item.info?.email ?? null,
+      phone: item.info?.phone ?? item.info?.phoneNumber ?? null,
+    }));
   } catch (error) {
     throw new Error(getErrorMessage(error));
   }

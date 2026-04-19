@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { RefreshCw, ClipboardCheck, Eye, Plus, MapPin, User, Calendar, FileText, Tag, X, Phone } from "lucide-react";
 import { getInspections } from "../api/maintenance.api";
 import { getHouseById } from "../../houses/api/houses.api";
 import { getUserById } from "../../tenants/api/users.api";
 import CreateInspectionModal from "../components/CreateInspectionModal";
-import InspectionResultDrawer from "../components/InspectionResultDrawer";
 
 
 const STATUS_CONFIG = {
@@ -215,17 +215,32 @@ function DetailModal({ inspection, onClose }) {
   );
 }
 
+const TABS = [
+  { key: "CHECK_IN",  label: "Check-in",  color: "#3bb582", bg: "rgba(59,181,130,0.10)" },
+  { key: "CHECK_OUT", label: "Check-out", color: "#D95F4B", bg: "rgba(217,95,75,0.08)" },
+];
+
 export default function InspectionsPage() {
   const [inspections, setInspections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [resultInspectionId, setResultInspectionId] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [activeTab, setActiveTab] = useState("CHECK_IN");
+  const [slideDir, setSlideDir] = useState("right"); // "right" | "left"
+  const navigate = useNavigate();
+
+  const handleTabChange = (key) => {
+    if (key === activeTab) return;
+    const newIdx = TABS.findIndex((t) => t.key === key);
+    const oldIdx = TABS.findIndex((t) => t.key === activeTab);
+    setSlideDir(newIdx > oldIdx ? "right" : "left");
+    setActiveTab(key);
+  };
 
   const fetchInspections = () => {
     setLoading(true);
     setError(null);
-    getInspections()
+    getInspections({ status: "DONE", type: activeTab })
       .then((data) =>
         setInspections(
           Array.isArray(data) ? data : (data?.items ?? data?.data ?? []),
@@ -235,27 +250,14 @@ export default function InspectionsPage() {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchInspections(); }, []);
-
-  const resultInspections = inspections.filter(
-    (i) => i.status === "DONE" && (i.type === "CHECK_IN" || i.type === "CHECK_OUT"),
-  );
+  useEffect(() => { fetchInspections(); }, [activeTab]);
 
   return (
     <div className="space-y-5">
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,181,130,0.12)" }}>
-              <ClipboardCheck className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
-            </div>
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Kiểm tra</span>
-          </div>
-          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Kết quả bàn giao</h2>
-          <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>
-            Các lần kiểm tra đã hoàn thành khi bắt đầu / kết thúc hợp đồng
-          </p>
+<h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Kết quả bàn giao</h2>
         </div>
         <div className="flex items-center gap-2 mt-1">
           <button
@@ -284,6 +286,38 @@ export default function InspectionsPage() {
         </div>
       </div>
 
+      {/* Tabs — sliding indicator */}
+      <div className="relative flex items-center gap-1 p-1 rounded-2xl w-fit" style={{ background: "#EAF4F0" }}>
+        {/* Sliding pill */}
+        <div
+          className="absolute top-1 bottom-1 rounded-xl transition-transform duration-250 ease-in-out"
+          style={{
+            width: "calc(50% - 4px)",
+            left: 4,
+            background: "#ffffff",
+            boxShadow: "0 1px 4px rgba(59,181,130,0.14)",
+            transform: `translateX(${activeTab === TABS[0].key ? "0%" : "calc(100% + 4px)"})`,
+          }}
+        />
+        {TABS.map((tab) => {
+          const isActive = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => handleTabChange(tab.key)}
+              className="relative z-10 px-5 py-2 rounded-xl text-sm font-semibold transition-colors duration-200 min-w-[110px]"
+              style={{ color: isActive ? tab.color : "#5A7A6E" }}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Content — key triggers remount + slide animation on tab change */}
+      <div key={activeTab} className={slideDir === "right" ? "slide-from-right" : "slide-from-left"}>
+
       {/* Loading */}
       {loading && (
         <div className="rounded-2xl overflow-hidden" style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}>
@@ -309,25 +343,27 @@ export default function InspectionsPage() {
       )}
 
       {/* Empty */}
-      {!loading && !error && resultInspections.length === 0 && (
+      {!loading && !error && inspections.length === 0 && (
         <div className="rounded-2xl p-16 text-center" style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}>
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: "#EAF4F0" }}>
             <ClipboardCheck className="w-7 h-7" style={{ color: "#3bb582" }} />
           </div>
           <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>Chưa có kết quả kiểm tra nào</p>
-          <p className="text-xs mt-1" style={{ color: "#5A7A6E" }}>Chỉ hiển thị các kiểm tra đã hoàn thành (Check-in / Check-out)</p>
+          <p className="text-xs mt-1" style={{ color: "#5A7A6E" }}>
+            Chưa có kết quả kiểm tra {activeTab === "CHECK_IN" ? "Check-in" : "Check-out"} nào hoàn thành
+          </p>
         </div>
       )}
 
       {/* List */}
-      {!loading && !error && resultInspections.length > 0 && (
+      {!loading && !error && inspections.length > 0 && (
         <div className="rounded-2xl overflow-hidden" style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
           <div className="grid grid-cols-[2fr_130px_170px_140px] gap-4 px-5 py-3" style={{ borderBottom: "1px solid #C4DED5", background: "#EAF4F0" }}>
             {["Ghi chú", "Loại", "Hoàn thành lúc", "Thao tác"].map((h) => (
               <p key={h} className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>{h}</p>
             ))}
           </div>
-          {resultInspections.map((item) => {
+          {inspections.map((item) => {
             const tp = TYPE_CONFIG[item.type] ?? { label: item.type, bg: "#EAF4F0", color: "#5A7A6E" };
             return (
               <div
@@ -347,7 +383,7 @@ export default function InspectionsPage() {
                 <p className="text-xs" style={{ color: "#5A7A6E" }}>{formatDate(item.completedAt ?? item.updatedAt)}</p>
                 <button
                   type="button"
-                  onClick={() => setResultInspectionId(item.id)}
+                  onClick={() => navigate(`/maintenance/inspections/${item.id}`)}
                   className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold transition w-fit"
                   style={{ background: "rgba(59,181,130,0.10)", color: "#3bb582" }}
                   onMouseEnter={e => e.currentTarget.style.background = "rgba(59,181,130,0.18)"}
@@ -362,10 +398,7 @@ export default function InspectionsPage() {
         </div>
       )}
 
-      <InspectionResultDrawer
-        inspectionId={resultInspectionId}
-        onClose={() => setResultInspectionId(null)}
-      />
+      </div>{/* end slide wrapper */}
 
       <CreateInspectionModal
         open={showCreate}

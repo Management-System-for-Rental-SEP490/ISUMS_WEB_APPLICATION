@@ -65,6 +65,21 @@ export default function StepContractClauses({ form, update, errors = {} }) {
               className={inputClass}
             />
           </div>
+          <div className="md:col-span-2 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => update("hasPowerCutClause")({ target: { value: !form.hasPowerCutClause } })}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none ${form.hasPowerCutClause ? "bg-teal-500" : "bg-gray-200"}`}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition duration-200 ${form.hasPowerCutClause ? "translate-x-5" : "translate-x-0"}`}
+              />
+            </button>
+            <div>
+              <p className="text-sm font-medium text-gray-700">Có điều khoản cắt điện</p>
+              <p className="text-xs text-gray-500">Hợp đồng có điều khoản về việc cắt điện khi vi phạm</p>
+            </div>
+          </div>
         </div>
       </div>
 

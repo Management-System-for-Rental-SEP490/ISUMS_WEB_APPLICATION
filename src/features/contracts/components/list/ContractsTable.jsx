@@ -31,66 +31,75 @@ const hasRealValue = (v) => v && v !== "—";
 export default function ContractsTable({ items, onViewDetail, onEdit, onDelete, loading }) {
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-16 flex flex-col items-center gap-3 text-slate-400">
-        <RefreshCw className="w-6 h-6 animate-spin text-teal-500" />
-        <span className="text-sm">Đang tải danh sách hợp đồng...</span>
+      <div className="rounded-2xl p-16 flex flex-col items-center gap-3"
+        style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
+        <RefreshCw className="w-6 h-6 animate-spin" style={{ color: "#3bb582" }} />
+        <span className="text-sm" style={{ color: "#5A7A6E" }}>Đang tải danh sách hợp đồng...</span>
       </div>
     );
   }
 
   if (items.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-16 flex flex-col items-center gap-3">
-        <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center">
-          <FileText className="w-7 h-7 text-slate-300" />
+      <div className="rounded-2xl p-16 flex flex-col items-center gap-3"
+        style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
+        <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "#EAF4F0" }}>
+          <FileText className="w-7 h-7" style={{ color: "#C4DED5" }} />
         </div>
-        <p className="text-sm text-slate-500 font-medium">Không tìm thấy hợp đồng nào</p>
+        <p className="text-sm font-medium" style={{ color: "#5A7A6E" }}>Không tìm thấy hợp đồng nào</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+    <div className="rounded-2xl overflow-hidden"
+      style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
       <div className="overflow-x-auto">
         <table className="w-full table-fixed">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-100">
-              <th className="w-10 px-5 py-3 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider">#</th>
-              <th className="w-56 px-4 py-3 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Số hợp đồng</th>
-              <th className="w-44 px-4 py-3 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Khách thuê</th>
-              <th className="w-32 px-4 py-3 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Thanh toán</th>
-              <th className="w-36 px-4 py-3 text-left text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Trạng thái</th>
+            <tr style={{ background: "#EAF4F0", borderBottom: "1px solid #C4DED5" }}>
+              <th className="w-10 px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wider" style={{ color: "#5A7A6E" }}>#</th>
+              <th className="w-56 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider" style={{ color: "#5A7A6E" }}>Số hợp đồng</th>
+              <th className="w-44 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider" style={{ color: "#5A7A6E" }}>Khách thuê</th>
+              <th className="w-32 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider" style={{ color: "#5A7A6E" }}>Thanh toán</th>
+              <th className="w-36 px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider" style={{ color: "#5A7A6E" }}>Trạng thái</th>
               <th className="w-28 px-4 py-3" />
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-50">
+          <tbody>
             {items.map((contract, idx) => {
               const payLabel = PAYMENT_LABEL[contract.paymentType] ?? contract.paymentType ?? "—";
               return (
-                <tr key={contract.id} className="hover:bg-slate-50/60 transition-colors group">
-                  <td className="px-5 py-3.5 text-xs font-medium text-slate-400 align-middle">{idx + 1}</td>
+                <tr
+                  key={contract.id}
+                  className="group transition-colors"
+                  style={{ borderBottom: "1px solid #EAF4F0" }}
+                  onMouseEnter={e => e.currentTarget.style.background = "rgba(59,181,130,0.04)"}
+                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                >
+                  <td className="px-5 py-3.5 text-xs font-medium align-middle" style={{ color: "#5A7A6E" }}>{idx + 1}</td>
                   <td className="px-4 py-3.5 align-middle">
-                    <p className="text-sm font-semibold text-slate-800 truncate" title={contract.contractNumber}>
+                    <p className="text-sm font-semibold truncate" style={{ color: "#1E2D28" }} title={contract.contractNumber}>
                       {contract.contractNumber}
                     </p>
                     {(contract.startDate || contract.endDate) && (
-                      <p className="text-[11px] text-slate-400 mt-0.5 truncate">
+                      <p className="text-[11px] mt-0.5 truncate" style={{ color: "#5A7A6E" }}>
                         {formatDateVi(contract.startDate) ?? "?"} → {formatDateVi(contract.endDate) ?? "?"}
                       </p>
                     )}
                   </td>
                   <td className="px-4 py-3.5 align-middle">
-                    <p className="text-sm font-medium text-slate-800 truncate" title={contract.tenant}>
+                    <p className="text-sm font-medium truncate" style={{ color: "#1E2D28" }} title={contract.tenant}>
                       {hasRealValue(contract.tenant) ? contract.tenant : "—"}
                     </p>
                     {hasRealValue(contract.property) && (
-                      <p className="text-[11px] text-slate-400 truncate">{contract.property}</p>
+                      <p className="text-[11px] truncate" style={{ color: "#5A7A6E" }}>{contract.property}</p>
                     )}
                   </td>
                   <td className="px-4 py-3.5 align-middle">
-                    <p className="text-sm text-slate-600">{payLabel}</p>
+                    <p className="text-sm" style={{ color: "#1E2D28" }}>{payLabel}</p>
                     {contract.autoRenew && (
-                      <p className="text-[10px] text-emerald-600 font-medium mt-0.5">Tự động gia hạn</p>
+                      <p className="text-[10px] font-medium mt-0.5" style={{ color: "#3bb582" }}>Tự động gia hạn</p>
                     )}
                   </td>
                   <td className="px-4 py-3.5 align-middle">
@@ -99,15 +108,24 @@ export default function ContractsTable({ items, onViewDetail, onEdit, onDelete, 
                   <td className="px-4 py-3.5 align-middle">
                     <div className="flex items-center justify-end gap-1 opacity-40 group-hover:opacity-100 transition-opacity">
                       <button type="button" onClick={() => onViewDetail(contract.id)}
-                        className="p-1.5 rounded-lg hover:bg-teal-50 hover:text-teal-600 text-slate-500 transition" title="Xem chi tiết">
+                        className="p-1.5 rounded-lg transition" style={{ color: "#5A7A6E" }}
+                        onMouseEnter={e => { e.currentTarget.style.background = "rgba(59,181,130,0.10)"; e.currentTarget.style.color = "#3bb582"; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#5A7A6E"; }}
+                        title="Xem chi tiết">
                         <Eye className="w-4 h-4" />
                       </button>
                       <button type="button" onClick={() => onEdit(contract.id)}
-                        className="p-1.5 rounded-lg hover:bg-blue-50 hover:text-blue-600 text-slate-500 transition" title="Chỉnh sửa">
+                        className="p-1.5 rounded-lg transition" style={{ color: "#5A7A6E" }}
+                        onMouseEnter={e => { e.currentTarget.style.background = "rgba(32,150,216,0.10)"; e.currentTarget.style.color = "#2096d8"; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#5A7A6E"; }}
+                        title="Chỉnh sửa">
                         <Edit className="w-4 h-4" />
                       </button>
                       <button type="button" onClick={() => onDelete(contract.id)}
-                        className="p-1.5 rounded-lg hover:bg-red-50 hover:text-red-600 text-slate-500 transition" title="Xóa">
+                        className="p-1.5 rounded-lg transition" style={{ color: "#5A7A6E" }}
+                        onMouseEnter={e => { e.currentTarget.style.background = "rgba(217,95,75,0.10)"; e.currentTarget.style.color = "#D95F4B"; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#5A7A6E"; }}
+                        title="Xóa">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>

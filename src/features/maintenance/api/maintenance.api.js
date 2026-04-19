@@ -89,12 +89,16 @@ export async function getMaintenanceJobsByStatus(status) {
 }
 
 /**
- * Get all maintenance jobs.
- * @returns {Promise<Array>}
+ * Get maintenance jobs with optional filters and pagination.
+ * @param {{ page?: number, size?: number, status?: string, keyword?: string }} params
+ * @returns {Promise<{ items: Array, total: number, totalPages: number, currentPage: number }>}
  */
-export async function getMaintenanceJobs() {
+export async function getMaintenanceJobs({ page = 1, size = 20, status, keyword } = {}) {
   try {
-    const response = await api.get(MAINTENANCE_ENDPOINTS.JOBS);
+    const params = { page, size };
+    if (status)  params.status  = status;
+    if (keyword) params.keyword = keyword;
+    const response = await api.get(MAINTENANCE_ENDPOINTS.JOBS, { params });
     return extractResponseData(response);
   } catch (error) {
     throw new Error(getErrorMessage(error));
@@ -148,9 +152,11 @@ export async function getInspectionById(id) {
  * @param {string} [status] - optional filter by status
  * @returns {Promise<Array>}
  */
-export async function getInspections(status) {
+export async function getInspections({ status, type } = {}) {
   try {
-    const params = status ? { status } : {};
+    const params = {};
+    if (status) params.status = status;
+    if (type)   params.type   = type;
     const response = await api.get(INSPECTION_ENDPOINTS.BASE, { params });
     return extractResponseData(response);
   } catch (error) {

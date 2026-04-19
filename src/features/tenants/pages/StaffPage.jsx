@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserCog, Search, Plus, Phone, Mail, Shield, MoreVertical, Sparkles } from 'lucide-react';
+import { UserCog, Search, Plus, Phone, Mail, Shield, MoreVertical } from 'lucide-react';
 
 const MOCK_STAFF = [
   { id: 1, name: 'Nguyễn Văn An', role: 'Kỹ thuật viên', phone: '0901 234 567', email: 'an.nguyen@isums.vn', status: 'active', avatar: 'A' },
@@ -30,14 +30,7 @@ export default function StaffPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,181,130,0.12)" }}>
-              <Sparkles className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
-            </div>
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Nhân viên</span>
-          </div>
-          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Nhân Viên</h2>
-          <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>{MOCK_STAFF.length} nhân viên trong hệ thống</p>
+<h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Nhân Viên</h2>
         </div>
         <button
           className="flex items-center gap-2 px-4 py-2.5 text-white rounded-full text-sm font-semibold transition shadow-sm"

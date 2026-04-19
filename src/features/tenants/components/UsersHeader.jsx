@@ -15,9 +15,6 @@ export default function UsersHeader({ total, onRefresh, loading }) {
         <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>
           Quản lý Khách Thuê
         </h2>
-        <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>
-          Danh sách tài khoản khách thuê trong hệ thống
-        </p>
       </div>
 
       <div className="flex items-center gap-2 mt-1">

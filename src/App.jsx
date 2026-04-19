@@ -16,7 +16,14 @@ export default function App() {
   }, []);
 
   return (
-    <ConfigProvider locale={viVN}>
+    <ConfigProvider
+      locale={viVN}
+      theme={{
+        token: {
+          fontFamily: "'Outfit', ui-sans-serif, system-ui, sans-serif",
+        },
+      }}
+    >
       <>
         <RouterProvider router={router} />
         <ToastContainer position="top-right" autoClose={3000} />

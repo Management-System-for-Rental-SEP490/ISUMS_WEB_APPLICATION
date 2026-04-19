@@ -47,8 +47,8 @@ export default function HouseCard({ house, onView, onEdit }) {
       onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 4px 20px -2px rgba(59,181,130,0.08)"; e.currentTarget.style.borderColor = "#C4DED5"; }}
     >
       {/* Image */}
-      <div className="relative aspect-[4/3] overflow-hidden flex-shrink-0">
-        <ImageCarousel images={house?.images ?? []} alt={name} height="h-full" showThumbnails={false} />
+      <div className="relative h-52 overflow-hidden flex-shrink-0">
+        <ImageCarousel images={house?.images ?? []} alt={name} height="h-52" showThumbnails={false} />
 
         {/* Status badge */}
         <span

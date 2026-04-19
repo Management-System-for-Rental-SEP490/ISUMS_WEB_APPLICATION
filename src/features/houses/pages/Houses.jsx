@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Select, Pagination } from "antd";
 import {
   ArrowUpDown,
   Building2,
-  ChevronLeft,
-  ChevronRight,
   LayoutGrid,
   List,
   Plus,
+  RefreshCw,
   Search,
-  Sparkles,
 } from "lucide-react";
 import { useHouses } from "../hooks/useHouses";
 import HouseCard from "../components/HouseCard";
@@ -31,70 +30,6 @@ const STATUS_BADGE = {
   default:     { label: "—",         cls: "bg-gray-50 text-gray-500 border-gray-200"          },
 };
 
-function Pagination({ current, total, onChange }) {
-  if (total <= 1) return null;
-
-  const pages = [];
-  if (total <= 7) {
-    for (let i = 1; i <= total; i++) pages.push(i);
-  } else {
-    pages.push(1);
-    if (current > 3) pages.push("...");
-    for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) pages.push(i);
-    if (current < total - 2) pages.push("...");
-    pages.push(total);
-  }
-
-  return (
-    <div className="flex items-center justify-center gap-1.5 mt-8">
-      <button
-        type="button"
-        onClick={() => onChange(current - 1)}
-        disabled={current === 1}
-        className="w-9 h-9 flex items-center justify-center rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
-        style={{ border: "1px solid #C4DED5", color: "#5A7A6E" }}
-        onMouseEnter={e => !e.currentTarget.disabled && (e.currentTarget.style.background = "#EAF4F0")}
-        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-      >
-        <ChevronLeft className="w-4 h-4" />
-      </button>
-
-      {pages.map((p, i) =>
-        p === "..." ? (
-          <span key={`ellipsis-${i}`} className="w-9 h-9 flex items-center justify-center text-sm" style={{ color: "#5A7A6E" }}>
-            ...
-          </span>
-        ) : (
-          <button
-            key={p}
-            type="button"
-            onClick={() => onChange(p)}
-            className="w-9 h-9 flex items-center justify-center rounded-xl text-sm font-medium transition"
-            style={p === current
-              ? { background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)", color: "#ffffff", boxShadow: "0 4px 12px -2px rgba(59,181,130,0.35)" }
-              : { border: "1px solid #C4DED5", color: "#5A7A6E" }}
-            onMouseEnter={e => p !== current && (e.currentTarget.style.background = "#EAF4F0")}
-            onMouseLeave={e => p !== current && (e.currentTarget.style.background = "transparent")}
-          >
-            {p}
-          </button>
-        )
-      )}
-
-      <button
-        type="button"
-        onClick={() => onChange(current + 1)}
-        disabled={current === total}
-        className="w-9 h-9 flex items-center justify-center rounded-xl transition disabled:opacity-40 disabled:cursor-not-allowed"
-        style={{ border: "1px solid #C4DED5", color: "#5A7A6E" }}
-        onMouseEnter={e => !e.currentTarget.disabled && (e.currentTarget.style.background = "#EAF4F0")}
-        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-      >
-        <ChevronRight className="w-4 h-4" />
-      </button>
-    </div>
-  );
-}
 
 function ListRow({ house }) {
   const b     = STATUS_BADGE[house?.status] ?? STATUS_BADGE.default;
@@ -182,33 +117,34 @@ export default function Houses() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,181,130,0.12)" }}>
-              <Sparkles className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
-            </div>
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>
-              Bất động sản
-            </span>
-          </div>
-          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>
+<h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>
             Quản lý Bất động sản
           </h2>
-          <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>
-            Tổng số {pagination.total} bất động sản đang quản lý
-            {loading && " • Đang tải..."}
-          </p>
         </div>
-        <button
-          type="button"
-          className="flex items-center gap-2 px-4 py-2.5 text-white text-sm font-semibold rounded-full shadow-sm transition"
-          style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
-          onMouseEnter={e => e.currentTarget.style.opacity = "0.9"}
-          onMouseLeave={e => e.currentTarget.style.opacity = "1"}
-          onClick={() => setShowCreate(true)}
-        >
-          <Plus className="w-4 h-4" />
-          Thêm bất động sản
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => refetch()}
+            className="flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold rounded-full transition"
+            style={{ border: "1px solid #C4DED5", color: "#5A7A6E", background: "#ffffff" }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.color = "#3bb582"; e.currentTarget.style.background = "rgba(59,181,130,0.06)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.color = "#5A7A6E"; e.currentTarget.style.background = "#ffffff"; }}
+          >
+            <RefreshCw className="w-4 h-4" />
+            Làm mới
+          </button>
+          <button
+            type="button"
+            className="flex items-center gap-2 px-4 py-2.5 text-white text-sm font-semibold rounded-full shadow-sm transition"
+            style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
+            onMouseEnter={e => e.currentTarget.style.opacity = "0.9"}
+            onMouseLeave={e => e.currentTarget.style.opacity = "1"}
+            onClick={() => setShowCreate(true)}
+          >
+            <Plus className="w-4 h-4" />
+            Thêm bất động sản
+          </button>
+        </div>
       </div>
 
       {/* Filter bar */}
@@ -231,35 +167,28 @@ export default function Houses() {
         </div>
 
         {/* Status filter */}
-        <select
-          value={filterStatus}
-          onChange={(e) => handleStatusChange(e.target.value)}
-          className="px-3 py-2 text-sm rounded-full outline-none transition cursor-pointer"
-          style={{ background: "#EAF4F0", border: "1px solid #C4DED5", color: "#1E2D28" }}
-        >
-          <option value="">Tất cả trạng thái</option>
-          <option value="AVAILABLE">Còn trống</option>
-          <option value="RENTED">Đã thuê</option>
-          <option value="MAINTENANCE">Bảo trì</option>
-        </select>
+        <Select
+          value={filterStatus || undefined}
+          onChange={handleStatusChange}
+          placeholder="Tất cả trạng thái"
+          allowClear
+          style={{ minWidth: 160 }}
+          options={[
+            { value: "AVAILABLE",   label: "Còn trống" },
+            { value: "RENTED",      label: "Đã thuê"   },
+            { value: "MAINTENANCE", label: "Bảo trì"   },
+          ]}
+          onClear={() => handleStatusChange("")}
+        />
 
         {/* Sort */}
-        <div
-          className="flex items-center gap-1.5 px-3 py-2 rounded-full"
-          style={{ background: "#EAF4F0", border: "1px solid #C4DED5" }}
-        >
-          <ArrowUpDown className="w-3.5 h-3.5" style={{ color: "#5A7A6E" }} />
-          <select
-            value={sortValue}
-            onChange={(e) => handleSortChange(e.target.value)}
-            className="text-sm bg-transparent outline-none cursor-pointer"
-            style={{ color: "#1E2D28" }}
-          >
-            {SORT_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
-        </div>
+        <Select
+          value={sortValue}
+          onChange={handleSortChange}
+          style={{ minWidth: 150 }}
+          suffixIcon={<ArrowUpDown className="w-3.5 h-3.5" style={{ color: "#5A7A6E" }} />}
+          options={SORT_OPTIONS}
+        />
 
         {/* View toggle */}
         <div
@@ -343,14 +272,18 @@ export default function Houses() {
             </div>
           )}
 
-          <Pagination
-            current={page}
-            total={pagination.totalPages}
-            onChange={(p) => {
-              setPage(p);
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-          />
+          <div className="flex justify-end">
+            <Pagination
+              current={page}
+              total={pagination.total}
+              pageSize={PAGE_SIZE}
+              onChange={(p) => {
+                setPage(p);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              showSizeChanger={false}
+            />
+          </div>
         </>
       )}
 

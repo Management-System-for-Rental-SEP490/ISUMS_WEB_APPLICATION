@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   Search, Download, RefreshCw, MessageCircle,
-  CheckCircle2, Eye, Send, Home, Clock, AlertCircle, Sparkles,
+  CheckCircle2, Eye, Send, Home, Clock, AlertCircle,
 } from "lucide-react";
+import { Pagination } from "antd";
 import dayjs from "dayjs";
 import { ISSUE_STATUS_CONFIG } from "../constants/issue.constants";
 import { getAllIssues } from "../api/issues.api";
@@ -155,14 +156,7 @@ export default function IssueRequestsPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,181,130,0.12)" }}>
-              <Sparkles className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
-            </div>
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Yêu cầu</span>
-          </div>
-          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Danh sách thắc mắc</h2>
-          <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>Câu hỏi và phản hồi từ khách thuê.</p>
+<h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Danh sách thắc mắc</h2>
         </div>
         <div className="flex items-center gap-2 mt-1">
           <button
@@ -311,53 +305,26 @@ export default function IssueRequestsPage() {
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {filtered.length > PAGE_SIZE && (
           <div
-            className="flex items-center justify-between px-5 py-3"
-            style={{ borderTop: "1px solid #C4DED5", background: "#EAF4F0" }}
+            className="flex justify-end px-5 py-3"
+            style={{ borderTop: "1px solid #C4DED5" }}
           >
-            <p className="text-xs" style={{ color: "#5A7A6E" }}>
-              {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} / {filtered.length} câu hỏi
-            </p>
-            <div className="flex items-center gap-1">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage((p) => p - 1)}
-                className="w-7 h-7 rounded-lg text-sm transition disabled:opacity-30"
-                style={{ color: "#5A7A6E" }}
-                onMouseEnter={e => e.currentTarget.style.background = "#C4DED5"}
-                onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-              >‹</button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                <button
-                  key={p}
-                  onClick={() => setPage(p)}
-                  className="w-7 h-7 rounded-lg text-sm font-medium transition"
-                  style={p === page
-                    ? { background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)", color: "#ffffff" }
-                    : { color: "#5A7A6E" }}
-                  onMouseEnter={e => p !== page && (e.currentTarget.style.background = "#C4DED5")}
-                  onMouseLeave={e => p !== page && (e.currentTarget.style.background = "transparent")}
-                >
-                  {p}
-                </button>
-              ))}
-              <button
-                disabled={page === totalPages}
-                onClick={() => setPage((p) => p + 1)}
-                className="w-7 h-7 rounded-lg text-sm transition disabled:opacity-30"
-                style={{ color: "#5A7A6E" }}
-                onMouseEnter={e => e.currentTarget.style.background = "#C4DED5"}
-                onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-              >›</button>
-            </div>
+            <Pagination
+              current={page}
+              total={filtered.length}
+              pageSize={PAGE_SIZE}
+              onChange={(p) => setPage(p)}
+              showSizeChanger={false}
+              size="small"
+            />
           </div>
         )}
       </div>
 
       <IssueDetailDrawer
         open={!!drawerTicketId} ticketId={drawerTicketId}
-        onClose={() => setDrawerTicketId(null)} showResponse={activeTab === "DONE"}
+        onClose={() => setDrawerTicketId(null)}
       />
       <IssueReplyModal
         open={!!replyTicketId} ticketId={replyTicketId}

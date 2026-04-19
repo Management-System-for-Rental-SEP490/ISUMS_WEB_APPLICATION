@@ -140,16 +140,7 @@ export default function Notifications() {
       {/* ── Header ── */}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,181,130,0.12)" }}>
-              <Bell className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
-            </div>
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Thông báo</span>
-          </div>
-          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Thông báo</h2>
-          <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>
-            Quản lý các cập nhật quan trọng từ hệ thống.
-          </p>
+<h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Thông báo</h2>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0 mt-1">
           <button

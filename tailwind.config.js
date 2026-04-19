@@ -9,8 +9,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans:    ["Nunito", "ui-sans-serif", "system-ui", "sans-serif"],
-        heading: ["Fraunces", "Georgia", "serif"],
+        sans:    ["Outfit", "ui-sans-serif", "system-ui", "sans-serif"],
+        heading: ["Outfit", "ui-sans-serif", "system-ui", "sans-serif"],
         mono:    ["ui-monospace", "SFMono-Regular", "monospace"],
       },
       colors: {

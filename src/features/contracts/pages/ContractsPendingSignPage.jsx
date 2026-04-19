@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Sparkles } from "lucide-react";
 import { LoadingSpinner } from "../../../components/shared/Loading";
 import { getAllContracts } from "../api/contracts.api";
 import { formatDateVi } from "../utils/contract.format";
@@ -139,16 +138,7 @@ export default function ContractsPendingSignPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: "rgba(59,181,130,0.12)" }}>
-              <Sparkles className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
-            </div>
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "#3bb582" }}>Hợp đồng</span>
-          </div>
-          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Hợp Đồng Chờ Ký</h2>
-          <p className="text-sm mt-1" style={{ color: "#5A7A6E" }}>
-            Danh sách hợp đồng khách thuê đã duyệt, chờ chủ nhà ký
-          </p>
+<h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Hợp Đồng Chờ Ký</h2>
         </div>
         {!loading && contracts.length > 0 && (
           <span
