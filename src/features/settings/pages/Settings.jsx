@@ -110,7 +110,7 @@ export default function Settings() {
 
   const renderProfileTab = () => (
     <div className="space-y-6">
-      <div className="rounded-2xl p-6" style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
+      <div className="rounded-2xl p-6" style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
         <h3 className="text-lg font-semibold mb-4">Thông Tin Cá Nhân</h3>
         <div className="space-y-4">
           <div className="flex items-center gap-6 mb-6">
@@ -207,7 +207,7 @@ export default function Settings() {
 
   const renderNotificationsTab = () => (
     <div className="space-y-6">
-      <div className="rounded-2xl p-6" style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
+      <div className="rounded-2xl p-6" style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
         <h3 className="text-lg font-semibold mb-4">Cài Đặt Thông Báo</h3>
         <div className="space-y-4">
           {Object.entries(formData.notifications).map(([key, value]) => (
@@ -254,7 +254,7 @@ export default function Settings() {
 
   const renderSecurityTab = () => (
     <div className="space-y-6">
-      <div className="rounded-2xl p-6" style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
+      <div className="rounded-2xl p-6" style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
         <h3 className="text-lg font-semibold mb-4">Bảo Mật Tài Khoản</h3>
         <div className="space-y-6">
           <div>
@@ -337,7 +337,7 @@ export default function Settings() {
 
   const renderSystemTab = () => (
     <div className="space-y-6">
-      <div className="rounded-2xl p-6" style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
+      <div className="rounded-2xl p-6" style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
         <h3 className="text-lg font-semibold mb-4">Cài Đặt Hệ Thống</h3>
         <div className="space-y-4">
           <div>
@@ -449,7 +449,7 @@ export default function Settings() {
       </div>
 
       {/* Tabs */}
-      <div className="rounded-2xl p-1" style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
+      <div className="rounded-2xl p-1" style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
         <div className="flex flex-wrap gap-1">
           {tabs.map((tab) => {
             const Icon = tab.icon;

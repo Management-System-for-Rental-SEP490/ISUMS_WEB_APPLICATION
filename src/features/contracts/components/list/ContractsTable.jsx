@@ -32,7 +32,7 @@ export default function ContractsTable({ items, onViewDetail, onEdit, onDelete, 
   if (loading) {
     return (
       <div className="rounded-2xl p-16 flex flex-col items-center gap-3"
-        style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
+        style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
         <RefreshCw className="w-6 h-6 animate-spin" style={{ color: "#3bb582" }} />
         <span className="text-sm" style={{ color: "#5A7A6E" }}>Đang tải danh sách hợp đồng...</span>
       </div>
@@ -42,7 +42,7 @@ export default function ContractsTable({ items, onViewDetail, onEdit, onDelete, 
   if (items.length === 0) {
     return (
       <div className="rounded-2xl p-16 flex flex-col items-center gap-3"
-        style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
+        style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "#EAF4F0" }}>
           <FileText className="w-7 h-7" style={{ color: "#C4DED5" }} />
         </div>
@@ -53,7 +53,7 @@ export default function ContractsTable({ items, onViewDetail, onEdit, onDelete, 
 
   return (
     <div className="rounded-2xl overflow-hidden"
-      style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
+      style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
       <div className="overflow-x-auto">
         <table className="w-full table-fixed">
           <thead>

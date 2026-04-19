@@ -77,7 +77,7 @@ function CreateBannerModal({ open, onClose, onCreated }) {
       <div
         className="rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
         style={{
-          background: "#FAFFFE",
+          background: "#FFFFFF",
           transform: visible
             ? "translateY(0) scale(1)"
             : "translateY(20px) scale(0.97)",
@@ -316,9 +316,9 @@ export default function IssuePriceListPage() {
             onClick={fetchBanners}
             disabled={loading}
             className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition disabled:opacity-50"
-            style={{ border: "1px solid #C4DED5", color: "#5A7A6E", background: "#FAFFFE" }}
+            style={{ border: "1px solid #C4DED5", color: "#5A7A6E", background: "#FFFFFF" }}
             onMouseEnter={e => { e.currentTarget.style.background = "#EAF4F0"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "#FAFFFE"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "#FFFFFF"; }}
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             Làm mới
@@ -343,7 +343,7 @@ export default function IssuePriceListPage() {
         </div>
       )}
 
-      <div className="rounded-2xl overflow-hidden" style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
+      <div className="rounded-2xl overflow-hidden" style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
         {/* Table header */}
         <div className="grid grid-cols-[48px_minmax(0,1fr)_200px_220px] gap-4 px-6 py-3" style={{ borderBottom: "1px solid #C4DED5", background: "#EAF4F0" }}>
           {["STT", "Tên dịch vụ / thiết bị", "Giá mua vào", "Giá bán"].map(

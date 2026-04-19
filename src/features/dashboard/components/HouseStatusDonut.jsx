@@ -8,7 +8,7 @@ function CustomTooltip({ active, payload }) {
   return (
     <div
       className="rounded-xl px-3 py-2 text-xs font-semibold shadow-lg"
-      style={{ background: "#FAFFFE", border: "1px solid #C4DED5", color: "#1E2D28" }}
+      style={{ background: "#FFFFFF", border: "1px solid #C4DED5", color: "#1E2D28" }}
     >
       {name}: <span style={{ color: payload[0].payload.color }}>{value}</span>
     </div>
@@ -29,7 +29,7 @@ export default function HouseStatusDonut({ propertyStats, loading = false }) {
     <div
       className="rounded-2xl flex flex-col h-full overflow-hidden"
       style={{
-        background: "#FAFFFE",
+        background: "#FFFFFF",
         border: "1px solid #C4DED5",
         boxShadow: "0px 1px 3px 0px rgba(16,24,40,0.08), 0px 1px 2px 0px rgba(16,24,40,0.04)",
       }}

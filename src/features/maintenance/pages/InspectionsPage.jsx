@@ -74,7 +74,7 @@ function DetailModal({ inspection, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm" style={{ background: "rgba(30,45,40,0.75)" }}>
-      <div className="rounded-3xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" style={{ background: "#FAFFFE" }}>
+      <div className="rounded-3xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" style={{ background: "#FFFFFF" }}>
 
         {/* Banner */}
         <div className="relative h-28 px-6 pt-5" style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}>
@@ -320,7 +320,7 @@ export default function InspectionsPage() {
 
       {/* Loading */}
       {loading && (
-        <div className="rounded-2xl overflow-hidden" style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}>
+        <div className="rounded-2xl overflow-hidden" style={{ background: "#FFFFFF", border: "1px solid #C4DED5" }}>
           {[...Array(5)].map((_, i) => (
             <div key={i} className="px-5 py-4 flex items-center gap-4" style={{ borderBottom: "1px solid rgba(196,222,213,0.4)" }}>
               <div className="w-20 h-3 rounded animate-pulse" style={{ background: "#EAF4F0" }} />
@@ -344,7 +344,7 @@ export default function InspectionsPage() {
 
       {/* Empty */}
       {!loading && !error && inspections.length === 0 && (
-        <div className="rounded-2xl p-16 text-center" style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}>
+        <div className="rounded-2xl p-16 text-center" style={{ background: "#FFFFFF", border: "1px solid #C4DED5" }}>
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: "#EAF4F0" }}>
             <ClipboardCheck className="w-7 h-7" style={{ color: "#3bb582" }} />
           </div>
@@ -357,7 +357,7 @@ export default function InspectionsPage() {
 
       {/* List */}
       {!loading && !error && inspections.length > 0 && (
-        <div className="rounded-2xl overflow-hidden" style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
+        <div className="rounded-2xl overflow-hidden" style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
           <div className="grid grid-cols-[2fr_130px_170px_140px] gap-4 px-5 py-3" style={{ borderBottom: "1px solid #C4DED5", background: "#EAF4F0" }}>
             {["Ghi chú", "Loại", "Hoàn thành lúc", "Thao tác"].map((h) => (
               <p key={h} className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>{h}</p>

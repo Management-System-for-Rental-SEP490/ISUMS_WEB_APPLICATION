@@ -85,7 +85,7 @@ export default function MaintenanceJobsPage() {
       {/* Main card */}
       <div
         className="rounded-2xl overflow-hidden"
-        style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+        style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
       >
         {/* Tab bar */}
         <div

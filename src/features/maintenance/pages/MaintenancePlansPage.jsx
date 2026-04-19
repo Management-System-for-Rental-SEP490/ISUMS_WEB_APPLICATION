@@ -137,7 +137,7 @@ export default function MaintenancePlansPage() {
           <div
             key={s.label}
             className="rounded-2xl px-5 py-4 flex items-center gap-3 transition-all duration-300 hover:-translate-y-1"
-            style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.10)" }}
+            style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.10)" }}
           >
             <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: s.iconBg }}>
               <ClipboardList className="w-4 h-4" style={{ color: s.iconColor }} />
@@ -156,7 +156,7 @@ export default function MaintenancePlansPage() {
       {loading && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="rounded-2xl p-4 space-y-3" style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}>
+            <div key={i} className="rounded-2xl p-4 space-y-3" style={{ background: "#FFFFFF", border: "1px solid #C4DED5" }}>
               <div className="h-3 w-20 rounded animate-pulse" style={{ background: "#EAF4F0" }} />
               <div className="h-4 w-3/4 rounded animate-pulse" style={{ background: "#EAF4F0" }} />
               <div className="h-3 w-1/2 rounded animate-pulse" style={{ background: "#EAF4F0" }} />
@@ -186,7 +186,7 @@ export default function MaintenancePlansPage() {
 
       {/* Empty */}
       {!loading && !error && plans.length === 0 && (
-        <div className="rounded-2xl p-16 text-center" style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}>
+        <div className="rounded-2xl p-16 text-center" style={{ background: "#FFFFFF", border: "1px solid #C4DED5" }}>
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: "#EAF4F0" }}>
             <ClipboardList className="w-7 h-7" style={{ color: "#3bb582" }} />
           </div>

@@ -57,6 +57,7 @@ const PATHNAME_TITLES = {
   "/reports": "Báo cáo",
   "/notifications": "Thông báo",
   "/settings": "Cài đặt",
+  "/audit-logs": "Audit Logs",
 };
 
 export default function DashboardLayout() {
@@ -98,8 +99,7 @@ export default function DashboardLayout() {
 
   return (
     <div
-      className="min-h-screen flex items-start"
-      style={{ background: "#F7FBF9" }}
+      className="min-h-screen flex items-start bg-slate-100"
     >
       {/* Mobile overlay */}
       {isSidebarOpen && (
@@ -129,7 +129,7 @@ export default function DashboardLayout() {
           className="sticky top-0 z-30 flex-shrink-0 flex items-center px-4 md:px-6 gap-3"
           style={{
             height: 64,
-            background: "#FAFFFE",
+            background: "#FFFFFF",
             borderBottom: "1px solid #C4DED5",
             boxShadow: "0 1px 4px 0 rgba(16,24,40,0.06)",
           }}
@@ -297,7 +297,7 @@ export default function DashboardLayout() {
                   <div
                     className="absolute right-0 mt-2 w-64 rounded-2xl py-1.5 z-20"
                     style={{
-                      background: "#FAFFFE",
+                      background: "#FFFFFF",
                       border: "1px solid #C4DED5",
                       boxShadow: "0 10px 40px -10px rgba(32,150,216,0.18)",
                     }}
@@ -397,8 +397,7 @@ export default function DashboardLayout() {
 
         {/* ── Main content ── */}
         <main
-          className="flex-1 px-4 pt-4 pb-12 md:px-6 lg:px-8"
-          style={{ background: "#F7FBF9" }}
+          className="flex-1 px-4 pt-4 pb-12 md:px-6 lg:px-8 bg-slate-100"
         >
           <div className="mb-4">
             <Breadcrumb

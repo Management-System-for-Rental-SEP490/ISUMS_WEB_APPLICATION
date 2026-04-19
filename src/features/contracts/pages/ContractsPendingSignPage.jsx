@@ -10,7 +10,7 @@ function EmptyState() {
   return (
     <div
       className="rounded-2xl px-8 py-16 flex flex-col items-center gap-3 text-center"
-      style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}
+      style={{ background: "#FFFFFF", border: "1px solid #C4DED5" }}
     >
       <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "#EAF4F0", border: "1px solid #C4DED5" }}>
         <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} style={{ color: "#3bb582" }}>
@@ -29,7 +29,7 @@ function ContractTable({ contracts, onNavigate }) {
   return (
     <div
       className="rounded-2xl overflow-hidden"
-      style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+      style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
     >
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -155,7 +155,7 @@ export default function ContractsPendingSignPage() {
       {loading && (
         <div
           className="rounded-2xl px-8 py-12 flex flex-col items-center gap-4"
-          style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}
+          style={{ background: "#FFFFFF", border: "1px solid #C4DED5" }}
         >
           <LoadingSpinner size="lg" showLabel label="Đang tải danh sách..." />
         </div>

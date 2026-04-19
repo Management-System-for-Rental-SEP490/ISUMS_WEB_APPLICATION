@@ -58,7 +58,7 @@ function StatCard({ label, value, sub, subColor, icon, iconBg, iconColor }) {
   return (
     <div
       className="flex-1 rounded-2xl p-5"
-      style={{ background: "#FAFFFE", border: `1px solid ${B.border}` }}
+      style={{ background: "#FFFFFF", border: `1px solid ${B.border}` }}
     >
       <div className="flex items-start justify-between mb-3">
         <p
@@ -99,7 +99,7 @@ function FloorCard({ floor, areas, houseId, navigate }) {
     <div
       className="flex items-center gap-5 px-5 py-3.5 rounded-2xl"
       style={{
-        background: "#FAFFFE",
+        background: "#FFFFFF",
         border: `1px solid ${B.border}`,
         borderLeft: `4px solid ${hasIssue ? "#ef4444" : B.green}`,
       }}
@@ -353,7 +353,7 @@ export default function HouseDetailPage() {
           {sortedFloors.length === 0 ? (
             <div
               className="flex flex-col items-center justify-center py-16 gap-3 rounded-2xl"
-              style={{ background: "#FAFFFE", border: `1px solid ${B.border}` }}
+              style={{ background: "#FFFFFF", border: `1px solid ${B.border}` }}
             >
               <Package className="w-10 h-10" style={{ color: B.border }} />
               <p className="text-sm" style={{ color: B.mutedFg }}>
@@ -380,7 +380,7 @@ export default function HouseDetailPage() {
           {/* Management Notes */}
           <div
             className="rounded-2xl p-4"
-            style={{ background: "#FAFFFE", border: `1px solid ${B.border}` }}
+            style={{ background: "#FFFFFF", border: `1px solid ${B.border}` }}
           >
             <p
               className="text-[10px] font-bold uppercase tracking-widest mb-3"
@@ -396,7 +396,7 @@ export default function HouseDetailPage() {
           {/* Recent Activity */}
           <div
             className="rounded-2xl p-4"
-            style={{ background: "#FAFFFE", border: `1px solid ${B.border}` }}
+            style={{ background: "#FFFFFF", border: `1px solid ${B.border}` }}
           >
             <p
               className="text-[10px] font-bold uppercase tracking-widest mb-3"

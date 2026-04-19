@@ -24,7 +24,7 @@ function CustomTooltip({ active, payload, label }) {
   return (
     <div
       className="rounded-[10px] px-3.5 py-2.5 text-xs shadow-lg"
-      style={{ background: "#FAFFFE", border: "1px solid #C4DED5", color: "#1E2D28" }}
+      style={{ background: "#FFFFFF", border: "1px solid #C4DED5", color: "#1E2D28" }}
     >
       <p className="font-medium mb-0.5" style={{ color: "#5A7A6E" }}>{label}</p>
       <p className="text-base font-bold" style={{ color: BRAND_GREEN }}>
@@ -42,7 +42,7 @@ export default function ContractsByMonthLine({ timeSeries = [], period = "6M", o
     <div
       className="rounded-2xl flex flex-col h-full overflow-hidden"
       style={{
-        background: "#FAFFFE",
+        background: "#FFFFFF",
         border: "1px solid #C4DED5",
         boxShadow: "0px 1px 3px 0px rgba(16,24,40,0.08), 0px 1px 2px 0px rgba(16,24,40,0.04)",
       }}

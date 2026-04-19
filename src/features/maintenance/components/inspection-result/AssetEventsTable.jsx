@@ -32,7 +32,7 @@ export default function AssetEventsTable({ events = [], loading }) {
       {/* Table */}
       <table className="w-full border-collapse">
         <thead>
-          <tr style={{ background: "#FAFFFE", borderBottom: "1px solid rgba(196,222,213,0.5)" }}>
+          <tr style={{ background: "#FFFFFF", borderBottom: "1px solid rgba(196,222,213,0.5)" }}>
             {TABLE_HEADERS.map((h) => (
               <th
                 key={h}

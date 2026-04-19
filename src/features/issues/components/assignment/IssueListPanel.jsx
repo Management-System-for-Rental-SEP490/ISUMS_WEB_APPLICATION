@@ -7,7 +7,7 @@ dayjs.extend(relativeTime);
 dayjs.locale("vi");
 
 const B = {
-  green: "#3bb582", blue: "#2096d8", card: "#FAFFFE",
+  green: "#3bb582", blue: "#2096d8", card: "#FFFFFF",
   muted: "#EAF4F0", border: "#C4DED5", fg: "#1E2D28", mutedFg: "#5A7A6E",
   blueMuted: "rgba(32, 150, 216, 0.12)",
 };

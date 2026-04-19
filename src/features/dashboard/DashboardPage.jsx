@@ -29,7 +29,7 @@ function KpiCard({ title, value, subtitle, icon: Icon, color, loading, isGood })
   return (
     <div
       className="rounded-2xl flex flex-col overflow-hidden transition-all duration-200 hover:-translate-y-0.5 group relative"
-      style={{ background: "#FAFFFE", border: `1px solid ${c.border}`, boxShadow: "0px 1px 3px 0px rgba(16,24,40,0.08)" }}
+      style={{ background: "#FFFFFF", border: `1px solid ${c.border}`, boxShadow: "0px 1px 3px 0px rgba(16,24,40,0.08)" }}
     >
       <div className="h-[3px] w-full flex-shrink-0" style={{ background: BRAND_GRADIENT }} />
       <div className="p-5 flex items-start gap-4 flex-1">
@@ -194,7 +194,7 @@ export default function DashboardPage() {
         {/* Recent contracts */}
         <div
           className="rounded-2xl flex flex-col overflow-hidden"
-          style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0px 1px 3px 0px rgba(16,24,40,0.08)", height: 380 }}
+          style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0px 1px 3px 0px rgba(16,24,40,0.08)", height: 380 }}
         >
           <div className="h-[3px] w-full flex-shrink-0" style={{ background: BRAND_GRADIENT }} />
           <div

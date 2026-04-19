@@ -42,7 +42,7 @@ export default function HouseCard({ house, onView, onEdit }) {
   return (
     <div
       className="rounded-2xl overflow-hidden transition-all duration-200 flex flex-col group"
-      style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+      style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
       onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 8px 32px -4px rgba(59,181,130,0.18)"; e.currentTarget.style.borderColor = "#3bb582"; }}
       onMouseLeave={e => { e.currentTarget.style.boxShadow = "0 4px 20px -2px rgba(59,181,130,0.08)"; e.currentTarget.style.borderColor = "#C4DED5"; }}
     >

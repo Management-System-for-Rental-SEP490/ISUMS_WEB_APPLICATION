@@ -5,7 +5,7 @@ import { ISSUE_STATUS_CONFIG } from "../../constants/issue.constants";
 import IssueTimeline from "../IssueTimeline";
 
 const B = {
-  green: "#3bb582", blue: "#2096d8", card: "#FAFFFE",
+  green: "#3bb582", blue: "#2096d8", card: "#FFFFFF",
   muted: "#EAF4F0", border: "#C4DED5", fg: "#1E2D28", mutedFg: "#5A7A6E",
   gradient: "linear-gradient(135deg, #3bb582 0%, rgba(32,150,216,0.7) 100%)",
   blueMuted: "rgba(32, 150, 216, 0.12)", blueBorder: "rgba(32, 150, 216, 0.35)",
@@ -74,7 +74,7 @@ export default function IssueDetailPanel({ detail, houseNames, staffDetail, imag
               {dayjs(detail.createdAt).format("DD/MM/YYYY · HH:mm")}
             </p>
           </div>
-          <div className="px-4 py-3 grid grid-cols-4 gap-4" style={{ borderTop: `1px solid ${B.border}`, background: "#FAFFFE" }}>
+          <div className="px-4 py-3 grid grid-cols-4 gap-4" style={{ borderTop: `1px solid ${B.border}`, background: "#FFFFFF" }}>
             {[
               { label: "Mã yêu cầu", value: String(detail.id).slice(0, 8).toUpperCase(), mono: true },
               { label: "Loại", value: "Sửa chữa" },

@@ -2,7 +2,7 @@ function StatCard({ label, value, iconPath, iconBg, iconColor }) {
   return (
     <div
       className="rounded-2xl px-5 py-4 flex items-center gap-4 transition-all duration-300 hover:-translate-y-1"
-      style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.10)" }}
+      style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.10)" }}
     >
       <div
         className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
