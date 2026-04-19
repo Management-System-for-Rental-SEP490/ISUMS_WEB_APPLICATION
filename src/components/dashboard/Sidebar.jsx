@@ -6,7 +6,7 @@ import {
   ChevronDown, ClipboardList,
   FileText, Home, LogOut, CheckCircle, MailQuestionIcon,
   PenLine, Tag, Settings, UserCheck, Users, UserCog,
-  Wrench, Zap, LayoutDashboard,
+  Wrench, Zap, LayoutDashboard, ShieldCheck,
 } from "lucide-react";
 import logo from "../../assets/logo.jpg";
 
@@ -83,8 +83,9 @@ export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
     {
       id: "he-thong", label: "Hệ Thống", icon: Settings, collapsible: false,
       items: [
-        { id: "notifications", label: "Thông báo", icon: Bell,     path: "/notifications", badge: unreadCount },
-        { id: "settings",      label: "Cài Đặt",   icon: Settings, path: "/settings" },
+        { id: "notifications", label: "Thông báo",  icon: Bell,        path: "/notifications", badge: unreadCount },
+        { id: "audit-logs",    label: "Audit Logs", icon: ShieldCheck, path: "/audit-logs" },
+        { id: "settings",      label: "Cài Đặt",    icon: Settings,    path: "/settings" },
       ],
     },
   ];

@@ -139,6 +139,11 @@ export const DASHBOARD_ENDPOINTS = {
   BASE: "/econtracts/dashboard",
 };
 
+export const AUDIT_LOG_ENDPOINTS = {
+  LIST: "/audit-logs",
+  BY_EVENT_ID: (eventId) => `/audit-logs/${eventId}`,
+};
+
 export const INSPECTION_ENDPOINTS = {
   BASE: "maintenances/inspections",
   CREATE: "maintenances/inspections",

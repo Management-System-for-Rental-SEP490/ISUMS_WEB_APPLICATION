@@ -57,6 +57,7 @@ const PATHNAME_TITLES = {
   "/reports": "Báo cáo",
   "/notifications": "Thông báo",
   "/settings": "Cài đặt",
+  "/audit-logs": "Audit Logs",
 };
 
 export default function DashboardLayout() {

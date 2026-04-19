@@ -32,6 +32,7 @@ import IssueQuoteApprovalPage from "./features/issues/pages/IssueQuoteApprovalPa
 import Reports from "./features/reports/pages/Reports";
 import Notifications from "./features/notifications/pages/Notifications";
 import Settings from "./features/settings/pages/Settings";
+import AuditLogsPage from "./features/audit-logs/pages/AuditLogsPage";
 
 const ALLOWED_ROLES = ["ADMIN", "LANDLORD", "MANAGER"];
 
@@ -79,6 +80,7 @@ export const router = createBrowserRouter([
               { path: "/reports", element: <Reports /> },
               { path: "/notifications", element: <Notifications /> },
               { path: "/settings", element: <Settings /> },
+              { path: "/audit-logs", element: <AuditLogsPage /> },
             ],
           },
           { path: "/contracts/:id", element: <ContractDetailStandalone /> },
