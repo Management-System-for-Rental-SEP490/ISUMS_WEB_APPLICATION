@@ -23,7 +23,6 @@ api.interceptors.request.use(
         }
       } catch (error) {
         console.warn("Failed to refresh Keycloak token:", error);
-        // Continue request without token
       }
     }
 
