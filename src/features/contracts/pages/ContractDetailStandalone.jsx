@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { confirmByAdmin, getContractById, getCccdStatus } from "../api/contracts.api";
 import { mapContractFromApi } from "../utils/mapContractFromApi";
 import { toast } from "react-toastify";
@@ -29,9 +30,9 @@ const STATUS_STYLE = {
   default:                { bg: "rgba(107,114,128,0.1)",  color: "#374151", border: "rgba(107,114,128,0.2)", dot: "#9ca3af" },
 };
 
-function StatusBadge({ status }) {
+function StatusBadge({ status, t }) {
   const style = STATUS_STYLE[status] ?? STATUS_STYLE.default;
-  const label = STATUS_LABEL[status] ?? "Không rõ";
+  const label = STATUS_LABEL[status] ?? t("contracts.detail.unknown");
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12px] font-semibold tracking-wide"
@@ -94,6 +95,7 @@ function ConfirmDialog({
   title,
   description,
   confirmLabel,
+  t,
 }) {
   if (!open) return null;
   return (
@@ -124,7 +126,7 @@ function ConfirmDialog({
             variant="outline"
             icon={<Icons.X />}
           >
-            Hủy bỏ
+            {t("contracts.detail.confirmDialog.cancel")}
           </ActionButton>
           <ActionButton
             onClick={onConfirm}
@@ -132,7 +134,7 @@ function ConfirmDialog({
             variant="primary"
             icon={confirming ? <Icons.Loader /> : <Icons.Send />}
           >
-            {confirming ? "Đang xử lý..." : confirmLabel}
+            {confirming ? t("contracts.detail.processing") : confirmLabel}
           </ActionButton>
         </div>
       </div>
@@ -144,6 +146,7 @@ function ConfirmDialog({
 export default function ContractDetailStandalone() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation("common");
   const roles = useAuthStore((s) => s.roles ?? []);
 
   const isLandlord = roles.includes("LANDLORD");
@@ -174,10 +177,10 @@ export default function ContractDetailStandalone() {
         const status = err?.response?.status;
         const msg =
           status === 403
-            ? "Bạn không có quyền xem hợp đồng này."
+            ? t("contracts.detail.error403")
             : status === 404
-              ? "Không tìm thấy hợp đồng."
-              : "Không thể tải hợp đồng, vui lòng thử lại.";
+              ? t("contracts.detail.error404")
+              : t("contracts.detail.errorDefault");
         if (mounted) setError(msg);
       } finally {
         if (mounted) setLoading(false);
@@ -209,20 +212,18 @@ export default function ContractDetailStandalone() {
     setConfirming(true);
     try {
       await confirmByAdmin(id);
-      toast.success(
-        "Xác nhận thành công! Email đã được gửi cho khách thuê xem xét.",
-      );
+      toast.success(t("contracts.detail.confirmSuccess"));
       await refetchContract();
     } catch (err) {
       const status = err?.response?.status;
       const msg =
         status === 400
-          ? "Không thể xác nhận hợp đồng này (hợp đồng không đủ điều kiện)."
+          ? t("contracts.detail.confirm400")
           : status === 403
-            ? "Bạn không có quyền xác nhận hợp đồng này."
+            ? t("contracts.detail.confirm403")
             : status === 404
-              ? "Không tìm thấy hợp đồng."
-              : "Xác nhận thất bại, vui lòng thử lại.";
+              ? t("contracts.detail.confirm404")
+              : t("contracts.detail.confirmError");
       toast.error(msg);
     } finally {
       setConfirming(false);
@@ -236,18 +237,18 @@ export default function ContractDetailStandalone() {
     setConfirming(true);
     try {
       await confirmByAdmin(id);
-      toast.success("Đã gửi lại hợp đồng cho người thuê xem xét.");
+      toast.success(t("contracts.detail.resendSuccess"));
       await refetchContract();
     } catch (err) {
       const httpStatus = err?.response?.status;
       const msg =
         httpStatus === 400
-          ? "Không thể gửi lại hợp đồng này."
+          ? t("contracts.detail.resend400")
           : httpStatus === 403
-            ? "Bạn không có quyền thực hiện thao tác này."
+            ? t("contracts.detail.resend403")
             : httpStatus === 404
-              ? "Không tìm thấy hợp đồng."
-              : "Gửi lại thất bại, vui lòng thử lại.";
+              ? t("contracts.detail.resend404")
+              : t("contracts.detail.resendError");
       toast.error(msg);
     } finally {
       setConfirming(false);
@@ -281,7 +282,7 @@ export default function ContractDetailStandalone() {
       a.click();
       URL.revokeObjectURL(blobUrl);
     } catch {
-      toast.error("Không thể tải file, vui lòng thử lại.");
+      toast.error(t("contracts.detail.downloadError"));
     }
   };
 
@@ -299,7 +300,7 @@ export default function ContractDetailStandalone() {
             className="flex-shrink-0 flex items-center gap-1.5 text-[13px] font-medium text-slate-500 hover:text-slate-900 transition"
           >
             <Icons.ArrowLeft />
-            <span className="whitespace-nowrap ">Quay lại danh sách</span>
+            <span className="whitespace-nowrap">{t("contracts.detail.backToList")}</span>
           </button>
 
           <div className="h-6 w-px bg-slate-200 flex-shrink-0" />
@@ -307,10 +308,10 @@ export default function ContractDetailStandalone() {
           {/* Title block */}
           <div className="min-w-0 flex-1">
             <h1 className="text-sm font-bold text-slate-900 truncate leading-tight">
-              Chi tiết hợp đồng thuê nhà
+              {t("contracts.detail.title")}
             </h1>
             <p className="text-[11px] font-mono text-slate-400 uppercase tracking-wide truncate leading-tight">
-              Mã hồ sơ:{" "}
+              {t("contracts.detail.contractCode")}:{" "}
               {contract?.contractNumber ?? contract?.name ?? id ?? "—"}
             </p>
           </div>
@@ -329,12 +330,12 @@ export default function ContractDetailStandalone() {
                 className="h-1.5 w-1.5 rounded-full flex-shrink-0"
                 style={{ background: cccdVerified ? "#10b981" : "#f59e0b" }}
               />
-              {cccdVerified ? "Đã xác minh CCCD" : "Chưa xác minh CCCD"}
+              {cccdVerified ? t("contracts.detail.cccdVerified") : t("contracts.detail.cccdNotVerified")}
             </span>
           )}
 
           {/* Status badge */}
-          {status && <StatusBadge status={normalizedStatus} />}
+          {status && <StatusBadge status={normalizedStatus} t={t} />}
 
           {/* Action buttons */}
           <div className="flex items-center gap-2 flex-shrink-0">
@@ -344,7 +345,7 @@ export default function ContractDetailStandalone() {
                 icon={<Icons.Edit />}
                 variant="teal"
               >
-                Chỉnh sửa
+                {t("contracts.detail.edit")}
               </ActionButton>
             )}
             {canConfirm && (
@@ -354,7 +355,7 @@ export default function ContractDetailStandalone() {
                 variant="primary"
                 icon={confirming ? <Icons.Loader /> : <Icons.CheckCircle />}
               >
-                {confirming ? "Đang xử lý..." : "Xác nhận hợp đồng"}
+                {confirming ? t("contracts.detail.processing") : t("contracts.detail.confirm")}
               </ActionButton>
             )}
             {canResend && (
@@ -364,7 +365,7 @@ export default function ContractDetailStandalone() {
                 variant="primary"
                 icon={confirming ? <Icons.Loader /> : <Icons.Send />}
               >
-                {confirming ? "Đang gửi..." : "Gửi lại cho người thuê"}
+                {confirming ? t("contracts.detail.sending") : t("contracts.detail.resend")}
               </ActionButton>
             )}
             {canLandlordSign && (
@@ -373,41 +374,26 @@ export default function ContractDetailStandalone() {
                 disabled={loading || !!error}
                 variant="violet"
                 icon={
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                    />
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                   </svg>
                 }
               >
-                Ký hợp đồng
+                {t("contracts.detail.sign")}
               </ActionButton>
             )}
             {canDownload && (
-              <ActionButton
-                onClick={handleDownload}
-                variant="teal"
-                icon={<Icons.Download />}
-              >
-                Tải về
+              <ActionButton onClick={handleDownload} variant="teal" icon={<Icons.Download />}>
+                {t("contracts.detail.download")}
               </ActionButton>
             )}
-            {/* Close button — dark filled như stitch */}
             <button
               type="button"
               onClick={goBack}
               className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-[13px] font-semibold bg-slate-800 text-white hover:bg-slate-700 transition"
             >
               <Icons.X />
-              Đóng
+              {t("contracts.detail.close")}
             </button>
           </div>
         </div>
@@ -415,7 +401,7 @@ export default function ContractDetailStandalone() {
 
       <LoadingOverlay
         open={confirming}
-        label="Đang gửi hợp đồng cho khách thuê..."
+        label={t("contracts.detail.sending2")}
       />
 
       {/* Main content */}
@@ -423,7 +409,7 @@ export default function ContractDetailStandalone() {
         {loading && (
           <div className="max-w-3xl mx-auto bg-white rounded-2xl border border-slate-200 shadow-sm px-12 py-12 flex flex-col items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-slate-100 animate-pulse" />
-            <LoadingSpinner size="lg" showLabel label="Đang tải hợp đồng..." />
+            <LoadingSpinner size="lg" showLabel label={t("contracts.detail.loadingLabel")} />
           </div>
         )}
 
@@ -434,14 +420,14 @@ export default function ContractDetailStandalone() {
             </div>
             <p className="mb-1 font-semibold text-red-600">{error}</p>
             <p className="mb-6 text-[13px] text-slate-400">
-              Không thể tải nội dung hợp đồng. Vui lòng thử lại.
+              {t("contracts.detail.loadError")}
             </p>
             <button
               type="button"
               onClick={() => navigate(-1)}
               className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 py-2 text-[13px] font-semibold text-slate-700 hover:bg-slate-50 transition"
             >
-              <Icons.ArrowLeft /> Quay lại
+              <Icons.ArrowLeft /> {t("contracts.detail.backToList")}
             </button>
           </div>
         )}
@@ -469,9 +455,10 @@ export default function ContractDetailStandalone() {
         onClose={() => !confirming && setShowManagerConfirm(false)}
         onConfirm={handleManagerConfirm}
         confirming={confirming}
-        title="Xác nhận hợp đồng"
-        description="Hợp đồng sẽ được gửi cho người thuê xem và xác nhận. Bạn vẫn có thể chỉnh sửa nếu chủ nhà yêu cầu."
-        confirmLabel="Xác nhận & Gửi"
+        title={t("contracts.detail.confirmDialog.title")}
+        description={t("contracts.detail.confirmDialog.description")}
+        confirmLabel={t("contracts.detail.confirmDialog.confirmLabel")}
+        t={t}
       />
 
       {/* Dialog: Gửi lại cho người thuê (PENDING_TENANT_REVIEW) */}
@@ -480,9 +467,10 @@ export default function ContractDetailStandalone() {
         onClose={() => !confirming && setShowResendConfirm(false)}
         onConfirm={handleResend}
         confirming={confirming}
-        title="Gửi lại cho người thuê"
-        description="Hệ thống sẽ gửi lại email thông báo cho người thuê để xem xét và xác nhận hợp đồng."
-        confirmLabel="Gửi lại"
+        title={t("contracts.detail.resendDialog.title")}
+        description={t("contracts.detail.resendDialog.description")}
+        confirmLabel={t("contracts.detail.resendDialog.confirmLabel")}
+        t={t}
       />
     </div>
   );
