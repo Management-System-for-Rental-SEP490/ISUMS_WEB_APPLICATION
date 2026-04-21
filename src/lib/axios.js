@@ -28,6 +28,7 @@ api.interceptors.request.use(
 
     // Add custom headers
     config.headers["ngrok-skip-browser-warning"] = "true";
+    config.headers["Accept-Language"] = localStorage.getItem("app_language") || "vi";
 
     return config;
   },

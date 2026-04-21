@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -12,6 +13,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
  * @param {{ pdfUrl: string }} props
  */
 export default function ContractPdfViewer({ pdfUrl }) {
+  const { t } = useTranslation("common");
   const [numPages, setNumPages] = useState(null);
   const [loadError, setLoadError] = useState(false);
   const [containerWidth, setContainerWidth] = useState(null);
@@ -38,7 +40,7 @@ export default function ContractPdfViewer({ pdfUrl }) {
   if (!pdfUrl) {
     return (
       <div className="flex items-center justify-center h-48 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-400">
-        Chưa có file PDF cho hợp đồng này.
+        {t("contracts.pdf.noPdf")}
       </div>
     );
   }
@@ -49,7 +51,7 @@ export default function ContractPdfViewer({ pdfUrl }) {
         <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
-        Không thể tải file PDF. Vui lòng thử lại sau.
+        {t("contracts.pdf.loadError")}
       </div>
     );
   }
@@ -67,7 +69,7 @@ export default function ContractPdfViewer({ pdfUrl }) {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>
-              <span className="text-sm">Đang tải PDF...</span>
+              <span className="text-sm">{t("contracts.pdf.loading")}</span>
             </div>
           </div>
         }

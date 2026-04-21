@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { createPortal } from "react-dom";
 import { Drawer } from "antd";
 import { MapPin, Clock, MessageSquare, ImageIcon, X, ChevronLeft, ChevronRight } from "lucide-react";
-import { getIssueById } from "../api/issues.api";
-import { getHouseById } from "../../houses/api/houses.api";
+import { getIssueById, getResponseByTicket } from "../api/issues.api";
 import { ISSUE_STATUS_CONFIG } from "../constants/issue.constants";
 import dayjs from "dayjs";
 
@@ -36,7 +36,7 @@ function ImageLightbox({ images, index, onClose, onNext, onPrev }) {
       )}
       <img
         src={images[index].url}
-        alt="Ảnh đính kèm"
+        alt=""
         className="max-h-[85vh] max-w-[85vw] rounded-2xl object-contain"
         style={{ boxShadow: "0 20px 60px rgba(0,0,0,0.5)" }}
         onClick={(e) => e.stopPropagation()}
@@ -68,22 +68,23 @@ function ImageLightbox({ images, index, onClose, onNext, onPrev }) {
 }
 
 export default function IssueDetailDrawer({ open, ticketId, onClose }) {
-  const [detail, setDetail]       = useState(null);
-  const [houseName, setHouseName] = useState(null);
-  const [loading, setLoading]     = useState(false);
-  const [error, setError]         = useState(null);
+  const { t } = useTranslation("common");
+  const [detail, setDetail]   = useState(null);
+  const [reply, setReply]     = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState(null);
   const [lightboxIndex, setLightboxIndex] = useState(null);
 
   useEffect(() => {
     if (!open || !ticketId) return;
-    setDetail(null); setHouseName(null); setError(null); setLightboxIndex(null);
+    setDetail(null); setReply(null); setError(null); setLightboxIndex(null);
     setLoading(true);
     getIssueById(ticketId)
       .then((ticketDetail) => {
         setDetail(ticketDetail);
-        if (ticketDetail?.houseId) {
-          getHouseById(ticketDetail.houseId)
-            .then((h) => setHouseName(h?.name ?? h?.houseName ?? null))
+        if (ticketDetail?.status === "DONE") {
+          getResponseByTicket(ticketId)
+            .then((resp) => setReply(resp?.localizedContent ?? resp?.content ?? null))
             .catch(() => null);
         }
       })
@@ -103,7 +104,7 @@ export default function IssueDetailDrawer({ open, ticketId, onClose }) {
       title={
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[11px] font-bold text-teal-600 bg-teal-50 border border-teal-100 px-2.5 py-1 rounded-lg tracking-wide uppercase">
-            Mã câu hỏi: #{String(ticketId ?? "").slice(0, 8).toUpperCase()}
+            {t("issues.drawerIdLabel")}: #{String(ticketId ?? "").slice(0, 8).toUpperCase()}
           </span>
           {detail?.createdAt && (
             <span className="text-[11px] text-gray-400">
@@ -113,7 +114,7 @@ export default function IssueDetailDrawer({ open, ticketId, onClose }) {
           {status && (
             <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg" style={{ background: status.bg, color: status.color }}>
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: status.dot }} />
-              {status.label}
+              {t(status.i18nKey, { defaultValue: status.i18nKey })}
             </span>
           )}
         </div>
@@ -123,7 +124,7 @@ export default function IssueDetailDrawer({ open, ticketId, onClose }) {
       {/* Title */}
       <div className="px-6 py-4 border-b border-gray-100">
         <h2 className="text-2xl font-bold text-gray-900 leading-snug">
-          {loading ? "Đang tải..." : (detail?.title ?? "—")}
+          {loading ? t("issues.loading") : (detail?.title ?? "—")}
         </h2>
       </div>
 
@@ -132,7 +133,7 @@ export default function IssueDetailDrawer({ open, ticketId, onClose }) {
         {loading && (
           <div className="py-24 flex flex-col items-center gap-3 text-gray-400">
             <div className="w-7 h-7 rounded-full border-2 border-teal-400 border-t-transparent animate-spin" />
-            <p className="text-sm">Đang tải thông tin...</p>
+            <p className="text-sm">{t("issues.drawerLoadingInfo")}</p>
           </div>
         )}
         {error && <div className="py-10 text-center text-red-500 text-sm px-6">{error}</div>}
@@ -142,11 +143,13 @@ export default function IssueDetailDrawer({ open, ticketId, onClose }) {
             {/* Resident + Location */}
             <div className="grid grid-cols-2 gap-3 px-6 pt-5">
               <div className="bg-gray-50 rounded-2xl p-4 flex items-start gap-3">
-                <Avatar name={detail.tenantName} />
+                <Avatar name={detail.tenant?.name ?? detail.tenantName} />
                 <div className="min-w-0">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Khách thuê</p>
-                  <p className="text-sm font-bold text-gray-800 truncate">{detail.tenantName ?? "—"}</p>
-                  {detail.tenantPhone && <p className="text-xs text-gray-500 mt-0.5">{detail.tenantPhone}</p>}
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">{t("issues.drawerTenant")}</p>
+                  <p className="text-sm font-bold text-gray-800 truncate">{detail.tenant?.name ?? detail.tenantName ?? "—"}</p>
+                  {(detail.tenant?.phoneNumber ?? detail.tenantPhone) && (
+                    <p className="text-xs text-gray-500 mt-0.5">{detail.tenant?.phoneNumber ?? detail.tenantPhone}</p>
+                  )}
                 </div>
               </div>
               <div className="bg-gray-50 rounded-2xl p-4 flex items-start gap-3">
@@ -154,9 +157,9 @@ export default function IssueDetailDrawer({ open, ticketId, onClose }) {
                   <MapPin className="w-5 h-5 text-blue-500" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Địa điểm</p>
-                  {detail.houseUnit && <p className="text-sm font-bold text-gray-800 truncate">{detail.houseUnit}</p>}
-                  <p className="text-xs text-gray-500 mt-0.5 truncate">{houseName ?? detail.houseName ?? "—"}</p>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">{t("issues.drawerLocation")}</p>
+                  <p className="text-sm font-bold text-gray-800 truncate">{detail.house?.name ?? "—"}</p>
+                  {detail.house?.address && <p className="text-xs text-gray-500 mt-0.5 truncate">{detail.house.address}</p>}
                 </div>
               </div>
             </div>
@@ -165,7 +168,7 @@ export default function IssueDetailDrawer({ open, ticketId, onClose }) {
             <div className="px-6 pt-5">
               <div className="flex items-center gap-2 mb-3">
                 <MessageSquare className="w-4 h-4 text-teal-500" />
-                <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Nội dung thắc mắc</p>
+                <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">{t("issues.drawerInquiry")}</p>
               </div>
               <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
                 <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
@@ -185,13 +188,30 @@ export default function IssueDetailDrawer({ open, ticketId, onClose }) {
               </div>
             </div>
 
+            {/* Reply */}
+            {detail.status === "DONE" && (
+              <div className="px-6 pt-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <MessageSquare className="w-4 h-4 text-teal-500" />
+                  <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">{t("issues.replyLabel")}</p>
+                </div>
+                <div className="bg-teal-50 rounded-2xl p-4 border border-teal-100">
+                  {reply === null ? (
+                    <p className="text-sm text-gray-400 italic">{t("issues.replyLoadingReply")}</p>
+                  ) : (
+                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{reply}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Images */}
             {detail.images?.length > 0 && (
               <div className="px-6 pt-5">
                 <div className="flex items-center gap-2 mb-3">
                   <ImageIcon className="w-4 h-4 text-teal-500" />
                   <p className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">
-                    Ảnh đính kèm
+                    {t("issues.drawerImages")}
                     <span className="ml-1.5 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-teal-50 text-teal-600">
                       {detail.images.length}
                     </span>

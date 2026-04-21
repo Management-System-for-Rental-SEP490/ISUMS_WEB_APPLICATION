@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { UserCheck, RefreshCw, Wrench } from "lucide-react";
 import { getAllIssues, getIssueById } from "../api/issues.api";
 import { getHouseById } from "../../houses/api/houses.api";
@@ -16,6 +17,7 @@ const B = {
 };
 
 export default function IssueAssignmentPage() {
+  const { t } = useTranslation("common");
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -42,7 +44,7 @@ export default function IssueAssignmentPage() {
       );
       setHouseNames(Object.fromEntries(entries));
     } catch (err) {
-      setError(err?.message ?? "Không thể tải danh sách yêu cầu.");
+      setError(err?.message ?? t("issues.loadListError"));
     } finally {
       setLoading(false);
     }
@@ -82,14 +84,14 @@ export default function IssueAssignmentPage() {
     setConfirming(true);
     try {
       await confirmManagerWorkSlot(selected.id);
-      toast.success(`Đã xác nhận ca làm việc: ${selected.title}`);
+      toast.success(t("issues.confirmWorkSlot", { title: selected.title }));
       setSelected(null);
       setSelectedDetail(null);
       setStaffDetail(null);
       setImages([]);
       fetchIssues();
     } catch (e) {
-      toast.error(e.message ?? "Xác nhận thất bại, vui lòng thử lại.");
+      toast.error(e.message ?? t("issues.confirmFailed"));
     } finally {
       setConfirming(false);
     }
@@ -106,9 +108,9 @@ export default function IssueAssignmentPage() {
             <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: B.muted }}>
               <UserCheck className="w-3.5 h-3.5" style={{ color: B.green }} />
             </div>
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: B.green }}>Sửa chữa</span>
+            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: B.green }}>{t("issues.repairLabel")}</span>
           </div>
-          <h2 className="font-heading text-3xl font-bold" style={{ color: B.fg }}>Phân công xử lý</h2>
+          <h2 className="font-heading text-3xl font-bold" style={{ color: B.fg }}>{t("issues.assignmentTitle")}</h2>
         </div>
         <button
           onClick={fetchIssues}
@@ -117,7 +119,7 @@ export default function IssueAssignmentPage() {
           style={{ background: B.muted, color: B.green, border: `1px solid ${B.border}` }}
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          Làm mới
+          {t("issues.btnRefresh")}
         </button>
       </div>
 
@@ -125,13 +127,13 @@ export default function IssueAssignmentPage() {
       {error && (
         <div className="rounded-2xl px-5 py-3.5 flex items-center justify-between" style={{ background: "rgba(217,95,75,0.08)", border: "1px solid rgba(217,95,75,0.25)" }}>
           <p className="text-sm font-medium" style={{ color: "#D95F4B" }}>{error}</p>
-          <button onClick={fetchIssues} className="text-xs font-semibold underline" style={{ color: "#D95F4B" }}>Thử lại</button>
+          <button onClick={fetchIssues} className="text-xs font-semibold underline" style={{ color: "#D95F4B" }}>{t("issues.btnRetry")}</button>
         </div>
       )}
 
       {/* Main layout */}
       <div className="flex gap-6 items-start">
-        <IssueListPanel issues={issues} loading={loading} selected={selected} onSelect={handleSelectIssue} />
+        <IssueListPanel issues={issues} loading={loading} selected={selected} onSelect={handleSelectIssue} t={t} />
 
         {!loading && detail ? (
           <IssueDetailPanel
@@ -143,6 +145,7 @@ export default function IssueAssignmentPage() {
             onConfirm={handleConfirm}
             confirming={confirming}
             onOpenLightbox={setLightboxIndex}
+            t={t}
           />
         ) : (
           !loading && (
@@ -154,7 +157,7 @@ export default function IssueAssignmentPage() {
                 <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: B.muted }}>
                   <Wrench className="w-7 h-7" style={{ color: B.green }} />
                 </div>
-                <p className="text-sm font-medium" style={{ color: B.mutedFg }}>Chọn một yêu cầu để xem chi tiết</p>
+                <p className="text-sm font-medium" style={{ color: B.mutedFg }}>{t("issues.selectToView")}</p>
               </div>
             </div>
           )

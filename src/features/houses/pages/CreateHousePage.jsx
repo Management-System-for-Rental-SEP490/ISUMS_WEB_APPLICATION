@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { Loader2, Save, X } from "lucide-react";
 import AddressPicker from "../../../components/shared/AddressPicker";
@@ -10,6 +11,7 @@ const inp = "w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus
 const lbl = "block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5";
 
 export default function CreateHousePage({ onBack, onSubmit }) {
+  const { t } = useTranslation("common");
   const [form, setForm]           = useState({ name: "", description: "", numberOfFloors: "" });
   const [address, setAddress]     = useState("");
   const [addrParts, setAddrParts] = useState({ street: "", ward: "", city: "" });
@@ -35,9 +37,9 @@ export default function CreateHousePage({ onBack, onSubmit }) {
 
   const validate = () => {
     const e = {};
-    if (!form.name.trim()) e.name     = "Vui lòng nhập tên bất động sản";
-    if (!regionId)         e.regionId = "Vui lòng chọn khu vực";
-    if (!address)          e.address  = "Vui lòng chọn địa chỉ";
+    if (!form.name.trim()) e.name     = t("houses.create.validation.name");
+    if (!regionId)         e.regionId = t("houses.create.validation.region");
+    if (!address)          e.address  = t("houses.create.validation.address");
     setErrors(e);
     return !Object.keys(e).length;
   };
@@ -62,10 +64,10 @@ export default function CreateHousePage({ onBack, onSubmit }) {
       if (houseId && images.length > 0) {
         await uploadHouseImages(houseId, images.map((img) => img.file));
       }
-      toast.success("Tạo bất động sản thành công!");
-      onSubmit?.();
+      toast.success(t("houses.create.successToast"));
+      onSubmit?.(created);
     } catch (e) {
-      toast.error(e?.message ?? "Tạo thất bại, vui lòng thử lại.");
+      toast.error(e?.message ?? t("houses.create.failToast"));
     } finally {
       setSubmitting(false);
     }
@@ -76,8 +78,8 @@ export default function CreateHousePage({ onBack, onSubmit }) {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Thêm bất động sản mới</h2>
-          <p className="text-sm text-slate-400 mt-0.5">Điền đầy đủ thông tin để tạo bất động sản mới</p>
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{t("houses.create.title")}</h2>
+          <p className="text-sm text-slate-400 mt-0.5">{t("houses.create.subtitle")}</p>
         </div>
 
         <div className="flex items-center gap-2 pt-1 shrink-0">
@@ -87,7 +89,7 @@ export default function CreateHousePage({ onBack, onSubmit }) {
             className="flex items-center gap-1.5 px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition"
           >
             <X className="w-3.5 h-3.5" />
-            Hủy
+            {t("actions.cancel")}
           </button>
           <button
             type="button"
@@ -100,7 +102,7 @@ export default function CreateHousePage({ onBack, onSubmit }) {
               ? <Loader2 className="w-4 h-4 animate-spin" />
               : <Save className="w-4 h-4" />
             }
-            {submitting ? "Đang lưu..." : "Lưu bất động sản"}
+            {submitting ? t("houses.create.saving") : t("houses.create.save")}
           </button>
         </div>
       </div>
@@ -110,29 +112,27 @@ export default function CreateHousePage({ onBack, onSubmit }) {
 
         {/* Left col: Image upload + Basic info */}
         <div className="lg:col-span-3 space-y-5">
-          {/* Image uploader with badge */}
           <div className="relative">
             <div className="absolute top-3.5 right-3.5 z-10">
               <span className="text-[10px] font-bold tracking-widest text-teal-600 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-full uppercase">
-                Thư viện ảnh
+                {t("houses.create.photoLibrary")}
               </span>
             </div>
             <HouseImageUploader onImagesChange={setImages} />
           </div>
 
-          {/* Thông tin cơ bản */}
           <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
             <div className="flex items-center gap-2 mb-1">
               <div className="w-1 h-4 rounded-full" style={{ background: "linear-gradient(135deg, #3bb582, #2096d8)" }} />
-              <h3 className="text-sm font-bold text-slate-800">Thông tin cơ bản</h3>
+              <h3 className="text-sm font-bold text-slate-800">{t("houses.create.basicInfo")}</h3>
             </div>
 
             <div>
-              <label className={lbl}>Tên bất động sản <span className="text-red-500 normal-case">*</span></label>
+              <label className={lbl}>{t("houses.create.nameLabel")} <span className="text-red-500 normal-case">*</span></label>
               <input
                 value={form.name}
                 onChange={(e) => setField("name", e.target.value)}
-                placeholder="VD: Căn hộ Penthouse Sky Villa"
+                placeholder={t("houses.create.namePlaceholder")}
                 className={`${inp} ${errors.name ? "border-red-400 bg-red-50" : ""}`}
               />
               {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
@@ -140,7 +140,7 @@ export default function CreateHousePage({ onBack, onSubmit }) {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className={lbl}>Số tầng</label>
+                <label className={lbl}>{t("houses.create.floors")}</label>
                 <div className="relative">
                   <input
                     type="number"
@@ -151,19 +151,19 @@ export default function CreateHousePage({ onBack, onSubmit }) {
                     className={inp}
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none">
-                    Tầng
+                    {t("houses.create.floorsUnit")}
                   </span>
                 </div>
               </div>
             </div>
 
             <div>
-              <label className={lbl}>Mô tả chi tiết</label>
+              <label className={lbl}>{t("houses.create.descriptionLabel")}</label>
               <textarea
                 value={form.description}
                 onChange={(e) => setField("description", e.target.value)}
                 rows={4}
-                placeholder="Mô tả các đặc điểm nổi bật, tiện ích xung quanh..."
+                placeholder={t("houses.create.descriptionPlaceholder")}
                 className={`${inp} resize-none`}
               />
             </div>
@@ -183,11 +183,10 @@ export default function CreateHousePage({ onBack, onSubmit }) {
             error={errors.regionId}
           />
 
-          {/* Địa chỉ + Map */}
           <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-1 h-4 rounded-full" style={{ background: "linear-gradient(135deg, #3bb582, #2096d8)" }} />
-              <h3 className="text-sm font-bold text-slate-800">Địa chỉ</h3>
+              <h3 className="text-sm font-bold text-slate-800">{t("houses.create.addressSection")}</h3>
             </div>
             <AddressPicker
               value={address}
@@ -198,7 +197,7 @@ export default function CreateHousePage({ onBack, onSubmit }) {
               onPartsChange={(parts) => setAddrParts(parts)}
               onWardChange={(name) => setWardName(name)}
               error={errors.address}
-              label="Địa chỉ bất động sản"
+              label={t("houses.create.addressLabel")}
               showMap
             />
           </div>

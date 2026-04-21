@@ -1,22 +1,23 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Search, Filter, ArrowDownNarrowWide, ArrowUpNarrowWide, RefreshCw } from "lucide-react";
 import { Select } from "antd";
 
-const QUICK_FILTERS = [
-  { value: "PENDING_TENANT_REVIEW", label: "Chờ khách thuê xác nhận", dotColor: "#2096d8" },
-  { value: "READY",                 label: "Chờ chủ nhà ký",          dotColor: "#3bb582" },
-  { value: "DRAFT",                 label: "Bản nháp",                 dotColor: "#5A7A6E" },
+const QUICK_FILTER_KEYS = [
+  { value: "PENDING_TENANT_REVIEW", tKey: "qfPendingTenant", dotColor: "#2096d8" },
+  { value: "READY",                 tKey: "qfReady",         dotColor: "#3bb582" },
+  { value: "DRAFT",                 tKey: "qfDraft",         dotColor: "#5A7A6E" },
 ];
 
-const STATUSES = [
-  { value: "all",                   label: "Toàn bộ" },
-  { value: "DRAFT",                 label: "Bản nháp" },
-  { value: "PENDING_TENANT_REVIEW", label: "Chờ khách thuê xác nhận" },
-  { value: "READY",                 label: "Chờ chủ nhà ký" },
-  { value: "IN_PROGRESS",           label: "Chờ khách thuê ký" },
-  { value: "COMPLETED",             label: "Đã hoàn thành" },
-  { value: "CANCELLED_BY_TENANT",   label: "Khách thuê đã huỷ" },
-  { value: "CANCELLED_BY_LANDLORD", label: "Chủ nhà đã huỷ" },
+const STATUS_KEYS = [
+  { value: "all",                   tKey: "statusAll" },
+  { value: "DRAFT",                 tKey: "statusDraft" },
+  { value: "PENDING_TENANT_REVIEW", tKey: "statusPendingTenant" },
+  { value: "READY",                 tKey: "statusReady" },
+  { value: "IN_PROGRESS",           tKey: "statusInProgress" },
+  { value: "COMPLETED",             tKey: "statusCompleted" },
+  { value: "CANCELLED_BY_TENANT",   tKey: "statusCancelledByTenant" },
+  { value: "CANCELLED_BY_LANDLORD", tKey: "statusCancelledByLandlord" },
 ];
 
 export default function ContractsFilters({
@@ -29,6 +30,8 @@ export default function ContractsFilters({
   onRefresh,
   refreshing,
 }) {
+  const { t } = useTranslation("common");
+
   return (
     <div
       className="rounded-2xl p-4 md:p-5"
@@ -44,7 +47,7 @@ export default function ContractsFilters({
             />
             <input
               type="text"
-              placeholder="Tìm theo số hợp đồng, khách thuê, bất động sản..."
+              placeholder={t("contracts.filters.searchPlaceholder")}
               value={searchTerm}
               onChange={(e) => onSearch(e.target.value)}
               className="w-full rounded-full pl-10 pr-4 py-2.5 text-sm outline-none transition"
@@ -60,7 +63,7 @@ export default function ContractsFilters({
               type="button"
               onClick={onRefresh}
               disabled={refreshing}
-              title="Làm mới danh sách"
+              title={t("contracts.filters.refresh")}
               className="inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-sm transition disabled:opacity-50"
               style={{ border: "1px solid #C4DED5", color: "#5A7A6E", background: "#ffffff" }}
               onMouseEnter={e => e.currentTarget.style.background = "#EAF4F0"}
@@ -83,7 +86,7 @@ export default function ContractsFilters({
               ) : (
                 <ArrowUpNarrowWide className="w-4 h-4" style={{ color: "#3bb582" }} />
               )}
-              {sortDir === "DESC" ? "Mới nhất" : "Cũ nhất"}
+              {sortDir === "DESC" ? t("contracts.filters.newest") : t("contracts.filters.oldest")}
             </button>
 
             <div
@@ -91,13 +94,13 @@ export default function ContractsFilters({
               style={{ background: "#EAF4F0", border: "1px solid #C4DED5", color: "#5A7A6E" }}
             >
               <Filter className="w-3.5 h-3.5" style={{ color: "#3bb582" }} />
-              Bộ lọc nhanh
+              {t("contracts.filters.quickFilters")}
             </div>
 
             <Select
               value={filterStatus}
               onChange={onFilter}
-              options={STATUSES.map((s) => ({ value: s.value, label: s.label }))}
+              options={STATUS_KEYS.map((s) => ({ value: s.value, label: t(`contracts.filters.${s.tKey}`) }))}
               style={{ width: 220 }}
             />
           </div>
@@ -105,8 +108,8 @@ export default function ContractsFilters({
 
         {/* Quick filter chips */}
         <div className="flex flex-wrap items-center gap-2 md:gap-3 text-[11px]" style={{ color: "#5A7A6E" }}>
-          <span className="hidden sm:inline" style={{ color: "#5A7A6E", opacity: 0.7 }}>Gợi ý:</span>
-          {QUICK_FILTERS.map((qf) => {
+          <span className="hidden sm:inline" style={{ color: "#5A7A6E", opacity: 0.7 }}>{t("contracts.filters.suggestions")}</span>
+          {QUICK_FILTER_KEYS.map((qf) => {
             const active = filterStatus === qf.value;
             return (
               <button
@@ -119,7 +122,7 @@ export default function ContractsFilters({
                   : { border: "1px solid #C4DED5", background: "#EAF4F0", color: "#5A7A6E" }}
               >
                 <span className="h-1.5 w-1.5 rounded-full" style={{ background: qf.dotColor }} />
-                {qf.label}
+                {t(`contracts.filters.${qf.tKey}`)}
               </button>
             );
           })}
@@ -132,7 +135,7 @@ export default function ContractsFilters({
               onMouseEnter={e => e.currentTarget.style.background = "rgba(217,95,75,0.06)"}
               onMouseLeave={e => e.currentTarget.style.background = "transparent"}
             >
-              Xóa bộ lọc
+              {t("contracts.filters.clearFilter")}
             </button>
           )}
         </div>

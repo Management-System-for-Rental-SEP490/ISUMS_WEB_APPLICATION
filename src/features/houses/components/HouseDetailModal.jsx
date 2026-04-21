@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ArrowRight,
   Bath,
@@ -75,7 +76,7 @@ function RoomCard({ area, isSelected, onClick }) {
 }
 
 // ── Building cross-section ────────────────────────────────────────────────────
-function BuildingPlan({ grouped, sortedFloors, selectedArea, onSelectArea }) {
+function BuildingPlan({ grouped, sortedFloors, selectedArea, onSelectArea, t }) {
   // Render floors from top (highest) to bottom
   const floorsDesc = [...sortedFloors].sort((a, b) => Number(b) - Number(a));
 
@@ -85,7 +86,7 @@ function BuildingPlan({ grouped, sortedFloors, selectedArea, onSelectArea }) {
       <div className="bg-gradient-to-r from-slate-700 via-slate-600 to-slate-700 px-4 py-2 flex items-center gap-2">
         <Building2 className="w-4 h-4 text-white/60" />
         <span className="text-white/80 text-xs font-semibold tracking-wide">
-          Mặt cắt tòa nhà
+          {t("houses.detailModal.buildingSection")}
         </span>
         <span className="ml-auto text-white/40 text-xs">
           {sortedFloors.length} tầng
@@ -97,7 +98,7 @@ function BuildingPlan({ grouped, sortedFloors, selectedArea, onSelectArea }) {
         {floorsDesc.map((floor) => {
           const floorAreas = grouped[floor];
           const isGround   = floor === "0" || floor === "1";
-          const label      = floor === "0" ? "Trệt" : `T.${floor}`;
+          const label      = floor === "0" ? t("houses.detailModal.floorGround") : `${t("houses.detailModal.floorPrefix")}${floor}`;
 
           return (
             <div key={floor} className="flex items-stretch min-h-[96px]">
@@ -136,11 +137,11 @@ function BuildingPlan({ grouped, sortedFloors, selectedArea, onSelectArea }) {
 }
 
 // ── Selected area detail panel ────────────────────────────────────────────────
-function AreaDetailPanel({ area }) {
+function AreaDetailPanel({ area, t }) {
   const cfg    = AREA_TYPE_CONFIG[area.areaType] ?? AREA_TYPE_CONFIG.default;
   const status = STATUS_AREA[area.status]        ?? STATUS_AREA.default;
   const { Icon } = cfg;
-  const floorLabel = area.floorNo === "0" ? "Trệt" : `Tầng ${area.floorNo}`;
+  const floorLabel = area.floorNo === "0" ? t("houses.detailModal.floorGround") : `${t("houses.detail.floorLabel")} ${area.floorNo}`;
 
   return (
     <div className={`rounded-xl border-2 p-4 ${cfg.bg} ${cfg.border} transition-all`}>
@@ -152,7 +153,7 @@ function AreaDetailPanel({ area }) {
           <div className="flex items-center gap-2 flex-wrap">
             <p className={`text-sm font-bold ${cfg.text}`}>{area.name}</p>
             <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full border ${status.badge}`}>
-              {status.label}
+              {t(`houses.areaStatus.${area.status}`, { defaultValue: status.label })}
             </span>
             <span className="px-2 py-0.5 text-[10px] font-medium rounded-full border bg-white text-slate-500 border-slate-200 ml-auto">
               {floorLabel}
@@ -161,7 +162,7 @@ function AreaDetailPanel({ area }) {
           {area.description ? (
             <p className="text-xs text-slate-600 mt-1.5 leading-relaxed">{area.description}</p>
           ) : (
-            <p className="text-xs text-slate-400 mt-1.5 italic">Không có mô tả</p>
+            <p className="text-xs text-slate-400 mt-1.5 italic">{t("houses.detailModal.noDescription")}</p>
           )}
         </div>
       </div>
@@ -171,11 +172,12 @@ function AreaDetailPanel({ area }) {
 
 // ── Main modal ────────────────────────────────────────────────────────────────
 export default function HouseDetailModal({ house, onClose }) {
+  const { t } = useTranslation("common");
   const [selectedArea, setSelectedArea] = useState(null);
 
   if (!house) return null;
 
-  const name    = house.name ?? house.title ?? "Chưa đặt tên";
+  const name    = house.name ?? house.title ?? t("houses.noName");
   const address = house.address ?? "";
   const areas   = Array.isArray(house.functionalAreas) ? house.functionalAreas : [];
   const hsBadge = HOUSE_STATUS[house.status] ?? HOUSE_STATUS.default;
@@ -210,7 +212,7 @@ export default function HouseDetailModal({ house, onClose }) {
               <div className="flex items-center gap-2 flex-wrap mb-1">
                 <h2 className="text-base font-bold text-slate-800">{name}</h2>
                 <span className={`px-2 py-0.5 text-xs font-semibold rounded-full border ${hsBadge.cls}`}>
-                  {hsBadge.label}
+                  {t(`houses.status.${house.status}`, { defaultValue: hsBadge.label })}
                 </span>
               </div>
               {address && (
@@ -241,7 +243,7 @@ export default function HouseDetailModal({ house, onClose }) {
                     className={`inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium rounded-full border ${cfg.bg} ${cfg.text} ${cfg.border}`}
                   >
                     <Icon className="w-3 h-3" />
-                    {count > 1 ? `${count} ` : ""}{cfg.label}
+                    {count > 1 ? `${count} ` : ""}{t(`houses.areaType.${type}`, { defaultValue: cfg.label })}
                   </span>
                 );
               })}
@@ -263,8 +265,8 @@ export default function HouseDetailModal({ house, onClose }) {
               <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
                 <Building2 className="w-7 h-7 text-slate-400" />
               </div>
-              <p className="text-sm font-medium text-slate-500">Chưa có khu vực chức năng nào</p>
-              <p className="text-xs text-slate-400 mt-1">Thêm phòng/khu vực để hiển thị mô hình tòa nhà</p>
+              <p className="text-sm font-medium text-slate-500">{t("houses.detailModal.noAreas")}</p>
+              <p className="text-xs text-slate-400 mt-1">{t("houses.detailModal.noAreasHint")}</p>
             </div>
           ) : (
             <>
@@ -274,19 +276,20 @@ export default function HouseDetailModal({ house, onClose }) {
                 sortedFloors={sortedFloors}
                 selectedArea={selectedArea}
                 onSelectArea={setSelectedArea}
+                t={t}
               />
 
               {/* Hint */}
               {!selectedArea && (
                 <div className="flex items-center gap-2 text-xs text-slate-400 justify-center">
                   <Info className="w-3.5 h-3.5" />
-                  <span>Nhấn vào phòng để xem chi tiết</span>
+                  <span>{t("houses.detailModal.clickHint")}</span>
                 </div>
               )}
 
               {/* Selected area details */}
               {selectedArea && (
-                <AreaDetailPanel area={selectedArea} />
+                <AreaDetailPanel area={selectedArea} t={t} />
               )}
             </>
           )}
@@ -299,7 +302,7 @@ export default function HouseDetailModal({ house, onClose }) {
             onClick={onClose}
             className="px-4 py-2 text-sm font-semibold text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 transition"
           >
-            Đóng
+            {t("actions.close")}
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import keycloak from "../../../keycloak";
 import { getMe } from "../api/auth.api";
+import { languageActions } from "../../../store/languageStore";
 
 function hasEnv() {
   return (
@@ -45,6 +46,7 @@ async function syncFromKeycloak() {
     console.log(keycloak.token);
     try {
       const me = await getMe();
+      if (me?.language) languageActions.setLanguage(me.language);
       setState({
         isAuthenticated: true,
         roles: Array.isArray(me?.roles) ? me.roles : [],
@@ -52,6 +54,7 @@ async function syncFromKeycloak() {
           id: me?.id ?? null,
           name: me?.name ?? keycloak?.tokenParsed?.name,
           email: me?.email ?? keycloak?.tokenParsed?.email,
+          language: me?.language ?? null,
         },
       });
     } catch {

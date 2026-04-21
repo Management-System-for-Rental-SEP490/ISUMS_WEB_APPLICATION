@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Bath,
   Bed,
@@ -112,8 +113,8 @@ const B = {
 
 // ── FloorCard ─────────────────────────────────────────────────────────────────
 
-function FloorCard({ floor, areas, houseId, navigate }) {
-  const floorLabel = floor === "0" ? "Tầng trệt" : `Tầng ${floor}`;
+function FloorCard({ floor, areas, houseId, navigate, t }) {
+  const floorLabel = floor === "0" ? t("houses.detail.floorGround") : `${t("houses.detail.floorLabel")} ${floor}`;
   const totalAssets = areas.reduce((s, a) => s + (a.assetCount ?? 0), 0);
   const issueCount = areas.filter(
     (a) => a.status === "DAMAGED" || a.status === "MAINTENANCE",
@@ -146,7 +147,7 @@ function FloorCard({ floor, areas, houseId, navigate }) {
             {floorLabel}
           </p>
           <p className="text-xs mt-0.5" style={{ color: B.mutedFg }}>
-            {areas.length} khu vực
+            {t("houses.detail.areasCount", { count: areas.length })}
           </p>
         </div>
         <div className="flex items-center gap-5">
@@ -155,7 +156,7 @@ function FloorCard({ floor, areas, houseId, navigate }) {
               className="text-[10px] font-bold uppercase tracking-widest"
               style={{ color: B.mutedFg }}
             >
-              Tài sản
+              {t("houses.detail.assets")}
             </p>
             <p className="text-xl font-bold" style={{ color: B.fg }}>
               {totalAssets}
@@ -183,6 +184,7 @@ function FloorCard({ floor, areas, houseId, navigate }) {
 
 export default function HouseOverviewTab({ house }) {
   const navigate = useNavigate();
+  const { t } = useTranslation("common");
 
   const areas = Array.isArray(house?.functionalAreas)
     ? house.functionalAreas
@@ -211,7 +213,7 @@ export default function HouseOverviewTab({ house }) {
           <Building2 className="w-7 h-7" style={{ color: B.green }} />
         </div>
         <p className="text-sm font-medium" style={{ color: B.mutedFg }}>
-          Chưa có khu vực chức năng nào
+          {t("houses.detailModal.noAreas")}
         </p>
       </div>
     );
@@ -226,6 +228,7 @@ export default function HouseOverviewTab({ house }) {
           areas={grouped[floor]}
           houseId={house.id}
           navigate={navigate}
+          t={t}
         />
       ))}
     </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Pagination } from "antd";
 import Breadcrumbs from "../../../../components/shared/Breadcrumbs";
 import ContractsHeader from "../../components/list/ContractsHeader";
@@ -30,6 +31,7 @@ export default function ContractsListView({
   onRetry,
   onRefresh,
 }) {
+  const { t } = useTranslation("common");
   return (
     <div className="space-y-6">
       <ContractsHeader total={totalItems} onCreate={onCreate} />
@@ -55,7 +57,7 @@ export default function ContractsListView({
               onClick={onRetry}
               className="px-3 py-1 bg-red-100 text-red-700 rounded-lg text-sm hover:bg-red-200"
             >
-              Thử lại
+              {t("contracts.table.retry")}
             </button>
           )}
         </div>

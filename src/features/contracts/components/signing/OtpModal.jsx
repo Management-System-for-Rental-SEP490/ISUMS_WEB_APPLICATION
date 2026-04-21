@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 
 function OtpInput({ value, onChange }) {
@@ -74,6 +75,7 @@ export default function OtpModal({
   loading,
   otpEmail,
 }) {
+  const { t } = useTranslation("common");
   const [otp, setOtp] = useState("");
   const [cooldown, setCooldown] = useState(0);
   const [resending, setResending] = useState(false);
@@ -93,7 +95,7 @@ export default function OtpModal({
 
   const handleSubmit = () => {
     if (otp.length !== 6) {
-      toast.error("Mã OTP phải gồm đúng 6 chữ số.");
+      toast.error(t("contracts.otp.otpLength"));
       return;
     }
     onSubmit(otp);
@@ -118,7 +120,7 @@ export default function OtpModal({
       <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="px-6 pt-5 pb-4 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="text-base font-bold text-slate-800">Xác nhận OTP</h2>
+          <h2 className="text-base font-bold text-slate-800">{t("contracts.otp.title")}</h2>
           {!loading && (
             <button
               type="button"
@@ -159,18 +161,11 @@ export default function OtpModal({
                 />
               </svg>
             </div>
-            <p className="text-sm font-semibold text-slate-700">Nhập mã OTP</p>
+            <p className="text-sm font-semibold text-slate-700">{t("contracts.otp.enterOtp")}</p>
             <p className="text-xs text-slate-500 mt-1">
-              {otpEmail ? (
-                <>
-                  Mã OTP đã được gửi về gmail{" "}
-                  <span className="font-semibold text-slate-700">
-                    "{maskEmail(otpEmail)}"
-                  </span>
-                </>
-              ) : (
-                "Mã OTP đã được gửi đến email của bạn"
-              )}
+              {otpEmail
+                ? t("contracts.otp.sentToEmail", { email: maskEmail(otpEmail) })
+                : t("contracts.otp.sentGeneric")}
             </p>
           </div>
 
@@ -180,10 +175,7 @@ export default function OtpModal({
           <div className="text-center -mt-1">
             {cooldown > 0 ? (
               <p className="text-xs text-slate-400">
-                Gửi lại sau{" "}
-                <span className="font-semibold text-slate-600">
-                  {cooldown}s
-                </span>
+                {t("contracts.otp.resendAfter", { seconds: cooldown })}
               </p>
             ) : (
               <button
@@ -192,7 +184,7 @@ export default function OtpModal({
                 disabled={resending || loading}
                 className="text-xs text-teal-600 hover:text-teal-800 font-medium underline underline-offset-2 transition disabled:opacity-50"
               >
-                {resending ? "Đang gửi lại..." : "Gửi lại OTP"}
+                {resending ? t("contracts.otp.resending") : t("contracts.otp.resend")}
               </button>
             )}
           </div>
@@ -204,7 +196,7 @@ export default function OtpModal({
               disabled={loading}
               className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition disabled:opacity-50"
             >
-              Hủy
+              {t("actions.cancel")}
             </button>
             <button
               type="button"
@@ -233,10 +225,10 @@ export default function OtpModal({
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                     />
                   </svg>
-                  Đang ký...
+                  {t("contracts.otp.signing")}
                 </>
               ) : (
-                "Xác nhận ký"
+                t("contracts.otp.confirm")
               )}
             </button>
           </div>

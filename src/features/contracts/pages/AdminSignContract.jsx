@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "../../auth/store/auth.store";
 import {
   LoadingOverlay,
@@ -15,6 +16,7 @@ import { useAdminSignContract } from "../hooks/useAdminSignContract";
 export default function AdminSignContract() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation("common");
   const userName = useAuthStore((s) => s.profile?.name ?? "");
 
   const {
@@ -61,17 +63,17 @@ export default function AdminSignContract() {
         open={confirming || signing || rejecting}
         label={
           confirming
-            ? "Đang gửi yêu cầu ký..."
+            ? t("contracts.adminSign.sending")
             : rejecting
-              ? "Đang gửi từ chối ký..."
-              : "Đang ký hợp đồng..."
+              ? t("contracts.adminSign.rejecting")
+              : t("contracts.adminSign.signing")
         }
       />
 
       {loading && (
         <div className="flex-1 flex items-center justify-center">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-12 py-12 flex flex-col items-center gap-4">
-            <LoadingSpinner size="lg" showLabel label="Đang tải hợp đồng..." />
+            <LoadingSpinner size="lg" showLabel label={t("contracts.adminSign.loading")} />
           </div>
         </div>
       )}
