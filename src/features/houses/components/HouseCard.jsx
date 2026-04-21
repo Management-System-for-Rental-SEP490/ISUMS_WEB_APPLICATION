@@ -20,11 +20,16 @@ function formatPrice(price) {
   return price.toLocaleString("vi-VN");
 }
 
+function getLocalized(translations, fallback) {
+  const lang = localStorage.getItem("app_language") ?? "vi";
+  return translations?.[lang] || translations?.["vi"] || fallback || "";
+}
+
 export default function HouseCard({ house, onView, onEdit }) {
   const { t } = useTranslation("common");
   const cfg = STATUS_CONFIG[house?.status] ?? STATUS_CONFIG.default;
-  const name = house?.name ?? house?.title ?? t("houses.noName");
-  const address = house?.address ?? "";
+  const name = getLocalized(house?.nameTranslations, house?.name ?? house?.title) || t("houses.noName");
+  const address = getLocalized(house?.addressTranslations, house?.address);
   const priceStr = formatPrice(house?.rentPrice ?? house?.rent);
   const bedrooms = house?.bedrooms ?? house?.bedroom ?? null;
   const bathrooms = house?.bathrooms ?? house?.bathroom ?? null;

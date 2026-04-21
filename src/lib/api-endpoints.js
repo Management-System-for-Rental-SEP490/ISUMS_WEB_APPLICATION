@@ -14,6 +14,7 @@ export const HOUSES_ENDPOINTS = {
   REGIONS: "/houses/regions",
   FUNCTIONAL_AREAS: "/houses/functionalAreas",
   HISTORY: (id) => `/houses/${id}/history`,
+  TRANSLATIONS: (id) => `/houses/${id}/translations`,
 };
 
 export const CONTRACTS_ENDPOINTS = {
@@ -112,7 +113,7 @@ export const ISSSUE_ENDPOINTS = {
   ISSUE_BY_TICKET_ID: (ticketId) => `/issues/tickets/${ticketId}`,
   CREATE: "/issues",
   TICKET_IMAGE: (issueId) => `/issues/tickets/${issueId}/images`,
-  RESPONSE_BY_TICKET: (ticketId) => `/issues/responses/tickets/${ticketId}`,
+  RESPONSE_BY_TICKET: (ticketId) => `/issues/responses/ticket/${ticketId}`,
   QUOTES_BY_TICKET: (ticketId) => `/issues/quotes/ticket/${ticketId}`,
   QUOTE_STATUS: (id) => `/issues/quotes/${id}/status`,
 };
@@ -123,7 +124,8 @@ export const ASSET_ENDPOINTS = {
   ITEM_BY_ID: (id) => `/assets/items/${id}`,
   MANAGER_CONFIRM: (id) => `/assets/items/${id}/manager-confirm-asset`,
   BY_HOUSE: (houseId) => `/assets/items/house/${houseId}`,
-  BY_FUNCTION_AREA: (houseId, areaId) => `/assets/items/house/${houseId}/function-area/${areaId}`,
+  BY_FUNCTION_AREA: (houseId, areaId) =>
+    `/assets/items/house/${houseId}/function-area/${areaId}`,
   CREATE: "/assets",
   UPDATE: (id) => `/assets/${id}`,
   DELETE: (id) => `/assets/${id}`,

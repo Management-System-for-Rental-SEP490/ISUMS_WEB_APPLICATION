@@ -3,11 +3,13 @@ import { ISSSUE_ENDPOINTS, BANNER_ENDPOINTS } from "../../../lib/api-endpoints";
 
 import { extractResponseData, getErrorMessage } from "../../../lib/api-helpers";
 
-export async function getAllIssues({ status, type } = {}) {
+export async function getAllIssues({ status, type, page, pageSize } = {}) {
   try {
     const params = {};
-    if (status) params.status = status;
-    if (type)   params.type   = type;
+    if (status)   params.status   = status;
+    if (type)     params.type     = type;
+    if (page !== undefined)     params.page = page;
+    if (pageSize !== undefined) params.size = pageSize;
     const response = await api.get(ISSSUE_ENDPOINTS.TICKETS, { params });
     return extractResponseData(response);
   } catch (error) {

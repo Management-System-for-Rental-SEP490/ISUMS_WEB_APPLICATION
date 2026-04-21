@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -19,6 +20,7 @@ export default function ContractDocumentViewer({
   userName,
   onPositionSet,
 }) {
+  const { t } = useTranslation("common");
   const [numPages, setNumPages] = useState(null);
   const [pageWidth, setPageWidth] = useState(null);
   // pageInfo[i] = { heightPx, widthPt, heightPt } — kích thước thực tế từ react-pdf
@@ -93,10 +95,20 @@ export default function ContractDocumentViewer({
     <main ref={mainRef} className="flex-1 overflow-auto bg-slate-100 p-5">
       {showDragBox && (
         <div className="mb-3 flex items-center justify-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-medium text-amber-700">
-          <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
+          <svg
+            className="w-3.5 h-3.5 flex-shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"
+            />
           </svg>
-          Kéo ô chữ ký vào vị trí mong muốn trên hợp đồng
+          {t("contracts.progress.step2Drag")}
         </div>
       )}
 
@@ -110,16 +122,34 @@ export default function ContractDocumentViewer({
               loading={
                 <div className="flex items-center justify-center h-[800px]">
                   <div className="flex flex-col items-center gap-3 text-slate-400">
-                    <svg className="w-8 h-8 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    <svg
+                      className="w-8 h-8 animate-spin"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v8H4z"
+                      />
                     </svg>
-                    <span className="text-sm">Đang tải PDF...</span>
+                    <span className="text-sm">
+                      {t("contracts.pdf.loading")}
+                    </span>
                   </div>
                 </div>
               }
             >
-              {numPages && pageWidth &&
+              {numPages &&
+                pageWidth &&
                 Array.from({ length: numPages }, (_, i) => (
                   <div key={i}>
                     <Page
@@ -131,7 +161,9 @@ export default function ContractDocumentViewer({
                         // page.originalWidth / originalHeight là kích thước PDF tính bằng pt (điểm)
                         const widthPt = page.originalWidth;
                         const heightPt = page.originalHeight;
-                        const heightPx = Math.round(heightPt * (pageWidth / widthPt));
+                        const heightPx = Math.round(
+                          heightPt * (pageWidth / widthPt),
+                        );
                         setPageInfo((prev) => {
                           const next = [...prev];
                           next[i] = { heightPx, widthPt, heightPt };
@@ -142,7 +174,9 @@ export default function ContractDocumentViewer({
                     {i < numPages - 1 && (
                       <div className="flex items-center gap-3 py-2 px-4 bg-slate-100">
                         <div className="flex-1 h-px bg-slate-300" />
-                        <span className="text-[11px] text-slate-400 font-medium">{i + 2} / {numPages}</span>
+                        <span className="text-[11px] text-slate-400 font-medium">
+                          {i + 2} / {numPages}
+                        </span>
                         <div className="flex-1 h-px bg-slate-300" />
                       </div>
                     )}
@@ -159,9 +193,13 @@ export default function ContractDocumentViewer({
               style={{ minHeight: "1200px" }}
               onLoad={(e) => {
                 try {
-                  const h = e.target.contentWindow.document.documentElement.scrollHeight;
+                  const h =
+                    e.target.contentWindow.document.documentElement
+                      .scrollHeight;
                   if (h > 0) e.target.style.height = h + 200 + "px";
-                } catch { /* ignore cross-origin */ }
+                } catch {
+                  /* ignore cross-origin */
+                }
               }}
             />
           )}

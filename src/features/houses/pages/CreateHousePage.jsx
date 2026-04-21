@@ -65,7 +65,7 @@ export default function CreateHousePage({ onBack, onSubmit }) {
         await uploadHouseImages(houseId, images.map((img) => img.file));
       }
       toast.success(t("houses.create.successToast"));
-      onSubmit?.();
+      onSubmit?.(created);
     } catch (e) {
       toast.error(e?.message ?? t("houses.create.failToast"));
     } finally {
