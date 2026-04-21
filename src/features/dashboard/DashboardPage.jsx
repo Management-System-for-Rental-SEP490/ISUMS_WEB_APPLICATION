@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import dayjs from "dayjs";
 import {
   Building2, Home, CalendarClock, AlertCircle,
   CheckCircle2, FileText, Clock, ArrowUpRight, Users,
@@ -21,8 +23,7 @@ const COLOR_MAP = {
   red:   { iconBg: "rgba(217,95,75,0.10)",   iconColor: "#D95F4B",   border: "rgba(217,95,75,0.22)",  accentColor: "#D95F4B"   },
 };
 
-// ── KPI Card ─────────────────────────────────────────────────────────────────
-function KpiCard({ title, value, subtitle, icon: Icon, color, loading, isGood }) {
+function KpiCard({ title, value, subtitle, icon: Icon, color, loading, isGood, allOnTimeLabel }) {
   const c = COLOR_MAP[color] ?? COLOR_MAP.teal;
   const isEmpty = isGood && !loading && value === 0;
 
@@ -47,7 +48,7 @@ function KpiCard({ title, value, subtitle, icon: Icon, color, loading, isGood })
           ) : isEmpty ? (
             <div className="flex items-center gap-1">
               <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: BRAND_GREEN }} />
-              <p className="text-xs font-semibold" style={{ color: BRAND_GREEN }}>Tất cả trong hạn ✓</p>
+              <p className="text-xs font-semibold" style={{ color: BRAND_GREEN }}>{allOnTimeLabel}</p>
             </div>
           ) : (
             <p className="text-2xl font-bold leading-tight" style={{ color: "#1E2D28" }}>
@@ -63,10 +64,10 @@ function KpiCard({ title, value, subtitle, icon: Icon, color, loading, isGood })
   );
 }
 
-// ── Recent Contract Row ───────────────────────────────────────────────────────
 function ContractRow({ contract }) {
   const navigate    = useNavigate();
-  const statusLabel = STATUS_LABEL[contract.status] ?? contract.status ?? "—";
+  const { t }       = useTranslation("common");
+  const statusLabel = t(`contracts.status.${contract.status}`, { defaultValue: STATUS_LABEL[contract.status] ?? contract.status ?? "—" });
   const statusCls   = STATUS_BADGE[contract.status] ?? "bg-gray-100 text-gray-500 border border-gray-200";
   const endLabel    = contract.endDate
     ? new Date(contract.endDate).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })
@@ -122,39 +123,37 @@ function ContractRow({ contract }) {
   );
 }
 
-// ── Main Page ────────────────────────────────────────────────────────────────
 export default function DashboardPage() {
+  const { t } = useTranslation("common");
   const [period, setPeriod] = useState("6M");
   const { propertyStats, contractTimeSeries, contractStatusBreakdown, recentContracts, totalContracts, totalUsers, loading, error } = useDashboardStats(period);
   const navigate = useNavigate();
 
-  const today = new Date().toLocaleDateString("vi-VN", {
-    weekday: "long", year: "numeric", month: "long", day: "numeric",
-  });
+  const today = dayjs().format("dddd, D MMMM YYYY");
 
   const kpiCards = [
-    { key: "totalContracts", title: "Tổng hợp đồng",    value: totalContracts,             subtitle: "Trong hệ thống",    icon: FileText,     color: "teal"  },
-    { key: "totalHouses",    title: "Tổng số nhà",       value: propertyStats.total,        subtitle: "Bất động sản",      icon: Building2,    color: "blue"  },
-    { key: "totalUsers",     title: "Tổng người dùng",   value: totalUsers,                 subtitle: "Đã đăng ký",        icon: Users,        color: "amber" },
-    { key: "rented",         title: "Nhà đang cho thuê", value: propertyStats.rented,       subtitle: "Đang có hợp đồng",  icon: Home,         color: "red"   },
+    { key: "totalContracts", title: t("dashboard.stats.totalContracts"), value: totalContracts,       subtitle: t("dashboard.stats.inSystem"),    icon: FileText,  color: "teal"  },
+    { key: "totalHouses",    title: t("dashboard.stats.totalHouses"),    value: propertyStats.total,  subtitle: t("dashboard.stats.realEstate"),  icon: Building2, color: "blue"  },
+    { key: "totalUsers",     title: t("dashboard.stats.totalUsers"),     value: totalUsers,           subtitle: t("dashboard.stats.registered"),  icon: Users,     color: "amber" },
+    { key: "rented",         title: t("dashboard.stats.rentedHouses"),   value: propertyStats.rented, subtitle: t("dashboard.stats.hasContract"), icon: Home,      color: "red", isGood: true },
   ];
 
   return (
     <div className="space-y-5 md:space-y-6">
 
-      {/* Header */}
       <div style={{ paddingTop: 4 }}>
-        <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: BRAND_GREEN }}>Tổng quan</p>
+        <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: BRAND_GREEN }}>
+          {t("dashboard.overview")}
+        </p>
         <h2
           className="font-heading text-3xl font-bold"
           style={{ background: BRAND_GRADIENT, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}
         >
-          Chào mừng trở lại 👋
+          {t("dashboard.welcome")}
         </h2>
         <p className="text-sm mt-0.5 capitalize" style={{ color: "#5A7A6E" }}>{today}</p>
       </div>
 
-      {/* Error */}
       {error && !loading && (
         <div className="rounded-xl px-4 py-3 flex items-center gap-2" style={{ background: "rgba(217,95,75,0.06)", border: "1px solid rgba(217,95,75,0.25)" }}>
           <AlertCircle className="w-4 h-4 flex-shrink-0" style={{ color: "#D95F4B" }} />
@@ -162,14 +161,12 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ── Row 1: 4 KPI — tổng quan BĐS ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
         {kpiCards.map(({ key, ...s }) => (
-          <KpiCard key={key} {...s} loading={loading} />
+          <KpiCard key={key} {...s} loading={loading} allOnTimeLabel={t("dashboard.stats.allOnTime")} />
         ))}
       </div>
 
-      {/* ── Row 2: Tình trạng BĐS (donut 40%) + HĐ theo tháng (area 60%) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-5" style={{ height: 380 }}>
         <div className="lg:col-span-2 flex flex-col">
           <HouseStatusDonut propertyStats={propertyStats} loading={loading} />
@@ -184,14 +181,11 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Row 3: Phân loại HĐ (bar 50%) + Danh sách HĐ gần nhất (50%) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
-        {/* Bar chart */}
         <div className="flex flex-col" style={{ height: 380 }}>
           <ContractStatusBar breakdown={contractStatusBreakdown} loading={loading} />
         </div>
 
-        {/* Recent contracts */}
         <div
           className="rounded-2xl flex flex-col overflow-hidden"
           style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0px 1px 3px 0px rgba(16,24,40,0.08)", height: 380 }}
@@ -203,7 +197,9 @@ export default function DashboardPage() {
           >
             <div className="flex items-center gap-2">
               <FileText className="w-3.5 h-3.5" style={{ color: BRAND_GREEN }} />
-              <h3 className="text-sm font-semibold" style={{ color: "#1E2D28" }}>Hợp đồng gần đây</h3>
+              <h3 className="text-sm font-semibold" style={{ color: "#1E2D28" }}>
+                {t("dashboard.recentContracts.title")}
+              </h3>
             </div>
             <div className="flex items-center gap-2">
               {(propertyStats.expiringSoon ?? 0) > 0 && (
@@ -212,7 +208,7 @@ export default function DashboardPage() {
                   style={{ background: "rgba(217,95,75,0.10)", color: "#D95F4B" }}
                 >
                   <Clock className="w-2.5 h-2.5" />
-                  {propertyStats.expiringSoon} sắp hết hạn
+                  {propertyStats.expiringSoon} {t("dashboard.recentContracts.expiringSoon")}
                 </span>
               )}
               <button
@@ -223,7 +219,7 @@ export default function DashboardPage() {
                 onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.7")}
                 onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
               >
-                Tất cả <ArrowUpRight className="w-3 h-3" />
+                {t("dashboard.recentContracts.viewAll")} <ArrowUpRight className="w-3 h-3" />
               </button>
             </div>
           </div>
@@ -245,7 +241,7 @@ export default function DashboardPage() {
               <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: "#EAF4F0" }}>
                 <FileText className="w-5 h-5" style={{ color: BRAND_GREEN }} />
               </div>
-              <p className="text-xs" style={{ color: "#5A7A6E" }}>Chưa có hợp đồng nào.</p>
+              <p className="text-xs" style={{ color: "#5A7A6E" }}>{t("dashboard.recentContracts.empty")}</p>
             </div>
           ) : (
             <ul className="overflow-y-auto flex-1">

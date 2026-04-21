@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import keycloak from "../../../keycloak";
 import { getMe } from "../api/auth.api";
+import { languageActions } from "../../../store/languageStore";
 
 function hasEnv() {
   return (
@@ -42,8 +43,10 @@ let initPromise = null;
 
 async function syncFromKeycloak() {
   if (keycloak.authenticated) {
+    console.log(keycloak.token);
     try {
       const me = await getMe();
+      if (me?.language) languageActions.setLanguage(me.language);
       setState({
         isAuthenticated: true,
         roles: Array.isArray(me?.roles) ? me.roles : [],
@@ -51,6 +54,7 @@ async function syncFromKeycloak() {
           id: me?.id ?? null,
           name: me?.name ?? keycloak?.tokenParsed?.name,
           email: me?.email ?? keycloak?.tokenParsed?.email,
+          language: me?.language ?? null,
         },
       });
     } catch {
@@ -91,11 +95,6 @@ export const authActions = {
       return false;
     }
     if (initPromise) return initPromise;
-
-    // window.__kcDidInit survives HMR module re-evaluation.
-    // If true, keycloak.init() was already called on the preserved instance
-    // (window.__kc_instance in keycloak.js) — skip it to avoid
-    // "Keycloak already initialized" error, just sync state from the instance.
     if (window.__kcDidInit) {
       return syncFromKeycloak();
     }
@@ -115,7 +114,6 @@ export const authActions = {
         cleanupCallbackUrl();
 
         if (authenticated) {
-          console.log("[Keycloak] ✅ Authenticated");
           await syncFromKeycloak();
         } else {
           setState({ isAuthenticated: false, roles: [], profile: null });

@@ -1,14 +1,11 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
+import dayjs from "dayjs";
 import { CalendarDays, Plus, Sparkles } from "lucide-react";
 
 export default function ContractsHeader({ total, onCreate }) {
-  const today = new Date();
-  const formattedDate = today.toLocaleDateString("vi-VN", {
-    weekday: "short",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+  const { t } = useTranslation("common");
+  const formattedDate = dayjs().format("ddd, DD/MM/YYYY");
 
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -24,14 +21,14 @@ export default function ContractsHeader({ total, onCreate }) {
             className="text-xs font-bold uppercase tracking-widest"
             style={{ color: "#3bb582" }}
           >
-            Hợp đồng
+            {t("contracts.header.subtitle")}
           </span>
         </div>
         <h2
           className="font-heading text-3xl font-bold"
           style={{ color: "#1E2D28" }}
         >
-          Quản Lý Hợp Đồng
+          {t("contracts.header.title")}
         </h2>
         <div
           className="flex flex-wrap items-center gap-3 text-sm"
@@ -53,12 +50,12 @@ export default function ContractsHeader({ total, onCreate }) {
           className="hidden sm:flex flex-col items-end text-xs"
           style={{ color: "#5A7A6E" }}
         >
-          <span>Thao tác nhanh</span>
+          <span>{t("contracts.header.quickAction")}</span>
           <span
             className="text-[11px]"
             style={{ color: "#5A7A6E", opacity: 0.7 }}
           >
-            Tạo hợp đồng mới chỉ với vài bước
+            {t("contracts.header.quickActionDesc")}
           </span>
         </div>
         <button
@@ -77,7 +74,7 @@ export default function ContractsHeader({ total, onCreate }) {
           >
             <Plus className="w-3.5 h-3.5" />
           </span>
-          <span>Tạo Hợp Đồng Mới</span>
+          <span>{t("contracts.header.createNew")}</span>
         </button>
       </div>
     </div>

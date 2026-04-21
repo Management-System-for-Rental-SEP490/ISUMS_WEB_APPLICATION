@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer,
@@ -6,12 +7,6 @@ import {
 const BRAND_GREEN    = "#3bb582";
 const BRAND_GRADIENT = "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)";
 
-const PERIOD_TABS = [
-  { key: "3M",  label: "3T"  },
-  { key: "6M",  label: "6T"  },
-  { key: "12M", label: "12T" },
-];
-
 /** "2026-03" → "T3/26" */
 function formatMonth(m) {
   const [year, month] = (m ?? "").split("-");
@@ -19,7 +14,7 @@ function formatMonth(m) {
   return `T${parseInt(month, 10)}/${year.slice(2)}`;
 }
 
-function CustomTooltip({ active, payload, label }) {
+function CustomTooltip({ active, payload, label, contractUnit }) {
   if (!active || !payload?.length) return null;
   return (
     <div
@@ -29,13 +24,22 @@ function CustomTooltip({ active, payload, label }) {
       <p className="font-medium mb-0.5" style={{ color: "#5A7A6E" }}>{label}</p>
       <p className="text-base font-bold" style={{ color: BRAND_GREEN }}>
         {payload[0].value}
-        <span className="text-xs font-normal ml-1" style={{ color: "#8ab5a3" }}>hợp đồng</span>
+        <span className="text-xs font-normal ml-1" style={{ color: "#8ab5a3" }}>{contractUnit}</span>
       </p>
     </div>
   );
 }
 
 export default function ContractsByMonthLine({ timeSeries = [], period = "6M", onPeriodChange, loading = false }) {
+  const { t } = useTranslation("common");
+
+  const PERIOD_TABS = [
+    { key: "3M",  label: t("dashboard.contractsByMonth.period3m") },
+    { key: "6M",  label: t("dashboard.contractsByMonth.period6m") },
+    { key: "12M", label: t("dashboard.contractsByMonth.period12m") },
+  ];
+
+  const contractUnit = t("dashboard.contractsByMonth.contractUnit");
   const chartData = timeSeries.map((d) => ({ month: formatMonth(d.month), count: d.count }));
 
   return (
@@ -53,10 +57,10 @@ export default function ContractsByMonthLine({ timeSeries = [], period = "6M", o
         <div className="flex items-start justify-between mb-4">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-[1px] mb-0.5" style={{ color: "#6B7280" }}>
-              Hợp đồng theo tháng
+              {t("dashboard.contractsByMonth.title")}
             </p>
             <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>
-              Số hợp đồng tạo mới theo kỳ
+              {t("dashboard.contractsByMonth.subtitle")}
             </p>
           </div>
 
@@ -87,7 +91,7 @@ export default function ContractsByMonthLine({ timeSeries = [], period = "6M", o
             <div className="h-full rounded-xl animate-pulse" style={{ background: "#EAF4F0" }} />
           ) : chartData.length === 0 ? (
             <div className="h-full flex items-center justify-center">
-              <p className="text-xs" style={{ color: "#8ab5a3" }}>Không có dữ liệu</p>
+              <p className="text-xs" style={{ color: "#8ab5a3" }}>{t("dashboard.contractsByMonth.noData")}</p>
             </div>
           ) : (
             <ResponsiveContainer width="100%" height="100%">
@@ -101,7 +105,7 @@ export default function ContractsByMonthLine({ timeSeries = [], period = "6M", o
                 <CartesianGrid strokeDasharray="4 4" stroke="#F3F4F6" vertical={false} />
                 <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#8ab5a3" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: "#8ab5a3" }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <Tooltip content={<CustomTooltip />} cursor={{ stroke: "rgba(59,181,130,0.15)", strokeWidth: 1 }} />
+                <Tooltip content={<CustomTooltip contractUnit={contractUnit} />} cursor={{ stroke: "rgba(59,181,130,0.15)", strokeWidth: 1 }} />
                 <Area
                   type="monotone"
                   dataKey="count"

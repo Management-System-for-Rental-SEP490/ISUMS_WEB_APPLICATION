@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 
 const BRAND_GRADIENT = "linear-gradient(135deg, #3bb582 0%, rgba(32,150,216,0.7) 100%)";
@@ -16,13 +17,14 @@ function CustomTooltip({ active, payload }) {
 }
 
 export default function HouseStatusDonut({ propertyStats, loading = false }) {
+  const { t } = useTranslation("common");
   const { total = 0, rented = 0, available = 0 } = propertyStats ?? {};
 
   const other = total - rented - available;
   const donutData = [
-    { name: "Đang cho thuê", value: rented,    color: "#3bb582" },
-    { name: "Còn trống",     value: available, color: "#2096d8" },
-    ...(other > 0 ? [{ name: "Khác", value: other, color: "#f59e0b" }] : []),
+    { name: t("dashboard.houseStatus.rented"), value: rented,    color: "#3bb582" },
+    { name: t("dashboard.houseStatus.vacant"), value: available, color: "#2096d8" },
+    ...(other > 0 ? [{ name: t("dashboard.houseStatus.other"), value: other, color: "#f59e0b" }] : []),
   ].filter((d) => d.value > 0);
 
   return (
@@ -38,10 +40,10 @@ export default function HouseStatusDonut({ propertyStats, loading = false }) {
 
       <div className="p-5 md:p-6 flex flex-col flex-1">
         <p className="text-[11px] font-bold uppercase tracking-[1px] mb-0.5" style={{ color: "#6B7280" }}>
-          Tình trạng BĐS
+          {t("dashboard.houseStatus.title")}
         </p>
         <p className="text-sm font-semibold mb-4" style={{ color: "#1E2D28" }}>
-          {loading ? "Đang tải..." : `Phân bổ ${total} bất động sản`}
+          {loading ? t("dashboard.houseStatus.loading") : t("dashboard.houseStatus.distribution", { total })}
         </p>
 
         {loading ? (
@@ -74,7 +76,7 @@ export default function HouseStatusDonut({ propertyStats, loading = false }) {
                   {total}
                 </span>
                 <span className="text-[10px] font-semibold uppercase tracking-wide mt-0.5" style={{ color: "#5A7A6E" }}>
-                  Tổng
+                  {t("dashboard.houseStatus.total")}
                 </span>
               </div>
             </div>

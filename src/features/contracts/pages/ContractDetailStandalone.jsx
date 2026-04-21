@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { confirmByAdmin, getContractById } from "../api/contracts.api";
+import { confirmByAdmin, getContractById, getCccdStatus } from "../api/contracts.api";
 import { mapContractFromApi } from "../utils/mapContractFromApi";
 import { toast } from "react-toastify";
 import {
@@ -153,6 +153,8 @@ export default function ContractDetailStandalone() {
   const [error, setError] = useState(null);
   const [status, setStatus] = useState(null);
 
+  const [cccdVerified, setCccdVerified] = useState(null);
+
   // Manager confirm dialog (DRAFT → PENDING_TENANT_REVIEW)
   const [showManagerConfirm, setShowManagerConfirm] = useState(false);
   const [showResendConfirm, setShowResendConfirm] = useState(false);
@@ -186,6 +188,13 @@ export default function ContractDetailStandalone() {
       mounted = false;
     };
   }, [id]);
+
+  useEffect(() => {
+    if ((status ?? "").toUpperCase() !== "READY") return;
+    getCccdStatus(id)
+      .then((data) => setCccdVerified(Boolean(data)))
+      .catch(() => setCccdVerified(false));
+  }, [id, status]);
 
   const refetchContract = async () => {
     const raw = await getContractById(id);
@@ -305,6 +314,24 @@ export default function ContractDetailStandalone() {
               {contract?.contractNumber ?? contract?.name ?? id ?? "—"}
             </p>
           </div>
+
+          {/* CCCD verification badge — only when READY */}
+          {normalizedStatus === "READY" && cccdVerified !== null && (
+            <span
+              className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12px] font-semibold tracking-wide flex-shrink-0"
+              style={
+                cccdVerified
+                  ? { background: "rgba(16,185,129,0.1)", color: "#065f46", border: "1px solid rgba(16,185,129,0.3)" }
+                  : { background: "rgba(245,158,11,0.1)", color: "#92400e", border: "1px solid rgba(245,158,11,0.3)" }
+              }
+            >
+              <span
+                className="h-1.5 w-1.5 rounded-full flex-shrink-0"
+                style={{ background: cccdVerified ? "#10b981" : "#f59e0b" }}
+              />
+              {cccdVerified ? "Đã xác minh CCCD" : "Chưa xác minh CCCD"}
+            </span>
+          )}
 
           {/* Status badge */}
           {status && <StatusBadge status={normalizedStatus} />}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   MapPin, Loader2, AlertCircle, Plus, Settings, ChevronRight,
   Package, AlertTriangle, Wrench, Clock, Shield, LogIn, LogOut, ClipboardList,
@@ -18,18 +19,18 @@ const B = {
   mutedFg: "#5A7A6E",
 };
 
-const HOUSE_STATUS = {
-  AVAILABLE: { label: "Còn trống", cls: "bg-emerald-100 text-emerald-700" },
-  RENTED: { label: "Đã thuê", cls: "bg-blue-100 text-blue-700" },
-  MAINTENANCE: { label: "Bảo trì", cls: "bg-amber-100 text-amber-700" },
-  default: { label: "—", cls: "bg-gray-100 text-gray-500" },
+const HOUSE_STATUS_CLS = {
+  AVAILABLE: "bg-emerald-100 text-emerald-700",
+  RENTED:    "bg-blue-100 text-blue-700",
+  MAINTENANCE: "bg-amber-100 text-amber-700",
+  default:   "bg-gray-100 text-gray-500",
 };
 
 const HISTORY_CONFIG = {
-  MAINTENANCE:        { icon: Wrench,        iconBg: B.muted,    iconColor: B.green    },
-  INSPECTION_CHECK_IN:  { icon: LogIn,        iconBg: "#EFF6FF",  iconColor: "#3b82f6"  },
-  INSPECTION_CHECK_OUT: { icon: LogOut,       iconBg: "#FFF7ED",  iconColor: "#f97316"  },
-  INSPECTION:         { icon: ClipboardList,  iconBg: "#F5F3FF",  iconColor: "#8b5cf6"  },
+  MAINTENANCE:          { icon: Wrench,        iconBg: B.muted,    iconColor: B.green   },
+  INSPECTION_CHECK_IN:  { icon: LogIn,         iconBg: "#EFF6FF",  iconColor: "#3b82f6" },
+  INSPECTION_CHECK_OUT: { icon: LogOut,        iconBg: "#FFF7ED",  iconColor: "#f97316" },
+  INSPECTION:           { icon: ClipboardList, iconBg: "#F5F3FF",  iconColor: "#8b5cf6" },
 };
 
 function getHistoryCfg(item) {
@@ -39,20 +40,6 @@ function getHistoryCfg(item) {
   return HISTORY_CONFIG.INSPECTION;
 }
 
-function formatTime(isoString) {
-  const date = new Date(isoString);
-  const diffMs = Date.now() - date;
-  const diffH = Math.floor(diffMs / 3600000);
-  if (diffH < 1) return "Vừa xong";
-  if (diffH < 24) return `${diffH} giờ trước`;
-  const diffD = Math.floor(diffH / 24);
-  if (diffD === 1) return "Hôm qua";
-  if (diffD < 7) return `${diffD} ngày trước`;
-  return date.toLocaleDateString("vi-VN");
-}
-
-// ── StatCard ──────────────────────────────────────────────────────────────────
-
 function StatCard({ label, value, sub, subColor, icon, iconBg, iconColor }) {
   const Icon = icon;
   return (
@@ -61,39 +48,25 @@ function StatCard({ label, value, sub, subColor, icon, iconBg, iconColor }) {
       style={{ background: "#FFFFFF", border: `1px solid ${B.border}` }}
     >
       <div className="flex items-start justify-between mb-3">
-        <p
-          className="text-[10px] font-bold uppercase tracking-widest"
-          style={{ color: B.mutedFg }}
-        >
+        <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: B.mutedFg }}>
           {label}
         </p>
-        <div
-          className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: iconBg ?? B.muted }}
-        >
+        <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: iconBg ?? B.muted }}>
           <Icon className="w-4 h-4" style={{ color: iconColor ?? B.green }} />
         </div>
       </div>
-      <p className="text-3xl font-bold" style={{ color: B.fg }}>
-        {value}
-      </p>
+      <p className="text-3xl font-bold" style={{ color: B.fg }}>{value}</p>
       {sub && (
-        <p className="text-xs mt-1" style={{ color: subColor ?? B.mutedFg }}>
-          {sub}
-        </p>
+        <p className="text-xs mt-1" style={{ color: subColor ?? B.mutedFg }}>{sub}</p>
       )}
     </div>
   );
 }
 
-// ── FloorCard ─────────────────────────────────────────────────────────────────
-
-function FloorCard({ floor, areas, houseId, navigate }) {
-  const floorLabel = floor === "0" ? "Tầng trệt" : `Tầng ${floor}`;
+function FloorCard({ floor, areas, houseId, navigate, t }) {
+  const floorLabel = floor === "0" ? t("houses.detail.floorGround") : `${t("houses.detail.floorLabel")} ${floor}`;
   const totalAssets = areas.reduce((s, a) => s + (a.assetCount ?? 0), 0);
-  const hasIssue = areas.some(
-    (a) => a.status === "DAMAGED" || a.status === "MAINTENANCE",
-  );
+  const hasIssue = areas.some((a) => a.status === "DAMAGED" || a.status === "MAINTENANCE");
 
   return (
     <div
@@ -104,34 +77,26 @@ function FloorCard({ floor, areas, houseId, navigate }) {
         borderLeft: `4px solid ${hasIssue ? "#ef4444" : B.green}`,
       }}
     >
-      {/* Floor number — label trên, số dưới */}
       <div className="flex-shrink-0 w-10 text-center">
-        <p
-          className="text-[9px] font-bold uppercase tracking-widest"
-          style={{ color: B.mutedFg }}
-        >
-          Tầng
+        <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: B.mutedFg }}>
+          {t("houses.detail.floorLabel")}
         </p>
-        <p
-          className="text-2xl font-bold leading-tight"
-          style={{ color: hasIssue ? "#ef4444" : B.fg }}
-        >
+        <p className="text-2xl font-bold leading-tight" style={{ color: hasIssue ? "#ef4444" : B.fg }}>
           {String(floor).padStart(2, "0")}
         </p>
       </div>
 
       <div className="w-px self-stretch flex-shrink-0" style={{ background: B.border }} />
 
-      {/* Name + chips + area count */}
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2 mb-1.5">
           <p className="text-sm font-bold" style={{ color: B.fg }}>{floorLabel}</p>
           <span className="text-[10px] px-1.5 py-0.5 rounded-md font-medium" style={{ background: B.muted, color: B.mutedFg }}>
-            {areas.length} khu vực
+            {t("houses.detail.areasCount", { count: areas.length })}
           </span>
           {hasIssue && (
             <span className="text-[10px] px-1.5 py-0.5 rounded-md font-medium bg-red-50 text-red-500">
-              {areas.filter(a => a.status === "DAMAGED" || a.status === "MAINTENANCE").length} sự cố
+              {t("houses.detail.incidentsCount", { count: areas.filter(a => a.status === "DAMAGED" || a.status === "MAINTENANCE").length })}
             </span>
           )}
         </div>
@@ -159,46 +124,31 @@ function FloorCard({ floor, areas, houseId, navigate }) {
         </div>
       </div>
 
-      {/* Asset count + button */}
       <div className="flex items-center gap-4 flex-shrink-0">
         <div className="text-right">
-          <p
-            className="text-[10px] font-bold uppercase tracking-widest"
-            style={{ color: B.mutedFg }}
-          >
-            Tài sản
+          <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: B.mutedFg }}>
+            {t("houses.detail.assets")}
           </p>
-          <p className="text-xl font-bold" style={{ color: B.fg }}>
-            {totalAssets}
-          </p>
+          <p className="text-xl font-bold" style={{ color: B.fg }}>{totalAssets}</p>
         </div>
         <button
           onClick={() => navigate(`/houses/${houseId}/floors/${floor}`)}
           className="flex items-center gap-1 px-3.5 py-2 rounded-xl text-xs font-semibold transition"
-          style={{
-            background: B.muted,
-            color: B.green,
-            border: `1px solid ${B.border}`,
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "#C4DED5";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = B.muted;
-          }}
+          style={{ background: B.muted, color: B.green, border: `1px solid ${B.border}` }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "#C4DED5"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = B.muted; }}
         >
-          Xem chi tiết <ChevronRight className="w-3.5 h-3.5" />
+          {t("houses.viewDetail")} <ChevronRight className="w-3.5 h-3.5" />
         </button>
       </div>
     </div>
   );
 }
 
-// ── Main ──────────────────────────────────────────────────────────────────────
-
 export default function HouseDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation("common");
   const [showAddArea, setShowAddArea] = useState(false);
 
   const { house, loading, error, refetch } = useHouseDetail(id);
@@ -209,13 +159,23 @@ export default function HouseDetailPage() {
     getHouseHistory(id).then(setHistory).catch(() => setHistory([]));
   }, [id]);
 
+  const formatTime = (isoString) => {
+    const date = new Date(isoString);
+    const diffMs = Date.now() - date;
+    const diffH = Math.floor(diffMs / 3600000);
+    if (diffH < 1) return t("houses.time.justNow");
+    if (diffH < 24) return t("houses.time.hoursAgo", { n: diffH });
+    const diffD = Math.floor(diffH / 24);
+    if (diffD === 1) return t("houses.time.yesterday");
+    if (diffD < 7) return t("houses.time.daysAgo", { n: diffD });
+    return date.toLocaleDateString();
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh] gap-3">
         <Loader2 className="w-5 h-5 animate-spin" style={{ color: B.green }} />
-        <span className="text-sm" style={{ color: B.mutedFg }}>
-          Đang tải...
-        </span>
+        <span className="text-sm" style={{ color: B.mutedFg }}>{t("houses.detail.loading")}</span>
       </div>
     );
   }
@@ -225,63 +185,44 @@ export default function HouseDetailPage() {
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
         <AlertCircle className="w-8 h-8 text-red-400" />
         <p className="text-sm" style={{ color: B.mutedFg }}>
-          {error ?? "Không tìm thấy nhà"}
+          {error ?? t("houses.detail.notFound")}
         </p>
-        <button
-          onClick={refetch}
-          className="text-sm underline"
-          style={{ color: B.green }}
-        >
-          Thử lại
+        <button onClick={refetch} className="text-sm underline" style={{ color: B.green }}>
+          {t("houses.detail.retry")}
         </button>
       </div>
     );
   }
 
-  const hsBadge = HOUSE_STATUS[house.status] ?? HOUSE_STATUS.default;
-  const fullAddr = [house.address, house.ward, house.city]
-    .filter(Boolean)
-    .join(", ");
-  const areas = Array.isArray(house.functionalAreas)
-    ? house.functionalAreas
-    : [];
+  const hsCls = HOUSE_STATUS_CLS[house.status] ?? HOUSE_STATUS_CLS.default;
+  const hsLabel = t(`houses.status.${house.status}`, { defaultValue: house.status ?? "—" });
+  const fullAddr = [house.address, house.ward, house.city].filter(Boolean).join(", ");
+  const areas = Array.isArray(house.functionalAreas) ? house.functionalAreas : [];
   const totalAssets = areas.reduce((s, a) => s + (a.assetCount ?? 0), 0);
-  const alertCount = areas.filter(
-    (a) => a.status === "DAMAGED" || a.status === "MAINTENANCE",
-  ).length;
+  const alertCount = areas.filter((a) => a.status === "DAMAGED" || a.status === "MAINTENANCE").length;
 
   const grouped = areas.reduce((acc, area) => {
     const key = String(area.floorNo ?? "0");
     (acc[key] = acc[key] ?? []).push(area);
     return acc;
   }, {});
-  const sortedFloors = Object.keys(grouped).sort(
-    (a, b) => Number(a) - Number(b),
-  );
+  const sortedFloors = Object.keys(grouped).sort((a, b) => Number(a) - Number(b));
 
   return (
     <div className="space-y-5">
-      {/* ── Header ── */}
+      {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-3xl font-bold" style={{ color: B.fg }}>
-            {house.name ?? "Chưa đặt tên"}
+            {house.name ?? t("houses.noName")}
           </h1>
           <div className="flex items-center gap-3 mt-2 flex-wrap">
-            <span
-              className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${hsBadge.cls}`}
-            >
-              {hsBadge.label}
+            <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${hsCls}`}>
+              {hsLabel}
             </span>
             {fullAddr && (
-              <span
-                className="flex items-center gap-1 text-sm"
-                style={{ color: B.mutedFg }}
-              >
-                <MapPin
-                  className="w-3.5 h-3.5 flex-shrink-0"
-                  style={{ color: B.green }}
-                />
+              <span className="flex items-center gap-1 text-sm" style={{ color: B.mutedFg }}>
+                <MapPin className="w-3.5 h-3.5 flex-shrink-0" style={{ color: B.green }} />
                 {fullAddr}
               </span>
             )}
@@ -291,48 +232,32 @@ export default function HouseDetailPage() {
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium transition"
-            style={{
-              border: `1px solid ${B.border}`,
-              color: B.mutedFg,
-              background: "#fff",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = B.green;
-              e.currentTarget.style.color = B.green;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = B.border;
-              e.currentTarget.style.color = B.mutedFg;
-            }}
+            style={{ border: `1px solid ${B.border}`, color: B.mutedFg, background: "#fff" }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = B.green; e.currentTarget.style.color = B.green; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = B.border; e.currentTarget.style.color = B.mutedFg; }}
           >
-            <Settings className="w-3.5 h-3.5" /> Chỉnh sửa
+            <Settings className="w-3.5 h-3.5" /> {t("houses.detail.editLabel")}
           </button>
           <button
             onClick={() => setShowAddArea(true)}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition"
-            style={{
-              background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.opacity = "0.88";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.opacity = "1";
-            }}
+            style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
+            onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.88"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
           >
-            <Plus className="w-4 h-4" /> Thêm khu vực
+            <Plus className="w-4 h-4" /> {t("houses.detail.addArea")}
           </button>
         </div>
       </div>
 
-      {/* ── Stats row ── */}
+      {/* Stats row */}
       <div className="flex gap-4">
-        <StatCard label="Tổng tài sản" value={totalAssets} icon={Package} />
-        <StatCard label="Khu vực" value={areas.length} icon={Shield} />
+        <StatCard label={t("houses.detail.statAssets")} value={totalAssets} icon={Package} />
+        <StatCard label={t("houses.detail.statAreas")} value={areas.length} icon={Shield} />
         <StatCard
-          label="Cảnh báo"
+          label={t("houses.detail.statAlerts")}
           value={String(alertCount).padStart(2, "0")}
-          sub={alertCount > 0 ? "Yêu cầu chú ý ngay" : "Không có vấn đề"}
+          sub={alertCount > 0 ? t("houses.detail.alertWarning") : t("houses.detail.noIssues")}
           subColor={alertCount > 0 ? "#ef4444" : B.mutedFg}
           icon={AlertTriangle}
           iconBg={alertCount > 0 ? "#FEF2F2" : B.muted}
@@ -340,13 +265,13 @@ export default function HouseDetailPage() {
         />
       </div>
 
-      {/* ── 2-column: Floor Directory + Sidebar ── */}
+      {/* 2-column: Floor Directory + Sidebar */}
       <div className="flex gap-5 items-start">
         {/* Floor Directory */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-bold" style={{ color: B.fg }}>
-              Chi tiết các tầng
+              {t("houses.detail.floorsSection")}
             </h2>
           </div>
 
@@ -356,9 +281,7 @@ export default function HouseDetailPage() {
               style={{ background: "#FFFFFF", border: `1px solid ${B.border}` }}
             >
               <Package className="w-10 h-10" style={{ color: B.border }} />
-              <p className="text-sm" style={{ color: B.mutedFg }}>
-                Chưa có tầng nào
-              </p>
+              <p className="text-sm" style={{ color: B.mutedFg }}>{t("houses.detail.noFloors")}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -369,6 +292,7 @@ export default function HouseDetailPage() {
                   areas={grouped[floor]}
                   houseId={id}
                   navigate={navigate}
+                  t={t}
                 />
               ))}
             </div>
@@ -378,35 +302,23 @@ export default function HouseDetailPage() {
         {/* Sidebar */}
         <div className="w-72 flex-shrink-0 space-y-4">
           {/* Management Notes */}
-          <div
-            className="rounded-2xl p-4"
-            style={{ background: "#FFFFFF", border: `1px solid ${B.border}` }}
-          >
-            <p
-              className="text-[10px] font-bold uppercase tracking-widest mb-3"
-              style={{ color: B.mutedFg }}
-            >
-              Ghi chú quản lý
+          <div className="rounded-2xl p-4" style={{ background: "#FFFFFF", border: `1px solid ${B.border}` }}>
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: B.mutedFg }}>
+              {t("houses.detail.notesTitle")}
             </p>
             <p className="text-sm leading-relaxed" style={{ color: B.fg }}>
-              {house.description ?? "Chưa có ghi chú."}
+              {house.description ?? t("houses.detail.notesEmpty")}
             </p>
           </div>
 
           {/* Recent Activity */}
-          <div
-            className="rounded-2xl p-4"
-            style={{ background: "#FFFFFF", border: `1px solid ${B.border}` }}
-          >
-            <p
-              className="text-[10px] font-bold uppercase tracking-widest mb-3"
-              style={{ color: B.mutedFg }}
-            >
-              Hoạt động gần đây
+          <div className="rounded-2xl p-4" style={{ background: "#FFFFFF", border: `1px solid ${B.border}` }}>
+            <p className="text-[10px] font-bold uppercase tracking-widest mb-3" style={{ color: B.mutedFg }}>
+              {t("houses.detail.activityTitle")}
             </p>
             <div className="space-y-4">
               {history.length === 0 ? (
-                <p className="text-xs text-center py-4" style={{ color: B.mutedFg }}>Chưa có hoạt động nào</p>
+                <p className="text-xs text-center py-4" style={{ color: B.mutedFg }}>{t("houses.detail.activityEmpty")}</p>
               ) : (
                 history.slice(0, 5).map((item) => {
                   const cfg = getHistoryCfg(item);
@@ -431,7 +343,7 @@ export default function HouseDetailPage() {
                         </div>
                         {item.staffName && (
                           <p className="text-[10px] mt-0.5" style={{ color: B.mutedFg }}>
-                            Nhân viên: {item.staffName}
+                            {t("houses.detail.staff")} {item.staffName}
                           </p>
                         )}
                         {item.description && (
@@ -447,19 +359,11 @@ export default function HouseDetailPage() {
             </div>
             <button
               className="w-full mt-4 py-2 text-xs font-medium rounded-xl transition"
-              style={{
-                border: `1px solid ${B.border}`,
-                color: B.mutedFg,
-                background: "transparent",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = B.muted;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "transparent";
-              }}
+              style={{ border: `1px solid ${B.border}`, color: B.mutedFg, background: "transparent" }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = B.muted; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
             >
-              Xem toàn bộ lịch sử
+              {t("houses.detail.activityViewAll")}
             </button>
           </div>
         </div>

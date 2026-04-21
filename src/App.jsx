@@ -5,19 +5,30 @@ import { authActions } from "./features/auth/store/auth.store";
 import { ToastContainer } from "react-toastify";
 import { ConfigProvider } from "antd";
 import viVN from "antd/locale/vi_VN";
+import enUS from "antd/locale/en_US";
+import jaJP from "antd/locale/ja_JP";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
+import "dayjs/locale/en";
+import "dayjs/locale/ja";
+import { useLanguageStore } from "./store/languageStore";
 
-dayjs.locale("vi");
+const ANTD_LOCALES = { vi: viVN, en: enUS, ja: jaJP };
 
 export default function App() {
+  const language = useLanguageStore((s) => s.language);
+
   useEffect(() => {
     authActions.init();
   }, []);
 
+  useEffect(() => {
+    dayjs.locale(language);
+  }, [language]);
+
   return (
     <ConfigProvider
-      locale={viVN}
+      locale={ANTD_LOCALES[language] ?? viVN}
       theme={{
         token: {
           fontFamily: "'Outfit', ui-sans-serif, system-ui, sans-serif",

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Drawer, Badge, Progress, Tag, Descriptions, Alert, Spin, Typography } from "antd";
 import { Package } from "lucide-react";
 import ImageCarousel from "../../../components/shared/ImageCarousel";
@@ -20,6 +21,7 @@ const CONDITION_STROKE = (pct) => {
 };
 
 export default function AssetDetailDrawer({ assetId, onClose }) {
+  const { t } = useTranslation("common");
   const [asset, setAsset]     = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState(null);
@@ -46,7 +48,7 @@ export default function AssetDetailDrawer({ assetId, onClose }) {
       title={
         <div className="flex items-center gap-2">
           <Package className="w-4 h-4 text-gray-400" />
-          <span className="text-sm font-semibold text-gray-700">Chi tiết tài sản</span>
+          <span className="text-sm font-semibold text-gray-700">{t("houses.assetDrawer.title")}</span>
         </div>
       }
       styles={{ body: { padding: 0 } }}
@@ -54,7 +56,7 @@ export default function AssetDetailDrawer({ assetId, onClose }) {
       {loading && (
         <div className="flex flex-col items-center justify-center h-64 gap-2 text-gray-400">
           <Spin size="large" />
-          <span className="text-sm">Đang tải...</span>
+          <span className="text-sm">{t("houses.assetDrawer.loading")}</span>
         </div>
       )}
 
@@ -76,13 +78,13 @@ export default function AssetDetailDrawer({ assetId, onClose }) {
                 <Typography.Title level={5} className="!mb-0.5">{asset.displayName}</Typography.Title>
                 <Typography.Text type="secondary" className="font-mono text-xs">{asset.serialNumber ?? "—"}</Typography.Text>
               </div>
-              <Badge status={badgeStatus} text={<span className="text-xs font-medium">{status.label}</span>} />
+              <Badge status={badgeStatus} text={<span className="text-xs font-medium">{t(`houses.assetStatus.${asset.status}`, { defaultValue: status.label })}</span>} />
             </div>
 
             {/* Tình trạng */}
             <div className="bg-gray-50 rounded-xl p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-gray-600">Tình trạng thiết bị</span>
+                <span className="text-xs font-semibold text-gray-600">{t("houses.assetDrawer.conditionLabel")}</span>
                 <span className="text-sm font-bold" style={{ color: CONDITION_STROKE(pct) }}>{pct}%</span>
               </div>
               <Progress
@@ -93,21 +95,21 @@ export default function AssetDetailDrawer({ assetId, onClose }) {
                 styles={{ trail: { background: "#e5e7eb" } }}
               />
               <p className="text-[11px] text-gray-400 mt-1.5">
-                {pct >= 80 ? "Tốt — hoạt động bình thường" : pct >= 50 ? "Trung bình — cần theo dõi" : "Kém — cần sửa chữa hoặc thay thế"}
+                {pct >= 80 ? t("houses.assetDrawer.conditionGood") : pct >= 50 ? t("houses.assetDrawer.conditionMedium") : t("houses.assetDrawer.conditionBad")}
               </p>
             </div>
 
             {/* Thông tin chung */}
             <Descriptions column={1} size="small" bordered labelStyle={{ width: 130, color: "#6b7280", fontSize: 12 }} contentStyle={{ fontSize: 12 }}>
-              <Descriptions.Item label="Mã serial">{asset.serialNumber ?? "—"}</Descriptions.Item>
+              <Descriptions.Item label={t("houses.assetDrawer.serialLabel")}>{asset.serialNumber ?? "—"}</Descriptions.Item>
               {asset.category?.name && (
-                <Descriptions.Item label="Loại tài sản">{asset.category?.name}</Descriptions.Item>
+                <Descriptions.Item label={t("houses.assetDrawer.categoryLabel")}>{asset.category?.name}</Descriptions.Item>
               )}
               {asset.description && (
-                <Descriptions.Item label="Mô tả">{asset.description}</Descriptions.Item>
+                <Descriptions.Item label={t("houses.assetDrawer.descriptionLabel")}>{asset.description}</Descriptions.Item>
               )}
-              <Descriptions.Item label="Cập nhật lần cuối">
-                {asset.updateAt ? new Date(asset.updateAt).toLocaleDateString("vi-VN") : "—"}
+              <Descriptions.Item label={t("houses.assetDrawer.updatedLabel")}>
+                {asset.updateAt ? new Date(asset.updateAt).toLocaleDateString() : "—"}
               </Descriptions.Item>
             </Descriptions>
 
@@ -126,7 +128,7 @@ export default function AssetDetailDrawer({ assetId, onClose }) {
             {/* Ghi chú */}
             {asset.note && (
               <div>
-                <p className="text-xs font-semibold text-gray-500 mb-1.5">Ghi chú</p>
+                <p className="text-xs font-semibold text-gray-500 mb-1.5">{t("houses.assetDrawer.noteLabel")}</p>
                 <Alert type="info" description={asset.note} showIcon />
               </div>
             )}

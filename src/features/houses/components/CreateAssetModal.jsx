@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { X, Save, Shuffle } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { X, Save, Shuffle, ImagePlus } from "lucide-react";
 import { LoadingSpinner } from "../../../components/shared/Loading";
 import { Select, InputNumber } from "antd";
 import { toast } from "react-toastify";
@@ -9,12 +10,7 @@ import {
   createAsset,
   uploadAssetImages,
 } from "../api/houses.api";
-
-const ASSET_STATUS_OPTIONS = [
-  { value: "IN_USE", label: "Hoạt động" },
-  { value: "UNDER_REPAIR", label: "Đang sửa" },
-  { value: "BROKEN", label: "Hỏng" },
-];
+import { managerConfirmAsset } from "../../assets/api/assets.api";
 
 const inp =
   "w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 bg-slate-50 placeholder-slate-400 transition";
@@ -27,6 +23,7 @@ export default function CreateAssetModal({
   onClose,
   onSuccess,
 }) {
+  const { t } = useTranslation("common");
   const [categories, setCategories] = useState([]);
   const [catsLoading, setCatsLoading] = useState(true);
   const [form, setForm] = useState({
@@ -41,10 +38,16 @@ export default function CreateAssetModal({
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
+  const assetStatusOptions = [
+    { value: "IN_USE",       label: t("houses.assetStatus.IN_USE")       },
+    { value: "UNDER_REPAIR", label: t("houses.assetStatus.UNDER_REPAIR") },
+    { value: "BROKEN",       label: t("houses.assetStatus.BROKEN")       },
+  ];
+
   useEffect(() => {
     getAssetCategories()
       .then(setCategories)
-      .catch(() => toast.error("Không thể tải danh sách loại tài sản."))
+      .catch(() => toast.error(t("houses.createAsset.catsLoadError")))
       .finally(() => setCatsLoading(false));
   }, []);
 
@@ -62,10 +65,7 @@ export default function CreateAssetModal({
   const generateSerial = () => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     const seg = (len) =>
-      Array.from(
-        { length: len },
-        () => chars[Math.floor(Math.random() * chars.length)],
-      ).join("");
+      Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
     setField("serialNumber", `${seg(3)}-${seg(4)}-${seg(4)}-${seg(4)}`);
   };
 
@@ -76,8 +76,8 @@ export default function CreateAssetModal({
 
   const validate = () => {
     const e = {};
-    if (!form.categoryId) e.categoryId = "Vui lòng chọn loại tài sản";
-    if (!form.displayName.trim()) e.displayName = "Vui lòng nhập tên tài sản";
+    if (!form.categoryId)          e.categoryId   = t("houses.createAsset.validation.category");
+    if (!form.displayName.trim())  e.displayName  = t("houses.createAsset.validation.name");
     setErrors(e);
     return !Object.keys(e).length;
   };
@@ -97,14 +97,17 @@ export default function CreateAssetModal({
         assetImages: [],
       };
       const created = await createAsset(payload);
-      if (created?.id && images.length > 0) {
-        await uploadAssetImages(created.id, images);
+      if (created?.id) {
+        await managerConfirmAsset(created.id, "IN_USE");
+        if (images.length > 0) {
+          await uploadAssetImages(created.id, images);
+        }
       }
-      toast.success("Tạo tài sản thành công!");
+      toast.success(t("houses.createAsset.successToast"));
       onSuccess?.();
       onClose();
     } catch (e) {
-      toast.error(e?.message ?? "Tạo thất bại, vui lòng thử lại.");
+      toast.error(e?.message ?? t("houses.createAsset.failToast"));
     } finally {
       setSubmitting(false);
     }
@@ -112,20 +115,14 @@ export default function CreateAssetModal({
 
   return createPortal(
     <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <h2 className="text-base font-bold text-slate-800">
-            Thêm tài sản mới
+            {t("houses.createAsset.title")}
           </h2>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-slate-100 transition"
-          >
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 transition">
             <X className="w-4 h-4 text-slate-500" />
           </button>
         </div>
@@ -134,11 +131,11 @@ export default function CreateAssetModal({
         <div className="px-6 py-5 space-y-4 max-h-[65vh] overflow-y-auto">
           <div>
             <label className={lbl}>
-              Loại tài sản <span className="text-red-500 normal-case">*</span>
+              {t("houses.createAsset.categoryLabel")} <span className="text-red-500 normal-case">*</span>
             </label>
             <Select
               className="w-full"
-              placeholder="Chọn loại tài sản"
+              placeholder={t("houses.createAsset.categoryPlaceholder")}
               value={form.categoryId || undefined}
               onChange={(v) => setField("categoryId", v)}
               loading={catsLoading}
@@ -153,12 +150,12 @@ export default function CreateAssetModal({
 
           <div>
             <label className={lbl}>
-              Tên tài sản <span className="text-red-500 normal-case">*</span>
+              {t("houses.createAsset.nameLabel")} <span className="text-red-500 normal-case">*</span>
             </label>
             <input
               value={form.displayName}
               onChange={(e) => setField("displayName", e.target.value)}
-              placeholder="VD: Máy lạnh phòng khách"
+              placeholder={t("houses.createAsset.namePlaceholder")}
               className={`${inp} ${errors.displayName ? "border-red-400 bg-red-50" : ""}`}
             />
             {errors.displayName && (
@@ -167,7 +164,7 @@ export default function CreateAssetModal({
           </div>
 
           <div>
-            <label className={lbl}>Mã serial</label>
+            <label className={lbl}>{t("houses.createAsset.serialLabel")}</label>
             <div className="relative">
               <input
                 value={form.serialNumber}
@@ -178,7 +175,7 @@ export default function CreateAssetModal({
               <button
                 type="button"
                 onClick={generateSerial}
-                title="Tạo mã ngẫu nhiên"
+                title={t("houses.createAsset.randomSerial")}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition"
               >
                 <Shuffle className="w-4 h-4" />
@@ -188,7 +185,7 @@ export default function CreateAssetModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={lbl}>Tình trạng (%)</label>
+              <label className={lbl}>{t("houses.createAsset.conditionLabel")}</label>
               <InputNumber
                 className="w-full"
                 min={0}
@@ -198,28 +195,22 @@ export default function CreateAssetModal({
                 suffix="%"
               />
             </div>
-            <div>
-              <label className={lbl}>Trạng thái</label>
-              <Select
-                className="w-full"
-                value={form.status}
-                onChange={(v) => setField("status", v)}
-                options={ASSET_STATUS_OPTIONS}
-                getPopupContainer={(trigger) => trigger.parentElement}
-              />
-            </div>
           </div>
 
           <div>
-            <label className={lbl}>Ảnh tài sản <span className="normal-case font-normal text-slate-400">(tối đa 5)</span></label>
+            <label className={lbl}>
+              {t("houses.createAsset.imagesLabel")} <span className="normal-case font-normal text-slate-400">{t("houses.createAsset.imagesMax")}</span>
+            </label>
             {images.length < 5 && (
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleImages}
-                className="w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 transition"
-              />
+              <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium cursor-pointer transition"
+                style={{ background: "#EAF4F0", color: "#3bb582", border: "1px solid #C4DED5" }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "#d4ede3"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "#EAF4F0"; }}
+              >
+                <ImagePlus className="w-4 h-4" />
+                {t("houses.createAsset.chooseFiles")}
+                <input type="file" accept="image/*" multiple onChange={handleImages} className="hidden" />
+              </label>
             )}
             {previews.length > 0 && (
               <div className="flex gap-2 flex-wrap mt-2">
@@ -246,18 +237,16 @@ export default function CreateAssetModal({
             onClick={onClose}
             className="px-4 py-2 text-sm text-slate-600 rounded-xl border border-slate-200 hover:bg-slate-50 transition"
           >
-            Hủy
+            {t("actions.cancel")}
           </button>
           <button
             onClick={handleSubmit}
             disabled={submitting}
             className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white rounded-xl transition disabled:opacity-70"
-            style={{
-              background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)",
-            }}
+            style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
           >
             {submitting ? <LoadingSpinner size="sm" /> : <Save className="w-4 h-4" />}
-            {submitting ? "Đang lưu..." : "Lưu"}
+            {submitting ? t("houses.createAsset.saving") : t("houses.createAsset.save")}
           </button>
         </div>
       </div>

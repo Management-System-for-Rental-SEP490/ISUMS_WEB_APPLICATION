@@ -1,4 +1,5 @@
 import { Bath, Bed, Heart, MapPin, Maximize2, Pencil } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { AREA_TYPE_CONFIG } from "./HouseDetailModal";
 import ImageCarousel from "../../../components/shared/ImageCarousel";
 
@@ -20,8 +21,9 @@ function formatPrice(price) {
 }
 
 export default function HouseCard({ house, onView, onEdit }) {
+  const { t } = useTranslation("common");
   const cfg = STATUS_CONFIG[house?.status] ?? STATUS_CONFIG.default;
-  const name = house?.name ?? house?.title ?? "Chưa đặt tên";
+  const name = house?.name ?? house?.title ?? t("houses.noName");
   const address = house?.address ?? "";
   const priceStr = formatPrice(house?.rentPrice ?? house?.rent);
   const bedrooms = house?.bedrooms ?? house?.bedroom ?? null;
@@ -55,7 +57,7 @@ export default function HouseCard({ house, onView, onEdit }) {
           className="absolute top-3 left-3 px-3 py-1 text-[11px] font-bold rounded-full z-10"
           style={{ background: cfg.bg, color: cfg.color, backdropFilter: "blur(4px)" }}
         >
-          {cfg.label}
+          {t(`houses.statusCard.${house?.status}`, { defaultValue: cfg.label })}
         </span>
 
         {/* Heart */}
@@ -80,7 +82,7 @@ export default function HouseCard({ house, onView, onEdit }) {
           {priceStr && (
             <p className="shrink-0 text-right whitespace-nowrap">
               <span className="text-base font-bold" style={{ color: "#3bb582" }}>{priceStr}</span>
-              <span className="text-xs" style={{ color: "#5A7A6E" }}>/th</span>
+              <span className="text-xs" style={{ color: "#5A7A6E" }}>{t("houses.perMonth")}</span>
             </p>
           )}
         </div>
@@ -134,7 +136,7 @@ export default function HouseCard({ house, onView, onEdit }) {
                 >
                   <Icon className="w-3 h-3" />
                   {count > 1 ? `${count} ` : ""}
-                  {areaCfg.label}
+                  {t(`houses.areaType.${type}`, { defaultValue: areaCfg.label })}
                 </span>
               );
             })}
@@ -162,7 +164,7 @@ export default function HouseCard({ house, onView, onEdit }) {
             onMouseEnter={e => { e.currentTarget.style.background = "#EAF4F0"; e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.color = "#1E2D28"; }}
             onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.color = "#5A7A6E"; }}
           >
-            Xem chi tiết
+            {t("houses.viewDetail")}
           </button>
           <button
             type="button"

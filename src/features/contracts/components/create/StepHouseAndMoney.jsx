@@ -2,6 +2,7 @@ import { DatePicker, Select } from "antd";
 import dayjs from "dayjs";
 import { MapPin } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { getHouseById } from "../../../houses/api/houses.api";
 import ImageCarousel from "../../../../components/shared/ImageCarousel";
 import { AREA_TYPE_CONFIG } from "../../../houses/components/HouseDetailModal";
@@ -16,13 +17,14 @@ const labelClass = "block text-sm font-medium text-slate-700 mb-1.5";
 const inputClass =
   "w-full px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/60 focus:border-teal-400 transition placeholder:text-slate-400";
 
-const HOUSE_STATUS = {
-  AVAILABLE:   { label: "Đang để trống", cls: "bg-emerald-50 text-emerald-700 border border-emerald-200" },
-  RENTED:      { label: "Đã có khách",   cls: "bg-orange-50 text-orange-700 border border-orange-200"   },
-  MAINTENANCE: { label: "Bảo trì",       cls: "bg-slate-100 text-slate-600 border border-slate-200"     },
+const HOUSE_STATUS_KEYS = {
+  AVAILABLE:   { tKey: "AVAILABLE",   cls: "bg-emerald-50 text-emerald-700 border border-emerald-200" },
+  RENTED:      { tKey: "RENTED",      cls: "bg-orange-50 text-orange-700 border border-orange-200"   },
+  MAINTENANCE: { tKey: "MAINTENANCE", cls: "bg-slate-100 text-slate-600 border border-slate-200"     },
 };
 
 export default function StepHouseAndMoney({ form, update, houses, errors = {} }) {
+  const { t } = useTranslation("common");
   const [houseDetail, setHouseDetail] = useState(null);
   const [loadingHouse, setLoadingHouse] = useState(false);
 
@@ -51,26 +53,24 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
     [form.handoverDate],
   );
 
-  const statusCfg = HOUSE_STATUS[houseDetail?.status];
+  const statusCfg = HOUSE_STATUS_KEYS[houseDetail?.status];
   const addressParts = [houseDetail?.address, houseDetail?.ward, houseDetail?.commune, houseDetail?.city]
     .filter(Boolean).join(", ");
 
   const areaChips = useMemo(() => {
     const areas = Array.isArray(houseDetail?.functionalAreas) ? houseDetail.functionalAreas : [];
-    // Dedupe theo areaType, lấy tên area đầu tiên của mỗi loại
     const seen = {};
     areas.forEach((a) => {
       const k = a.areaType ?? "default";
       if (!seen[k]) seen[k] = a.name;
     });
-    // [type, _, name]
     return Object.entries(seen).slice(0, 4).map(([type, name]) => [type, 1, name]);
   }, [houseDetail]);
 
   return (
     <>
       <div className="space-y-5">
-        {/* ── Nhà cho thuê ─────────────────────────────────────── */}
+        {/* Rental property */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4">
           <div className="flex items-center gap-2">
             <span className="inline-flex w-8 h-8 items-center justify-center rounded-xl bg-teal-50 text-teal-600">
@@ -79,15 +79,15 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 21V12h6v9" />
               </svg>
             </span>
-            <h3 className="text-base font-semibold text-slate-800">Nhà cho thuê</h3>
+            <h3 className="text-base font-semibold text-slate-800">{t("contracts.form.rentalHouse")}</h3>
           </div>
 
           <div>
-            <label className={labelClass}>Các căn nhà trống</label>
+            <label className={labelClass}>{t("contracts.form.availableHouses")}</label>
             <Select
               value={form.houseId ?? undefined}
               onChange={(val) => update("houseId")({ target: { value: val } })}
-              placeholder="-- Chọn nhà --"
+              placeholder={t("contracts.form.selectHouse")}
               showSearch
               optionFilterProp="label"
               status={errors.houseId ? "error" : ""}
@@ -100,34 +100,28 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
             {errors.houseId && <p className="mt-1 text-xs text-red-500">{errors.houseId}</p>}
           </div>
 
-          {/* Loading */}
           {loadingHouse && (
             <div className="flex items-center gap-2 text-sm text-slate-400 py-1">
               <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
               </svg>
-              Đang tải thông tin nhà...
+              {t("contracts.form.loadingHouse")}
             </div>
           )}
 
-          {/* House preview card */}
           {!loadingHouse && houseDetail && (
             <div className="rounded-xl border-2 border-teal-400 bg-white overflow-hidden grid" style={{ gridTemplateColumns: "2fr 3fr", minHeight: 220 }}>
-              {/* Image carousel */}
               <div className="overflow-hidden">
                 <ImageCarousel images={houseDetail.images ?? []} alt={houseDetail.name} height="h-full" />
               </div>
-
-              {/* Info — right side */}
               <div className="flex-1 min-w-0 flex flex-col gap-3 p-4">
-                {/* Name + status + check */}
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-base font-bold text-slate-800 leading-snug">{houseDetail.name}</p>
                   <div className="flex items-center gap-1.5 shrink-0">
                     {statusCfg && (
                       <span className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full border uppercase tracking-wide ${statusCfg.cls}`}>
-                        {statusCfg.label}
+                        {t(`dashboard.map.${statusCfg.tKey}`, { defaultValue: houseDetail.status })}
                       </span>
                     )}
                     <span className="w-5 h-5 flex items-center justify-center rounded-full bg-teal-500 text-white">
@@ -137,26 +131,18 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
                     </span>
                   </div>
                 </div>
-
-                {/* Address */}
                 {addressParts && (
                   <div className="flex items-center gap-1 text-xs text-slate-500">
                     <MapPin className="w-3.5 h-3.5 shrink-0 text-teal-500" />
                     <span>{addressParts}</span>
                   </div>
                 )}
-
-                {/* Description */}
                 {houseDetail.description && (
-                  <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">
-                    {houseDetail.description}
-                  </p>
+                  <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">{houseDetail.description}</p>
                 )}
-
-                {/* Amenity chips */}
                 {areaChips.length > 0 && (
                   <div className="space-y-1.5 mt-auto">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Tiện ích nổi bật</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{t("contracts.form.houseAmenities")}</p>
                     <div className="flex flex-wrap gap-2">
                       {areaChips.map(([type, , name]) => {
                         const cfg = AREA_TYPE_CONFIG[type] ?? AREA_TYPE_CONFIG.default;
@@ -176,7 +162,7 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
           )}
         </div>
 
-        {/* ── Tiền & Chi phí ───────────────────────────────────── */}
+        {/* Rent & costs */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4">
           <div className="flex items-center gap-2">
             <span className="inline-flex w-8 h-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
@@ -184,12 +170,12 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a5 5 0 00-10 0v2M3 11h18v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8z" />
               </svg>
             </span>
-            <h3 className="text-base font-semibold text-slate-800">Tiền & Chi phí</h3>
+            <h3 className="text-base font-semibold text-slate-800">{t("contracts.form.money")}</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Tiền thuê (VNĐ) *</label>
+              <label className={labelClass}>{t("contracts.form.rent")}</label>
               <div className="relative">
                 <input inputMode="numeric" value={formatMoney(form.rentAmount)} onChange={handleMoneyChange("rentAmount")}
                   placeholder="7,000,000"
@@ -200,7 +186,7 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
             </div>
 
             <div>
-              <label className={labelClass}>Tiền cọc (VNĐ)</label>
+              <label className={labelClass}>{t("contracts.form.deposit")}</label>
               <div className="relative">
                 <input inputMode="numeric" value={formatMoney(form.depositAmount)} onChange={handleMoneyChange("depositAmount")}
                   placeholder="14,000,000"
@@ -211,46 +197,48 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
             </div>
 
             <div>
-              <label className={labelClass}>Ngày thanh toán hàng tháng (1–28)</label>
+              <label className={labelClass}>{t("contracts.form.payDate")}</label>
               <input type="number" min={1} max={28} value={form.payDate ?? ""} onChange={update("payDate")}
                 placeholder="5" className={`${inputClass} ${errors.payDate ? "border-red-400" : ""}`} />
               {errors.payDate && <p className="mt-1 text-xs text-red-500">{errors.payDate}</p>}
             </div>
 
             <div>
-              <label className={labelClass}>Chu kỳ thanh toán</label>
+              <label className={labelClass}>{t("contracts.form.payCycle")}</label>
               <Select
                 value={form.payCycle ?? "monthly"}
                 onChange={(val) => update("payCycle")({ target: { value: val } })}
                 style={{ width: "100%" }}
                 options={[
-                  { value: "monthly",   label: "Hàng tháng" },
-                  { value: "quarterly", label: "Hàng quý"   },
-                  { value: "biannual",  label: "Nửa năm"    },
-                  { value: "annual",    label: "Hàng năm"   },
+                  { value: "monthly",   label: t("contracts.form.payCycleMonthly") },
+                  { value: "quarterly", label: t("contracts.form.payCycleQuarterly") },
+                  { value: "biannual",  label: t("contracts.form.payCycleBiannual") },
+                  { value: "annual",    label: t("contracts.form.payCycleAnnual") },
                 ]}
               />
             </div>
 
             <div>
-              <label className={labelClass}>Số ngày hoàn trả cọc sau khi hết HĐ</label>
+              <label className={labelClass}>{t("contracts.form.depositRefundDays")}</label>
               <input type="number" min={0} value={form.depositRefundDays ?? ""} onChange={update("depositRefundDays")}
                 placeholder="30" className={inputClass} />
             </div>
 
             <div>
-              <label className={labelClass}>Ngày đặt cọc</label>
+              <label className={labelClass}>{t("contracts.form.depositDate")}</label>
               <DatePicker className={`w-full ${errors.depositDate ? "border-red-400" : ""}`}
-                value={depositDateValue} format="DD/MM/YYYY" placeholder="Chọn ngày đặt cọc"
+                value={depositDateValue} format="DD/MM/YYYY"
+                placeholder={t("contracts.form.depositDate")}
                 status={errors.depositDate ? "error" : ""}
                 onChange={(d) => update("depositDate")({ target: { value: d ? d.format("YYYY-MM-DD") : "" } })} />
               {errors.depositDate && <p className="mt-1 text-xs text-red-500">{errors.depositDate}</p>}
             </div>
 
             <div>
-              <label className={labelClass}>Ngày bàn giao</label>
+              <label className={labelClass}>{t("contracts.form.handoverDate")}</label>
               <DatePicker className={`w-full ${errors.handoverDate ? "border-red-400" : ""}`}
-                value={handoverDateValue} format="DD/MM/YYYY" placeholder="Chọn ngày bàn giao"
+                value={handoverDateValue} format="DD/MM/YYYY"
+                placeholder={t("contracts.form.handoverDate")}
                 status={errors.handoverDate ? "error" : ""}
                 onChange={(d) => update("handoverDate")({ target: { value: d ? d.format("YYYY-MM-DD") : "" } })} />
               {errors.handoverDate && <p className="mt-1 text-xs text-red-500">{errors.handoverDate}</p>}
@@ -258,7 +246,6 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
           </div>
         </div>
       </div>
-
     </>
   );
 }

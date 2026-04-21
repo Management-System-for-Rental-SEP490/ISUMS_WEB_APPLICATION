@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 
 function extractBase64(dataUrl) {
@@ -68,6 +69,7 @@ function ModeButton({ mode, current, label, onClick }) {
 
 // onSubmit({ signatureImage, displayMode }) — no OTP, parent handles next step
 export default function SignatureModal({ open, onClose, onSubmit }) {
+  const { t } = useTranslation("common");
   const [displayMode, setDisplayMode] = useState(1);
   const [canvasData, setCanvasData] = useState(null);
   const [uploadedImage, setUploadedImage] = useState(null);
@@ -173,11 +175,11 @@ export default function SignatureModal({ open, onClose, onSubmit }) {
     const needsCanvas = displayMode === 1 || displayMode === 2;
     const needsUpload = displayMode === 2 || displayMode === 3;
     if (needsCanvas && !canvasData) {
-      toast.error("Vui lòng vẽ chữ ký trước.");
+      toast.error(t("contracts.signatureModal.drawRequired"));
       return;
     }
     if (needsUpload && !uploadedImage) {
-      toast.error("Vui lòng tải lên ảnh chữ ký.");
+      toast.error(t("contracts.signatureModal.uploadRequired"));
       return;
     }
 
@@ -190,7 +192,7 @@ export default function SignatureModal({ open, onClose, onSubmit }) {
         const merged = await mergeImages(left, right);
         signatureImage = extractBase64(merged);
       } catch {
-        toast.error("Không thể kết hợp ảnh, vui lòng thử lại.");
+        toast.error(t("contracts.signatureModal.mergeError"));
         setMerging(false);
         return;
       }
@@ -214,9 +216,9 @@ export default function SignatureModal({ open, onClose, onSubmit }) {
         {/* Header */}
         <div className="px-6 pt-6 pb-4 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <h2 className="text-base font-bold text-slate-800">Tạo chữ ký</h2>
+            <h2 className="text-base font-bold text-slate-800">{t("contracts.signatureModal.title")}</h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Chọn hình thức và tạo chữ ký của bạn
+              {t("contracts.signatureModal.subtitle")}
             </p>
           </div>
           <button
@@ -233,11 +235,11 @@ export default function SignatureModal({ open, onClose, onSubmit }) {
         <div className="px-6 py-5 space-y-4">
           {/* Mode selector */}
           <div>
-            <p className="text-xs font-semibold text-slate-500 mb-2">Hình thức chữ ký</p>
+            <p className="text-xs font-semibold text-slate-500 mb-2">{t("contracts.signatureModal.modeLabel")}</p>
             <div className="flex gap-2">
-              <ModeButton mode={1} current={displayMode} label="Vẽ tay" onClick={handleModeChange} />
-              <ModeButton mode={2} current={displayMode} label="Vẽ tay + ảnh" onClick={handleModeChange} />
-              <ModeButton mode={3} current={displayMode} label="Ảnh chữ ký" onClick={handleModeChange} />
+              <ModeButton mode={1} current={displayMode} label={t("contracts.signatureModal.modeHandwritten")} onClick={handleModeChange} />
+              <ModeButton mode={2} current={displayMode} label={t("contracts.signatureModal.modeHandwrittenImage")} onClick={handleModeChange} />
+              <ModeButton mode={3} current={displayMode} label={t("contracts.signatureModal.modeImageOnly")} onClick={handleModeChange} />
             </div>
           </div>
 
@@ -245,7 +247,7 @@ export default function SignatureModal({ open, onClose, onSubmit }) {
           {showCanvas && (
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <p className="text-xs font-semibold text-slate-500">Vẽ chữ ký</p>
+                <p className="text-xs font-semibold text-slate-500">{t("contracts.signatureModal.drawLabel")}</p>
                 <button
                   type="button"
                   onClick={clearCanvas}
@@ -254,7 +256,7 @@ export default function SignatureModal({ open, onClose, onSubmit }) {
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                   </svg>
-                  Xóa
+                  {t("contracts.signatureModal.clear")}
                 </button>
               </div>
               <canvas
@@ -271,7 +273,7 @@ export default function SignatureModal({ open, onClose, onSubmit }) {
               />
               {!canvasData && (
                 <p className="text-center text-xs text-slate-400 mt-1.5">
-                  Dùng chuột hoặc ngón tay để vẽ chữ ký
+                  {t("contracts.signatureModal.drawHint")}
                 </p>
               )}
             </div>
@@ -281,7 +283,7 @@ export default function SignatureModal({ open, onClose, onSubmit }) {
           {showUpload && (
             <div>
               <p className="text-xs font-semibold text-slate-500 mb-1.5">
-                {displayMode === 2 ? "Tải lên ảnh con dấu / logo" : "Tải lên ảnh chữ ký"}
+                {displayMode === 2 ? t("contracts.signatureModal.uploadStamp") : t("contracts.signatureModal.uploadSignature")}
               </p>
               {uploadedImage ? (
                 <div className="relative rounded-xl border border-slate-200 overflow-hidden bg-slate-50">
@@ -301,7 +303,7 @@ export default function SignatureModal({ open, onClose, onSubmit }) {
                   <svg className="w-6 h-6 text-slate-400 mb-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
-                  <span className="text-xs text-slate-500">Nhấn để chọn ảnh (PNG, JPG)</span>
+                  <span className="text-xs text-slate-500">{t("contracts.signatureModal.clickToUpload")}</span>
                   <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
                 </label>
               )}
@@ -313,7 +315,7 @@ export default function SignatureModal({ open, onClose, onSubmit }) {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <p className="text-xs font-semibold text-slate-500">
-                  Xem trước bố cục
+                  {t("contracts.signatureModal.previewLayout")}
                 </p>
                 <button
                   type="button"
@@ -323,7 +325,7 @@ export default function SignatureModal({ open, onClose, onSubmit }) {
                   <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                   </svg>
-                  Đổi vị trí
+                  {t("contracts.signatureModal.swapPosition")}
                 </button>
               </div>
               <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-white">
@@ -344,7 +346,7 @@ export default function SignatureModal({ open, onClose, onSubmit }) {
                 </div>
               </div>
               <p className="text-[11px] text-slate-400 mt-1 text-center">
-                {swapped ? "Ảnh | Chữ ký vẽ tay" : "Chữ ký vẽ tay | Ảnh"}
+                {swapped ? t("contracts.signatureModal.layoutImageFirst") : t("contracts.signatureModal.layoutHandwrittenFirst")}
               </p>
             </div>
           )}
@@ -356,7 +358,7 @@ export default function SignatureModal({ open, onClose, onSubmit }) {
               onClick={onClose}
               className="flex-1 py-2.5 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition"
             >
-              Hủy
+              {t("actions.cancel")}
             </button>
             <button
               type="button"
@@ -370,11 +372,11 @@ export default function SignatureModal({ open, onClose, onSubmit }) {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Đang xử lý...
+                  {t("contracts.signatureModal.processing")}
                 </>
               ) : (
                 <>
-                  Tiếp tục
+                  {t("contracts.signatureModal.continue")}
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>

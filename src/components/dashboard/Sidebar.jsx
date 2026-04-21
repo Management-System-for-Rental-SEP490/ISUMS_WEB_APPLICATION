@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../features/auth/store/auth.store";
 import {
@@ -11,6 +12,7 @@ import {
 import logo from "../../assets/logo.jpg";
 
 export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
+  const { t } = useTranslation("common");
   const roles = useAuthStore((s) => s.roles ?? []);
   const canSeePendingSign = roles.includes("ADMIN") || roles.includes("LANDLORD");
 
@@ -32,60 +34,60 @@ export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
 
   const sections = [
     {
-      id: "tong-quan", label: "Tổng Quan", icon: LayoutDashboard, collapsible: false,
+      id: "tong-quan", label: t("sidebar.overview"), icon: LayoutDashboard, collapsible: false,
       items: [
-        { id: "dashboard",   label: "Dashboard",     icon: Home,         path: "/dashboard" },
-        { id: "utilities",   label: "Tiện Ích",       icon: Zap,          path: "/utilities" },
-        { id: "maintenance", label: "Lịch Làm Việc",  icon: CalendarDays, path: "/maintenance" },
+        { id: "dashboard",   label: t("sidebar.dashboard"), icon: Home,         path: "/dashboard" },
+        { id: "utilities",   label: t("sidebar.utilities"), icon: Zap,          path: "/utilities" },
+        { id: "maintenance", label: t("sidebar.schedule"),  icon: CalendarDays, path: "/maintenance" },
       ],
     },
     {
-      id: "bat-dong-san-group", label: "Bất Động Sản", icon: Building2, collapsible: true,
+      id: "bat-dong-san-group", label: t("sidebar.realEstate"), icon: Building2, collapsible: true,
       items: [
-        { id: "houses", label: "Quản lý nhà",        icon: Building2, path: "/houses" },
-        { id: "assets", label: "Thiết bị trong nhà",  icon: Wrench,    disabled: true },
+        { id: "houses", label: t("sidebar.manageHouses"), icon: Building2, path: "/houses" },
+        { id: "assets", label: t("sidebar.devices"),       icon: Wrench,    path: "/assets" },
       ],
     },
     {
-      id: "nguoi-dung-group", label: "Người Dùng", icon: Users, collapsible: true,
+      id: "nguoi-dung-group", label: t("sidebar.users"), icon: Users, collapsible: true,
       items: [
-        { id: "users", label: "Khách thuê", icon: Users,   path: "/users" },
-        { id: "staff", label: "Nhân viên",  icon: UserCog, path: "/staff" },
+        { id: "users", label: t("sidebar.tenants"), icon: Users,   path: "/users" },
+        { id: "staff", label: t("sidebar.staff"),   icon: UserCog, path: "/staff" },
       ],
     },
     {
-      id: "hop-dong-group", label: "Hợp Đồng", icon: FileText, collapsible: true,
+      id: "hop-dong-group", label: t("sidebar.contracts"), icon: FileText, collapsible: true,
       items: [
-        { id: "contracts",               label: "Quản lý hợp đồng",    icon: FileText,      path: "/contracts" },
+        { id: "contracts",               label: t("sidebar.manageContracts"),   icon: FileText,      path: "/contracts" },
         ...(canSeePendingSign ? [{
-          id: "contracts-sign",          label: "Hợp đồng cần xử lý",  icon: PenLine,       path: "/contracts/pending",
+          id: "contracts-sign",          label: t("sidebar.pendingContracts"),  icon: PenLine,       path: "/contracts/pending",
         }] : []),
-        { id: "maintenance-inspections", label: "Check-in / Check-out", icon: ClipboardList, path: "/maintenance/inspections" },
+        { id: "maintenance-inspections", label: t("sidebar.checkinCheckout"),   icon: ClipboardList, path: "/maintenance/inspections" },
       ],
     },
     {
-      id: "bao-tri-group", label: "Bảo Trì", icon: ClipboardList, collapsible: true,
+      id: "bao-tri-group", label: t("sidebar.maintenance"), icon: ClipboardList, collapsible: true,
       items: [
-        { id: "maintenance-plans", label: "Kế hoạch bảo trì",  icon: ClipboardList, path: "/maintenance/plans" },
-        { id: "maintenance-jobs",  label: "Công việc bảo trì", icon: ClipboardList, path: "/maintenance/jobs" },
+        { id: "maintenance-plans", label: t("sidebar.maintenancePlans"), icon: ClipboardList, path: "/maintenance/plans" },
+        { id: "maintenance-jobs",  label: t("sidebar.maintenanceJobs"),  icon: ClipboardList, path: "/maintenance/jobs" },
       ],
     },
     {
-      id: "sua-chua-group", label: "Sửa Chữa", icon: AlertCircle, collapsible: true,
+      id: "sua-chua-group", label: t("sidebar.repair"), icon: AlertCircle, collapsible: true,
       items: [
-        { id: "issue-requests",       label: "Danh sách thắc mắc", icon: MailQuestionIcon, path: "/issues" },
-        { id: "issue-assignment",     label: "Phân công xử lý",    icon: UserCheck,        path: "/issues/assignment" },
-        { id: "issue-quote-approval", label: "Xác nhận báo giá",   icon: CheckCircle,      path: "/issues/quotes" },
-        { id: "issue-history",        label: "Lịch sử theo BĐS",   icon: BarChart2,        path: "/issues/history" },
-        { id: "issue-price-list",     label: "Bảng giá thiết bị",  icon: Tag,              path: "/issues/price-list" },
+        { id: "issue-requests",       label: t("sidebar.issuesList"),        icon: MailQuestionIcon, path: "/issues" },
+        { id: "issue-assignment",     label: t("sidebar.assignment"),         icon: UserCheck,        path: "/issues/assignment" },
+        { id: "issue-quote-approval", label: t("sidebar.quoteApproval"),      icon: CheckCircle,      path: "/issues/quotes" },
+        { id: "issue-history",        label: t("sidebar.historyByProperty"),  icon: BarChart2,        path: "/issues/history" },
+        { id: "issue-price-list",     label: t("sidebar.priceList"),          icon: Tag,              path: "/issues/price-list" },
       ],
     },
     {
-      id: "he-thong", label: "Hệ Thống", icon: Settings, collapsible: false,
+      id: "he-thong", label: t("sidebar.system"), icon: Settings, collapsible: false,
       items: [
-        { id: "notifications", label: "Thông báo",  icon: Bell,        path: "/notifications", badge: unreadCount },
-        { id: "audit-logs",    label: "Audit Logs", icon: ShieldCheck, path: "/audit-logs" },
-        { id: "settings",      label: "Cài Đặt",    icon: Settings,    path: "/settings" },
+        { id: "notifications", label: t("sidebar.notifications"), icon: Bell,        path: "/notifications", badge: unreadCount },
+        { id: "audit-logs",    label: t("sidebar.auditLogs"),     icon: ShieldCheck, path: "/audit-logs" },
+        { id: "settings",      label: t("sidebar.settings"),      icon: Settings,    path: "/settings" },
       ],
     },
   ];
@@ -251,7 +253,7 @@ export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
                               <Icon className="w-4 h-4 flex-shrink-0 text-slate-400" />
                               <span className="text-sm text-slate-400 flex-1">{item.label}</span>
                               <span className="text-[10px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded font-medium">
-                                Soon
+                                {t("sidebar.soon")}
                               </span>
                             </div>
                           );
@@ -306,7 +308,7 @@ export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
               <button
                 type="button"
                 onClick={onLogout}
-                title="Đăng Xuất"
+                title={t("sidebar.logout")}
                 className="flex items-center justify-center w-11 h-11 rounded-xl transition-colors duration-150 text-slate-500 hover:bg-red-50 hover:text-red-600"
               >
                 <LogOut className="w-[18px] h-[18px]" />
@@ -321,7 +323,7 @@ export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl w-full transition-colors duration-150 text-slate-500 hover:bg-red-50 hover:text-red-600"
             >
               <LogOut className="w-[18px] h-[18px] flex-shrink-0" />
-              <span className="text-sm font-medium">Đăng Xuất</span>
+              <span className="text-sm font-medium">{t("sidebar.logout")}</span>
             </button>
           )}
         </div>

@@ -23,12 +23,12 @@ api.interceptors.request.use(
         }
       } catch (error) {
         console.warn("Failed to refresh Keycloak token:", error);
-        // Continue request without token
       }
     }
 
     // Add custom headers
     config.headers["ngrok-skip-browser-warning"] = "true";
+    config.headers["Accept-Language"] = localStorage.getItem("app_language") || "vi";
 
     return config;
   },

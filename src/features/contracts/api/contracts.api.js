@@ -97,6 +97,11 @@ export async function cancelContract(id) {
   return extractResponseData(response);
 }
 
+export async function getCccdStatus(id) {
+  const response = await api.get(CONTRACTS_ENDPOINTS.CCCD_STATUS(id));
+  return extractResponseData(response);
+}
+
 export async function getVnptDocument(documentId) {
   const response = await api.get(CONTRACTS_ENDPOINTS.GET_VNPT_DOCUMENT(documentId));
   return extractResponseData(response);

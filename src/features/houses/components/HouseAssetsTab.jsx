@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Package, ChevronDown, ChevronRight,
   Search, Tag,
@@ -11,7 +12,7 @@ import AssetDetailDrawer from "./AssetDetailDrawer";
 
 // ── Asset Card ────────────────────────────────────────────────────────────────
 
-function AssetCard({ asset, onSelect }) {
+function AssetCard({ asset, onSelect, t }) {
   const status = ASSET_STATUS[asset.status] ?? ASSET_STATUS.default;
   const pct    = asset.conditionPercent ?? 0;
   const color  = conditionColor(pct);
@@ -25,7 +26,7 @@ function AssetCard({ asset, onSelect }) {
       <div className="relative border-b border-gray-100">
         <ImageCarousel images={asset.images ?? []} alt={asset.displayName} height="h-36" showThumbnails={false} preview={false} />
         <span className={`absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded-full z-10 ${status.cls}`}>
-          {status.label}
+          {t(`houses.assetStatus.${asset.status}`, { defaultValue: status.label })}
         </span>
       </div>
 
@@ -43,7 +44,7 @@ function AssetCard({ asset, onSelect }) {
         {/* Condition bar */}
         <div>
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] text-gray-400">Tình trạng</span>
+            <span className="text-[10px] text-gray-400">{t("houses.assetsTab.conditionLabel")}</span>
             <span className={`text-[11px] font-bold ${color.text}`}>{pct}%</span>
           </div>
           <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -76,7 +77,7 @@ function AssetCard({ asset, onSelect }) {
 
 // ── Area group (collapsible) ──────────────────────────────────────────────────
 
-function AreaGroup({ label, icon: Icon, iconCls, assets, defaultOpen = true, onSelectAsset }) {
+function AreaGroup({ label, icon: Icon, iconCls, assets, defaultOpen = true, onSelectAsset, t }) {
   const [open, setOpen] = useState(defaultOpen);
 
   return (
@@ -96,7 +97,7 @@ function AreaGroup({ label, icon: Icon, iconCls, assets, defaultOpen = true, onS
 
       {open && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 pb-5">
-          {assets.map((a) => <AssetCard key={a.id} asset={a} onSelect={onSelectAsset} />)}
+          {assets.map((a) => <AssetCard key={a.id} asset={a} onSelect={onSelectAsset} t={t} />)}
         </div>
       )}
     </div>
@@ -106,6 +107,7 @@ function AreaGroup({ label, icon: Icon, iconCls, assets, defaultOpen = true, onS
 // ── Main Tab ──────────────────────────────────────────────────────────────────
 
 export default function HouseAssetsTab({ assets = [], functionalAreas = [] }) {
+  const { t } = useTranslation("common");
   const [search, setSearch]               = useState("");
   const [selectedAssetId, setSelectedAssetId] = useState(null);
 
@@ -142,7 +144,7 @@ export default function HouseAssetsTab({ assets = [], functionalAreas = [] }) {
         <div className="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center">
           <Package className="w-7 h-7 text-gray-300" />
         </div>
-        <p className="text-sm text-gray-400 font-medium">Chưa có tài sản nào</p>
+        <p className="text-sm text-gray-400 font-medium">{t("houses.assetsTab.empty")}</p>
       </div>
     );
   }
@@ -154,7 +156,7 @@ export default function HouseAssetsTab({ assets = [], functionalAreas = [] }) {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <input
           type="text"
-          placeholder="Tìm tài sản, serial..."
+          placeholder={t("houses.assetsTab.searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-transparent placeholder-gray-400"
@@ -162,23 +164,27 @@ export default function HouseAssetsTab({ assets = [], functionalAreas = [] }) {
       </div>
 
       {filtered.length === 0 && (
-        <p className="text-sm text-gray-400 text-center py-10">Không tìm thấy tài sản nào</p>
+        <p className="text-sm text-gray-400 text-center py-10">{t("houses.assetsTab.noSearchResult")}</p>
       )}
 
       {/* Grouped by area */}
       {areaKeys.map((areaId) => {
         const area = areaMap[areaId];
         const cfg  = area ? (AREA_TYPE_CONFIG[area.areaType] ?? AREA_TYPE_CONFIG.default) : AREA_TYPE_CONFIG.default;
-        const floorLabel = area?.floorNo === "0" ? "Trệt" : area ? `Tầng ${area.floorNo}` : "";
+        const floorLabel = area?.floorNo === "0"
+          ? t("houses.assetsTab.floorGround")
+          : area ? `${t("houses.assetsTab.floorPrefix")} ${area.floorNo}` : "";
+        const areaName = area?.name ?? t("houses.areaType.default");
         return (
           <AreaGroup
             key={areaId}
-            label={`${area?.name ?? "Khu vực"} ${floorLabel ? `— ${floorLabel}` : ""}`}
+            label={`${areaName} ${floorLabel ? `— ${floorLabel}` : ""}`}
             icon={cfg.Icon}
             iconCls={cfg.text}
             assets={grouped[areaId]}
             defaultOpen
-            onSelectAsset={setSelectedAssetId}
+            onSelectAsset={(id) => setSelectedAssetId(id)}
+            t={t}
           />
         );
       })}
@@ -187,12 +193,13 @@ export default function HouseAssetsTab({ assets = [], functionalAreas = [] }) {
       {unassigned.length > 0 && (
         <AreaGroup
           key="__unassigned__"
-          label="Chưa phân khu vực"
+          label={t("houses.assetsTab.unassigned")}
           icon={Package}
           iconCls="text-gray-400"
           assets={unassigned}
           defaultOpen={areaKeys.length === 0}
-          onSelectAsset={setSelectedAssetId}
+          onSelectAsset={(id) => setSelectedAssetId(id)}
+          t={t}
         />
       )}
 
