@@ -1,24 +1,21 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal, Select, Button, Input } from "antd";
 import { AREA_TYPE_CONFIG } from "./HouseOverviewTab";
 import { createFunctionalArea } from "../api/houses.api";
 
-// Loại trừ "default" và "ALL" khỏi dropdown (ALL không hợp lý khi tạo khu vực riêng lẻ)
-const AREA_TYPE_OPTIONS = Object.entries(AREA_TYPE_CONFIG)
-  .filter(([key]) => key !== "default" && key !== "ALL")
-  .map(([key, cfg]) => ({ value: key, label: cfg.label }));
-
-function buildFloorOptions(numberOfFloors) {
+function buildFloorOptions(numberOfFloors, t) {
   const count = numberOfFloors ?? 3;
   return Array.from({ length: count }, (_, i) => ({
     value: String(i + 1),
-    label: `Tầng ${i + 1}`,
+    label: t("houses.addArea.floorOption", { n: i + 1 }),
   }));
 }
 
 const INITIAL = { name: "", areaType: "BEDROOM", floorNo: "1", description: "", customTypeName: "" };
 
 export default function AddAreaModal({ houseId, numberOfFloors, onClose, onSuccess }) {
+  const { t } = useTranslation("common");
   const [form, setForm]       = useState(INITIAL);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState(null);
@@ -26,15 +23,21 @@ export default function AddAreaModal({ houseId, numberOfFloors, onClose, onSucce
   const setVal = (field) => (val) => setForm((f) => ({ ...f, [field]: val }));
 
   const isOther = form.areaType === "OTHER";
-  const floorOptions = buildFloorOptions(numberOfFloors);
+  const floorOptions = buildFloorOptions(numberOfFloors, t);
+
+  const areaTypeOptions = Object.entries(AREA_TYPE_CONFIG)
+    .filter(([key]) => key !== "default" && key !== "ALL")
+    .map(([key, cfg]) => ({
+      value: key,
+      label: t(`houses.areaType.${key}`, { defaultValue: cfg.label }),
+    }));
 
   const handleSubmit = async () => {
-    if (!form.name.trim()) return setError("Vui lòng nhập tên khu vực.");
-    if (isOther && !form.customTypeName.trim()) return setError("Vui lòng mô tả loại khu vực.");
+    if (!form.name.trim()) return setError(t("houses.addArea.errorName"));
+    if (isOther && !form.customTypeName.trim()) return setError(t("houses.addArea.errorCustomType"));
     setLoading(true);
     setError(null);
     try {
-      // Khi OTHER: đưa customTypeName vào description để backend lưu thêm ngữ cảnh
       const payload = {
         house: houseId,
         name: form.name,
@@ -58,50 +61,48 @@ export default function AddAreaModal({ houseId, numberOfFloors, onClose, onSucce
     <Modal
       open
       onCancel={onClose}
-      title="Thêm khu vực mới"
+      title={t("houses.addArea.title")}
       width={480}
       destroyOnClose
       footer={
         <div className="flex justify-end gap-2">
-          <Button onClick={onClose}>Hủy</Button>
+          <Button onClick={onClose}>{t("actions.cancel")}</Button>
           <Button
             type="primary"
             loading={loading}
             onClick={handleSubmit}
             style={{ background: "#0d9488", borderColor: "#0d9488" }}
           >
-            Thêm khu vực
+            {t("houses.addArea.submit")}
           </Button>
         </div>
       }
     >
       <div className="space-y-4 py-1">
-        {/* Name */}
         <div>
           <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-            Tên khu vực <span className="text-red-500">*</span>
+            {t("houses.addArea.nameLabel")} <span className="text-red-500">*</span>
           </label>
           <Input
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            placeholder="VD: Phòng ngủ 1, Bếp chính..."
+            placeholder={t("houses.addArea.namePlaceholder")}
             status={error && !form.name.trim() ? "error" : ""}
           />
         </div>
 
-        {/* Type + Floor */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Loại khu vực</label>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5">{t("houses.addArea.areaTypeLabel")}</label>
             <Select
               value={form.areaType}
               onChange={(val) => setForm((f) => ({ ...f, areaType: val, customTypeName: "" }))}
-              options={AREA_TYPE_OPTIONS}
+              options={areaTypeOptions}
               style={{ width: "100%" }}
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">Tầng</label>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5">{t("houses.addArea.floorLabel")}</label>
             <Select
               value={form.floorNo}
               onChange={setVal("floorNo")}
@@ -111,28 +112,26 @@ export default function AddAreaModal({ houseId, numberOfFloors, onClose, onSucce
           </div>
         </div>
 
-        {/* Custom type name — chỉ hiện khi chọn "Khác" */}
         {isOther && (
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-              Loại cụ thể <span className="text-red-500">*</span>
+              {t("houses.addArea.customTypeLabel")} <span className="text-red-500">*</span>
             </label>
             <Input
               value={form.customTypeName}
               onChange={(e) => setForm((f) => ({ ...f, customTypeName: e.target.value }))}
-              placeholder="VD: Ban công, Gara xe, Phòng giặt..."
+              placeholder={t("houses.addArea.customTypePlaceholder")}
               status={error && isOther && !form.customTypeName.trim() ? "error" : ""}
             />
           </div>
         )}
 
-        {/* Description */}
         <div>
-          <label className="block text-xs font-semibold text-gray-600 mb-1.5">Mô tả</label>
+          <label className="block text-xs font-semibold text-gray-600 mb-1.5">{t("houses.addArea.descriptionLabel")}</label>
           <Input.TextArea
             value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-            placeholder="Mô tả thêm về khu vực này..."
+            placeholder={t("houses.addArea.descriptionPlaceholder")}
             rows={3}
             style={{ resize: "none" }}
           />

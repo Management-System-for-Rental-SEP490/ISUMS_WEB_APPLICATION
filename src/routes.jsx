@@ -11,6 +11,7 @@ import ContractDetailStandalone from "./features/contracts/pages/ContractDetailS
 import ContractEditStandalone from "./features/contracts/pages/ContractEditStandalone";
 import HouseDetailPage from "./features/houses/pages/HouseDetailPage";
 import FloorDetailPage from "./features/houses/pages/FloorDetailPage";
+import AssetsPage from "./features/assets/pages/AssetsPage";
 
 import DashboardPage from "./features/dashboard/DashboardPage";
 import Houses from "./features/houses/pages/Houses";
@@ -62,6 +63,7 @@ export const router = createBrowserRouter([
               { path: "/houses", element: <Houses /> },
               { path: "/houses/:id", element: <HouseDetailPage /> },
               { path: "/houses/:id/floors/:floorNo", element: <FloorDetailPage /> },
+              { path: "/assets", element: <AssetsPage /> },
               { path: "/utilities", element: <Utilities /> },
               { path: "/users", element: <UsersPage /> },
               { path: "/staff", element: <StaffPage /> },

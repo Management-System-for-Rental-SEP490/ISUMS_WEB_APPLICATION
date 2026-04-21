@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Edit, Download } from "lucide-react";
 import Breadcrumbs from "../../../../components/shared/Breadcrumbs";
 import { LoadingSpinner } from "../../../../components/shared/Loading";
@@ -15,6 +16,7 @@ export default function ContractDetailView({
   onBack,
   onEdit,
 }) {
+  const { t } = useTranslation("common");
   const navigate = useNavigate();
   const [downloading, setDownloading] = useState(false);
   const pdfUrl = contract?.pdfUrl ?? null;
@@ -44,14 +46,13 @@ export default function ContractDetailView({
       <div className="space-y-4">
         <Breadcrumbs
           items={[
-            { label: "Trang chủ", onClick: () => navigate("/dashboard") },
-            { label: "Quản lý hợp đồng", onClick: onBack },
-            { label: "Đang tải..." },
+            { label: t("breadcrumb.home"), onClick: () => navigate("/dashboard") },
+            { label: t("sidebar.manageContracts"), onClick: onBack },
+            { label: t("table.loading") },
           ]}
         />
         <div className="bg-white rounded-xl border shadow-sm p-12 flex flex-col items-center justify-center gap-3">
-          <LoadingSpinner size="lg" showLabel label="Đang tải chi tiết hợp đồng..." />
-          <p className="text-gray-600">Đang tải chi tiết hợp đồng...</p>
+          <LoadingSpinner size="lg" showLabel label={t("contracts.detail.loadingLabel")} />
         </div>
       </div>
     );
@@ -62,21 +63,21 @@ export default function ContractDetailView({
       <div className="space-y-4">
         <Breadcrumbs
           items={[
-            { label: "Trang chủ", onClick: () => navigate("/dashboard") },
-            { label: "Quản lý hợp đồng", onClick: onBack },
-            { label: "Chi tiết" },
+            { label: t("breadcrumb.home"), onClick: () => navigate("/dashboard") },
+            { label: t("sidebar.manageContracts"), onClick: onBack },
+            { label: t("breadcrumb.detail") },
           ]}
         />
         <div className="bg-white rounded-xl border shadow-sm p-8 text-center">
           <p className="text-red-600 font-medium mb-4">
-            {error ?? "Không tìm thấy hợp đồng này."}
+            {error ?? t("contracts.detail.notFound")}
           </p>
           <button
             type="button"
             onClick={onBack}
             className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition"
           >
-            Quay lại danh sách
+            {t("contracts.detail.backToList")}
           </button>
         </div>
       </div>
@@ -88,17 +89,17 @@ export default function ContractDetailView({
     STATUS_BADGE[statusKeyUpper] ??
     STATUS_BADGE.draft;
   const statusLabel =
-    STATUS_LABEL[statusKey] ??
-    STATUS_LABEL[statusKeyUpper] ??
-    contract?.status;
+    t(`contracts.status.${statusKeyUpper}`, {
+      defaultValue: STATUS_LABEL[statusKey] ?? STATUS_LABEL[statusKeyUpper] ?? contract?.status,
+    });
 
   return (
     <div className="space-y-4">
       <Breadcrumbs
         items={[
-          { label: "Trang chủ", onClick: () => navigate("/dashboard") },
-          { label: "Quản lý hợp đồng", onClick: onBack },
-          { label: contract?.contractNumber ?? contract?.name ?? "Chi tiết" },
+          { label: t("breadcrumb.home"), onClick: () => navigate("/dashboard") },
+          { label: t("sidebar.manageContracts"), onClick: onBack },
+          { label: contract?.contractNumber ?? contract?.name ?? t("breadcrumb.detail") },
         ]}
       />
 
@@ -139,7 +140,7 @@ export default function ContractDetailView({
                 className="px-4 py-2 bg-teal-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-teal-700 transition disabled:opacity-60"
               >
                 <Download className="w-4 h-4" />
-                {downloading ? "Đang tải..." : "Tải về"}
+                {downloading ? t("contracts.detail.downloading") : t("contracts.detail.download")}
               </button>
             )}
             {isDraft && (
@@ -149,7 +150,7 @@ export default function ContractDetailView({
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm flex items-center gap-2 hover:bg-blue-700 transition"
               >
                 <Edit className="w-4 h-4" />
-                Chỉnh sửa
+                {t("contracts.detail.edit")}
               </button>
             )}
           </div>
@@ -157,20 +158,20 @@ export default function ContractDetailView({
 
         <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="p-4 rounded-lg border">
-            <div className="text-sm text-gray-500">Thời hạn</div>
+            <div className="text-sm text-gray-500">{t("contracts.detail.duration")}</div>
             <div className="mt-1 text-gray-900 font-medium">
               {startDateRaw ? formatDateVi(startDateRaw) : "—"} →{" "}
               {endDateRaw ? formatDateVi(endDateRaw) : "—"}
             </div>
           </div>
           <div className="p-4 rounded-lg border">
-            <div className="text-sm text-gray-500">Tiền thuê</div>
+            <div className="text-sm text-gray-500">{t("contracts.detail.rent")}</div>
             <div className="mt-1 text-gray-900 font-medium">
               {formatMoneyVND(rentValue)}
             </div>
           </div>
           <div className="p-4 rounded-lg border">
-            <div className="text-sm text-gray-500">Trạng thái</div>
+            <div className="text-sm text-gray-500">{t("contracts.detail.statusLabel")}</div>
             <div className="mt-1">
               <span
                 className={`px-2 py-1 text-xs font-medium rounded-full ${statusBadge}`}
@@ -182,7 +183,7 @@ export default function ContractDetailView({
         </div>
 
         <div className="mt-6">
-          <div className="text-sm text-gray-500 mb-2">Nội dung hợp đồng</div>
+          <div className="text-sm text-gray-500 mb-2">{t("contracts.detail.content")}</div>
           {isDraft ? (
             <iframe
               title="Contract HTML"
@@ -202,7 +203,7 @@ export default function ContractDetailView({
             onClick={onBack}
             className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition"
           >
-            Quay lại danh sách
+            {t("contracts.detail.backToList")}
           </button>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Select } from "antd";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
@@ -58,9 +59,10 @@ export default function AddressPicker({
   onPartsChange,
   onWardChange,
   error,
-  label = "Địa chỉ thường trú",
+  label,
   showMap = false,
 }) {
+  const { t } = useTranslation("common");
   const {
     provinces, wards,
     loadingProvinces, loadingWards,
@@ -142,19 +144,19 @@ export default function AddressPicker({
     <div className="space-y-4 pt-2">
       <div className="flex items-center gap-1.5">
         <PinIcon />
-        <span className="text-sm font-semibold text-gray-700">{label}</span>
+        <span className="text-sm font-semibold text-gray-700">{label ?? t("addressPicker.label")}</span>
         <span className="text-red-500 text-sm">*</span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className={labelClass}>Tỉnh / Thành phố</label>
+          <label className={labelClass}>{t("addressPicker.province")}</label>
           <Select
             value={selectedProvince?.code ?? undefined}
             onChange={handleProvinceChange}
             disabled={loadingProvinces}
             loading={loadingProvinces}
-            placeholder="Chọn tỉnh / thành phố"
+            placeholder={t("addressPicker.provincePlaceholder")}
             showSearch
             optionFilterProp="label"
             style={{ width: "100%" }}
@@ -163,13 +165,13 @@ export default function AddressPicker({
           />
         </div>
         <div>
-          <label className={labelClass}>Phường / Xã</label>
+          <label className={labelClass}>{t("addressPicker.ward")}</label>
           <Select
             value={selectedWard?.code ?? undefined}
             onChange={handleWardChange}
             disabled={!selectedProvince || loadingWards}
             loading={loadingWards}
-            placeholder={!selectedProvince ? "Chọn tỉnh trước" : "Chọn phường / xã"}
+            placeholder={!selectedProvince ? t("addressPicker.wardPlaceholderFirst") : t("addressPicker.wardPlaceholder")}
             showSearch
             optionFilterProp="label"
             style={{ width: "100%" }}
@@ -180,11 +182,11 @@ export default function AddressPicker({
       </div>
 
       <div>
-        <label className={labelClass}>Số nhà, tên đường</label>
+        <label className={labelClass}>{t("addressPicker.street")}</label>
         <input
           value={street}
           onChange={handleStreetChange}
-          placeholder="VD: 30 đường 11"
+          placeholder={t("addressPicker.streetPlaceholder")}
           className={`${inputClass} ${error ? "border-red-500" : ""}`}
         />
       </div>
@@ -205,7 +207,7 @@ export default function AddressPicker({
             <div className="absolute inset-0 z-[500] flex items-center justify-center bg-white/60 backdrop-blur-sm">
               <div className="flex items-center gap-2 text-xs text-slate-500">
                 <span className="w-3.5 h-3.5 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
-                Đang xác định vị trí...
+                {t("addressPicker.geocoding")}
               </div>
             </div>
           )}
@@ -228,7 +230,7 @@ export default function AddressPicker({
           {!preview && (
             <div className="absolute inset-0 z-[400] flex flex-col items-center justify-center bg-slate-50/80 gap-2 pointer-events-none">
               <PinIcon />
-              <p className="text-xs text-slate-400">Nhập địa chỉ để xem vị trí trên bản đồ</p>
+              <p className="text-xs text-slate-400">{t("addressPicker.mapHint")}</p>
             </div>
           )}
         </div>

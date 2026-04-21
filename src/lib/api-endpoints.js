@@ -40,6 +40,7 @@ export const USERS_ENDPOINTS = {
   BY_ID: (id) => `/users/byId/${id}`,
   GET_STAFF: "/users/staffs",
   CREATE_STAFF: "/users/technical-staff",
+  LANGUAGE: "/users/language",
 };
 
 // Tenants endpoints
@@ -117,8 +118,10 @@ export const ISSSUE_ENDPOINTS = {
 };
 export const ASSET_ENDPOINTS = {
   BASE: "/assets",
+  ITEMS: "/assets/items",
   ASSET_BY_ID: (id) => `/assets/${id}`,
   ITEM_BY_ID: (id) => `/assets/items/${id}`,
+  MANAGER_CONFIRM: (id) => `/assets/items/${id}/manager-confirm-asset`,
   BY_HOUSE: (houseId) => `/assets/items/house/${houseId}`,
   BY_FUNCTION_AREA: (houseId, areaId) => `/assets/items/house/${houseId}/function-area/${areaId}`,
   CREATE: "/assets",

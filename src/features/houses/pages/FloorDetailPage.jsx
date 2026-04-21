@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { ArrowLeft, Package, Loader2, AlertCircle, ImageOff } from "lucide-react";
 import { useHouseDetail } from "../hooks/useHouseDetail";
 import { getAssetsByFunctionArea } from "../api/houses.api";
@@ -12,12 +13,11 @@ const B = {
   muted: "#EAF4F0", fg: "#1E2D28", mutedFg: "#5A7A6E",
 };
 
-// ── AreaRow — trái ────────────────────────────────────────────────────────────
-
-function AreaRow({ area, isSelected, onSelect }) {
+function AreaRow({ area, isSelected, onSelect, t }) {
   const cfg    = AREA_TYPE_CONFIG[area.areaType] ?? AREA_TYPE_CONFIG.default;
   const status = STATUS_AREA[area.status]        ?? STATUS_AREA.default;
   const { Icon } = cfg;
+  const areaTypeLabel = t(`houses.areaType.${area.areaType ?? "default"}`, { defaultValue: cfg.label });
 
   return (
     <button
@@ -37,13 +37,10 @@ function AreaRow({ area, isSelected, onSelect }) {
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold truncate" style={{ color: B.fg }}>{area.name}</p>
-        <p className="text-xs mt-0.5" style={{ color: B.mutedFg }}>{cfg.label}</p>
+        <p className="text-xs mt-0.5" style={{ color: B.mutedFg }}>{areaTypeLabel}</p>
       </div>
       <div className="flex flex-col items-end gap-1 flex-shrink-0">
-        <span
-          className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-          style={{ background: B.muted, color: B.green }}
-        >
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: B.muted, color: B.green }}>
           {area.assetCount ?? 0}
         </span>
         <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
@@ -52,13 +49,12 @@ function AreaRow({ area, isSelected, onSelect }) {
   );
 }
 
-// ── AssetCard — phải ──────────────────────────────────────────────────────────
-
-function AssetCard({ asset, onSelect }) {
+function AssetCard({ asset, onSelect, t }) {
   const st  = ASSET_STATUS[asset.status] ?? ASSET_STATUS.default;
   const pct = asset.conditionPercent ?? 0;
   const cc  = conditionColor(pct);
   const img = asset.images?.[0]?.url;
+  const statusLabel = t(`houses.assetStatus.${asset.status ?? "default"}`, { defaultValue: st.label });
 
   return (
     <div
@@ -71,7 +67,6 @@ function AssetCard({ asset, onSelect }) {
       onMouseEnter={(e) => { e.currentTarget.style.borderColor = B.green; e.currentTarget.style.boxShadow = "0 4px 16px -4px rgba(59,181,130,0.15)"; }}
       onMouseLeave={(e) => { e.currentTarget.style.borderColor = B.border; e.currentTarget.style.boxShadow = "none"; }}
     >
-      {/* Ảnh */}
       <div className="relative h-40 overflow-hidden" style={{ background: "#F3F4F6" }}>
         {img ? (
           <img src={img} alt={asset.displayName} className="w-full h-full object-cover" />
@@ -80,11 +75,9 @@ function AssetCard({ asset, onSelect }) {
             <ImageOff className="w-8 h-8 text-gray-300" />
           </div>
         )}
-        {/* Status badge */}
         <span className={`absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${st.cls}`}>
-          {st.label}
+          {statusLabel}
         </span>
-        {/* Serial */}
         {asset.serialNumber && (
           <span
             className="absolute bottom-2 left-2 text-[10px] font-mono font-bold px-2 py-0.5 rounded-lg"
@@ -95,11 +88,8 @@ function AssetCard({ asset, onSelect }) {
         )}
       </div>
 
-      {/* Info */}
       <div className="p-3 space-y-2">
         <p className="text-sm font-semibold leading-snug" style={{ color: B.fg }}>{asset.displayName}</p>
-
-        {/* Condition bar */}
         <div className="flex items-center gap-2">
           <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: B.muted }}>
             <div className={`h-full rounded-full ${cc.bar}`} style={{ width: `${pct}%` }} />
@@ -111,11 +101,10 @@ function AssetCard({ asset, onSelect }) {
   );
 }
 
-// ── Main ──────────────────────────────────────────────────────────────────────
-
 export default function FloorDetailPage() {
   const { id, floorNo } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation("common");
 
   const { house, loading: houseLoading, error: houseError } = useHouseDetail(id);
 
@@ -130,16 +119,14 @@ export default function FloorDetailPage() {
     .filter((a) => String(a.floorNo) === String(floorNo))
     .sort((a, b) => a.name.localeCompare(b.name, "vi"));
 
-  const floorLabel = floorNo === "0" ? "Tầng trệt" : `Tầng ${floorNo}`;
+  const floorLabel = floorNo === "0" ? t("houses.floor.floorGround") : `${t("houses.detail.floorLabel")} ${floorNo}`;
 
-  // Auto-select first area
   useEffect(() => {
     if (floorAreas.length > 0 && !selectedArea) {
       setSelectedArea(floorAreas[0]);
     }
   }, [floorAreas.length]);
 
-  // Load assets khi chọn area
   const loadAssets = useCallback(async (area) => {
     setAssetsLoading(true);
     setAssetsError(null);
@@ -162,7 +149,7 @@ export default function FloorDetailPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh] gap-3">
         <Loader2 className="w-5 h-5 animate-spin" style={{ color: B.green }} />
-        <span className="text-sm" style={{ color: B.mutedFg }}>Đang tải...</span>
+        <span className="text-sm" style={{ color: B.mutedFg }}>{t("houses.floor.loading")}</span>
       </div>
     );
   }
@@ -171,7 +158,7 @@ export default function FloorDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
         <AlertCircle className="w-8 h-8 text-red-400" />
-        <p className="text-sm" style={{ color: B.mutedFg }}>{houseError ?? "Không tìm thấy dữ liệu"}</p>
+        <p className="text-sm" style={{ color: B.mutedFg }}>{houseError ?? t("houses.floor.notFound")}</p>
       </div>
     );
   }
@@ -192,7 +179,7 @@ export default function FloorDetailPage() {
         <div>
           <h1 className="text-2xl font-bold" style={{ color: B.fg }}>{floorLabel}</h1>
           <p className="text-sm mt-0.5" style={{ color: B.mutedFg }}>
-            {house.name} · {floorAreas.length} khu vực
+            {house.name} · {t("houses.floor.areasLabel", { count: floorAreas.length })}
           </p>
         </div>
       </div>
@@ -204,17 +191,17 @@ export default function FloorDetailPage() {
           style={{ background: "#FFFFFF", border: `1px solid ${B.border}` }}
         >
           <Package className="w-10 h-10" style={{ color: B.border }} />
-          <p className="text-sm" style={{ color: B.mutedFg }}>Tầng này chưa có khu vực nào</p>
+          <p className="text-sm" style={{ color: B.mutedFg }}>{t("houses.floor.noAreas")}</p>
         </div>
       ) : (
         <div className="flex gap-4 items-start">
-          {/* Trái: danh sách khu vực */}
+          {/* Left: area list */}
           <div
             className="w-72 flex-shrink-0 rounded-2xl overflow-hidden"
             style={{ background: "#FFFFFF", border: `1px solid ${B.border}`, boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
           >
             <div className="px-4 py-3.5" style={{ borderBottom: `1px solid ${B.border}` }}>
-              <p className="text-xs font-bold uppercase tracking-widest" style={{ color: B.mutedFg }}>Khu vực chức năng</p>
+              <p className="text-xs font-bold uppercase tracking-widest" style={{ color: B.mutedFg }}>{t("houses.floor.functionalAreas")}</p>
             </div>
             <div>
               {floorAreas.map((area) => (
@@ -223,21 +210,23 @@ export default function FloorDetailPage() {
                   area={area}
                   isSelected={selectedArea?.id === area.id}
                   onSelect={() => setSelectedArea(area)}
+                  t={t}
                 />
               ))}
             </div>
           </div>
 
-          {/* Phải: assets */}
+          {/* Right: assets */}
           <div className="flex-1 min-w-0">
-            {/* Header panel */}
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <p className="text-base font-bold" style={{ color: B.fg }}>
-                  Tài sản trong {selectedArea?.name}
+                  {t("houses.floor.assetsIn", { name: selectedArea?.name ?? "" })}
                 </p>
                 <p className="text-xs mt-0.5" style={{ color: B.mutedFg }}>
-                  {assetsLoading ? "Đang tải..." : `${areaAssets.length} tài sản`}
+                  {assetsLoading
+                    ? t("houses.floor.assetsLoading")
+                    : t("houses.floor.assetsCount", { count: areaAssets.length })}
                 </p>
               </div>
               {selectedArea && (
@@ -248,7 +237,7 @@ export default function FloorDetailPage() {
                   onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.88"; }}
                   onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
                 >
-                  + Thêm tài sản
+                  {t("houses.floor.addAsset")}
                 </button>
               )}
             </div>
@@ -276,12 +265,12 @@ export default function FloorDetailPage() {
                 style={{ background: "#FFFFFF", border: `1px solid ${B.border}` }}
               >
                 <Package className="w-10 h-10" style={{ color: B.border }} />
-                <p className="text-sm" style={{ color: B.mutedFg }}>Khu vực này chưa có tài sản</p>
+                <p className="text-sm" style={{ color: B.mutedFg }}>{t("houses.floor.noAssets")}</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {areaAssets.map((asset) => (
-                  <AssetCard key={asset.id} asset={asset} onSelect={() => setDrawerAssetId(asset.id)} />
+                  <AssetCard key={asset.id} asset={asset} onSelect={() => setDrawerAssetId(asset.id)} t={t} />
                 ))}
               </div>
             )}

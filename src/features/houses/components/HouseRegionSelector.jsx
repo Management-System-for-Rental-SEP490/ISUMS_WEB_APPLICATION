@@ -1,16 +1,19 @@
+import { useTranslation } from "react-i18next";
 import { Loader2, MapPin } from "lucide-react";
 
 export default function HouseRegionSelector({ regions, loading, value, onChange, error }) {
+  const { t } = useTranslation("common");
+
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
       <h3 className="text-sm font-bold text-slate-800 mb-4">
-        Khu vực quản lý <span className="text-red-500">*</span>
+        {t("houses.region.title")} <span className="text-red-500">*</span>
       </h3>
 
       {loading ? (
         <div className="flex items-center gap-2 text-sm text-slate-400">
           <Loader2 className="w-4 h-4 animate-spin" />
-          Đang tải khu vực...
+          {t("houses.region.loading")}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -37,7 +40,7 @@ export default function HouseRegionSelector({ regions, loading, value, onChange,
             </button>
           ))}
           {regions.length === 0 && (
-            <p className="text-sm text-slate-400 col-span-2">Không có khu vực nào.</p>
+            <p className="text-sm text-slate-400 col-span-2">{t("houses.region.empty")}</p>
           )}
         </div>
       )}
