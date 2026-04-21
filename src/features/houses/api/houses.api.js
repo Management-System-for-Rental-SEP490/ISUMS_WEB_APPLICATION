@@ -225,6 +225,21 @@ export async function uploadAssetImages(assetId, files) {
 }
 
 /**
+ * Update house translations
+ * @param {string} houseId
+ * @param {Object} payload - { nameTranslations, addressTranslations, wardTranslations, communeTranslations, cityTranslations, descriptionTranslations }
+ * @returns {Promise<Object>}
+ */
+export async function updateHouseTranslations(houseId, payload) {
+  try {
+    const response = await api.patch(HOUSES_ENDPOINTS.TRANSLATIONS(houseId), payload);
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
  * Get single asset detail by ID
  * @param {string} assetId
  * @returns {Promise<Object>}

@@ -11,7 +11,6 @@ import {
 import Icons from "../components/standalone/ContractDetailIcons";
 import ContractPdfViewer from "../components/shared/ContractPdfViewer";
 import { useAuthStore } from "../../../features/auth/store/auth.store";
-import { STATUS_LABEL } from "../utils/contract.constants";
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 const STATUS_STYLE = {
@@ -32,7 +31,7 @@ const STATUS_STYLE = {
 
 function StatusBadge({ status, t }) {
   const style = STATUS_STYLE[status] ?? STATUS_STYLE.default;
-  const label = STATUS_LABEL[status] ?? t("contracts.detail.unknown");
+  const label = t(`contracts.status.${status}`, { defaultValue: status });
   return (
     <span
       className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12px] font-semibold tracking-wide"

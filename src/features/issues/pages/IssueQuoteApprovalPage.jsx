@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { RefreshCw, Wrench, PackageSearch } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -11,6 +12,7 @@ dayjs.extend(relativeTime);
 dayjs.locale("vi");
 
 export default function IssueQuoteApprovalPage() {
+  const { t } = useTranslation("common");
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,7 +37,7 @@ export default function IssueQuoteApprovalPage() {
       );
       setHouseNames(Object.fromEntries(entries));
     } catch (e) {
-      setError(e?.message ?? "Không thể tải danh sách.");
+      setError(e?.message ?? t("issues.loadQuoteError"));
     } finally {
       setLoading(false);
     }
@@ -52,12 +54,12 @@ export default function IssueQuoteApprovalPage() {
 
   return (
     <div className="space-y-5">
-      <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Xác nhận báo giá</h2>
+      <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>{t("issues.quoteApprovalTitle")}</h2>
 
       {error && (
         <div className="rounded-xl px-4 py-3 flex items-center justify-between" style={{ background: "rgba(217,95,75,0.04)", border: "1px solid rgba(217,95,75,0.3)" }}>
           <p className="text-sm" style={{ color: "#D95F4B" }}>{error}</p>
-          <button onClick={fetchTickets} className="text-xs underline" style={{ color: "#D95F4B" }}>Thử lại</button>
+          <button onClick={fetchTickets} className="text-xs underline" style={{ color: "#D95F4B" }}>{t("issues.btnRetry")}</button>
         </div>
       )}
 
@@ -68,7 +70,7 @@ export default function IssueQuoteApprovalPage() {
           style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
         >
           <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid #C4DED5" }}>
-            <p className="text-sm font-bold" style={{ color: "#1E2D28" }}>Chờ duyệt</p>
+            <p className="text-sm font-bold" style={{ color: "#1E2D28" }}>{t("issues.waitingApproval")}</p>
             <div className="flex items-center gap-1.5">
               <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: "rgba(245,158,11,0.12)", color: "#b45309" }}>
                 {tickets.length}
@@ -93,7 +95,7 @@ export default function IssueQuoteApprovalPage() {
               </div>
             ))}
             {!loading && tickets.length === 0 && (
-              <div className="py-10 text-center text-xs" style={{ color: "#5A7A6E" }}>Không có yêu cầu nào</div>
+              <div className="py-10 text-center text-xs" style={{ color: "#5A7A6E" }}>{t("issues.emptyRepair")}</div>
             )}
             {!loading && tickets.map((ticket) => {
               const isActive = selected?.id === ticket.id;
@@ -133,6 +135,7 @@ export default function IssueQuoteApprovalPage() {
               houseName={houseNames[selected.houseId]}
               onApproved={handleActionDone}
               onRejected={handleActionDone}
+              t={t}
             />
           )}
 
@@ -141,8 +144,8 @@ export default function IssueQuoteApprovalPage() {
               <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "#EAF4F0" }}>
                 <PackageSearch className="w-7 h-7" style={{ color: "#3bb582" }} />
               </div>
-              <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>Chưa có báo giá nào</p>
-              <p className="text-xs" style={{ color: "#5A7A6E" }}>Nhân viên chưa gửi báo giá cho yêu cầu này</p>
+              <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>{t("issues.quoteNoQuote")}</p>
+              <p className="text-xs" style={{ color: "#5A7A6E" }}>{t("issues.quoteNoQuoteDesc")}</p>
             </div>
           )}
 
@@ -152,7 +155,7 @@ export default function IssueQuoteApprovalPage() {
                 <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: "#EAF4F0" }}>
                   <Wrench className="w-7 h-7" style={{ color: "#3bb582" }} />
                 </div>
-                <p className="text-sm" style={{ color: "#5A7A6E" }}>Chọn một yêu cầu để xem báo giá</p>
+                <p className="text-sm" style={{ color: "#5A7A6E" }}>{t("issues.selectToViewQuote")}</p>
               </div>
             </div>
           )}

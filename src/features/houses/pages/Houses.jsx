@@ -14,9 +14,15 @@ import {
 import { useHouses } from "../hooks/useHouses";
 import HouseCard from "../components/HouseCard";
 import CreateHousePage from "./CreateHousePage";
+import HouseTranslationReview from "../components/HouseTranslationReview";
 import { LoadingSpinner } from "../../../components/shared/Loading";
 
 const PAGE_SIZE = 9;
+
+function getLocalized(translations, fallback) {
+  const lang = localStorage.getItem("app_language") ?? "vi";
+  return translations?.[lang] || translations?.["vi"] || fallback || "";
+}
 
 function ListRow({ house }) {
   const { t } = useTranslation("common");
@@ -28,8 +34,8 @@ function ListRow({ house }) {
   };
   const cls   = statusCls[house?.status] ?? statusCls.default;
   const label = t(`houses.status.${house?.status}`, { defaultValue: house?.status ?? "—" });
-  const name  = house?.name ?? house?.title ?? t("houses.noName");
-  const addr  = house?.address ?? "—";
+  const name  = getLocalized(house?.nameTranslations, house?.name ?? house?.title) || t("houses.noName");
+  const addr  = getLocalized(house?.addressTranslations, house?.address) || "—";
   const price = house?.rentPrice ?? house?.rent;
 
   return (
@@ -78,6 +84,7 @@ export default function Houses() {
   const [page, setPage]               = useState(1);
   const navigate = useNavigate();
   const [showCreate, setShowCreate]   = useState(false);
+  const [pendingHouse, setPendingHouse] = useState(null);
 
   useEffect(() => {
     const timer = setTimeout(() => { setDebouncedKeyword(keyword); setPage(1); }, 400);
@@ -112,14 +119,28 @@ export default function Houses() {
 
   if (showCreate) {
     return (
-      <CreateHousePage
-        onBack={() => setShowCreate(false)}
-        onSubmit={() => { setShowCreate(false); refetch(); }}
-      />
+      <>
+        <CreateHousePage
+          onBack={() => setShowCreate(false)}
+          onSubmit={(created) => {
+            setShowCreate(false);
+            refetch();
+            if (created) setPendingHouse(created);
+          }}
+        />
+      </>
     );
   }
 
   return (
+    <>
+    {pendingHouse && (
+      <HouseTranslationReview
+        house={pendingHouse}
+        onClose={() => setPendingHouse(null)}
+        onDone={() => setPendingHouse(null)}
+      />
+    )}
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
@@ -291,5 +312,6 @@ export default function Houses() {
       )}
 
     </div>
+    </>
   );
 }

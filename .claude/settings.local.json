@@ -19,7 +19,8 @@
       "Bash(node -e \"const f=require\\('./src/locales/vi/common.json'\\); const c=f.contracts; console.log\\(JSON.stringify\\({detail:c.detail,adminSign:c.adminSign,progress:c.progress,otp:c.otp,signatureModal:c.signatureModal},null,2\\)\\)\")",
       "Bash(node -e \"const f=require\\('./src/locales/en/common.json'\\); const c=f.contracts; console.log\\(Object.keys\\(c\\)\\)\")",
       "Bash(node -e \"const f=require\\('./src/locales/ja/common.json'\\); console.log\\(JSON.stringify\\({signing:f.contracts.signing},null,2\\)\\)\")",
-      "Bash(node -e \"const f=require\\('./src/locales/vi/common.json'\\); console.log\\(JSON.stringify\\({dashboardMap:f.dashboard?.map, dashboardHouseStatus:f.dashboard?.houseStatus, houses:f.houses},null,2\\)\\)\")"
+      "Bash(node -e \"const f=require\\('./src/locales/vi/common.json'\\); console.log\\(JSON.stringify\\({dashboardMap:f.dashboard?.map, dashboardHouseStatus:f.dashboard?.houseStatus, houses:f.houses},null,2\\)\\)\")",
+      "Bash(node -e ' *)"
     ]
   }
 }

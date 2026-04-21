@@ -12,14 +12,14 @@ const B = {
   blueMuted: "rgba(32, 150, 216, 0.12)",
 };
 
-export default function IssueListPanel({ issues, loading, selected, onSelect }) {
+export default function IssueListPanel({ issues, loading, selected, onSelect, t }) {
   return (
     <div
       className="w-72 flex-shrink-0 rounded-2xl overflow-hidden"
       style={{ background: B.card, border: `1px solid ${B.border}`, boxShadow: "0 4px 20px -2px rgba(59,181,130,0.10)" }}
     >
       <div className="px-4 py-3.5 flex items-center justify-between" style={{ borderBottom: `1px solid rgba(196,222,213,0.6)` }}>
-        <p className="text-sm font-bold font-heading" style={{ color: B.fg }}>Yêu cầu sửa chữa</p>
+        <p className="text-sm font-bold font-heading" style={{ color: B.fg }}>{t("issues.listPanelTitle")}</p>
         <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full" style={{ background: B.muted, color: B.green }}>
           {issues.length}
         </span>
@@ -35,7 +35,7 @@ export default function IssueListPanel({ issues, loading, selected, onSelect }) 
         ))}
 
         {!loading && issues.length === 0 && (
-          <div className="py-12 text-center text-sm" style={{ color: B.mutedFg }}>Không có yêu cầu nào</div>
+          <div className="py-12 text-center text-sm" style={{ color: B.mutedFg }}>{t("issues.emptyRepair")}</div>
         )}
 
         {!loading && issues.map((issue) => {
@@ -63,10 +63,10 @@ export default function IssueListPanel({ issues, loading, selected, onSelect }) 
               <p className="text-[11px] mt-1 flex items-center gap-1">
                 {issue.assignedStaffId ? (
                   <span className="font-medium flex items-center gap-1" style={{ color: B.blue }}>
-                    <UserCheck className="w-3 h-3" />{issue.staffName ?? "Đã phân công"}
+                    <UserCheck className="w-3 h-3" />{issue.staffName ?? t("issues.assignedStaff")}
                   </span>
                 ) : (
-                  <span className="font-medium" style={{ color: "#D95F4B" }}>● Chưa phân công</span>
+                  <span className="font-medium" style={{ color: "#D95F4B" }}>● {t("issues.unassignedStaff")}</span>
                 )}
               </p>
             </button>
