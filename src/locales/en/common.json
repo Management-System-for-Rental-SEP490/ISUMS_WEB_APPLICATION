@@ -289,6 +289,7 @@
     "confirmAsset": "Confirm & add to house",
     "confirmAssetSuccess": "Asset confirmed successfully",
     "confirmAssetError": "Confirmation failed, please try again",
+    "confirmAssetContent": "Are you sure you want to confirm \"{{name}}\" into the house?",
     "create": "Create asset",
     "sortNewest": "Newest",
     "sortOldest": "Oldest"

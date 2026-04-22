@@ -289,6 +289,7 @@
     "confirmAsset": "Xác nhận thêm vào nhà",
     "confirmAssetSuccess": "Đã xác nhận thiết bị thành công",
     "confirmAssetError": "Xác nhận thất bại, vui lòng thử lại",
+    "confirmAssetContent": "Bạn có chắc muốn xác nhận \"{{name}}\" vào nhà không?",
     "create": "Tạo thiết bị",
     "sortNewest": "Mới nhất",
     "sortOldest": "Cũ nhất"

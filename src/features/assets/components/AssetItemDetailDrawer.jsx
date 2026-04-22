@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Drawer, Badge, Progress, Descriptions, Alert, Spin, Tag, Button, Modal } from "antd";
-import { Package, CheckCircle } from "lucide-react";
+import { Drawer, Badge, Progress, Descriptions, Alert, Spin, Tag, Button } from "antd";
+import { Package, CheckCircle, AlertCircle } from "lucide-react";
 import { toast } from "react-toastify";
 import { useLanguageStore } from "../../../store/languageStore";
 import { getAssetItemById, managerConfirmAsset } from "../api/assets.api";
@@ -40,40 +40,34 @@ export default function AssetItemDetailDrawer({ assetId, onClose, onConfirmed })
   const [asset, setAsset] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [confirming, setConfirming] = useState(false);
+  const [confirming, setConfirming]   = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     if (!assetId) return;
     setLoading(true);
     setError(null);
     setAsset(null);
+    setShowConfirm(false);
     getAssetItemById(assetId)
       .then(setAsset)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [assetId]);
 
-  const handleConfirm = () => {
-    Modal.confirm({
-      title: t("assets.confirmAsset"),
-      content: asset?.displayName,
-      okText: t("actions.confirm"),
-      cancelText: t("actions.cancel"),
-      okButtonProps: { style: { background: "#3bb582", borderColor: "#3bb582" } },
-      onOk: async () => {
-        setConfirming(true);
-        try {
-          await managerConfirmAsset(assetId, "IN_USE");
-          toast.success(t("assets.confirmAssetSuccess"));
-          onConfirmed?.();
-          onClose();
-        } catch (e) {
-          toast.error(e.message || t("assets.confirmAssetError"));
-        } finally {
-          setConfirming(false);
-        }
-      },
-    });
+  const handleConfirm = async () => {
+    setConfirming(true);
+    try {
+      await managerConfirmAsset(assetId, "IN_USE");
+      toast.success(t("assets.confirmAssetSuccess"));
+      onConfirmed?.();
+      onClose();
+    } catch (e) {
+      toast.error(e.message || t("assets.confirmAssetError"));
+      setShowConfirm(false);
+    } finally {
+      setConfirming(false);
+    }
   };
 
   const pct = asset?.conditionPercent ?? 0;
@@ -206,18 +200,40 @@ export default function AssetItemDetailDrawer({ assetId, onClose, onConfirmed })
               </div>
             )}
 
-            {/* Confirm button — only for WAITING_MANAGER_CONFIRM */}
+            {/* Confirm — inline, only for WAITING_MANAGER_CONFIRM */}
             {asset.status === "WAITING_MANAGER_CONFIRM" && (
-              <Button
-                type="primary"
-                icon={<CheckCircle className="w-4 h-4" />}
-                loading={confirming}
-                onClick={handleConfirm}
-                className="w-full"
-                style={{ background: "#3bb582", borderColor: "#3bb582", height: 40 }}
-              >
-                {t("assets.confirmAsset")}
-              </Button>
+              !showConfirm ? (
+                <Button
+                  className="w-full"
+                  style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)", border: "none", height: 40, color: "#fff" }}
+                  icon={<CheckCircle className="w-4 h-4" />}
+                  onClick={() => setShowConfirm(true)}
+                >
+                  {t("assets.confirmAsset")}
+                </Button>
+              ) : (
+                <div className="rounded-xl p-4 space-y-3" style={{ background: "#F7FBF9", border: "1px solid #C4DED5" }}>
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" style={{ color: "#2096d8" }} />
+                    <p className="text-sm" style={{ color: "#1E2D28" }}>
+                      {t("assets.confirmAssetContent", { name: asset?.displayName })}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button className="flex-1" onClick={() => setShowConfirm(false)} disabled={confirming}>
+                      {t("actions.cancel")}
+                    </Button>
+                    <Button
+                      className="flex-1"
+                      loading={confirming}
+                      style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)", border: "none", color: "#fff" }}
+                      onClick={handleConfirm}
+                    >
+                      {t("actions.confirm")}
+                    </Button>
+                  </div>
+                </div>
+              )
             )}
           </div>
         </div>
