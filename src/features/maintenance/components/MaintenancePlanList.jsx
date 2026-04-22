@@ -2,16 +2,16 @@ import { useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
 import MaintenancePlanCard from "./MaintenancePlanCard";
 
-const STATUS_FILTERS = [
-  { value: "ALL",       label: "Tất cả"         },
-  { value: "ACTIVE",    label: "Đang hoạt động" },
-  { value: "INACTIVE",  label: "Tạm dừng"       },
-  { value: "COMPLETED", label: "Hoàn thành"     },
-];
-
-export default function MaintenancePlanList({ plans, onViewJobs, onEdit }) {
-  const [search, setSearch]           = useState("");
+export default function MaintenancePlanList({ plans, onViewJobs, onEdit, t }) {
+  const [search, setSearch]             = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+
+  const STATUS_FILTERS = [
+    { value: "ALL",       labelKey: "maintenance.filterAll"       },
+    { value: "ACTIVE",    labelKey: "maintenance.filterActive"    },
+    { value: "INACTIVE",  labelKey: "maintenance.filterInactive"  },
+    { value: "COMPLETED", labelKey: "maintenance.filterCompleted" },
+  ];
 
   const filtered = plans.filter((p) => {
     const matchSearch =
@@ -30,7 +30,7 @@ export default function MaintenancePlanList({ plans, onViewJobs, onEdit }) {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm kế hoạch, bất động sản..."
+            placeholder={t("maintenance.searchPlaceholder")}
             className="flex-1 text-sm bg-transparent outline-none text-slate-700 placeholder-slate-400"
           />
         </div>
@@ -47,7 +47,7 @@ export default function MaintenancePlanList({ plans, onViewJobs, onEdit }) {
                   : "bg-white text-slate-600 hover:bg-slate-50"
               }`}
             >
-              {f.label}
+              {t(f.labelKey)}
             </button>
           ))}
         </div>
@@ -57,8 +57,8 @@ export default function MaintenancePlanList({ plans, onViewJobs, onEdit }) {
       {filtered.length === 0 ? (
         <div className="text-center py-16 text-slate-400">
           <SlidersHorizontal className="w-10 h-10 mx-auto mb-3 opacity-30" />
-          <p className="text-sm font-medium">Không có kế hoạch nào</p>
-          <p className="text-xs mt-1">Thử thay đổi bộ lọc hoặc tạo kế hoạch mới</p>
+          <p className="text-sm font-medium">{t("maintenance.listEmpty")}</p>
+          <p className="text-xs mt-1">{t("maintenance.listEmptyHint")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -68,6 +68,7 @@ export default function MaintenancePlanList({ plans, onViewJobs, onEdit }) {
               plan={plan}
               onViewJobs={() => onViewJobs(plan)}
               onEdit={() => onEdit(plan)}
+              t={t}
             />
           ))}
         </div>

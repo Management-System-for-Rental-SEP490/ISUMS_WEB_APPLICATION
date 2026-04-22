@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useContracts } from "../../../features/contracts/hooks/useContract";
 import ContractsListView from "./views/ContractListView";
@@ -7,6 +8,7 @@ import ContractCreateView from "./views/ContractCreateView";
 
 export default function ContractsPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation("common");
   const [view, setView] = useState("list");
   const [selectedId, setSelectedId] = useState(null);
 
@@ -53,7 +55,7 @@ export default function ContractsPage() {
       const contract = contracts.find((c) => c.id === id);
       const status = (contract?.status ?? "").toUpperCase();
       if (status !== "DRAFT" && status !== "READY") {
-        toast.warning("Hợp đồng đã xác nhận không thể sửa");
+        toast.warning(t("contract.toastNotEditable"));
         return;
       }
       navigate(`/contracts/${id}/edit`);

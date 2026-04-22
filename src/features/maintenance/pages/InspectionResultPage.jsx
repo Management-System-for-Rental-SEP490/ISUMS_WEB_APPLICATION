@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { message, Spin } from "antd";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { getInspectionById, getAssetEventsByJob, updateInspectionStatus } from "../api/inspections.api";
@@ -49,6 +50,7 @@ function normaliseEvent(raw) {
 export default function InspectionResultPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation("common");
 
   const [inspection, setInspection] = useState(null);
   const [staff, setStaff] = useState(null);
@@ -98,11 +100,11 @@ export default function InspectionResultPage() {
     setApproving(true);
     try {
       await updateInspectionStatus(id, "APPROVED");
-      message.success("Xác nhận hoàn thành kiểm tra thành công!");
+      message.success(t("inspection.approveSuccess"));
       setConfirmOpen(false);
       navigate(-1);
     } catch (err) {
-      message.error(err.message ?? "Có lỗi xảy ra, vui lòng thử lại.");
+      message.error(err.message ?? t("inspection.approveError"));
     } finally {
       setApproving(false);
     }
@@ -132,7 +134,7 @@ export default function InspectionResultPage() {
           className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition"
           style={{ border: "1px solid #C4DED5", color: "#5A7A6E" }}
         >
-          <RefreshCw className="w-4 h-4" /> Thử lại
+          <RefreshCw className="w-4 h-4" /> {t("inspection.btnRetry")}
         </button>
       </div>
     );

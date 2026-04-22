@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { RefreshCw, ClipboardList, Eye, AlertCircle } from "lucide-react";
 import { Pagination } from "antd";
 import dayjs from "dayjs";
@@ -6,26 +7,20 @@ import { getMaintenanceJobs } from "../api/maintenance.api";
 import JobDetailDrawer from "../components/JobDetailDrawer";
 
 const STATUS_CONFIG = {
-  CREATED:     { label: "Chờ xếp lịch",   bg: "rgba(90,122,110,0.08)",  color: "#5A7A6E", dot: "#5A7A6E"  },
-  SCHEDULED:   { label: "Đã lên lịch",    bg: "rgba(32,150,216,0.10)",  color: "#2096d8", dot: "#2096d8"  },
-  IN_PROGRESS: { label: "Đang tiến hành", bg: "rgba(59,181,130,0.10)",  color: "#3bb582", dot: "#3bb582"  },
-  COMPLETED:   { label: "Hoàn thành",     bg: "rgba(59,181,130,0.12)",  color: "#3bb582", dot: "#3bb582"  },
-  CANCELLED:   { label: "Đã hủy",         bg: "rgba(217,95,75,0.08)",   color: "#D95F4B", dot: "#D95F4B"  },
-  OVERDUE:     { label: "Quá hạn",        bg: "rgba(245,158,11,0.12)",  color: "#b45309", dot: "#f59e0b"  },
+  CREATED:     { i18nKey: "maintenance.jobsTabCreated",     bg: "rgba(90,122,110,0.08)",  color: "#5A7A6E", dot: "#5A7A6E"  },
+  SCHEDULED:   { i18nKey: "maintenance.jobsTabScheduled",   bg: "rgba(32,150,216,0.10)",  color: "#2096d8", dot: "#2096d8"  },
+  IN_PROGRESS: { i18nKey: "maintenance.jobsTabInProgress",  bg: "rgba(59,181,130,0.10)",  color: "#3bb582", dot: "#3bb582"  },
+  COMPLETED:   { i18nKey: "maintenance.jobsTabCompleted",   bg: "rgba(59,181,130,0.12)",  color: "#3bb582", dot: "#3bb582"  },
+  CANCELLED:   { i18nKey: "maintenance.jobsTabCancelled",   bg: "rgba(217,95,75,0.08)",   color: "#D95F4B", dot: "#D95F4B"  },
+  OVERDUE:     { i18nKey: "maintenance.jobsTabOverdue",     bg: "rgba(245,158,11,0.12)",  color: "#b45309", dot: "#f59e0b"  },
 };
 
-const TABS = [
-  { value: "CREATED",     label: "Chờ xếp lịch"   },
-  { value: "SCHEDULED",   label: "Đã lên lịch"    },
-  { value: "IN_PROGRESS", label: "Đang tiến hành" },
-  { value: "COMPLETED",   label: "Hoàn thành"     },
-  { value: "CANCELLED",   label: "Đã hủy"         },
-  { value: "OVERDUE",     label: "Quá hạn"        },
-];
+const TAB_VALUES = ["CREATED", "SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED", "OVERDUE"];
 
 const PAGE_SIZE = 20;
 
 export default function MaintenanceJobsPage() {
+  const { t } = useTranslation("common");
   const [jobs, setJobs]         = useState([]);
   const [total, setTotal]       = useState(0);
   const [page, setPage]         = useState(1);
@@ -66,7 +61,7 @@ export default function MaintenanceJobsPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-<h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Công việc bảo trì</h2>
+          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>{t("maintenance.jobsPageTitle")}</h2>
         </div>
         <button
           type="button"
@@ -78,7 +73,7 @@ export default function MaintenanceJobsPage() {
           onMouseLeave={e => e.currentTarget.style.background = "#ffffff"}
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} style={{ color: "#3bb582" }} />
-          Làm mới
+          {t("maintenance.jobsBtnRefresh")}
         </button>
       </div>
 
@@ -92,12 +87,12 @@ export default function MaintenanceJobsPage() {
           className="flex items-center gap-1 px-4 pt-3 pb-0 overflow-x-auto"
           style={{ borderBottom: "1px solid #C4DED5" }}
         >
-          {TABS.map(({ value, label }) => {
+          {TAB_VALUES.map((value) => {
             const isActive = activeTab === value;
-            const cfg = value ? STATUS_CONFIG[value] : null;
+            const cfg = STATUS_CONFIG[value];
             return (
               <button
-                key={String(value)}
+                key={value}
                 onClick={() => handleTabChange(value)}
                 className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold rounded-t-xl whitespace-nowrap transition-all flex-shrink-0 relative"
                 style={isActive
@@ -109,7 +104,7 @@ export default function MaintenanceJobsPage() {
                 {cfg && (
                   <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: cfg.dot }} />
                 )}
-                {label}
+                {t(cfg.i18nKey)}
                 {isActive && total > 0 && (
                   <span
                     className="text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-0.5"
@@ -129,7 +124,7 @@ export default function MaintenanceJobsPage() {
             <AlertCircle className="w-8 h-8" style={{ color: "#D95F4B", opacity: 0.5 }} />
             <p className="text-sm" style={{ color: "#5A7A6E" }}>{error}</p>
             <button onClick={() => fetchJobs(activeTab, page)} className="text-xs underline" style={{ color: "#3bb582" }}>
-              Thử lại
+              {t("maintenance.jobsRetry")}
             </button>
           </div>
         )}
@@ -155,9 +150,9 @@ export default function MaintenanceJobsPage() {
             <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "#EAF4F0" }}>
               <ClipboardList className="w-7 h-7" style={{ color: "#3bb582" }} />
             </div>
-            <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>Không có công việc nào</p>
+            <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>{t("maintenance.jobsEmptyTitle")}</p>
             <p className="text-xs" style={{ color: "#5A7A6E" }}>
-              Không có công việc ở trạng thái "{STATUS_CONFIG[activeTab]?.label}"
+              {t("maintenance.jobsEmptyDesc", { status: t(STATUS_CONFIG[activeTab]?.i18nKey ?? "") })}
             </p>
           </div>
         )}
@@ -170,14 +165,24 @@ export default function MaintenanceJobsPage() {
               className="grid grid-cols-[40px_180px_160px_1fr_140px_100px] gap-4 px-5 py-3"
               style={{ background: "#EAF4F0", borderBottom: "1px solid #C4DED5" }}
             >
-              {["STT", "Mã công việc", "Ngày bắt đầu kỳ", "Nhân viên phụ trách", "Trạng thái", "Thao tác"].map((h) => (
+              {[
+                t("maintenance.jobsColSTT"),
+                t("maintenance.jobsColCode"),
+                t("maintenance.jobsColPeriodStart"),
+                t("maintenance.jobsColStaff"),
+                t("maintenance.jobsColStatus"),
+                t("maintenance.jobsColActions"),
+              ].map((h) => (
                 <p key={h} className="text-[11px] font-bold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>{h}</p>
               ))}
             </div>
 
             {/* Rows */}
             {jobs.map((job, idx) => {
-              const st = STATUS_CONFIG[job.status] ?? { label: job.status, bg: "#EAF4F0", color: "#5A7A6E", dot: "#5A7A6E" };
+              const stCfg = STATUS_CONFIG[job.status];
+              const st = stCfg
+                ? { ...stCfg, label: t(stCfg.i18nKey) }
+                : { label: job.status, bg: "#EAF4F0", color: "#5A7A6E", dot: "#5A7A6E" };
               const rowNum = (page - 1) * PAGE_SIZE + idx + 1;
               return (
                 <div
@@ -198,7 +203,7 @@ export default function MaintenanceJobsPage() {
                   </p>
 
                   <p className="text-xs" style={{ color: job.staffName ? "#1E2D28" : "#C4DED5" }}>
-                    {job.staffName ?? "Chưa phân công"}
+                    {job.staffName ?? t("maintenance.jobsUnassigned")}
                   </p>
 
                   <span
@@ -218,7 +223,7 @@ export default function MaintenanceJobsPage() {
                     onMouseLeave={e => e.currentTarget.style.background = "rgba(59,181,130,0.10)"}
                   >
                     <Eye className="w-3.5 h-3.5" />
-                    Chi tiết
+                    {t("maintenance.jobsBtnDetail")}
                   </button>
                 </div>
               );
@@ -241,7 +246,7 @@ export default function MaintenanceJobsPage() {
         )}
       </div>
 
-      <JobDetailDrawer open={!!selectedJob} job={selectedJob} onClose={() => setSelectedJob(null)} />
+      <JobDetailDrawer open={!!selectedJob} job={selectedJob} onClose={() => setSelectedJob(null)} t={t} />
     </div>
   );
 }
