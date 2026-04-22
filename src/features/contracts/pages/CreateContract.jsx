@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import CreateContractWizard from "../components/create/CreateContractWizard";
 import ContractLoadingModal from "../components/create/ContractLoadingModal";
 import { useHouses } from "../../houses/hooks/useHouses";
@@ -46,6 +47,7 @@ const getInitialForm = (todayISO) => ({
 });
 
 export default function CreateContract({ onCancel, onCreated }) {
+  const { t } = useTranslation("common");
   const todayISO = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const initialForm = useMemo(() => getInitialForm(todayISO), [todayISO]);
   const { houses } = useHouses();
@@ -88,7 +90,7 @@ export default function CreateContract({ onCancel, onCreated }) {
     setModalOpen(false);
     const form = pendingForm;
     const house = houseOptions.find((h) => h.id === form?.houseId);
-    toast.success("Tạo hợp đồng thành công!");
+    toast.success(t("contract.toastCreateSuccess"));
     onCreated?.({
       id: Date.now(),
       contractNumber: `HD-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
