@@ -42,7 +42,7 @@ export default function QuoteDetail({ quote, ticket, houseName, onApproved, onRe
       toast.success(t("issues.quoteApprovedSuccess"));
       onApproved();
     } catch (e) {
-      toast.error(e.message ?? "Duyệt thất bại.");
+      toast.error(e.message ?? t("priceList.toastApproveError"));
     } finally {
       setConfirming(false);
     }
@@ -55,7 +55,7 @@ export default function QuoteDetail({ quote, ticket, houseName, onApproved, onRe
       toast.success(t("issues.quoteRejectedSuccess"));
       onRejected();
     } catch (e) {
-      toast.error(e.message ?? "Từ chối thất bại.");
+      toast.error(e.message ?? t("priceList.toastRejectError"));
     } finally {
       setRejecting(false);
     }

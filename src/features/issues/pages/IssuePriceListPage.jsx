@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { RefreshCw, Tag, Plus, X, Pencil, Check } from "lucide-react";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 import { getBanners, createBanner, updateBannerPrice } from "../api/issues.api";
 
 function formatCurrency(amount) {
@@ -13,7 +14,7 @@ function formatCurrency(amount) {
 
 const EMPTY_FORM = { name: "", price: "", estimateCost: "" };
 
-function CreateBannerModal({ open, onClose, onCreated }) {
+function CreateBannerModal({ open, onClose, onCreated, t }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -51,11 +52,11 @@ function CreateBannerModal({ open, onClose, onCreated }) {
         price: Number(form.price),
         estimateCost: Number(form.estimateCost),
       });
-      toast.success(`Đã thêm báo giá: ${form.name.trim()}`);
+      toast.success(t("priceList.toastCreateSuccess", { name: form.name.trim() }));
       onCreated();
       handleClose();
     } catch (e) {
-      setError(e.message ?? "Tạo thất bại, vui lòng thử lại.");
+      setError(e.message ?? t("priceList.toastCreateError"));
     } finally {
       setSubmitting(false);
     }
@@ -196,7 +197,7 @@ function CreateBannerModal({ open, onClose, onCreated }) {
   );
 }
 
-function EditPriceInline({ item, onUpdated }) {
+function EditPriceInline({ item, onUpdated, t }) {
   const [editing, setEditing] = useState(false);
   const [price, setPrice] = useState("");
   const [saving, setSaving] = useState(false);
@@ -211,11 +212,11 @@ function EditPriceInline({ item, onUpdated }) {
     setSaving(true);
     try {
       await updateBannerPrice(item.id, Number(price));
-      toast.success(`Đã cập nhật giá bán: ${item.name}`);
+      toast.success(t("priceList.toastUpdateSuccess", { name: item.name }));
       setEditing(false);
       onUpdated();
     } catch (e) {
-      toast.error(e.message ?? "Cập nhật thất bại.");
+      toast.error(e.message ?? t("priceList.toastUpdateError"));
     } finally {
       setSaving(false);
     }
@@ -280,6 +281,7 @@ function EditPriceInline({ item, onUpdated }) {
 }
 
 export default function IssuePriceListPage() {
+  const { t } = useTranslation("common");
   const [banners, setBanners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -292,11 +294,11 @@ export default function IssuePriceListPage() {
       const data = await getBanners();
       setBanners(Array.isArray(data) ? data : []);
     } catch (e) {
-      setError(e.message ?? "Không thể tải danh sách, vui lòng thử lại.");
+      setError(e.message ?? t("priceList.loadError"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchBanners();
@@ -397,7 +399,7 @@ export default function IssuePriceListPage() {
               <p className="text-sm font-semibold" style={{ color: "#5A7A6E" }}>
                 {formatCurrency(item.estimatedCost)}
               </p>
-              <EditPriceInline item={item} onUpdated={fetchBanners} />
+              <EditPriceInline item={item} onUpdated={fetchBanners} t={t} />
             </div>
           ))}
       </div>
@@ -406,6 +408,7 @@ export default function IssuePriceListPage() {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onCreated={fetchBanners}
+        t={t}
       />
     </div>
   );

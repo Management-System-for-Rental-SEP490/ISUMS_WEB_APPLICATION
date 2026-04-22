@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 import {
   adminSignEcontract,
   getContractById,
@@ -10,6 +11,7 @@ import { mapContractFromApi } from "../utils/mapContractFromApi";
 
 export function useAdminSignContract(id) {
   const navigate = useNavigate();
+  const { t } = useTranslation("common");
 
   const [contract, setContract] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -43,7 +45,7 @@ export function useAdminSignContract(id) {
         const raw = await getContractById(id);
         const mapped = mapContractFromApi(raw);
         if ((mapped?.status ?? "") !== "READY") {
-          toast.error("Hợp đồng chưa được chủ nhà xác nhận để ký.");
+          toast.error(t("contract.toastNotReady"));
           navigate(`/contracts/${id}`, { replace: true });
           return;
         }
@@ -88,7 +90,7 @@ export function useAdminSignContract(id) {
       await ensureSigningSession();
       setShowSigModal(true);
     } catch {
-      toast.error("Bạn yêu cầu quá nhiều lần - vui lòng thử lại sau.");
+      toast.error(t("contract.toastTooManyRequests"));
     } finally {
       setInitiating(false);
     }
@@ -104,7 +106,7 @@ export function useAdminSignContract(id) {
       await ensureSigningSession();
       setShowRejectBox(true);
     } catch {
-      toast.error("Không thể khởi tạo phiên ký. Vui lòng thử lại.");
+      toast.error(t("contract.toastInitFailed"));
     } finally {
       setInitiating(false);
     }
@@ -172,9 +174,9 @@ export function useAdminSignContract(id) {
     } catch (err) {
       const status = err?.response?.status;
       const msg =
-        status === 400 ? "Hợp đồng chưa ở trạng thái sẵn sàng để ký hoặc có lỗi từ hệ thống VNPT." :
-        status === 403 ? "Bạn không có quyền ký hợp đồng này." :
-        "Xác nhận ký thất bại, vui lòng thử lại.";
+        status === 400 ? t("contract.toastSignError400") :
+        status === 403 ? t("contract.toastSignError403") :
+        t("contract.toastSignErrorDefault");
       toast.error(msg);
     } finally {
       setConfirming(false);
@@ -191,9 +193,9 @@ export function useAdminSignContract(id) {
     } catch (err) {
       const status = err?.response?.status;
       const msg =
-        status === 400 ? "Không thể gửi lại OTP, hợp đồng không ở trạng thái hợp lệ." :
-        status === 403 ? "Bạn không có quyền thực hiện thao tác này." :
-        "Gửi lại OTP thất bại, vui lòng thử lại.";
+        status === 400 ? t("contract.toastResendOtpError400") :
+        status === 403 ? t("contract.toastResendOtpError403") :
+        t("contract.toastResendOtpErrorDefault");
       toast.error(msg);
     } finally {
       setConfirming(false);
@@ -204,17 +206,15 @@ export function useAdminSignContract(id) {
     setSigning(true);
     try {
       await adminSignEcontract(buildPayload(otp));
-      toast.success(
-        "Ký hợp đồng thành công! Hợp đồng sẽ được gửi đến gmail khách hàng để tiến hành ký.",
-      );
+      toast.success(t("contract.toastSignSuccess"));
       setShowOtpModal(false);
       navigate(`/contracts/${id}`);
     } catch (err) {
       const status = err?.response?.status;
       const msg =
-        status === 400 ? "Hợp đồng chưa ở trạng thái sẵn sàng để ký hoặc có lỗi từ hệ thống VNPT." :
-        status === 403 ? "Bạn không có quyền ký hợp đồng này (chỉ chủ nhà mới được ký)." :
-        "Ký hợp đồng thất bại, vui lòng thử lại.";
+        status === 400 ? t("contract.toastSignError400") :
+        status === 403 ? t("contract.toastFinalSignError403") :
+        t("contract.toastFinalSignErrorDefault");
       toast.error(msg);
     } finally {
       setSigning(false);
@@ -223,19 +223,19 @@ export function useAdminSignContract(id) {
 
   const handleReject = async () => {
     if (!rejectReason.trim()) {
-      toast.error("Vui lòng nhập lý do từ chối ký.");
+      toast.error(t("contract.toastRejectReasonRequired"));
       return;
     }
     setRejecting(true);
     try {
       await adminSignEcontract(buildRejectPayload());
-      toast.success("Đã từ chối ký hợp đồng.");
+      toast.success(t("contract.toastRejectSuccess"));
       navigate("/contracts");
     } catch (err) {
       const status = err?.response?.status;
       const msg =
-        status === 403 ? "Bạn không có quyền từ chối ký hợp đồng này." :
-        "Từ chối ký thất bại, vui lòng thử lại.";
+        status === 403 ? t("contract.toastRejectError403") :
+        t("contract.toastRejectErrorDefault");
       toast.error(msg);
     } finally {
       setRejecting(false);

@@ -278,7 +278,11 @@ export default function FloorDetailPage() {
         </div>
       )}
 
-      <AssetDetailDrawer assetId={drawerAssetId} onClose={() => setDrawerAssetId(null)} />
+      <AssetDetailDrawer
+        assetId={drawerAssetId}
+        onClose={() => setDrawerAssetId(null)}
+        onConfirmed={() => selectedArea && loadAssets(selectedArea)}
+      />
 
       {showCreate && selectedArea && (
         <CreateAssetModal

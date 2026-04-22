@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { getContractById, updateContractHtml } from "../api/contracts.api";
 import { mapContractFromApi } from "../utils/mapContractFromApi";
 import { toast } from "react-toastify";
@@ -17,6 +18,7 @@ import Icons from "../components/standalone/ContractEditIcons";
 export default function ContractEditStandalone() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation("common");
   const [contract, setContract] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,9 +41,9 @@ export default function ContractEditStandalone() {
       } catch (err) {
         const status = err?.response?.status;
         const msg =
-          status === 403 ? "Bạn không có quyền chỉnh sửa hợp đồng này." :
-          status === 404 ? "Không tìm thấy hợp đồng." :
-          "Không thể tải hợp đồng, vui lòng thử lại.";
+          status === 403 ? t("contract.toastSaveError403") :
+          status === 404 ? t("contract.toastSaveError404") :
+          t("contract.toastLoadErrorDefault");
         if (mounted) setError(msg);
       } finally {
         if (mounted) setLoading(false);
@@ -55,8 +57,8 @@ export default function ContractEditStandalone() {
 
   const handleSave = async () => {
     if (!contract?.id) {
-      setError("Thiếu ID hợp đồng.");
-      toast.error("Thiếu ID hợp đồng.");
+      setError(t("contract.toastMissingId"));
+      toast.error(t("contract.toastMissingId"));
       return;
     }
     setSaving(true);
@@ -65,14 +67,14 @@ export default function ContractEditStandalone() {
       const content = editorRef.current?.getContent?.() ?? bodyHtml;
       const fullHtml = wrapBodyWithFullDocument(content);
       await updateContractHtml(contract.id, fullHtml);
-      toast.success("Chỉnh sửa hợp đồng thành công!");
+      toast.success(t("contract.toastEditSuccess"));
       navigate(`/contracts/${contract.id}`);
     } catch (err) {
       const status = err?.response?.status;
       const msg =
-        status === 403 ? "Bạn không có quyền chỉnh sửa hợp đồng này." :
-        status === 404 ? "Không tìm thấy hợp đồng." :
-        "Không thể lưu hợp đồng, vui lòng thử lại.";
+        status === 403 ? t("contract.toastSaveError403") :
+        status === 404 ? t("contract.toastSaveError404") :
+        t("contract.toastSaveErrorDefault");
       setError(msg);
       toast.error(msg);
     } finally {
