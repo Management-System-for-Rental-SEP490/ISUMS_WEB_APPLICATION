@@ -112,8 +112,8 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
 
           {!loadingHouse && houseDetail && (
             <div className="rounded-xl border-2 border-teal-400 bg-white overflow-hidden grid" style={{ gridTemplateColumns: "2fr 3fr", minHeight: 220 }}>
-              <div className="overflow-hidden">
-                <ImageCarousel images={houseDetail.images ?? []} alt={houseDetail.name} height="h-full" />
+              <div style={{ height: 220, overflow: "hidden", fontSize: 0, lineHeight: 0 }}>
+                <ImageCarousel images={houseDetail.images ?? []} alt={houseDetail.name} height="h-[220px]" showThumbnails={false} />
               </div>
               <div className="flex-1 min-w-0 flex flex-col gap-3 p-4">
                 <div className="flex items-start justify-between gap-2">

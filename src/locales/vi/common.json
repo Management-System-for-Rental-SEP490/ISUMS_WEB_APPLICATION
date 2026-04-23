@@ -106,7 +106,8 @@
       "twoFactorDesc": "Bảo vệ tài khoản của bạn bằng mã xác thực",
       "sessionTimeout": "Thời gian hết phiên (phút)",
       "passwordExpiry": "Thời hạn mật khẩu (ngày)",
-      "changePassword": "Đổi mật khẩu"
+      "changePassword": "Đổi mật khẩu",
+      "changePasswordDesc": "Mật khẩu được quản lý bởi hệ thống xác thực. Bạn sẽ được chuyển đến trang bảo mật để thực hiện thay đổi."
     },
     "system": {
       "title": "Cài Đặt Hệ Thống",

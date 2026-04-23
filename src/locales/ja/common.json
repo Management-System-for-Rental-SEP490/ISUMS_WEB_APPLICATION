@@ -106,7 +106,8 @@
       "twoFactorDesc": "確認コードでアカウントを保護する",
       "sessionTimeout": "セッションタイムアウト（分）",
       "passwordExpiry": "パスワード有効期限（日）",
-      "changePassword": "パスワードを変更"
+      "changePassword": "パスワードを変更",
+      "changePasswordDesc": "パスワードは認証システムで管理されています。変更するにはセキュリティページに移動します。"
     },
     "system": {
       "title": "システム設定",
