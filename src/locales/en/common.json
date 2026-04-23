@@ -106,7 +106,8 @@
       "twoFactorDesc": "Protect your account with a verification code",
       "sessionTimeout": "Session Timeout (minutes)",
       "passwordExpiry": "Password Expiry (days)",
-      "changePassword": "Change Password"
+      "changePassword": "Change Password",
+      "changePasswordDesc": "Passwords are managed by the authentication system. You will be redirected to the security page to make changes."
     },
     "system": {
       "title": "System Settings",
