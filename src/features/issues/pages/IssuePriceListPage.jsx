@@ -92,10 +92,10 @@ function CreateBannerModal({ open, onClose, onCreated, t }) {
         <div className="px-6 pt-5 pb-4 flex items-center justify-between" style={{ borderBottom: "1px solid #C4DED5" }}>
           <div>
             <h3 className="text-lg font-bold" style={{ color: "#1E2D28" }}>
-              Thêm báo giá mới
+              {t("priceList.modalTitle")}
             </h3>
             <p className="text-xs mt-0.5" style={{ color: "#5A7A6E" }}>
-              Điền thông tin thiết bị / dịch vụ
+              {t("priceList.modalSubtitle")}
             </p>
           </div>
           <button
@@ -114,13 +114,13 @@ function CreateBannerModal({ open, onClose, onCreated, t }) {
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
           <div>
             <label className="block text-xs font-semibold mb-1.5" style={{ color: "#5A7A6E" }}>
-              Tên dịch vụ / thiết bị <span style={{ color: "#D95F4B" }}>*</span>
+              {t("priceList.fieldName")} <span style={{ color: "#D95F4B" }}>*</span>
             </label>
             <input
               name="name"
               value={form.name}
               onChange={handleChange}
-              placeholder="VD: Vệ sinh máy lạnh"
+              placeholder={t("priceList.fieldNamePlaceholder")}
               className="w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition"
               style={{ border: "1px solid #C4DED5", color: "#1E2D28", background: "#ffffff" }}
               onFocus={e => { e.currentTarget.style.borderColor = "#3bb582"; }}
@@ -132,7 +132,7 @@ function CreateBannerModal({ open, onClose, onCreated, t }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold mb-1.5" style={{ color: "#5A7A6E" }}>
-                Giá mua (đ) <span style={{ color: "#D95F4B" }}>*</span>
+                {t("priceList.fieldBuyPrice")} <span style={{ color: "#D95F4B" }}>*</span>
               </label>
               <input
                 name="estimatedCost"
@@ -150,7 +150,7 @@ function CreateBannerModal({ open, onClose, onCreated, t }) {
             </div>
             <div>
               <label className="block text-xs font-semibold mb-1.5" style={{ color: "#5A7A6E" }}>
-                Giá bán (đ) <span style={{ color: "#D95F4B" }}>*</span>
+                {t("priceList.fieldSellPrice")} <span style={{ color: "#D95F4B" }}>*</span>
               </label>
               <input
                 name="currentPrice"
@@ -179,7 +179,7 @@ function CreateBannerModal({ open, onClose, onCreated, t }) {
               onMouseEnter={e => { e.currentTarget.style.background = "#EAF4F0"; }}
               onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
             >
-              Hủy
+              {t("priceList.cancel")}
             </button>
             <button
               type="submit"
@@ -187,7 +187,7 @@ function CreateBannerModal({ open, onClose, onCreated, t }) {
               className="px-6 py-2.5 rounded-full text-white text-sm font-bold transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
             >
-              {submitting ? "Đang tạo..." : "Tạo báo giá"}
+              {submitting ? t("priceList.creating") : t("priceList.create")}
             </button>
           </div>
         </form>
@@ -310,7 +310,7 @@ export default function IssuePriceListPage() {
       <div className="flex items-center justify-between">
         <div>
 <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>
-            Bảng giá dịch vụ
+            {t("priceList.title")}
           </h2>
         </div>
         <div className="flex items-center gap-2">
@@ -323,7 +323,7 @@ export default function IssuePriceListPage() {
             onMouseLeave={e => { e.currentTarget.style.background = "#FFFFFF"; }}
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            Làm mới
+            {t("priceList.refresh")}
           </button>
           <button
             onClick={() => setModalOpen(true)}
@@ -331,7 +331,7 @@ export default function IssuePriceListPage() {
             style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
           >
             <Plus className="w-4 h-4" />
-            Thêm báo giá
+            {t("priceList.addNew")}
           </button>
         </div>
       </div>
@@ -340,7 +340,7 @@ export default function IssuePriceListPage() {
         <div className="rounded-xl px-4 py-3 flex items-center justify-between" style={{ background: "rgba(217,95,75,0.04)", border: "1px solid rgba(217,95,75,0.3)" }}>
           <p className="text-sm" style={{ color: "#D95F4B" }}>{error}</p>
           <button onClick={fetchBanners} className="text-xs underline" style={{ color: "#D95F4B" }}>
-            Thử lại
+            {t("priceList.retry")}
           </button>
         </div>
       )}
@@ -348,7 +348,7 @@ export default function IssuePriceListPage() {
       <div className="rounded-2xl overflow-hidden" style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
         {/* Table header */}
         <div className="grid grid-cols-[48px_minmax(0,1fr)_200px_220px] gap-4 px-6 py-3" style={{ borderBottom: "1px solid #C4DED5", background: "#EAF4F0" }}>
-          {["STT", "Tên dịch vụ / thiết bị", "Giá mua vào", "Giá bán"].map(
+          {[t("priceList.colIndex"), t("priceList.colName"), t("priceList.colBuyPrice"), t("priceList.colSellPrice")].map(
             (h) => (
               <p key={h} className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>
                 {h}
@@ -378,7 +378,7 @@ export default function IssuePriceListPage() {
             <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "#EAF4F0" }}>
               <Tag className="w-7 h-7" style={{ color: "#3bb582" }} />
             </div>
-            <p className="text-sm" style={{ color: "#5A7A6E" }}>Chưa có dữ liệu bảng giá</p>
+            <p className="text-sm" style={{ color: "#5A7A6E" }}>{t("priceList.empty")}</p>
           </div>
         )}
 

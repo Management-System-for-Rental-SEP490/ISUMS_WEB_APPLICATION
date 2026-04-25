@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { LoadingSpinner } from "../../../components/shared/Loading";
 
 function Avatar({ name }) {
@@ -18,6 +19,7 @@ function Avatar({ name }) {
 }
 
 function EmptyState({ hasSearch }) {
+  const { t } = useTranslation("common");
   return (
     <div className="py-16 flex flex-col items-center gap-3 text-center">
       <div
@@ -29,23 +31,25 @@ function EmptyState({ hasSearch }) {
         </svg>
       </div>
       <p className="font-semibold" style={{ color: "#1E2D28" }}>
-        {hasSearch ? "Không tìm thấy người dùng phù hợp" : "Chưa có người dùng nào"}
+        {hasSearch ? t("users.emptySearch") : t("users.emptyAll")}
       </p>
       <p className="text-sm" style={{ color: "#5A7A6E" }}>
-        {hasSearch ? "Thử thay đổi từ khóa tìm kiếm" : "Dữ liệu sẽ hiển thị tại đây"}
+        {hasSearch ? t("users.emptySearchHint") : t("users.emptyAllHint")}
       </p>
     </div>
   );
 }
 
 export default function UsersTable({ users, loading, searchTerm }) {
+  const { t } = useTranslation("common");
+
   if (loading) {
     return (
       <div
         className="rounded-2xl px-8 py-16 flex flex-col items-center gap-4"
         style={{ background: "#FFFFFF", border: "1px solid #C4DED5" }}
       >
-        <LoadingSpinner size="lg" showLabel label="Đang tải danh sách người dùng..." />
+        <LoadingSpinner size="lg" showLabel label={t("users.loading")} />
       </div>
     );
   }
@@ -62,10 +66,10 @@ export default function UsersTable({ users, loading, searchTerm }) {
           <table className="w-full text-sm">
             <thead>
               <tr style={{ borderBottom: "1px solid #C4DED5", background: "#EAF4F0" }}>
-                <th className="text-center px-4 py-3.5 text-xs font-semibold uppercase tracking-wide w-12" style={{ color: "#5A7A6E" }}>STT</th>
-                <th className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>Người dùng</th>
-                <th className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>Email</th>
-                <th className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>Số điện thoại</th>
+                <th className="text-center px-4 py-3.5 text-xs font-semibold uppercase tracking-wide w-12" style={{ color: "#5A7A6E" }}>{t("users.colIndex")}</th>
+                <th className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>{t("users.colUser")}</th>
+                <th className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>{t("users.colEmail")}</th>
+                <th className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>{t("users.colPhone")}</th>
               </tr>
             </thead>
             <tbody>
@@ -99,8 +103,8 @@ export default function UsersTable({ users, loading, searchTerm }) {
                     </a>
                   </td>
                   <td className="px-5 py-3.5">
-                    {user.phone === "Chưa có" ? (
-                      <span className="text-xs italic" style={{ color: "#5A7A6E" }}>Chưa có</span>
+                    {!user.phone || user.phone === "Chưa có" ? (
+                      <span className="text-xs italic" style={{ color: "#5A7A6E" }}>{t("users.noPhone")}</span>
                     ) : (
                       <span className="font-mono text-xs px-2 py-0.5 rounded" style={{ background: "#EAF4F0", color: "#1E4A38" }}>
                         {user.phone}

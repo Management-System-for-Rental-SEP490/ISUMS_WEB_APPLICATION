@@ -107,7 +107,21 @@ export default function Step1JobSelect({
 
         <div className="space-y-2 max-h-64 overflow-y-auto pr-0.5">
           {jobsLoading ? (
-            [...Array(4)].map((_, i) => <div key={i} className="h-14 bg-slate-100 rounded-xl animate-pulse" />)
+            [...Array(4)].map((_, i) => (
+              <div key={i} className="flex items-center gap-0 rounded-xl border border-slate-100 overflow-hidden animate-pulse">
+                <div className="w-1 self-stretch bg-slate-200 flex-shrink-0" />
+                <div className="flex-1 px-4 py-3 space-y-2">
+                  <div className="h-3.5 bg-slate-200 rounded-full w-3/5" />
+                  <div className="flex gap-2">
+                    <div className="h-2.5 bg-slate-100 rounded-full w-1/4" />
+                    <div className="h-2.5 bg-slate-100 rounded-full w-1/5" />
+                  </div>
+                </div>
+                <div className="px-4 flex-shrink-0">
+                  <div className="w-5 h-5 rounded border-2 border-slate-200 bg-slate-100" />
+                </div>
+              </div>
+            ))
           ) : filteredJobs.length === 0 ? (
             <p className="text-sm text-slate-400 text-center py-8">{t("schedule.step1NoJobs")}</p>
           ) : (

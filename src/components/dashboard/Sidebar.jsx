@@ -6,7 +6,7 @@ import {
   AlertCircle, BarChart2, Bell, Building2, CalendarDays,
   ChevronDown, ClipboardList,
   FileText, Home, LogOut, CheckCircle, MailQuestionIcon,
-  PenLine, Tag, Settings, UserCheck, Users, UserCog,
+  MapPin, PenLine, Tag, Settings, UserCheck, Users, UserCog,
   Wrench, Zap, LayoutDashboard, ShieldCheck,
 } from "lucide-react";
 import logo from "../../assets/logo.jpg";
@@ -44,8 +44,9 @@ export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
     {
       id: "bat-dong-san-group", label: t("sidebar.realEstate"), icon: Building2, collapsible: true,
       items: [
-        { id: "houses", label: t("sidebar.manageHouses"), icon: Building2, path: "/houses" },
-        { id: "assets", label: t("sidebar.devices"),       icon: Wrench,    path: "/assets" },
+        { id: "houses",   label: t("sidebar.manageHouses"), icon: Building2, path: "/houses" },
+        { id: "regions",  label: t("sidebar.regions"),      icon: MapPin,    path: "/regions" },
+        { id: "assets",   label: t("sidebar.devices"),      icon: Wrench,    path: "/assets" },
       ],
     },
     {

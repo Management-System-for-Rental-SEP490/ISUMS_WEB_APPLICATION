@@ -71,9 +71,9 @@ export default function CreateContract({ onCancel, onCreated }) {
     } catch (err) {
       const status = err?.response?.status;
       const msg =
-        status === 400 ? "Dữ liệu không hợp lệ hoặc thông tin chủ nhà chưa được cập nhật đầy đủ." :
-        status === 404 ? "Không tìm thấy nhà hoặc email người dùng không tồn tại." :
-        "Tạo hợp đồng thất bại, vui lòng thử lại.";
+        status === 400 ? t("contracts.create.err400") :
+        status === 404 ? t("contracts.create.err404") :
+        t("contracts.create.errGeneric");
       setIsError(true);
       setErrorMessage(msg);
       setIsApiDone(true);
@@ -126,10 +126,8 @@ export default function CreateContract({ onCancel, onCreated }) {
         onClose={() => setModalOpen(false)}
       />
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">Tạo Hợp Đồng</h2>
-        <p className="text-gray-600">
-          Bước 1: Người thuê — Bước 2: Nhà & chi phí — Bước 3: Điều khoản
-        </p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t("contracts.create.title")}</h2>
+        <p className="text-gray-600">{t("contracts.create.subtitle")}</p>
       </div>
       <CreateContractWizard
         initialForm={initialForm}

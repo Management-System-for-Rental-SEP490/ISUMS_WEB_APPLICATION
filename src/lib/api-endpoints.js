@@ -12,6 +12,8 @@ export const HOUSES_ENDPOINTS = {
   DELETE: (id) => `/houses/${id}`,
   IMAGES: (id) => `/houses/${id}/images`,
   REGIONS: "/houses/regions",
+  REGIONS_CREATE: "/houses/regions",
+  REGIONS_ASSIGN_STAFF: (regionId, staffId) => `/houses/regions/${regionId}/staff/${staffId}`,
   FUNCTIONAL_AREAS: "/houses/functionalAreas",
   HISTORY: (id) => `/houses/${id}/history`,
   TRANSLATIONS: (id) => `/houses/${id}/translations`,
