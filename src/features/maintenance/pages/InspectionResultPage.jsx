@@ -87,7 +87,7 @@ export default function InspectionResultPage() {
           .finally(() => setLoadingEvents(false));
       }
     } catch (err) {
-      setError(err.message ?? "Không thể tải dữ liệu kiểm tra.");
+      setError(err.message ?? t("inspection.loadError"));
     } finally {
       setLoadingInspection(false);
     }
