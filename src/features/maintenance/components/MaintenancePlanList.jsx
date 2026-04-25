@@ -1,18 +1,16 @@
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
 import { Search, SlidersHorizontal } from "lucide-react";
 import MaintenancePlanCard from "./MaintenancePlanCard";
 
-export default function MaintenancePlanList({ plans, onViewJobs, onEdit }) {
-  const { t } = useTranslation("common");
+export default function MaintenancePlanList({ plans, onViewJobs, onEdit, t }) {
   const [search, setSearch]             = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
 
   const STATUS_FILTERS = [
-    { value: "ALL",       label: t("maintenance.planList.filterAll")       },
-    { value: "ACTIVE",    label: t("maintenance.planList.filterActive")    },
-    { value: "INACTIVE",  label: t("maintenance.planList.filterInactive")  },
-    { value: "COMPLETED", label: t("maintenance.planList.filterCompleted") },
+    { value: "ALL",       labelKey: "maintenance.filterAll"       },
+    { value: "ACTIVE",    labelKey: "maintenance.filterActive"    },
+    { value: "INACTIVE",  labelKey: "maintenance.filterInactive"  },
+    { value: "COMPLETED", labelKey: "maintenance.filterCompleted" },
   ];
 
   const filtered = plans.filter((p) => {
@@ -32,7 +30,7 @@ export default function MaintenancePlanList({ plans, onViewJobs, onEdit }) {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={t("maintenance.planList.searchPlaceholder")}
+            placeholder={t("maintenance.searchPlaceholder")}
             className="flex-1 text-sm bg-transparent outline-none text-slate-700 placeholder-slate-400"
           />
         </div>
@@ -49,7 +47,7 @@ export default function MaintenancePlanList({ plans, onViewJobs, onEdit }) {
                   : "bg-white text-slate-600 hover:bg-slate-50"
               }`}
             >
-              {f.label}
+              {t(f.labelKey)}
             </button>
           ))}
         </div>
@@ -59,8 +57,8 @@ export default function MaintenancePlanList({ plans, onViewJobs, onEdit }) {
       {filtered.length === 0 ? (
         <div className="text-center py-16 text-slate-400">
           <SlidersHorizontal className="w-10 h-10 mx-auto mb-3 opacity-30" />
-          <p className="text-sm font-medium">{t("maintenance.planList.emptyTitle")}</p>
-          <p className="text-xs mt-1">{t("maintenance.planList.emptyHint")}</p>
+          <p className="text-sm font-medium">{t("maintenance.listEmpty")}</p>
+          <p className="text-xs mt-1">{t("maintenance.listEmptyHint")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -70,6 +68,7 @@ export default function MaintenancePlanList({ plans, onViewJobs, onEdit }) {
               plan={plan}
               onViewJobs={() => onViewJobs(plan)}
               onEdit={() => onEdit(plan)}
+              t={t}
             />
           ))}
         </div>

@@ -312,10 +312,22 @@ export default function Settings() {
             </select>
           </div>
           <div>
-            <button className="px-4 py-2 rounded-full text-sm flex items-center gap-2 transition"
+            <p className="text-sm font-medium mb-3" style={{ color: "#1E2D28" }}>
+              {t("settings.security.changePassword")}
+            </p>
+            <p className="text-sm text-gray-500 mb-3">
+              {t("settings.security.changePasswordDesc")}
+            </p>
+            <button
+              className="px-4 py-2 rounded-full text-sm flex items-center gap-2 transition"
               style={{ border: "1px solid #C4DED5", color: "#5A7A6E" }}
               onMouseEnter={e => e.currentTarget.style.background = "#EAF4F0"}
               onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+              onClick={() => {
+                const url = keycloak.createAccountUrl();
+                const accountBase = url.split("?")[0].replace(/\/$/, "");
+                window.open(`${accountBase}/password`, "_blank", "noopener,noreferrer");
+              }}
             >
               <Key className="w-4 h-4" />
               {t("settings.security.changePassword")}

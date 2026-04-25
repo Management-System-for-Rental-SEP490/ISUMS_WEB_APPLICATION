@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
 import { createPortal } from "react-dom";
 import { ArrowLeft, ArrowRight, Check, ChevronRight, Minus, Plus, X } from "lucide-react";
 import { DatePicker } from "antd";
 import dayjs from "dayjs";
 import { createMaintenancePlan } from "../api/maintenance.api";
+
+const FREQUENCY_TYPE_OPTIONS = ["MONTHLY"];
 
 const lbl = "block text-sm font-semibold text-slate-700 mb-1.5";
 const inp = "w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 bg-slate-50 placeholder-slate-400 transition";
@@ -18,21 +19,7 @@ const INITIAL_FORM = {
   nextRunAt: "",
 };
 
-export default function CreatePlanDrawer({ open, onClose, onCreated }) {
-  const { t } = useTranslation("common");
-  const STEPS = [
-    t("maintenance.createPlan.stepBasic"),
-    t("maintenance.createPlan.stepCycle"),
-    t("maintenance.createPlan.stepEffective"),
-  ];
-  const FREQUENCY_TYPE_OPTIONS = [
-    {
-      value: "MONTHLY",
-      label: t("maintenance.createPlan.frequencyMonthlyLabel"),
-      desc: t("maintenance.createPlan.frequencyMonthlyDesc"),
-    },
-  ];
-
+export default function CreatePlanDrawer({ open, onClose, onCreated, t }) {
   const [mounted, setMounted]         = useState(false);
   const [visible, setVisible]         = useState(false);
   const [step, setStep]               = useState(0);
@@ -41,14 +28,20 @@ export default function CreatePlanDrawer({ open, onClose, onCreated }) {
   const [submitting, setSubmitting]   = useState(false);
   const [submitError, setSubmitError] = useState(null);
 
+  const STEPS = [
+    t("maintenance.createStep0"),
+    t("maintenance.createStep1"),
+    t("maintenance.createStep2"),
+  ];
+
   useEffect(() => {
     if (open) {
       setMounted(true);
       requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
     } else {
       setVisible(false);
-      const ti = setTimeout(() => setMounted(false), 300);
-      return () => clearTimeout(ti);
+      const timer = setTimeout(() => setMounted(false), 300);
+      return () => clearTimeout(timer);
     }
   }, [open]);
 
@@ -62,20 +55,20 @@ export default function CreatePlanDrawer({ open, onClose, onCreated }) {
   const validateStep = () => {
     const e = {};
     if (step === 0) {
-      if (!form.name.trim()) e.name = t("maintenance.createPlan.errorNameRequired");
+      if (!form.name.trim()) e.name = t("maintenance.createErrorName");
     }
     if (step === 1) {
-      if (!form.frequencyType)                              e.frequencyType  = t("maintenance.createPlan.errorFrequencyTypeRequired");
-      if (!form.frequencyValue || form.frequencyValue < 1) e.frequencyValue = t("maintenance.createPlan.errorFrequencyMin");
+      if (!form.frequencyType)                              e.frequencyType  = t("maintenance.createErrorFreqType");
+      if (!form.frequencyValue || form.frequencyValue < 1) e.frequencyValue = t("maintenance.createErrorFreqValue");
     }
     if (step === 2) {
-      if (!form.effectiveFrom) e.effectiveFrom = t("maintenance.createPlan.errorEffectiveFromRequired");
-      if (!form.effectiveTo)   e.effectiveTo   = t("maintenance.createPlan.errorEffectiveToRequired");
-      if (!form.nextRunAt)     e.nextRunAt     = t("maintenance.createPlan.errorNextRunRequired");
+      if (!form.effectiveFrom) e.effectiveFrom = t("maintenance.createErrorEffectiveFrom");
+      if (!form.effectiveTo)   e.effectiveTo   = t("maintenance.createErrorEffectiveTo");
+      if (!form.nextRunAt)     e.nextRunAt     = t("maintenance.createErrorNextRunAt");
       if (form.effectiveFrom && form.effectiveTo && form.effectiveTo < form.effectiveFrom)
-        e.effectiveTo = t("maintenance.createPlan.errorEffectiveOrder");
+        e.effectiveTo = t("maintenance.createErrorEffectiveToOrder");
       if (form.effectiveFrom && form.nextRunAt && form.nextRunAt < form.effectiveFrom)
-        e.nextRunAt = t("maintenance.createPlan.errorNextRunInRange");
+        e.nextRunAt = t("maintenance.createErrorNextRunAtOrder");
     }
     setErrors(e);
     return !Object.keys(e).length;
@@ -111,7 +104,7 @@ export default function CreatePlanDrawer({ open, onClose, onCreated }) {
       handleClose();
       onCreated?.();
     } catch (e) {
-      setSubmitError(e.message ?? t("maintenance.createPlan.submitError"));
+      setSubmitError(e.message ?? t("maintenance.createErrorGeneral"));
     } finally {
       setSubmitting(false);
     }
@@ -141,9 +134,9 @@ export default function CreatePlanDrawer({ open, onClose, onCreated }) {
         {/* Header */}
         <div className="px-6 pt-5 pb-4 border-b border-slate-100 flex items-start justify-between gap-3 flex-shrink-0">
           <div>
-            <h3 className="text-[17px] font-bold text-slate-800 leading-tight">{t("maintenance.createPlan.title")}</h3>
+            <h3 className="text-[17px] font-bold text-slate-800 leading-tight">{t("maintenance.createTitle")}</h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              {t("maintenance.createPlan.stepIndicator", { current: step + 1, total: STEPS.length, name: STEPS[step] })}
+              {t("maintenance.createStepIndicator", { current: step + 1, total: STEPS.length, step: STEPS[step] })}
             </p>
           </div>
           <button type="button" onClick={handleClose}
@@ -178,15 +171,15 @@ export default function CreatePlanDrawer({ open, onClose, onCreated }) {
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-6 py-5">
 
-          {/* Step 0: basic info */}
+          {/* Step 0: Basic info */}
           {step === 0 && (
             <div className="space-y-5">
               <div>
-                <label className={lbl}>{t("maintenance.createPlan.labelName")} <span className="text-red-500">*</span></label>
+                <label className={lbl}>{t("maintenance.createLabelName")} <span className="text-red-500">*</span></label>
                 <input
                   value={form.name}
                   onChange={(e) => setField("name", e.target.value)}
-                  placeholder={t("maintenance.createPlan.placeholderName")}
+                  placeholder={t("maintenance.createPlaceholderName")}
                   className={`${inp} ${errors.name ? "border-red-400" : ""}`}
                 />
                 {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
@@ -194,23 +187,25 @@ export default function CreatePlanDrawer({ open, onClose, onCreated }) {
             </div>
           )}
 
-          {/* Step 1: cycle */}
+          {/* Step 1: Cycle */}
           {step === 1 && (
             <div className="space-y-6">
               <div>
-                <label className={lbl}>{t("maintenance.createPlan.labelFrequencyType")} <span className="text-red-500">*</span></label>
+                <label className={lbl}>{t("maintenance.createLabelFreqType")} <span className="text-red-500">*</span></label>
                 <div className="space-y-2">
-                  {FREQUENCY_TYPE_OPTIONS.map((tp) => (
-                    <button key={tp.value} type="button" onClick={() => setField("frequencyType", tp.value)}
+                  {FREQUENCY_TYPE_OPTIONS.map((val) => (
+                    <button key={val} type="button" onClick={() => setField("frequencyType", val)}
                       className={`w-full flex items-start gap-3 px-4 py-3 rounded-xl border text-left transition ${
-                        form.frequencyType === tp.value
+                        form.frequencyType === val
                           ? "border-teal-500 bg-teal-50 ring-1 ring-teal-400"
                           : "border-slate-200 hover:border-teal-300 hover:bg-slate-50"
                       }`}>
-                      <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${form.frequencyType === tp.value ? "bg-teal-500" : "bg-slate-300"}`} />
+                      <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${form.frequencyType === val ? "bg-teal-500" : "bg-slate-300"}`} />
                       <div>
-                        <p className={`text-sm font-semibold ${form.frequencyType === tp.value ? "text-teal-700" : "text-slate-700"}`}>{tp.label}</p>
-                        <p className="text-xs text-slate-400 mt-0.5">{tp.desc}</p>
+                        <p className={`text-sm font-semibold ${form.frequencyType === val ? "text-teal-700" : "text-slate-700"}`}>
+                          {t("maintenance.createFreqMonthly")}
+                        </p>
+                        <p className="text-xs text-slate-400 mt-0.5">{t("maintenance.createFreqMonthlyDesc")}</p>
                       </div>
                     </button>
                   ))}
@@ -219,8 +214,8 @@ export default function CreatePlanDrawer({ open, onClose, onCreated }) {
               </div>
 
               <div>
-                <label className={lbl}>{t("maintenance.createPlan.labelFrequencyValue")} <span className="text-red-500">*</span></label>
-                <p className="text-xs text-slate-400 mb-3">{t("maintenance.createPlan.frequencyValueDesc")}</p>
+                <label className={lbl}>{t("maintenance.createLabelFreqValue")} <span className="text-red-500">*</span></label>
+                <p className="text-xs text-slate-400 mb-3">{t("maintenance.createFreqValueHint")}</p>
                 <div className="flex items-center gap-4 mb-4">
                   <button type="button"
                     onClick={() => setField("frequencyValue", Math.max(1, form.frequencyValue - 1))}
@@ -229,7 +224,7 @@ export default function CreatePlanDrawer({ open, onClose, onCreated }) {
                   </button>
                   <div className="flex-1 text-center">
                     <span className="text-3xl font-bold text-teal-700">{form.frequencyValue}</span>
-                    <p className="text-xs text-slate-400 mt-0.5">{t("maintenance.createPlan.timesPerMonth")}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{t("maintenance.createFreqValueUnit")}</p>
                   </div>
                   <button type="button"
                     onClick={() => setField("frequencyValue", Math.min(12, form.frequencyValue + 1))}
@@ -254,23 +249,23 @@ export default function CreatePlanDrawer({ open, onClose, onCreated }) {
             </div>
           )}
 
-          {/* Step 2: effective period */}
+          {/* Step 2: Effective period */}
           {step === 2 && (
             <div className="space-y-5">
               <div className="bg-teal-50 border border-teal-200 rounded-xl px-4 py-3 space-y-1">
-                <p className="text-xs text-teal-500 font-medium">{t("maintenance.createPlan.summaryTitle")}</p>
+                <p className="text-xs text-teal-500 font-medium">{t("maintenance.createSummaryTitle")}</p>
                 <p className="text-sm font-semibold text-teal-800">{form.name}</p>
                 <p className="text-xs text-teal-600">
-                  {t("maintenance.createPlan.summaryBody", { count: form.frequencyValue })}
+                  {t("maintenance.createSummaryFreq", { value: form.frequencyValue })}
                 </p>
               </div>
 
               <div>
-                <label className={lbl}>{t("maintenance.createPlan.labelEffectiveFrom")} <span className="text-red-500">*</span></label>
+                <label className={lbl}>{t("maintenance.createLabelEffectiveFrom")} <span className="text-red-500">*</span></label>
                 <DatePicker
                   className="w-full"
                   format="DD/MM/YYYY"
-                  placeholder={t("maintenance.createPlan.pickFrom")}
+                  placeholder={t("maintenance.createPlaceholderEffectiveFrom")}
                   status={errors.effectiveFrom ? "error" : ""}
                   value={form.effectiveFrom ? dayjs(form.effectiveFrom) : null}
                   onChange={(date) => setField("effectiveFrom", date ? date.format("YYYY-MM-DD") : "")}
@@ -279,11 +274,11 @@ export default function CreatePlanDrawer({ open, onClose, onCreated }) {
               </div>
 
               <div>
-                <label className={lbl}>{t("maintenance.createPlan.labelEffectiveTo")} <span className="text-red-500">*</span></label>
+                <label className={lbl}>{t("maintenance.createLabelEffectiveTo")} <span className="text-red-500">*</span></label>
                 <DatePicker
                   className="w-full"
                   format="DD/MM/YYYY"
-                  placeholder={t("maintenance.createPlan.pickTo")}
+                  placeholder={t("maintenance.createPlaceholderEffectiveTo")}
                   status={errors.effectiveTo ? "error" : ""}
                   value={form.effectiveTo ? dayjs(form.effectiveTo) : null}
                   disabledDate={(d) => form.effectiveFrom ? d.isBefore(dayjs(form.effectiveFrom), "day") : false}
@@ -293,14 +288,12 @@ export default function CreatePlanDrawer({ open, onClose, onCreated }) {
               </div>
 
               <div>
-                <label className={lbl}>{t("maintenance.createPlan.labelNextRun")} <span className="text-red-500">*</span></label>
-                <p className="text-xs text-slate-400 mb-1.5">
-                  {t("maintenance.createPlan.nextRunHint")}
-                </p>
+                <label className={lbl}>{t("maintenance.createLabelNextRunAt")} <span className="text-red-500">*</span></label>
+                <p className="text-xs text-slate-400 mb-1.5">{t("maintenance.createNextRunAtHint")}</p>
                 <DatePicker
                   className="w-full"
                   format="DD/MM/YYYY"
-                  placeholder={t("maintenance.createPlan.pickNext")}
+                  placeholder={t("maintenance.createPlaceholderNextRunAt")}
                   status={errors.nextRunAt ? "error" : ""}
                   value={form.nextRunAt ? dayjs(form.nextRunAt) : null}
                   disabledDate={(d) => {
@@ -327,18 +320,18 @@ export default function CreatePlanDrawer({ open, onClose, onCreated }) {
           <button type="button" onClick={step === 0 ? handleClose : prev}
             className="flex-1 flex items-center justify-center gap-2 py-3 border border-slate-200 rounded-xl text-slate-600 text-sm font-semibold hover:bg-slate-50 transition">
             <ArrowLeft className="w-4 h-4" />
-            {step === 0 ? t("maintenance.createPlan.btnCancel") : t("maintenance.createPlan.btnBack")}
+            {step === 0 ? t("maintenance.btnCancel") : t("maintenance.btnBack")}
           </button>
 
           {step < STEPS.length - 1 ? (
             <button type="button" onClick={next}
               className="flex-[2] flex items-center justify-center gap-2 py-3 bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold rounded-xl transition shadow-sm">
-              {t("maintenance.createPlan.btnNext")} <ArrowRight className="w-4 h-4" />
+              {t("maintenance.btnNext")} <ArrowRight className="w-4 h-4" />
             </button>
           ) : (
             <button type="button" onClick={handleSubmit} disabled={submitting}
               className="flex-[2] py-3 bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold rounded-xl transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed">
-              {submitting ? t("maintenance.createPlan.btnCreating") : t("maintenance.createPlan.btnCreate")}
+              {submitting ? t("maintenance.btnSubmitting") : t("maintenance.btnSubmit")}
             </button>
           )}
         </div>

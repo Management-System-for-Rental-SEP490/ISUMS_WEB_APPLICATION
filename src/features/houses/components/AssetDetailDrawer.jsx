@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Drawer, Badge, Progress, Tag, Descriptions, Alert, Spin, Typography } from "antd";
-import { Package } from "lucide-react";
+import { Drawer, Badge, Progress, Tag, Descriptions, Alert, Spin, Typography, Button } from "antd";
+import { Package, CheckCircle, AlertCircle } from "lucide-react";
+import { toast } from "react-toastify";
 import ImageCarousel from "../../../components/shared/ImageCarousel";
 import { getAssetById } from "../api/houses.api";
+import { managerConfirmAsset } from "../../assets/api/assets.api";
 import { ASSET_STATUS } from "./HouseOverviewTab";
 
 const STATUS_BADGE = {
-  IN_USE:       "success",
-  UNDER_REPAIR: "warning",
-  BROKEN:       "error",
-  DISPOSED:     "error",
-  default:      "default",
+  IN_USE:                  "success",
+  UNDER_REPAIR:            "warning",
+  BROKEN:                  "error",
+  DISPOSED:                "error",
+  WAITING_MANAGER_CONFIRM: "processing",
+  default:                 "default",
 };
 
 const CONDITION_STROKE = (pct) => {
@@ -20,24 +23,43 @@ const CONDITION_STROKE = (pct) => {
   return "#ef4444";
 };
 
-export default function AssetDetailDrawer({ assetId, onClose }) {
+const BRAND_GRADIENT = "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)";
+
+export default function AssetDetailDrawer({ assetId, onClose, onConfirmed }) {
   const { t } = useTranslation("common");
-  const [asset, setAsset]     = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState(null);
+  const [asset, setAsset]           = useState(null);
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState(null);
+  const [confirming, setConfirming] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     if (!assetId) return;
-    setLoading(true); setError(null); setAsset(null);
+    setLoading(true); setError(null); setAsset(null); setShowConfirm(false);
     getAssetById(assetId)
       .then(setAsset)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, [assetId]);
 
-  const status    = asset ? (ASSET_STATUS[asset.status] ?? ASSET_STATUS.default) : null;
+  const handleConfirm = async () => {
+    setConfirming(true);
+    try {
+      await managerConfirmAsset(assetId, "IN_USE");
+      toast.success(t("assets.confirmAssetSuccess"));
+      onConfirmed?.();
+      onClose();
+    } catch (e) {
+      toast.error(e.message || t("assets.confirmAssetError"));
+      setShowConfirm(false);
+    } finally {
+      setConfirming(false);
+    }
+  };
+
+  const status      = asset ? (ASSET_STATUS[asset.status] ?? ASSET_STATUS.default) : null;
   const badgeStatus = asset ? (STATUS_BADGE[asset.status] ?? STATUS_BADGE.default) : "default";
-  const pct       = asset?.conditionPercent ?? 0;
+  const pct         = asset?.conditionPercent ?? 0;
 
   return (
     <Drawer
@@ -68,17 +90,23 @@ export default function AssetDetailDrawer({ assetId, onClose }) {
 
       {asset && (
         <div>
-          {/* Carousel */}
           <ImageCarousel images={asset.images ?? []} alt={asset.displayName} height="h-64" />
 
           <div className="p-5 space-y-5">
-            {/* Header: tên + badge trạng thái */}
+            {/* Header */}
             <div className="flex items-start justify-between gap-3">
               <div>
                 <Typography.Title level={5} className="!mb-0.5">{asset.displayName}</Typography.Title>
                 <Typography.Text type="secondary" className="font-mono text-xs">{asset.serialNumber ?? "—"}</Typography.Text>
               </div>
-              <Badge status={badgeStatus} text={<span className="text-xs font-medium">{t(`houses.assetStatus.${asset.status}`, { defaultValue: status.label })}</span>} />
+              <Badge
+                status={badgeStatus}
+                text={
+                  <span className="text-xs font-medium">
+                    {t(`houses.assetStatus.${asset.status}`, { defaultValue: status.label })}
+                  </span>
+                }
+              />
             </div>
 
             {/* Tình trạng */}
@@ -131,6 +159,46 @@ export default function AssetDetailDrawer({ assetId, onClose }) {
                 <p className="text-xs font-semibold text-gray-500 mb-1.5">{t("houses.assetDrawer.noteLabel")}</p>
                 <Alert type="info" description={asset.note} showIcon />
               </div>
+            )}
+
+            {/* Confirm — inline, only for WAITING_MANAGER_CONFIRM */}
+            {asset.status === "WAITING_MANAGER_CONFIRM" && (
+              !showConfirm ? (
+                <Button
+                  className="w-full"
+                  style={{ background: BRAND_GRADIENT, border: "none", height: 40, color: "#fff" }}
+                  icon={<CheckCircle className="w-4 h-4" />}
+                  onClick={() => setShowConfirm(true)}
+                >
+                  {t("assets.confirmAsset")}
+                </Button>
+              ) : (
+                <div className="rounded-xl p-4 space-y-3" style={{ background: "#F7FBF9", border: "1px solid #C4DED5" }}>
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" style={{ color: "#2096d8" }} />
+                    <p className="text-sm" style={{ color: "#1E2D28" }}>
+                      {t("assets.confirmAssetContent", { name: asset.displayName })}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      className="flex-1"
+                      onClick={() => setShowConfirm(false)}
+                      disabled={confirming}
+                    >
+                      {t("actions.cancel")}
+                    </Button>
+                    <Button
+                      className="flex-1"
+                      loading={confirming}
+                      style={{ background: BRAND_GRADIENT, border: "none", color: "#fff" }}
+                      onClick={handleConfirm}
+                    >
+                      {t("actions.confirm")}
+                    </Button>
+                  </div>
+                </div>
+              )
             )}
           </div>
         </div>

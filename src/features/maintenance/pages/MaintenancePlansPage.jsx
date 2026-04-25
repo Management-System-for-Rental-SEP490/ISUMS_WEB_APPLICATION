@@ -9,16 +9,14 @@ import AssignStaffModal from "../components/AssignStaffModal";
 import GenerateJobsResultModal from "../components/GenerateJobsResultModal";
 import { getMaintenancePlans, generateMaintenanceJobs } from "../api/maintenance.api";
 
-const DATE_LOCALE = { vi: "vi-VN", en: "en-GB", ja: "ja-JP" };
-
-function formatDate(value, locale = "vi-VN") {
+function formatDate(value) {
   if (!value) return "—";
   const d = new Date(value);
   if (isNaN(d)) return value;
-  return d.toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric" });
+  return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-function normalizePlan(raw, locale) {
+function normalizePlan(raw) {
   return {
     id:            raw.id,
     name:          raw.name ?? raw.planName ?? "—",
@@ -28,16 +26,16 @@ function normalizePlan(raw, locale) {
     status:        raw.isActive !== undefined
                      ? (raw.isActive ? "ACTIVE" : "INACTIVE")
                      : (raw.status ?? "INACTIVE"),
-    nextRunDate:   formatDate(raw.nextRunAt ?? raw.nextRunDate ?? raw.nextScheduleDate, locale),
-    effectiveFrom: formatDate(raw.effectiveFrom, locale),
-    effectiveTo:   formatDate(raw.effectiveTo, locale),
+    nextRunDate:   formatDate(raw.nextRunAt ?? raw.nextRunDate ?? raw.nextScheduleDate),
+    effectiveFrom: formatDate(raw.effectiveFrom),
+    effectiveTo:   formatDate(raw.effectiveTo),
     jobCount:      raw.jobCount ?? raw.totalJobs ?? 0,
   };
 }
 
 export default function MaintenancePlansPage() {
-  const { t, i18n } = useTranslation("common");
-  const dateLocale = DATE_LOCALE[i18n.language] ?? "vi-VN";
+  const { t } = useTranslation("common");
+
   const [plans, setPlans]           = useState([]);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState(null);
@@ -66,7 +64,7 @@ export default function MaintenancePlansPage() {
     getMaintenancePlans()
       .then((data) => {
         const raw = Array.isArray(data) ? data : (data?.data ?? data?.items ?? []);
-        setPlans(raw.map((p) => normalizePlan(p, dateLocale)));
+        setPlans(raw.map(normalizePlan));
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
@@ -76,18 +74,18 @@ export default function MaintenancePlansPage() {
     getMaintenancePlans()
       .then((data) => {
         const raw = Array.isArray(data) ? data : (data?.data ?? data?.items ?? []);
-        setPlans(raw.map((p) => normalizePlan(p, dateLocale)));
+        setPlans(raw.map(normalizePlan));
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [dateLocale]);
+  }, []);
 
   const activeCount = plans.filter((p) => p.status === "ACTIVE").length;
 
   const stats = [
-    { label: t("maintenance.plansPage.statTotal"),     value: loading ? "—" : plans.length, iconBg: "rgba(59,181,130,0.12)",  iconColor: "#3bb582" },
-    { label: t("maintenance.plansPage.statActive"),    value: loading ? "—" : activeCount,  iconBg: "rgba(59,181,130,0.12)",  iconColor: "#3bb582" },
-    { label: t("maintenance.plansPage.statThisMonth"), value: loading ? "—" : 0,            iconBg: "rgba(32,150,216,0.12)",  iconColor: "#2096d8" },
+    { labelKey: "maintenance.statTotal",     value: loading ? "—" : plans.length, iconBg: "rgba(59,181,130,0.12)",  iconColor: "#3bb582" },
+    { labelKey: "maintenance.statActive",    value: loading ? "—" : activeCount,  iconBg: "rgba(59,181,130,0.12)",  iconColor: "#3bb582" },
+    { labelKey: "maintenance.statThisMonth", value: loading ? "—" : 0,            iconBg: "rgba(32,150,216,0.12)",  iconColor: "#2096d8" },
   ];
 
   return (
@@ -95,7 +93,7 @@ export default function MaintenancePlansPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-<h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>{t("maintenance.plansPage.title")}</h2>
+          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>{t("maintenance.pageTitle")}</h2>
         </div>
         <div className="flex items-center gap-2 mt-1">
           <button
@@ -108,7 +106,7 @@ export default function MaintenancePlansPage() {
             onMouseLeave={e => e.currentTarget.style.background = "#ffffff"}
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} style={{ color: "#3bb582" }} />
-            {t("maintenance.plansPage.refresh")}
+            {t("maintenance.btnRefresh")}
           </button>
           <button
             type="button"
@@ -120,7 +118,7 @@ export default function MaintenancePlansPage() {
             onMouseLeave={e => e.currentTarget.style.opacity = "1"}
           >
             <Wrench className={`w-4 h-4 ${generatingJobs ? "animate-spin" : ""}`} />
-            {t("maintenance.plansPage.generateJobs")}
+            {t("maintenance.btnGenerateJobs")}
           </button>
           <button
             type="button"
@@ -131,7 +129,7 @@ export default function MaintenancePlansPage() {
             onMouseLeave={e => e.currentTarget.style.opacity = "1"}
           >
             <Plus className="w-4 h-4" />
-            {t("maintenance.plansPage.createPlan")}
+            {t("maintenance.btnCreatePlan")}
           </button>
         </div>
       </div>
@@ -140,7 +138,7 @@ export default function MaintenancePlansPage() {
       <div className="grid grid-cols-3 gap-4">
         {stats.map((s) => (
           <div
-            key={s.label}
+            key={s.labelKey}
             className="rounded-2xl px-5 py-4 flex items-center gap-3 transition-all duration-300 hover:-translate-y-1"
             style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.10)" }}
           >
@@ -148,7 +146,7 @@ export default function MaintenancePlansPage() {
               <ClipboardList className="w-4 h-4" style={{ color: s.iconColor }} />
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#5A7A6E" }}>{s.label}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#5A7A6E" }}>{t(s.labelKey)}</p>
               <p className="text-2xl font-heading font-bold" style={{ color: "#1E2D28" }}>
                 {typeof s.value === "number" ? String(s.value).padStart(2, "0") : s.value}
               </p>
@@ -184,7 +182,7 @@ export default function MaintenancePlansPage() {
             className="mt-3 text-xs font-semibold underline transition"
             style={{ color: "#D95F4B" }}
           >
-            {t("maintenance.plansPage.retry")}
+            {t("maintenance.btnRetry")}
           </button>
         </div>
       )}
@@ -195,8 +193,8 @@ export default function MaintenancePlansPage() {
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: "#EAF4F0" }}>
             <ClipboardList className="w-7 h-7" style={{ color: "#3bb582" }} />
           </div>
-          <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>{t("maintenance.plansPage.emptyTitle")}</p>
-          <p className="text-xs mt-1 mb-5" style={{ color: "#5A7A6E" }}>{t("maintenance.plansPage.emptyHint")}</p>
+          <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>{t("maintenance.emptyTitle")}</p>
+          <p className="text-xs mt-1 mb-5" style={{ color: "#5A7A6E" }}>{t("maintenance.emptyDesc")}</p>
           <button
             type="button"
             onClick={() => setShowCreate(true)}
@@ -204,7 +202,7 @@ export default function MaintenancePlansPage() {
             style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
           >
             <Plus className="w-4 h-4" />
-            {t("maintenance.plansPage.createPlan")}
+            {t("maintenance.btnCreatePlan")}
           </button>
         </div>
       )}
@@ -214,27 +212,31 @@ export default function MaintenancePlansPage() {
           plans={plans}
           onViewJobs={(plan) => setSelectedPlan(plan)}
           onEdit={(plan) => setDetailPlan(plan)}
+          t={t}
         />
       )}
 
       {/* Drawers & Modals */}
-      <GenerateJobsResultModal jobs={generatedJobs} onClose={() => setGeneratedJobs(null)} />
+      <GenerateJobsResultModal jobs={generatedJobs} onClose={() => setGeneratedJobs(null)} t={t} />
       <CreatePlanDrawer
         open={showCreate}
         onClose={() => setShowCreate(false)}
         onCreated={() => { setShowCreate(false); fetchPlans(); }}
+        t={t}
       />
       <PlanJobsDrawer
         open={!!selectedPlan}
         plan={selectedPlan}
         onClose={() => setSelectedPlan(null)}
         onAssignStaff={(job) => setSelectedJob(job)}
+        t={t}
       />
       <PlanDetailDrawer
         key={detailPlan?.id ?? "none"}
         open={!!detailPlan}
         planId={detailPlan?.id}
         onClose={() => setDetailPlan(null)}
+        t={t}
       />
       <AssignStaffModal
         open={!!selectedJob}

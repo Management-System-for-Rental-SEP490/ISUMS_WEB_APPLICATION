@@ -6,13 +6,13 @@ import dayjs from "dayjs";
 import { getMaintenanceJobs } from "../api/maintenance.api";
 import JobDetailDrawer from "../components/JobDetailDrawer";
 
-const STATUS_VISUAL = {
-  CREATED:     { bg: "rgba(90,122,110,0.08)",  color: "#5A7A6E", dot: "#5A7A6E"  },
-  SCHEDULED:   { bg: "rgba(32,150,216,0.10)",  color: "#2096d8", dot: "#2096d8"  },
-  IN_PROGRESS: { bg: "rgba(59,181,130,0.10)",  color: "#3bb582", dot: "#3bb582"  },
-  COMPLETED:   { bg: "rgba(59,181,130,0.12)",  color: "#3bb582", dot: "#3bb582"  },
-  CANCELLED:   { bg: "rgba(217,95,75,0.08)",   color: "#D95F4B", dot: "#D95F4B"  },
-  OVERDUE:     { bg: "rgba(245,158,11,0.12)",  color: "#b45309", dot: "#f59e0b"  },
+const STATUS_CONFIG = {
+  CREATED:     { i18nKey: "maintenance.jobsTabCreated",     bg: "rgba(90,122,110,0.08)",  color: "#5A7A6E", dot: "#5A7A6E"  },
+  SCHEDULED:   { i18nKey: "maintenance.jobsTabScheduled",   bg: "rgba(32,150,216,0.10)",  color: "#2096d8", dot: "#2096d8"  },
+  IN_PROGRESS: { i18nKey: "maintenance.jobsTabInProgress",  bg: "rgba(59,181,130,0.10)",  color: "#3bb582", dot: "#3bb582"  },
+  COMPLETED:   { i18nKey: "maintenance.jobsTabCompleted",   bg: "rgba(59,181,130,0.12)",  color: "#3bb582", dot: "#3bb582"  },
+  CANCELLED:   { i18nKey: "maintenance.jobsTabCancelled",   bg: "rgba(217,95,75,0.08)",   color: "#D95F4B", dot: "#D95F4B"  },
+  OVERDUE:     { i18nKey: "maintenance.jobsTabOverdue",     bg: "rgba(245,158,11,0.12)",  color: "#b45309", dot: "#f59e0b"  },
 };
 
 const TAB_VALUES = ["CREATED", "SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED", "OVERDUE"];
@@ -56,24 +56,12 @@ export default function MaintenanceJobsPage() {
 
   const handlePageChange = (p) => setPage(p);
 
-  const statusLabel = (status) => t(`maintenance.jobStatus.${status}`, { defaultValue: status });
-
-  const columns = [
-    t("maintenance.jobsPage.colNo"),
-    t("maintenance.jobsPage.colCode"),
-    t("maintenance.jobsPage.colPeriodStart"),
-    t("maintenance.jobsPage.colStaff"),
-    t("maintenance.jobsPage.colStatus"),
-    t("maintenance.jobsPage.colActions"),
-  ];
-
   return (
     <div className="space-y-5">
+      {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>
-            {t("maintenance.jobsPage.title")}
-          </h2>
+          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>{t("maintenance.jobsPageTitle")}</h2>
         </div>
         <button
           type="button"
@@ -85,21 +73,23 @@ export default function MaintenanceJobsPage() {
           onMouseLeave={e => e.currentTarget.style.background = "#ffffff"}
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} style={{ color: "#3bb582" }} />
-          {t("maintenance.jobsPage.refresh")}
+          {t("maintenance.jobsBtnRefresh")}
         </button>
       </div>
 
+      {/* Main card */}
       <div
         className="rounded-2xl overflow-hidden"
         style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
       >
+        {/* Tab bar */}
         <div
           className="flex items-center gap-1 px-4 pt-3 pb-0 overflow-x-auto"
           style={{ borderBottom: "1px solid #C4DED5" }}
         >
           {TAB_VALUES.map((value) => {
             const isActive = activeTab === value;
-            const cfg = STATUS_VISUAL[value] ?? null;
+            const cfg = STATUS_CONFIG[value];
             return (
               <button
                 key={value}
@@ -114,7 +104,7 @@ export default function MaintenanceJobsPage() {
                 {cfg && (
                   <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: cfg.dot }} />
                 )}
-                {statusLabel(value)}
+                {t(cfg.i18nKey)}
                 {isActive && total > 0 && (
                   <span
                     className="text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-0.5"
@@ -128,16 +118,18 @@ export default function MaintenanceJobsPage() {
           })}
         </div>
 
+        {/* Error */}
         {!loading && error && (
           <div className="flex flex-col items-center justify-center py-16 gap-3">
             <AlertCircle className="w-8 h-8" style={{ color: "#D95F4B", opacity: 0.5 }} />
             <p className="text-sm" style={{ color: "#5A7A6E" }}>{error}</p>
             <button onClick={() => fetchJobs(activeTab, page)} className="text-xs underline" style={{ color: "#3bb582" }}>
-              {t("maintenance.jobsPage.retry")}
+              {t("maintenance.jobsRetry")}
             </button>
           </div>
         )}
 
+        {/* Loading skeleton */}
         {loading && (
           <div>
             {[...Array(5)].map((_, i) => (
@@ -152,33 +144,45 @@ export default function MaintenanceJobsPage() {
           </div>
         )}
 
+        {/* Empty */}
         {!loading && !error && jobs.length === 0 && (
           <div className="py-20 flex flex-col items-center gap-3">
             <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "#EAF4F0" }}>
               <ClipboardList className="w-7 h-7" style={{ color: "#3bb582" }} />
             </div>
-            <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>
-              {t("maintenance.jobsPage.emptyTitle")}
-            </p>
+            <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>{t("maintenance.jobsEmptyTitle")}</p>
             <p className="text-xs" style={{ color: "#5A7A6E" }}>
-              {t("maintenance.jobsPage.emptyHint", { status: statusLabel(activeTab) })}
+              {t("maintenance.jobsEmptyDesc", { status: t(STATUS_CONFIG[activeTab]?.i18nKey ?? "") })}
             </p>
           </div>
         )}
 
+        {/* Table */}
         {!loading && !error && jobs.length > 0 && (
           <>
+            {/* Table head */}
             <div
               className="grid grid-cols-[40px_180px_160px_1fr_140px_100px] gap-4 px-5 py-3"
               style={{ background: "#EAF4F0", borderBottom: "1px solid #C4DED5" }}
             >
-              {columns.map((h) => (
+              {[
+                t("maintenance.jobsColSTT"),
+                t("maintenance.jobsColCode"),
+                t("maintenance.jobsColPeriodStart"),
+                t("maintenance.jobsColStaff"),
+                t("maintenance.jobsColStatus"),
+                t("maintenance.jobsColActions"),
+              ].map((h) => (
                 <p key={h} className="text-[11px] font-bold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>{h}</p>
               ))}
             </div>
 
+            {/* Rows */}
             {jobs.map((job, idx) => {
-              const st = STATUS_VISUAL[job.status] ?? { bg: "#EAF4F0", color: "#5A7A6E", dot: "#5A7A6E" };
+              const stCfg = STATUS_CONFIG[job.status];
+              const st = stCfg
+                ? { ...stCfg, label: t(stCfg.i18nKey) }
+                : { label: job.status, bg: "#EAF4F0", color: "#5A7A6E", dot: "#5A7A6E" };
               const rowNum = (page - 1) * PAGE_SIZE + idx + 1;
               return (
                 <div
@@ -199,7 +203,7 @@ export default function MaintenanceJobsPage() {
                   </p>
 
                   <p className="text-xs" style={{ color: job.staffName ? "#1E2D28" : "#C4DED5" }}>
-                    {job.staffName ?? t("maintenance.jobsPage.unassigned")}
+                    {job.staffName ?? t("maintenance.jobsUnassigned")}
                   </p>
 
                   <span
@@ -207,7 +211,7 @@ export default function MaintenanceJobsPage() {
                     style={{ background: st.bg, color: st.color }}
                   >
                     <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: st.dot }} />
-                    {statusLabel(job.status)}
+                    {st.label}
                   </span>
 
                   <button
@@ -219,12 +223,13 @@ export default function MaintenanceJobsPage() {
                     onMouseLeave={e => e.currentTarget.style.background = "rgba(59,181,130,0.10)"}
                   >
                     <Eye className="w-3.5 h-3.5" />
-                    {t("maintenance.jobsPage.detail")}
+                    {t("maintenance.jobsBtnDetail")}
                   </button>
                 </div>
               );
             })}
 
+            {/* Pagination */}
             {total > PAGE_SIZE && (
               <div className="flex justify-end px-5 py-3" style={{ borderTop: "1px solid #C4DED5" }}>
                 <Pagination
@@ -241,7 +246,7 @@ export default function MaintenanceJobsPage() {
         )}
       </div>
 
-      <JobDetailDrawer open={!!selectedJob} job={selectedJob} onClose={() => setSelectedJob(null)} />
+      <JobDetailDrawer open={!!selectedJob} job={selectedJob} onClose={() => setSelectedJob(null)} t={t} />
     </div>
   );
 }
