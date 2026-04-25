@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Download, Plus, RefreshCw } from "lucide-react";
-import { AVATARS } from "../constants";
 import { getWeekDays, localDateStr } from "../utils/dateHelpers";
+import { getStaffs } from "../../tenants/api/users.api";
 import { useWorkSchedule, useMonthSchedule } from "../hooks/useSchedule";
 import StatCard from "../components/StatCard";
 import AvatarCircle from "../components/AvatarCircle";
@@ -10,6 +11,7 @@ import MonthView from "../components/MonthView";
 import CreateShiftModal from "../components/CreateShiftModal";
 
 export default function SchedulePage() {
+  const { t } = useTranslation("common");
   const today = new Date();
   const [viewMode, setViewMode] = useState("week");
   const [createShiftOpen, setCreateShiftOpen] = useState(false);
@@ -18,6 +20,14 @@ export default function SchedulePage() {
     year: today.getFullYear(),
     month: today.getMonth(),
   });
+  const [staffList, setStaffList] = useState([]);
+
+  useEffect(() => {
+    getStaffs().then((data) => {
+      const list = Array.isArray(data) ? data : (data?.items ?? data?.content ?? []);
+      setStaffList(list);
+    }).catch(() => {});
+  }, []);
 
   /* ── Week data ── */
   const weekDays = getWeekDays(weekBase);
@@ -70,16 +80,16 @@ export default function SchedulePage() {
       {/* Header */}
       <div>
 <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>
-          Lịch làm việc chi tiết
+          {t("schedule.pageTitle")}
         </h2>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
-          title="Tổng slot trong tuần"
+          title={t("schedule.statTotalSlots")}
           value={weekLoading ? "—" : String(totalJobs).padStart(2, "0")}
-          sub={<><span style={{ color: "#3bb582" }}>↗</span> Tổng slot đã ghi nhận</>}
+          sub={<><span style={{ color: "#3bb582" }}>↗</span> {t("schedule.statTotalSlotsDesc")}</>}
           iconBg="rgba(59,181,130,0.12)"
           iconColor="#3bb582"
           icon={
@@ -89,9 +99,9 @@ export default function SchedulePage() {
           }
         />
         <StatCard
-          title="Slot đã đặt (Booked)"
+          title={t("schedule.statBooked")}
           value={weekLoading ? "—" : String(pendingJobs).padStart(2, "0")}
-          sub={<><span style={{ color: "#f59e0b" }}>●</span> Đang được phân công</>}
+          sub={<><span style={{ color: "#f59e0b" }}>●</span> {t("schedule.statBookedDesc")}</>}
           iconBg="rgba(245,158,11,0.12)"
           iconColor="#b45309"
           icon={
@@ -101,9 +111,9 @@ export default function SchedulePage() {
           }
         />
         <StatCard
-          title="Thợ đang rảnh"
-          value="05"
-          sub={<><span style={{ color: "#2096d8" }}>●</span> Sẵn sàng điều phối</>}
+          title={t("schedule.statAvailable")}
+          value={String(staffList.length).padStart(2, "0")}
+          sub={<><span style={{ color: "#2096d8" }}>●</span> {t("schedule.statAvailableDesc")}</>}
           iconBg="rgba(32,150,216,0.12)"
           iconColor="#2096d8"
           icon={
@@ -131,23 +141,29 @@ export default function SchedulePage() {
               onMouseEnter={e => { if (viewMode !== mode) e.currentTarget.style.background = "#EAF4F0"; }}
               onMouseLeave={e => { if (viewMode !== mode) e.currentTarget.style.background = "#FFFFFF"; }}
             >
-              {mode === "week" ? "Theo tuần" : "Theo tháng"}
+              {mode === "week" ? t("schedule.viewWeek") : t("schedule.viewMonth")}
             </button>
           ))}
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center">
-            {AVATARS.map((a, i) => (
-              <AvatarCircle key={i} initials={a} index={i} />
-            ))}
-            <div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0"
-              style={{ marginLeft: "-8px", background: "#EAF4F0", border: "2px solid #ffffff", color: "#5A7A6E" }}
-            >
-              +12
+          {staffList.length > 0 && (
+            <div className="flex items-center">
+              {staffList.slice(0, 5).map((staff, i) => {
+                const name = staff.fullName ?? staff.name ?? staff.username ?? "?";
+                const initials = name.trim().split(/\s+/).slice(-2).map(w => w[0].toUpperCase()).join("");
+                return <AvatarCircle key={staff.id ?? i} initials={initials} index={i} name={name} />;
+              })}
+              {staffList.length > 5 && (
+                <div
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0"
+                  style={{ marginLeft: "-8px", background: "#EAF4F0", border: "2px solid #ffffff", color: "#5A7A6E" }}
+                >
+                  +{staffList.length - 5}
+                </div>
+              )}
             </div>
-          </div>
+          )}
           <button
             type="button"
             onClick={viewMode === "week" ? refetchWeek : refetchMonth}
@@ -160,7 +176,7 @@ export default function SchedulePage() {
             <RefreshCw
               className={["w-4 h-4", (viewMode === "week" ? weekLoading : monthLoading) ? "animate-spin" : ""].join(" ")}
             />
-            Làm mới
+            {t("actions.refresh")}
           </button>
           <button
             type="button"
@@ -169,7 +185,7 @@ export default function SchedulePage() {
             style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
           >
             <Plus className="w-4 h-4" />
-            Xác nhận các ca làm việc mới
+            {t("schedule.createShiftBtn")}
           </button>
         </div>
       </div>
@@ -205,10 +221,10 @@ export default function SchedulePage() {
       {/* Legend + Export */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-4 text-xs flex-wrap" style={{ color: "#5A7A6E" }}>
-          <span className="font-semibold" style={{ color: "#1E2D28" }}>Chú thích trạng thái:</span>
+          <span className="font-semibold" style={{ color: "#1E2D28" }}>{t("schedule.legendTitle")}</span>
           {[
-            { dot: "#3bb582", label: "Đã đặt (Booked)" },
-            { dot: "#D95F4B", label: "Đã hủy (Cancelled)" },
+            { dot: "#3bb582", label: t("schedule.legendBooked") },
+            { dot: "#D95F4B", label: t("schedule.legendCancelled") },
           ].map(({ dot, label }) => (
             <span key={label} className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full" style={{ background: dot }} />
@@ -224,7 +240,7 @@ export default function SchedulePage() {
           onMouseLeave={e => { e.currentTarget.style.color = "#3bb582"; }}
         >
           <Download className="w-3.5 h-3.5" />
-          {viewMode === "week" ? "Xuất báo cáo tuần (.pdf)" : "Xuất báo cáo tháng (.pdf)"}
+          {viewMode === "week" ? t("schedule.exportWeek") : t("schedule.exportMonth")}
         </button>
       </div>
     </div>

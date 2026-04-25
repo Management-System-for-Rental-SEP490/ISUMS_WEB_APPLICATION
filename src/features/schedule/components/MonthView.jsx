@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, X, Clock } from "lucide-react";
 import { createPortal } from "react-dom";
-import { DAY_NAMES_SHORT, MONTH_NAMES } from "../constants";
 import { getMonthGrid, isSameDay, localDateStr } from "../utils/dateHelpers";
 import SlotModal from "./SlotModal";
 
@@ -40,6 +40,7 @@ function slotCountForDay(slotGrid, date) {
 
 /** Lists all time-groups for a day; click one to drill into SlotModal */
 function DayGroupsModal({ dateStr, timeGroups, onSelectGroup, onClose }) {
+  const { t } = useTranslation("common");
   const [visible, setVisible] = useState(false);
   useEffect(() => { const r = requestAnimationFrame(() => setVisible(true)); return () => cancelAnimationFrame(r); }, []);
   useEffect(() => {
@@ -72,7 +73,7 @@ function DayGroupsModal({ dateStr, timeGroups, onSelectGroup, onClose }) {
               <Clock className="w-4 h-4 text-teal-500" />
             </div>
             <div>
-              <p className="text-[13px] font-bold text-slate-800 leading-tight">Các khung giờ trong ngày</p>
+              <p className="text-[13px] font-bold text-slate-800 leading-tight">{t("schedule.dayTimeSlots")}</p>
               <p className="text-[11px] text-slate-400 mt-0.5">{label}</p>
             </div>
           </div>
@@ -99,10 +100,10 @@ function DayGroupsModal({ dateStr, timeGroups, onSelectGroup, onClose }) {
                   <p className="text-[13px] font-bold text-slate-700 group-hover:text-teal-700 transition">
                     {timeKey} – {addHour(timeKey)}
                   </p>
-                  <p className="text-[11px] text-slate-400 mt-0.5">{slots.length} ca làm việc</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">{t("schedule.slotCount", { count: slots.length })}</p>
                 </div>
                 <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${cfg.pill}`}>
-                  {dom === "booked" ? "Đã đặt" : "Đã hủy"}
+                  {dom === "booked" ? t("schedule.statusBooked") : t("schedule.statusCancelled")}
                 </span>
               </button>
             );
@@ -112,7 +113,7 @@ function DayGroupsModal({ dateStr, timeGroups, onSelectGroup, onClose }) {
         <div className="px-5 py-3 border-t border-slate-100 bg-slate-50/50">
           <button type="button" onClick={handleClose}
             className="w-full py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-white transition">
-            Đóng
+            {t("actions.close")}
           </button>
         </div>
       </div>
@@ -124,6 +125,9 @@ function DayGroupsModal({ dateStr, timeGroups, onSelectGroup, onClose }) {
 // ─── MonthView ────────────────────────────────────────────────────────────────
 
 export default function MonthView({ year, month, onPrev, onNext, slotGrid = {}, loading = false }) {
+  const { t } = useTranslation("common");
+  const DAY_NAMES_SHORT = [t("schedule.dayMonS"), t("schedule.dayTueS"), t("schedule.dayWedS"), t("schedule.dayThuS"), t("schedule.dayFriS"), t("schedule.daySatS"), t("schedule.daySunS")];
+  const MONTH_NAMES = Array.from({ length: 12 }, (_, i) => t(`schedule.month${i + 1}`));
   const today = new Date();
   const cells = getMonthGrid(year, month);
 
@@ -225,7 +229,7 @@ export default function MonthView({ year, month, onPrev, onNext, slotGrid = {}, 
                             className={`w-full text-left text-[10px] font-semibold px-1.5 py-0.5 rounded truncate leading-tight transition hover:opacity-80 ${grpCfg.pill}`}
                           >
                             <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1 align-middle ${grpCfg.dot}`} />
-                            {tk} · {grpSlots.length} ca
+                            {tk} · {grpSlots.length} {t("schedule.shiftUnit")}
                           </button>
                         );
                       })}
@@ -242,7 +246,7 @@ export default function MonthView({ year, month, onPrev, onNext, slotGrid = {}, 
                           }
                           className="w-full text-left text-[10px] font-semibold text-slate-400 px-1 hover:text-teal-600 transition"
                         >
-                          +{timeKeys.length - 2} khung giờ khác
+                          +{timeKeys.length - 2} {t("schedule.moreSlots")}
                         </button>
                       )}
                     </div>

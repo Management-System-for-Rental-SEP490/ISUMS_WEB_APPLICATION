@@ -1,7 +1,9 @@
+import { useTranslation } from "react-i18next";
 import { Check } from "lucide-react";
 import { SHIFT_STEPS } from "../../constants/shift.constants";
 
 export default function StepIndicator({ current }) {
+  const { t } = useTranslation("common");
   return (
     <div className="flex items-center gap-0">
       {SHIFT_STEPS.map((s, idx) => {
@@ -19,7 +21,7 @@ export default function StepIndicator({ current }) {
                 {done ? <Check className="w-3.5 h-3.5" /> : s.id}
               </div>
               <span className={`text-xs font-semibold whitespace-nowrap ${active ? "text-teal-700" : done ? "text-teal-500" : "text-slate-400"}`}>
-                {s.label}
+                {t(s.labelKey)}
               </span>
             </div>
             {idx < SHIFT_STEPS.length - 1 && (

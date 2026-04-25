@@ -1,27 +1,9 @@
 import { Settings, Wrench, ClipboardCheck } from "lucide-react";
 
 export const JOB_TYPES = [
-  {
-    value: "ISSUE",
-    label: "Sửa chữa",
-    desc: "Xử lý sự cố và hư hỏng thiết bị",
-    icon: Settings,
-    color: "orange",
-  },
-  {
-    value: "MAINTENANCE",
-    label: "Bảo trì",
-    desc: "Kiểm tra định kỳ và nâng cấp",
-    icon: Wrench,
-    color: "teal",
-  },
-  {
-    value: "INSPECTION",
-    label: "Kiểm tra nhà",
-    desc: "Kiểm tra tình trạng nhà trước và sau khi cho thuê",
-    icon: ClipboardCheck,
-    color: "purple",
-  },
+  { value: "ISSUE",       icon: Settings,      color: "orange" },
+  { value: "MAINTENANCE", icon: Wrench,         color: "teal"   },
+  { value: "INSPECTION",  icon: ClipboardCheck, color: "purple" },
 ];
 
 export const TYPE_COLORS = {
@@ -43,7 +25,7 @@ export const TYPE_COLORS = {
 };
 
 export const SHIFT_STEPS = [
-  { id: 1, label: "Thông tin chung" },
-  { id: 2, label: "Thời gian" },
-  { id: 3, label: "Xác nhận" },
+  { id: 1, labelKey: "schedule.step1Label" },
+  { id: 2, labelKey: "schedule.step2Label" },
+  { id: 3, labelKey: "schedule.step3Label" },
 ];

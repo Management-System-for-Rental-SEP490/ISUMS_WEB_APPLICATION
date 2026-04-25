@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Phone, Mail, Check, Bot, Sparkles, CalendarClock } from "lucide-react";
 
 function Avatar({ name }) {
@@ -23,18 +24,20 @@ export default function Step3Staff({
   setSelectedStaffId,
   error,
 }) {
+  const { t } = useTranslation("common");
+
   return (
     <div className="space-y-5">
       {/* Mode toggle — same for all job types */}
       <div className="flex items-center justify-between px-4 py-3.5 rounded-xl border border-slate-200 bg-white">
         <div>
           <p className="text-sm font-semibold text-slate-700">
-            Chế độ phân công
+            {t("schedule.assignmentMode")}
           </p>
           <p className="text-xs text-slate-400 mt-0.5">
             {staffMode === "auto"
-              ? "Hệ thống sẽ tự động chọn nhân sự tối ưu nhất"
-              : "Bạn tự chọn nhân viên thực hiện"}
+              ? t("schedule.autoModeDesc")
+              : t("schedule.manualModeDesc")}
           </p>
         </div>
         <button
@@ -57,11 +60,10 @@ export default function Step3Staff({
           <Sparkles className="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-semibold text-teal-700">
-              Tự động sắp xếp nhân sự
+              {t("schedule.autoTitle")}
             </p>
             <p className="text-xs text-teal-600 mt-1 leading-relaxed">
-              Hệ thống sẽ tự động chọn nhân viên phù hợp nhất dựa trên lịch làm
-              việc. Thông báo sẽ được gửi ngay khi ca được tạo thành công.
+              {t("schedule.autoDesc")}
             </p>
           </div>
         </div>
@@ -72,11 +74,11 @@ export default function Step3Staff({
         <div>
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-semibold text-slate-700">
-              Nhân viên khả dụng
+              {t("schedule.availableStaff")}
             </p>
             {!staffLoading && availableStaff.length > 0 && (
               <span className="text-xs font-semibold text-teal-700 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-full">
-                Có {availableStaff.length} rảnh vào thời điểm này
+                {t("schedule.staffAvailableCount", { count: availableStaff.length })}
               </span>
             )}
           </div>
@@ -94,7 +96,7 @@ export default function Step3Staff({
             <div className="flex items-center gap-2.5 px-4 py-4 rounded-xl border border-slate-200 bg-slate-50">
               <Bot className="w-5 h-5 text-slate-400 flex-shrink-0" />
               <p className="text-sm text-slate-500">
-                Không có nhân viên nào rảnh trong khung giờ này.
+                {t("schedule.noStaffAvailable")}
               </p>
             </div>
           ) : (
@@ -131,7 +133,7 @@ export default function Step3Staff({
                           </span>
                         )}
                         <span className="text-[11px] text-green-600 font-medium">
-                          • Rảnh vào thời gian này
+                          • {t("schedule.staffAvailableNow")}
                         </span>
                       </div>
                     </div>
@@ -156,8 +158,7 @@ export default function Step3Staff({
                 i
               </div>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Đã chọn 1 nhân sự. Hệ thống sẽ gửi thông báo ngay khi ca làm
-                việc được khởi tạo thành công.
+                {t("schedule.staffSelectedNote")}
               </p>
             </div>
           )}

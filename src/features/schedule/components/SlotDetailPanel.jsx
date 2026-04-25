@@ -1,8 +1,10 @@
+import { useTranslation } from "react-i18next";
 import { AlertTriangle, Clock, MapPin, User, X } from "lucide-react";
 import { STATUS_CONFIG } from "../constants";
 import AddSlotButton from "./AddSlotButton";
 
 export default function SlotDetailPanel({ slot, onClose, onSelectJob }) {
+  const { t } = useTranslation("common");
   if (!slot) return null;
 
   return (
@@ -13,9 +15,9 @@ export default function SlotDetailPanel({ slot, onClose, onSelectJob }) {
           <div className="w-7 h-7 rounded-lg bg-teal-50 border border-teal-100 flex items-center justify-center text-teal-600">
             <Clock className="w-3.5 h-3.5" />
           </div>
-          <span className="text-sm font-bold text-slate-800">Khung giờ {slot.time}</span>
+          <span className="text-sm font-bold text-slate-800">{t("schedule.timeSlotLabel", { time: slot.time })}</span>
           <span className="px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 text-xs font-semibold">
-            {slot.jobs.length} công việc
+            {t("schedule.jobCount", { count: slot.jobs.length })}
           </span>
         </div>
         <button
@@ -38,7 +40,7 @@ export default function SlotDetailPanel({ slot, onClose, onSelectJob }) {
             >
               <div className="flex items-start justify-between gap-1 mb-2">
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md leading-tight ${cfg.badge}`}>
-                  {cfg.label}
+                  {t(`schedule.jobStatus.${job.status}`, { defaultValue: job.status })}
                 </span>
                 {job.priority === "high" && (
                   <AlertTriangle className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
@@ -54,7 +56,7 @@ export default function SlotDetailPanel({ slot, onClose, onSelectJob }) {
                 </div>
                 <div className="flex items-center gap-1.5 text-slate-500">
                   <User className="w-3 h-3 flex-shrink-0" />
-                  <span className="text-[10px] truncate">{job.assignee ?? "Chưa phân công"}</span>
+                  <span className="text-[10px] truncate">{job.assignee ?? t("schedule.unassigned")}</span>
                 </div>
               </div>
             </div>

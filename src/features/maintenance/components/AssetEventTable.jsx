@@ -1,14 +1,8 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Table, Progress, Tag, Typography } from "antd";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import ImageCarousel from "../../../components/shared/ImageCarousel";
-
-const EVENT_TYPE_CONFIG = {
-  CHECK_IN:    { label: "Bàn giao",    color: "green"   },
-  CHECK_OUT:   { label: "Kết thúc HĐ", color: "orange"  },
-  MAINTENANCE: { label: "Bảo trì",     color: "blue"    },
-  default:     { label: "—",           color: "default" },
-};
 
 function conditionStroke(pct) {
   if (pct >= 80) return "#10b981";
@@ -16,7 +10,7 @@ function conditionStroke(pct) {
   return "#ef4444";
 }
 
-function ConditionChange({ prev, curr }) {
+function ConditionChange({ prev, curr, t }) {
   const diff = (curr ?? 0) - (prev ?? 0);
   return (
     <div className="space-y-1">
@@ -35,7 +29,7 @@ function ConditionChange({ prev, curr }) {
       </div>
       {prev != null && (
         <p className="text-[10px] text-gray-400">
-          Trước: {prev}%
+          {t("inspection.assetTable.conditionBefore", { value: prev })}
           {diff !== 0 && (
             <span className={`ml-1 font-semibold ${diff > 0 ? "text-emerald-500" : "text-red-500"}`}>
               ({diff > 0 ? "+" : ""}{diff}%)
@@ -47,11 +41,13 @@ function ConditionChange({ prev, curr }) {
   );
 }
 
-function ExpandedRow({ record }) {
+function ExpandedRow({ record, t }) {
   if (!record.images?.length) return null;
   return (
     <div className="px-4 pb-3">
-      <p className="text-xs font-semibold text-gray-500 mb-2">Ảnh ghi nhận ({record.images.length})</p>
+      <p className="text-xs font-semibold text-gray-500 mb-2">
+        {t("inspection.assetTable.photoLabel", { count: record.images.length })}
+      </p>
       <div className="max-w-sm rounded-xl overflow-hidden border border-gray-100">
         <ImageCarousel images={record.images} alt={record.assetName} height="h-44" />
       </div>
@@ -59,55 +55,57 @@ function ExpandedRow({ record }) {
   );
 }
 
-const COLUMNS = [
-  {
-    title: "Tài sản",
-    dataIndex: "assetName",
-    key: "assetName",
-    render: (name) => (
-      <Typography.Text strong className="text-sm">{name ?? "—"}</Typography.Text>
-    ),
-  },
-  {
-    title: "Tình trạng",
-    key: "condition",
-    width: 180,
-    render: (_, record) => (
-      <ConditionChange prev={record.previousCondition} curr={record.currentCondition} />
-    ),
-  },
-  {
-    title: "Loại sự kiện",
-    dataIndex: "eventType",
-    key: "eventType",
-    width: 130,
-    render: (type) => {
-      const cfg = EVENT_TYPE_CONFIG[type] ?? EVENT_TYPE_CONFIG.default;
-      return <Tag color={cfg.color}>{cfg.label}</Tag>;
-    },
-  },
-  {
-    title: "Ghi chú",
-    dataIndex: "note",
-    key: "note",
-    render: (note) => (
-      <Typography.Text type="secondary" className="text-xs">
-        {note || "—"}
-      </Typography.Text>
-    ),
-  },
-];
-
-/**
- * @param {{ events: Array, loading?: boolean }} props
- */
 export default function AssetEventTable({ events = [], loading = false }) {
+  const { t } = useTranslation("common");
   const [expandedKeys, setExpandedKeys] = useState([]);
 
   const toggleExpand = (key) =>
     setExpandedKeys((prev) =>
       prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
     );
+
+  const columns = [
+    {
+      title: t("inspection.assetTable.colAsset"),
+      dataIndex: "assetName",
+      key: "assetName",
+      render: (name) => (
+        <Typography.Text strong className="text-sm">{name ?? "—"}</Typography.Text>
+      ),
+    },
+    {
+      title: t("inspection.assetTable.colCondition"),
+      key: "condition",
+      width: 180,
+      render: (_, record) => (
+        <ConditionChange prev={record.previousCondition} curr={record.currentCondition} t={t} />
+      ),
+    },
+    {
+      title: t("inspection.assetTable.colEventType"),
+      dataIndex: "eventType",
+      key: "eventType",
+      width: 130,
+      render: (type) => {
+        const colorMap = { CHECK_IN: "green", CHECK_OUT: "orange", MAINTENANCE: "blue" };
+        return (
+          <Tag color={colorMap[type] ?? "default"}>
+            {t(`inspection.assetTable.eventType.${type}`, { defaultValue: type })}
+          </Tag>
+        );
+      },
+    },
+    {
+      title: t("inspection.assetTable.colNote"),
+      dataIndex: "note",
+      key: "note",
+      render: (note) => (
+        <Typography.Text type="secondary" className="text-xs">
+          {note || "—"}
+        </Typography.Text>
+      ),
+    },
+  ];
 
   return (
     <Table
@@ -132,18 +130,18 @@ export default function AssetEventTable({ events = [], loading = false }) {
             );
           },
         },
-        ...COLUMNS,
+        ...columns,
       ]}
       expandable={{
         expandedRowKeys: expandedKeys,
         showExpandColumn: false,
-        expandedRowRender: (record) => <ExpandedRow record={record} />,
+        expandedRowRender: (record) => <ExpandedRow record={record} t={t} />,
       }}
       rowKey={(r) => r.id ?? r.assetId ?? Math.random()}
       loading={loading}
       size="small"
       pagination={events.length > 8 ? { pageSize: 8, size: "small" } : false}
-      locale={{ emptyText: "Không có tài sản nào được ghi nhận" }}
+      locale={{ emptyText: t("inspection.assetTable.empty") }}
     />
   );
 }

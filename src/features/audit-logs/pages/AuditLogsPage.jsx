@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Pagination, Select } from "antd";
 import { Search, Filter, RotateCcw } from "lucide-react";
 import { getAuditLogs } from "../api/audit-logs.api";
@@ -119,6 +120,7 @@ function FilterSelect({ label, value, onChange, options, placeholder }) {
 // ── Page ───────────────────────────────────────────────────────────────────
 
 export default function AuditLogsPage() {
+  const { t } = useTranslation("common");
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [appliedFilters, setAppliedFilters] = useState(EMPTY_FILTERS);
   const [page, setPage] = useState(1);
@@ -168,13 +170,13 @@ export default function AuditLogsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
-          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Audit Logs</h2>
-          <p className="text-sm mt-0.5" style={{ color: "#5A7A6E" }}>Lịch sử hoạt động hệ thống</p>
+          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>{t("auditLogs.title")}</h2>
+          <p className="text-sm mt-0.5" style={{ color: "#5A7A6E" }}>{t("auditLogs.subtitle")}</p>
         </div>
         {hasActiveFilter && (
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold"
             style={{ background: "rgba(59,181,130,0.10)", color: "#3bb582", border: "1px solid rgba(59,181,130,0.25)" }}>
-            <Filter className="w-3.5 h-3.5" /> Đang lọc kết quả
+            <Filter className="w-3.5 h-3.5" /> {t("auditLogs.filterActive")}
           </div>
         )}
       </div>
@@ -183,7 +185,7 @@ export default function AuditLogsPage() {
       <div className="rounded-2xl p-5"
         style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
         <p className="text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2" style={{ color: "#5A7A6E" }}>
-          <Filter className="w-3.5 h-3.5" /> Bộ lọc
+          <Filter className="w-3.5 h-3.5" /> {t("auditLogs.filterTitle")}
         </p>
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -193,28 +195,28 @@ export default function AuditLogsPage() {
             value={filters.status}
             onChange={setFilter("status")}
             options={STATUS_OPTIONS}
-            placeholder="Tất cả"
+            placeholder={t("auditLogs.filterAll")}
           />
           <FilterSelect
             label="Service"
             value={filters.serviceName}
             onChange={setFilter("serviceName")}
             options={SERVICE_OPTIONS}
-            placeholder="Chọn service..."
+            placeholder={t("auditLogs.servicePlaceholder")}
           />
           <FilterSelect
             label="Action"
             value={filters.action}
             onChange={setFilter("action")}
             options={ACTION_OPTIONS}
-            placeholder="Chọn action..."
+            placeholder={t("auditLogs.actionPlaceholder")}
           />
 
           {/* Text fields */}
-          <FilterInput label="Resource Type" value={filters.resourceType} onChange={setFilter("resourceType")} placeholder="ASSET, HOUSE, USER..." />
-          <FilterInput label="Actor User ID" value={filters.actorUserId}  onChange={setFilter("actorUserId")}  placeholder="UUID của actor..." />
-          <FilterInput label="Trace ID"      value={filters.traceId}      onChange={setFilter("traceId")}      placeholder="trace-..." />
-          <FilterInput label="Request ID"    value={filters.requestId}    onChange={setFilter("requestId")}    placeholder="req-..." />
+          <FilterInput label="Resource Type" value={filters.resourceType} onChange={setFilter("resourceType")} placeholder={t("auditLogs.resourcePlaceholder")} />
+          <FilterInput label="Actor User ID" value={filters.actorUserId}  onChange={setFilter("actorUserId")}  placeholder={t("auditLogs.actorPlaceholder")} />
+          <FilterInput label="Trace ID"      value={filters.traceId}      onChange={setFilter("traceId")}      placeholder={t("auditLogs.tracePlaceholder")} />
+          <FilterInput label="Request ID"    value={filters.requestId}    onChange={setFilter("requestId")}    placeholder={t("auditLogs.requestPlaceholder")} />
         </div>
 
         <div className="flex items-center gap-2 mt-4">
@@ -225,7 +227,7 @@ export default function AuditLogsPage() {
             onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.9")}
             onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
           >
-            <Search className="w-4 h-4" /> Tìm kiếm
+            <Search className="w-4 h-4" /> {t("auditLogs.searchBtn")}
           </button>
           <button
             onClick={handleReset}
@@ -234,7 +236,7 @@ export default function AuditLogsPage() {
             onMouseEnter={(e) => (e.currentTarget.style.background = "#EAF4F0")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
           >
-            <RotateCcw className="w-3.5 h-3.5" /> Đặt lại
+            <RotateCcw className="w-3.5 h-3.5" /> {t("auditLogs.resetBtn")}
           </button>
         </div>
       </div>
@@ -244,14 +246,14 @@ export default function AuditLogsPage() {
         <div className="rounded-2xl px-4 py-3 flex items-center gap-3"
           style={{ background: "#FFFFFF", border: "1px solid rgba(217,95,75,0.3)" }}>
           <p className="text-sm font-semibold flex-1" style={{ color: "#D95F4B" }}>{error}</p>
-          <button onClick={() => fetchLogs(appliedFilters, page)} className="text-xs font-semibold underline" style={{ color: "#D95F4B" }}>Thử lại</button>
+          <button onClick={() => fetchLogs(appliedFilters, page)} className="text-xs font-semibold underline" style={{ color: "#D95F4B" }}>{t("auditLogs.retryBtn")}</button>
         </div>
       )}
 
       {/* Table */}
       {loading ? (
         <div className="rounded-2xl py-16 flex justify-center" style={{ background: "#FFFFFF", border: "1px solid #C4DED5" }}>
-          <LoadingSpinner size="lg" showLabel label="Đang tải audit logs..." />
+          <LoadingSpinner size="lg" showLabel label={t("auditLogs.loading")} />
         </div>
       ) : (
         <div className="rounded-2xl overflow-hidden"
@@ -263,10 +265,10 @@ export default function AuditLogsPage() {
                 <Search className="w-7 h-7" style={{ color: "#3bb582" }} />
               </div>
               <p className="font-semibold" style={{ color: "#1E2D28" }}>
-                {hasActiveFilter ? "Không tìm thấy log phù hợp" : "Chưa có audit log nào"}
+                {hasActiveFilter ? t("auditLogs.emptyFiltered") : t("auditLogs.emptyDefault")}
               </p>
               <p className="text-sm" style={{ color: "#5A7A6E" }}>
-                {hasActiveFilter ? "Thử thay đổi bộ lọc" : "Dữ liệu sẽ xuất hiện tại đây"}
+                {hasActiveFilter ? t("auditLogs.emptyFilteredHint") : t("auditLogs.emptyDefaultHint")}
               </p>
             </div>
           ) : (
@@ -280,7 +282,7 @@ export default function AuditLogsPage() {
                     <th className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>Resource</th>
                     <th className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>Service</th>
                     <th className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>Status</th>
-                    <th className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>Thời gian</th>
+                    <th className="text-left px-5 py-3.5 text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>{t("auditLogs.colTime")}</th>
                     <th className="px-4 py-3.5 w-20" />
                   </tr>
                 </thead>
@@ -333,7 +335,7 @@ export default function AuditLogsPage() {
                             onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(32,150,216,0.15)")}
                             onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(32,150,216,0.08)")}
                           >
-                            Chi tiết
+                            {t("auditLogs.colDetail")}
                           </button>
                         </td>
                       </tr>

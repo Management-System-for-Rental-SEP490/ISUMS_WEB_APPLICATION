@@ -1,12 +1,6 @@
+import { useTranslation } from "react-i18next";
 import { Phone, Calendar, Clock, FileText, Mail, MapPin } from "lucide-react";
 import { formatDateTime } from "../../constants/inspection.constants";
-
-const ROLE_LABEL = {
-  TECHNICAL_STAFF: "Nhân viên kỹ thuật",
-  MANAGER:         "Quản lý",
-  LANDLORD:        "Chủ nhà",
-  ADMIN:           "Admin",
-};
 
 function Card({ children }) {
   return (
@@ -50,23 +44,24 @@ function InfoRow({ icon, iconBg, iconColor, label, children }) {
 }
 
 export default function InspectionInfoCards({ inspection, staff }) {
+  const { t } = useTranslation("common");
+
   const staffInitial = staff?.name
     ? staff.name.trim().split(" ").pop()[0].toUpperCase()
     : "?";
 
   const roleLabel = staff?.roles?.[0]
-    ? (ROLE_LABEL[staff.roles[0]] ?? staff.roles[0])
+    ? t(`inspection.infoCards.roles.${staff.roles[0]}`, { defaultValue: staff.roles[0] })
     : null;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-      {/* ── Staff card ── */}
+      {/* Staff card */}
       <Card>
-        <CardTitle>Nhân viên được sắp xếp</CardTitle>
+        <CardTitle>{t("inspection.infoCards.staffTitle")}</CardTitle>
         {staff ? (
           <div className="space-y-3">
-            {/* Avatar + tên */}
             <div className="flex items-center gap-3">
               <div
                 className="w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold flex-shrink-0"
@@ -115,7 +110,6 @@ export default function InspectionInfoCards({ inspection, staff }) {
             </div>
           </div>
         ) : (
-          /* Skeleton khi chưa load xong */
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl animate-pulse flex-shrink-0" style={{ background: "#EAF4F0" }} />
@@ -128,34 +122,34 @@ export default function InspectionInfoCards({ inspection, staff }) {
         )}
       </Card>
 
-      {/* ── Time card ── */}
+      {/* Time card */}
       <Card>
-        <CardTitle>Thời gian thực hiện</CardTitle>
+        <CardTitle>{t("inspection.infoCards.timeTitle")}</CardTitle>
         <div className="space-y-3">
-          <InfoRow icon={Calendar} iconBg="#EAF4F0" iconColor="#3bb582" label="Ngày tạo">
+          <InfoRow icon={Calendar} iconBg="#EAF4F0" iconColor="#3bb582" label={t("inspection.infoCards.createdAt")}>
             {formatDateTime(inspection?.createdAt)}
           </InfoRow>
           <div className="h-px" style={{ background: "#EAF4F0" }} />
-          <InfoRow icon={Clock} iconBg="rgba(32,150,216,0.10)" iconColor="#2096d8" label="Cập nhật lần cuối">
+          <InfoRow icon={Clock} iconBg="rgba(32,150,216,0.10)" iconColor="#2096d8" label={t("inspection.infoCards.updatedAt")}>
             {formatDateTime(inspection?.updatedAt)}
           </InfoRow>
         </div>
       </Card>
 
-      {/* ── Note + Address card ── */}
+      {/* Note + Address card */}
       <Card>
-        <CardTitle>Thông tin thêm</CardTitle>
+        <CardTitle>{t("inspection.infoCards.extraTitle")}</CardTitle>
         <div className="space-y-3">
-          <InfoRow icon={FileText} iconBg="#EAF4F0" iconColor="#5A7A6E" label="Ghi chú">
+          <InfoRow icon={FileText} iconBg="#EAF4F0" iconColor="#5A7A6E" label={t("inspection.infoCards.noteLabel")}>
             {inspection?.note
               ? <span className="leading-relaxed font-normal">{inspection.note}</span>
-              : <span style={{ color: "#9CA3AF", fontWeight: 400 }}>Không có ghi chú</span>
+              : <span style={{ color: "#9CA3AF", fontWeight: 400 }}>{t("inspection.infoCards.noteEmpty")}</span>
             }
           </InfoRow>
           {inspection?.houseAddress && (
             <>
               <div className="h-px" style={{ background: "#EAF4F0" }} />
-              <InfoRow icon={MapPin} iconBg="rgba(59,181,130,0.08)" iconColor="#3bb582" label="Địa chỉ">
+              <InfoRow icon={MapPin} iconBg="rgba(59,181,130,0.08)" iconColor="#3bb582" label={t("inspection.infoCards.addressLabel")}>
                 <span className="leading-relaxed font-normal">{inspection.houseAddress}</span>
               </InfoRow>
             </>
