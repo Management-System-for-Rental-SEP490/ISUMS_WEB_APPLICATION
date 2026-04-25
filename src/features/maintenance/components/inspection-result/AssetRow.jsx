@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { createPortal } from "react-dom";
 import { Package, X, ChevronLeft, ChevronRight, ImageOff } from "lucide-react";
 import ConditionBar from "./ConditionBar";
@@ -40,7 +41,7 @@ function Lightbox({ images, startIndex, onClose }) {
 }
 
 // ── ImagePanel — 1 bên (trước hoặc sau) ─────────────────────────────────────
-function ImagePanel({ images, label, accentColor, accentBg }) {
+function ImagePanel({ images, label, accentColor, accentBg, t }) {
   const [lightboxIdx, setLightboxIdx] = useState(null);
   const hasImages = images?.length > 0;
   // Lấy timestamp từ ảnh đầu tiên (tất cả ảnh cùng batch upload nên thời gian giống nhau)
@@ -70,7 +71,7 @@ function ImagePanel({ images, label, accentColor, accentBg }) {
             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
               style={{ background: "rgba(30,45,40,0.35)" }}>
               <span className="text-white text-xs font-semibold px-3 py-1.5 rounded-full"
-                style={{ background: "rgba(0,0,0,0.4)" }}>Xem ảnh</span>
+                style={{ background: "rgba(0,0,0,0.4)" }}>{t("inspection.assetEvents.viewImage")}</span>
             </div>
           </div>
 
@@ -101,7 +102,7 @@ function ImagePanel({ images, label, accentColor, accentBg }) {
         <div className="rounded-xl flex flex-col items-center justify-center gap-1.5 py-8"
           style={{ background: "#F7FDFB", border: "1px dashed #C4DED5", aspectRatio: "4/3" }}>
           <ImageOff className="w-5 h-5" style={{ color: "#C4DED5" }} />
-          <p className="text-[11px]" style={{ color: "#9CA3AF" }}>Không có ảnh</p>
+          <p className="text-[11px]" style={{ color: "#9CA3AF" }}>{t("inspection.assetEvents.noImage")}</p>
         </div>
       )}
 
@@ -113,8 +114,9 @@ function ImagePanel({ images, label, accentColor, accentBg }) {
 }
 
 // ── CompareModal ─────────────────────────────────────────────────────────────
-function CompareModal({ event, onClose }) {
-  const evCfg = EVENT_TYPE_CONFIG[event.eventType] ?? { label: event.eventType, color: "#5A7A6E", bg: "#EAF4F0" };
+function CompareModal({ event, onClose, t }) {
+  const evCfg = EVENT_TYPE_CONFIG[event.eventType] ?? { labelKey: null, color: "#5A7A6E", bg: "#EAF4F0" };
+  const evLabel = evCfg.labelKey ? t(evCfg.labelKey) : (event.eventType ?? "—");
   const diff = (event.currentCondition ?? 0) - (event.previousCondition ?? 0);
   const currColor = conditionColor(event.currentCondition ?? 0);
   const prevColor = conditionColor(event.previousCondition ?? 0);
@@ -138,7 +140,7 @@ function CompareModal({ event, onClose }) {
             <div className="min-w-0">
               <p className="text-sm font-bold truncate" style={{ color: "#1E2D28" }}>{event.assetName}</p>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                style={{ background: evCfg.bg, color: evCfg.color }}>{evCfg.label}</span>
+                style={{ background: evCfg.bg, color: evCfg.color }}>{evLabel}</span>
             </div>
           </div>
           <button type="button" onClick={onClose}
@@ -155,31 +157,33 @@ function CompareModal({ event, onClose }) {
           {/* Before / After images */}
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: "#5A7A6E" }}>
-              So sánh ảnh tình trạng
+              {t("inspection.assetEvents.compareTitle")}
             </p>
             <div className="flex gap-4">
               <ImagePanel
                 images={event.oldImages}
-                label="Ảnh trước"
+                label={t("inspection.assetEvents.imageBefore")}
                 accentColor="#5A7A6E"
                 accentBg="rgba(90,122,110,0.10)"
+                t={t}
               />
               <div className="w-px flex-shrink-0 self-stretch" style={{ background: "#C4DED5" }} />
               <ImagePanel
                 images={event.images}
-                label="Ảnh hiện tại"
+                label={t("inspection.assetEvents.imageCurrent")}
                 accentColor="#2096d8"
                 accentBg="rgba(32,150,216,0.10)"
+                t={t}
               />
             </div>
           </div>
 
           {/* Condition comparison */}
           <div className="rounded-2xl p-4 space-y-3" style={{ background: "#ffffff", border: "1px solid #C4DED5" }}>
-            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#5A7A6E" }}>Tình trạng kỹ thuật</p>
+            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: "#5A7A6E" }}>{t("inspection.assetEvents.conditionTitle")}</p>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-[11px] mb-1.5" style={{ color: "#9CA3AF" }}>Trước</p>
+                <p className="text-[11px] mb-1.5" style={{ color: "#9CA3AF" }}>{t("inspection.assetEvents.conditionBefore")}</p>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "#E5E7EB" }}>
                     <div className="h-full rounded-full" style={{ width: `${event.previousCondition ?? 0}%`, background: prevColor }} />
@@ -190,7 +194,7 @@ function CompareModal({ event, onClose }) {
                 </div>
               </div>
               <div>
-                <p className="text-[11px] mb-1.5" style={{ color: "#9CA3AF" }}>Hiện tại</p>
+                <p className="text-[11px] mb-1.5" style={{ color: "#9CA3AF" }}>{t("inspection.assetEvents.conditionCurrent")}</p>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "#E5E7EB" }}>
                     <div className="h-full rounded-full" style={{ width: `${event.currentCondition ?? 0}%`, background: currColor }} />
@@ -203,7 +207,9 @@ function CompareModal({ event, onClose }) {
             </div>
             {diff !== 0 && (
               <p className="text-xs font-semibold" style={{ color: diff > 0 ? "#3bb582" : "#D95F4B" }}>
-                {diff > 0 ? `▲ Tăng +${diff}%` : `▼ Giảm ${diff}%`} so với lần trước
+                {diff > 0
+                  ? t("inspection.assetEvents.conditionUp", { value: diff })
+                  : t("inspection.assetEvents.conditionDown", { value: Math.abs(diff) })}
               </p>
             )}
           </div>
@@ -211,7 +217,7 @@ function CompareModal({ event, onClose }) {
           {/* Note */}
           {event.note && (
             <div className="rounded-2xl px-4 py-3" style={{ background: "#ffffff", border: "1px solid #C4DED5" }}>
-              <p className="text-xs font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5A7A6E" }}>Ghi chú</p>
+              <p className="text-xs font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5A7A6E" }}>{t("inspection.assetEvents.noteLabel")}</p>
               <p className="text-sm leading-relaxed" style={{ color: "#1E2D28" }}>{event.note}</p>
             </div>
           )}
@@ -224,8 +230,10 @@ function CompareModal({ event, onClose }) {
 
 // ── AssetRow (table row) ─────────────────────────────────────────────────────
 export default function AssetRow({ event }) {
+  const { t } = useTranslation("common");
   const [modalOpen, setModalOpen] = useState(false);
-  const evCfg = EVENT_TYPE_CONFIG[event.eventType] ?? { label: event.eventType, color: "#5A7A6E", bg: "#EAF4F0" };
+  const evCfg = EVENT_TYPE_CONFIG[event.eventType] ?? { labelKey: null, color: "#5A7A6E", bg: "#EAF4F0" };
+  const evLabel = evCfg.labelKey ? t(evCfg.labelKey) : (event.eventType ?? "—");
   const hasImages = (event.oldImages?.length ?? 0) + (event.images?.length ?? 0) > 0;
 
   return (
@@ -253,7 +261,7 @@ export default function AssetRow({ event }) {
         <td className="pr-4 py-4 w-28">
           <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold tracking-wide"
             style={{ background: evCfg.bg, color: evCfg.color }}>
-            {evCfg.label}
+            {evLabel}
           </span>
         </td>
 
@@ -280,12 +288,12 @@ export default function AssetRow({ event }) {
             onMouseEnter={(e) => e.currentTarget.style.background = "rgba(59,181,130,0.18)"}
             onMouseLeave={(e) => e.currentTarget.style.background = "rgba(59,181,130,0.10)"}
           >
-            Xem chi tiết
+            {t("inspection.assetEvents.viewDetail")}
           </button>
         </td>
       </tr>
 
-      {modalOpen && <CompareModal event={event} onClose={() => setModalOpen(false)} />}
+      {modalOpen && <CompareModal event={event} onClose={() => setModalOpen(false)} t={t} />}
     </>
   );
 }

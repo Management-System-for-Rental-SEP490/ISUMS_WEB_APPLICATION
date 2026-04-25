@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Search, Building2, Clock, CheckCircle2, Check } from "lucide-react";
 import { JOB_TYPES, TYPE_COLORS } from "../../constants/shift.constants";
 
@@ -8,12 +9,12 @@ function formatDateVN(iso) {
   return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-function daysFromNow(iso) {
+function daysFromNow(iso, t) {
   if (!iso) return null;
   const diff = Math.ceil((new Date(iso) - new Date()) / 86400000);
-  if (diff < 0) return "Đã quá hạn";
-  if (diff === 0) return "Hôm nay";
-  return `${diff} ngày tới`;
+  if (diff < 0) return t("schedule.overdue");
+  if (diff === 0) return t("schedule.today");
+  return t("schedule.daysLeft", { count: diff });
 }
 
 export default function Step1JobSelect({
@@ -23,7 +24,8 @@ export default function Step1JobSelect({
   jobSearch, setJobSearch,
   planNames, houseNames,
 }) {
-  const currentTypeConfig = JOB_TYPES.find((t) => t.value === jobType);
+  const { t } = useTranslation("common");
+  const currentTypeConfig = JOB_TYPES.find((jt) => jt.value === jobType);
   const currentTypeColors = TYPE_COLORS[currentTypeConfig?.color ?? "teal"];
 
   const filteredJobs = jobs.filter(
@@ -31,22 +33,22 @@ export default function Step1JobSelect({
   );
 
   const getJobTitle = (job) => {
-    if (jobType === "MAINTENANCE") return planNames[job.planId] ?? `Bảo trì kỳ ${formatDateVN(job.periodStartDate)}`;
-    if (jobType === "INSPECTION") return job.note ?? `Kiểm tra — ${houseNames[job.houseId] ?? ""}`;
+    if (jobType === "MAINTENANCE") return planNames[job.planId] ?? t("schedule.maintenancePeriod", { date: formatDateVN(job.periodStartDate) });
+    if (jobType === "INSPECTION") return job.note ?? t("schedule.inspectionAt", { house: houseNames[job.houseId] ?? "" });
     return job.title ?? "—";
   };
 
   const getJobDesc = (job) => {
     const house = houseNames[job.houseId] ?? job.houseName ?? "";
-    if (jobType === "MAINTENANCE") return house ? `Tòa nhà: ${house}` : `Bắt đầu: ${formatDateVN(job.periodStartDate)}`;
-    if (jobType === "INSPECTION") return house ? `Tòa nhà: ${house}` : "";
+    if (jobType === "MAINTENANCE") return house ? t("schedule.building", { name: house }) : t("schedule.startDate", { date: formatDateVN(job.periodStartDate) });
+    if (jobType === "INSPECTION") return house ? t("schedule.building", { name: house }) : "";
     return house || job.tenantName || "";
   };
 
   const getJobDeadline = (job) => {
-    if (jobType === "MAINTENANCE") return daysFromNow(job.dueDate);
-    if (jobType === "INSPECTION") return daysFromNow(job.scheduledDate ?? job.createdAt);
-    return daysFromNow(job.scheduledDate);
+    if (jobType === "MAINTENANCE") return daysFromNow(job.dueDate, t);
+    if (jobType === "INSPECTION") return daysFromNow(job.scheduledDate ?? job.createdAt, t);
+    return daysFromNow(job.scheduledDate, t);
   };
 
   return (
@@ -54,12 +56,12 @@ export default function Step1JobSelect({
       {/* Job type selector */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold text-slate-700">Loại dịch vụ</p>
-          <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full tracking-wider">BẮT BUỘC</span>
+          <p className="text-sm font-semibold text-slate-700">{t("schedule.step1JobType")}</p>
+          <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full tracking-wider">{t("schedule.required")}</span>
         </div>
         <div className="grid grid-cols-3 gap-3">
           {JOB_TYPES.map((typeItem) => {
-            const { value, label, desc, icon: TypeIcon, color } = typeItem;
+            const { value, icon: TypeIcon, color } = typeItem;
             const active = jobType === value;
             const colors = TYPE_COLORS[color];
             return (
@@ -76,8 +78,12 @@ export default function Step1JobSelect({
                 <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-2.5 ${active ? "bg-white/15" : `bg-${color === "orange" ? "orange" : color === "purple" ? "purple" : "teal"}-50`}`}>
                   <TypeIcon className={`w-5 h-5 ${active ? "text-white" : colors.active.split(" ")[0]}`} />
                 </div>
-                <p className={`text-sm font-bold mb-1 ${active ? "text-white" : "text-slate-700"}`}>{label}</p>
-                <p className={`text-[11px] leading-snug ${active ? "text-teal-200" : "text-slate-400"}`}>{desc}</p>
+                <p className={`text-sm font-bold mb-1 ${active ? "text-white" : "text-slate-700"}`}>
+                  {t(`schedule.job${value.charAt(0) + value.slice(1).toLowerCase()}Label`)}
+                </p>
+                <p className={`text-[11px] leading-snug ${active ? "text-teal-200" : "text-slate-400"}`}>
+                  {t(`schedule.job${value.charAt(0) + value.slice(1).toLowerCase()}Desc`)}
+                </p>
               </button>
             );
           })}
@@ -86,15 +92,15 @@ export default function Step1JobSelect({
 
       {/* Job list */}
       <div>
-        <p className="text-sm font-semibold text-slate-700 mb-1">Nhiệm vụ cụ thể</p>
-        <p className="text-xs text-slate-400 mb-3">Chọn một nhiệm vụ cần thực hiện trong ca làm.</p>
+        <p className="text-sm font-semibold text-slate-700 mb-1">{t("schedule.step1JobLabel")}</p>
+        <p className="text-xs text-slate-400 mb-3">{t("schedule.step1JobDesc")}</p>
 
         <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 mb-3 focus-within:border-teal-400 transition">
           <Search className="w-4 h-4 text-slate-400 flex-shrink-0" />
           <input
             value={jobSearch}
             onChange={(e) => setJobSearch(e.target.value)}
-            placeholder={`Tìm kiếm nhiệm vụ (vd: ${jobType === "MAINTENANCE" ? "Bảo trì tháng..." : jobType === "ISSUE" ? "Sửa chữa điện..." : "Kiểm tra tòa..."})`}
+            placeholder={t("schedule.step1SearchPlaceholder")}
             className="bg-transparent text-sm outline-none flex-1 text-slate-700 placeholder-slate-400"
           />
         </div>
@@ -103,7 +109,7 @@ export default function Step1JobSelect({
           {jobsLoading ? (
             [...Array(4)].map((_, i) => <div key={i} className="h-14 bg-slate-100 rounded-xl animate-pulse" />)
           ) : filteredJobs.length === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-8">Không có công việc nào chờ xếp lịch</p>
+            <p className="text-sm text-slate-400 text-center py-8">{t("schedule.step1NoJobs")}</p>
           ) : (
             filteredJobs.map((job) => {
               const isSelected = selectedJobId === job.id;

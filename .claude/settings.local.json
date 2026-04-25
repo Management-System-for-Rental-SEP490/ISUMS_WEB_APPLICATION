@@ -20,7 +20,10 @@
       "Bash(node -e \"const f=require\\('./src/locales/en/common.json'\\); const c=f.contracts; console.log\\(Object.keys\\(c\\)\\)\")",
       "Bash(node -e \"const f=require\\('./src/locales/ja/common.json'\\); console.log\\(JSON.stringify\\({signing:f.contracts.signing},null,2\\)\\)\")",
       "Bash(node -e \"const f=require\\('./src/locales/vi/common.json'\\); console.log\\(JSON.stringify\\({dashboardMap:f.dashboard?.map, dashboardHouseStatus:f.dashboard?.houseStatus, houses:f.houses},null,2\\)\\)\")",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(grep -E \"\\\\.\\(jsx|js\\)$\")",
+      "Bash(grep -v \"//.*[àáạ]\")",
+      "Bash(xargs grep *)"
     ]
   }
 }

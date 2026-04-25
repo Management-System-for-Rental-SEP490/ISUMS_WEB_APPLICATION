@@ -1,6 +1,6 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, Clock, CheckCircle2, XCircle, RefreshCw, Layers } from "lucide-react";
-import { DAY_NAMES_LONG } from "../constants";
 import { getWeekDays, isSameDay, localDateStr } from "../utils/dateHelpers";
 import SlotModal from "./SlotModal";
 
@@ -10,31 +10,11 @@ const PX_PER_HOUR = 80;
 
 // Job type drives card color — so Bảo trì vs Sửa chữa are visually distinct
 const JOB_TYPE_CFG = {
-  MAINTENANCE: {
-    bg: "bg-teal-50", border: "border-l-teal-500",
-    badge: "bg-teal-100 text-teal-700", label: "Bảo trì",
-    dot: "bg-teal-500", color: "#14b8a6",
-  },
-  ISSUE: {
-    bg: "bg-orange-50", border: "border-l-orange-500",
-    badge: "bg-orange-100 text-orange-700", label: "Sửa chữa",
-    dot: "bg-orange-500", color: "#f97316",
-  },
-  INSPECTION: {
-    bg: "bg-blue-50", border: "border-l-blue-500",
-    badge: "bg-blue-100 text-blue-700", label: "Kiểm tra",
-    dot: "bg-blue-500", color: "#3b82f6",
-  },
-  CLEANING: {
-    bg: "bg-purple-50", border: "border-l-purple-500",
-    badge: "bg-purple-100 text-purple-700", label: "Vệ sinh",
-    dot: "bg-purple-500", color: "#a855f7",
-  },
-  SUPPORT: {
-    bg: "bg-slate-50", border: "border-l-slate-400",
-    badge: "bg-slate-100 text-slate-600", label: "Hỗ trợ",
-    dot: "bg-slate-400", color: "#94a3b8",
-  },
+  MAINTENANCE: { bg: "bg-teal-50",   border: "border-l-teal-500",   badge: "bg-teal-100 text-teal-700",     labelKey: "schedule.jobMaintenance", dot: "bg-teal-500",   color: "#14b8a6" },
+  ISSUE:       { bg: "bg-orange-50", border: "border-l-orange-500", badge: "bg-orange-100 text-orange-700", labelKey: "schedule.jobIssue",        dot: "bg-orange-500", color: "#f97316" },
+  INSPECTION:  { bg: "bg-blue-50",   border: "border-l-blue-500",   badge: "bg-blue-100 text-blue-700",     labelKey: "schedule.jobInspection",   dot: "bg-blue-500",   color: "#3b82f6" },
+  CLEANING:    { bg: "bg-purple-50", border: "border-l-purple-500", badge: "bg-purple-100 text-purple-700", labelKey: "schedule.jobCleaning",     dot: "bg-purple-500", color: "#a855f7" },
+  SUPPORT:     { bg: "bg-slate-50",  border: "border-l-slate-400",  badge: "bg-slate-100 text-slate-600",   labelKey: "schedule.jobSupport",      dot: "bg-slate-400",  color: "#94a3b8" },
 };
 
 function jobTypeCfg(type) {
@@ -53,12 +33,11 @@ function typeBreakdown(slots) {
   return order.map((key) => ({ key, cfg: jobTypeCfg(key), count: counts[key] }));
 }
 
-// Status provides the icon + Vietnamese label shown on the badge
 const STATUS_CFG = {
-  booked:     { Icon: Clock,        label: "Đã đặt" },
-  cancelled:  { Icon: XCircle,      label: "Đã hủy" },
-  inprogress: { Icon: RefreshCw,    label: "Đang xử lý" },
-  done:       { Icon: CheckCircle2, label: "Hoàn thành" },
+  booked:     { Icon: Clock,        labelKey: "schedule.statusBooked" },
+  cancelled:  { Icon: XCircle,      labelKey: "schedule.statusCancelled" },
+  inprogress: { Icon: RefreshCw,    labelKey: "schedule.statusInProgress" },
+  done:       { Icon: CheckCircle2, labelKey: "schedule.issueDone" },
 };
 
 function statusCfg(status) {
@@ -80,7 +59,7 @@ function layoutGroups(groups) {
 
 // ── EventBlock ─────────────────────────────────────────────────────────────────
 
-function EventBlock({ group, dayStartMins, onClick }) {
+function EventBlock({ group, dayStartMins, onClick, t }) {
   const top    = ((toMins(group.startTimeStr) - dayStartMins) / 60) * PX_PER_HOUR;
   const height = Math.max(48, ((toMins(group.endTimeStr) - toMins(group.startTimeStr)) / 60) * PX_PER_HOUR - 3);
   const pctW   = 100 / group.colCount;
@@ -114,12 +93,12 @@ function EventBlock({ group, dayStartMins, onClick }) {
         <div className="flex flex-col p-2 pl-2.5 h-full">
           <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold w-fit bg-slate-800 text-white">
             <Layers className="w-3 h-3 flex-shrink-0" />
-            {group.slots.length} ca làm việc
+            {t("schedule.slotCount", { count: group.slots.length })}
           </div>
 
           {height > 52 && (
             <p className="text-[11px] font-bold text-slate-700 leading-tight mt-1">
-              {breakdown.length} loại công việc
+              {breakdown.length} {t("schedule.jobTypes")}
             </p>
           )}
 
@@ -154,7 +133,7 @@ function EventBlock({ group, dayStartMins, onClick }) {
       <div className="flex flex-col p-2 h-full">
         <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold w-fit ${typeCfg.badge}`}>
           <Icon className="w-2.5 h-2.5 flex-shrink-0" />
-          {sCfg.label}
+          {t(sCfg.labelKey, { defaultValue: "" })}
           {group.slots.length > 1 && (
             <span className="ml-0.5 bg-white/60 rounded-full px-1">
               {group.slots.length}
@@ -164,7 +143,7 @@ function EventBlock({ group, dayStartMins, onClick }) {
 
         {height > 52 && (
           <p className="text-[11px] font-bold text-slate-800 leading-tight truncate mt-1">
-            {typeCfg.label}
+            {t(typeCfg.labelKey, { defaultValue: "" })}
           </p>
         )}
 
@@ -186,6 +165,8 @@ export default function WeekView({
   template = { workDays: [0, 1, 2, 3, 4, 5], startTime: "08:00", endTime: "17:00" },
   loading = false,
 }) {
+  const { t } = useTranslation("common");
+  const DAY_NAMES_LONG = [t("schedule.dayMon"), t("schedule.dayTue"), t("schedule.dayWed"), t("schedule.dayThu"), t("schedule.dayFri"), t("schedule.daySat"), t("schedule.daySun")];
   const today    = new Date();
   const weekDays = getWeekDays(weekBase);
   const [activeGroup, setActiveGroup] = useState(null);
@@ -344,6 +325,7 @@ export default function WeekView({
                             group={group}
                             dayStartMins={dayStartMins}
                             onClick={() => setActiveGroup({ group, dateKey })}
+                            t={t}
                           />
                         ))}
                       </div>

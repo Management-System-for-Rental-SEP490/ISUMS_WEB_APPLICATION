@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { createPortal } from "react-dom";
 import { X, ChevronRight, ChevronLeft, CheckCircle2 } from "lucide-react";
@@ -22,6 +23,7 @@ import Step2TimeSlot from "./create-shift/Step2TimeSlot";
 import Step3Staff from "./create-shift/Step3Staff";
 
 export default function CreateShiftModal({ open, onClose, onCreated }) {
+  const { t } = useTranslation("common");
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const [step, setStep] = useState(1);
@@ -185,14 +187,14 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
       } else {
         await confirmIssueWorkSlot(selectedJobId);
       }
-      toast.success(`Đã tạo ca làm việc — ${selectedDate} lúc ${selectedSlot.start}`);
+      toast.success(t("schedule.createShiftSuccess", { date: selectedDate, time: selectedSlot.start }));
       onCreated?.();
       handleClose();
     } catch (e) {
       const msg = e.message?.toLowerCase();
       const finalMsg = msg?.includes("staff already has job in this time")
-        ? "Nhân viên đã có lịch trong khung giờ này."
-        : (e.message ?? "Đã xảy ra lỗi, vui lòng thử lại.");
+        ? t("schedule.errorStaffBusy")
+        : (e.message ?? t("schedule.errorGeneric"));
       setError(finalMsg);
       toast.error(finalMsg);
     } finally {
@@ -226,8 +228,8 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
         <div className="px-7 pt-6 pb-5 border-b border-slate-100 flex-shrink-0">
           <div className="flex items-start justify-between mb-5">
             <div>
-              <h3 className="text-xl font-bold text-slate-800">Tạo Ca Làm Mới</h3>
-              <p className="text-xs text-slate-400 mt-0.5">Vui lòng hoàn tất thông tin để điều phối nhân sự</p>
+              <h3 className="text-xl font-bold text-slate-800">{t("schedule.createShiftTitle")}</h3>
+              <p className="text-xs text-slate-400 mt-0.5">{t("schedule.createShiftSubtitle")}</p>
             </div>
             <button type="button" onClick={handleClose} className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 transition">
               <X className="w-4 h-4" />
@@ -272,7 +274,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm font-semibold hover:bg-slate-50 transition"
           >
             {step > 1 && <ChevronLeft className="w-4 h-4" />}
-            {step === 1 ? "Hủy bỏ" : "Quay lại"}
+            {step === 1 ? t("actions.cancel") : t("actions.back")}
           </button>
 
           {step < 3 ? (
@@ -282,7 +284,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
               onClick={() => setStep((s) => s + 1)}
               className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-sm font-bold transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Tiếp theo <ChevronRight className="w-4 h-4" />
+              {t("schedule.next")} <ChevronRight className="w-4 h-4" />
             </button>
           ) : (
             <button
@@ -291,7 +293,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
               onClick={handleSubmit}
               className="flex items-center gap-2 px-7 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-sm font-bold transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              {submitting ? "Đang tạo..." : <><CheckCircle2 className="w-4 h-4" /> Hoàn tất tạo ca làm việc</>}
+              {submitting ? t("schedule.creating") : <><CheckCircle2 className="w-4 h-4" /> {t("schedule.createShiftFinish")}</>}
             </button>
           )}
         </div>
