@@ -12,7 +12,16 @@ const lbl = "block text-xs font-semibold text-slate-500 uppercase tracking-wide 
 
 export default function CreateHousePage({ onBack, onSubmit }) {
   const { t } = useTranslation("common");
-  const [form, setForm]           = useState({ name: "", description: "", numberOfFloors: "" });
+  const [form, setForm]           = useState({
+    name: "", description: "", numberOfFloors: "",
+    areaM2: "",      // Used on every contract template — prompt early.
+    structure: "",   // HouseStructure enum value.
+    // GCN (Giấy chứng nhận quyền sử dụng đất) — rendered into every
+    // contract's "nguồn gốc nhà" clause. One fact per house.
+    landCertNumber: "",
+    landCertIssueDate: "",
+    landCertIssuer: "",
+  });
   const [address, setAddress]     = useState("");
   const [addrParts, setAddrParts] = useState({ street: "", ward: "", city: "" });
   const [wardName, setWardName]   = useState("");
@@ -57,6 +66,11 @@ export default function CreateHousePage({ onBack, onSubmit }) {
         city:          addrParts.city,
         description:   form.description,
         numberOfFloors: form.numberOfFloors ? Number(form.numberOfFloors) : 0,
+        areaM2:        form.areaM2 !== "" ? Number(form.areaM2) : null,
+        structure:     form.structure || null,
+        landCertNumber:    form.landCertNumber.trim() || null,
+        landCertIssueDate: form.landCertIssueDate || null,
+        landCertIssuer:    form.landCertIssuer.trim() || null,
         houseImages:   [],
       };
       const created = await createHouse(payload);
@@ -138,7 +152,7 @@ export default function CreateHousePage({ onBack, onSubmit }) {
               {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <div>
                 <label className={lbl}>{t("houses.create.floors")}</label>
                 <div className="relative">
@@ -155,6 +169,38 @@ export default function CreateHousePage({ onBack, onSubmit }) {
                   </span>
                 </div>
               </div>
+              <div>
+                <label className={lbl}>Diện tích</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="0.01"
+                    min={0}
+                    value={form.areaM2}
+                    onChange={(e) => setField("areaM2", e.target.value)}
+                    placeholder="60"
+                    className={inp}
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none">
+                    m²
+                  </span>
+                </div>
+              </div>
+              <div>
+                <label className={lbl}>Kết cấu</label>
+                <select
+                  value={form.structure}
+                  onChange={(e) => setField("structure", e.target.value)}
+                  className={inp}
+                >
+                  <option value="">— Chọn —</option>
+                  <option value="LEVEL_4">Nhà cấp 4</option>
+                  <option value="TUBE_HOUSE">Nhà ống</option>
+                  <option value="TOWN_HOUSE">Nhà phố</option>
+                  <option value="VILLA">Biệt thự</option>
+                  <option value="OTHER">Khác</option>
+                </select>
+              </div>
             </div>
 
             <div>
@@ -166,6 +212,50 @@ export default function CreateHousePage({ onBack, onSubmit }) {
                 placeholder={t("houses.create.descriptionPlaceholder")}
                 className={`${inp} resize-none`}
               />
+            </div>
+          </div>
+
+          {/* Giấy chứng nhận quyền sử dụng đất (GCN) — shared by every
+              contract signed against this house. Optional at create time;
+              can be backfilled from HouseDetail later. */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-1 h-4 rounded-full" style={{ background: "linear-gradient(135deg, #3bb582, #2096d8)" }} />
+              <h3 className="text-sm font-bold text-slate-800">Giấy chứng nhận quyền sử dụng đất (Sổ hồng)</h3>
+              <span className="text-[10px] font-semibold text-slate-400 uppercase">Tùy chọn</span>
+            </div>
+            <p className="text-xs text-slate-500 -mt-2">
+              Các trường này sẽ hiển thị trên hợp đồng thuê. Có thể để trống và cập nhật sau
+              ở trang <b>Chi tiết nhà</b>.
+            </p>
+            <div>
+              <label className={lbl}>Số GCN</label>
+              <input
+                value={form.landCertNumber}
+                onChange={(e) => setField("landCertNumber", e.target.value)}
+                placeholder="VD: BA 123456"
+                className={inp}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={lbl}>Ngày cấp</label>
+                <input
+                  type="date"
+                  value={form.landCertIssueDate}
+                  onChange={(e) => setField("landCertIssueDate", e.target.value)}
+                  className={inp}
+                />
+              </div>
+              <div>
+                <label className={lbl}>Cơ quan cấp</label>
+                <input
+                  value={form.landCertIssuer}
+                  onChange={(e) => setField("landCertIssuer", e.target.value)}
+                  placeholder="UBND Quận/Huyện..."
+                  className={inp}
+                />
+              </div>
             </div>
           </div>
         </div>

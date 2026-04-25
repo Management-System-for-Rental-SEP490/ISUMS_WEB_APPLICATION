@@ -135,6 +135,24 @@ export const ASSET_ENDPOINTS = {
   CATEGORY: "/assets/categories",
   CATEGORY_DETAIL: (id) => `/assets/categories/${id}`,
 };
+
+// Utility alerts dashboard — landlord/manager fleet view of monthly
+// electricity/water consumption against contract-agreed caps. Backed
+// by asset-service which joins EIF's esp32_forecast DynamoDB table
+// with the iot_thresholds Postgres table and live esp32_alerts.
+// Only GET for now; Phase 2 adds push notifications via Kafka — no
+// extra FE endpoint needed (notifications arrive via the existing
+// /api/notifications channel).
+export const UTILITY_ENDPOINTS = {
+  ALERTS: "/assets/utility-alerts",
+  // Per-house threshold config (already lives in asset-service — FE
+  // deep-links here when user clicks "Set limit" on a tile).
+  HOUSE_THRESHOLDS: (houseId) => `/assets/houses/${houseId}/iot/thresholds`,
+  HOUSE_THRESHOLD_BY_METRIC: (houseId, metric) =>
+    `/assets/houses/${houseId}/iot/thresholds/${metric}`,
+  // Per-house alerts list for the drawer.
+  HOUSE_ALERTS: (houseId) => `/assets/houses/${houseId}/iot/alerts`,
+};
 export const BANNER_ENDPOINTS = {
   BASE: "issues/banners",
   CREATE: "issues/banners",

@@ -10,6 +10,7 @@ import {
 } from "../../../components/shared/Loading";
 import Icons from "../components/standalone/ContractDetailIcons";
 import ContractPdfViewer from "../components/shared/ContractPdfViewer";
+import ContractLegalSummary from "../components/shared/ContractLegalSummary";
 import { useAuthStore } from "../../../features/auth/store/auth.store";
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
@@ -432,18 +433,23 @@ export default function ContractDetailStandalone() {
         )}
 
         {!loading && !error && (
-          <div className="max-w-3xl mx-auto">
-            {isDraft ? (
-              <iframe
-                title="Contract HTML"
-                srcDoc={html}
-                className="block w-full min-h-[1000px] rounded-2xl border border-slate-200 bg-white shadow-md"
-                sandbox=""
-                referrerPolicy="no-referrer"
-              />
-            ) : (
-              <ContractPdfViewer pdfUrl={pdfUrl} />
-            )}
+          <div className="max-w-6xl mx-auto grid gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              {isDraft ? (
+                <iframe
+                  title="Contract HTML"
+                  srcDoc={html}
+                  className="block w-full min-h-[1000px] rounded-2xl border border-slate-200 bg-white shadow-md"
+                  sandbox=""
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                <ContractPdfViewer pdfUrl={pdfUrl} />
+              )}
+            </div>
+            <aside className="lg:col-span-1 lg:sticky lg:top-20 self-start max-h-[calc(100vh-6rem)] overflow-y-auto">
+              <ContractLegalSummary contract={contract} />
+            </aside>
           </div>
         )}
       </main>

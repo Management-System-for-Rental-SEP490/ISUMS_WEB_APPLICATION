@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import HouseLegalFieldsEditor from "./HouseLegalFieldsEditor";
 import {
   ArrowRight,
   Bath,
@@ -259,6 +260,9 @@ export default function HouseDetailModal({ house, onClose }) {
               {house.description}
             </div>
           )}
+
+          {/* Legal fields (area_m2 + structure) — contract template depends on these. */}
+          <HouseLegalFieldsEditor house={house} />
 
           {areas.length === 0 ? (
             <div className="text-center py-14">

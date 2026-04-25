@@ -116,9 +116,21 @@ export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
       <div className="h-full flex flex-col overflow-hidden">
 
         {/* ── Logo ── */}
+        {/*
+         * Clicking the brand lock-up takes the user home (`/dashboard`).
+         * This matches the near-universal web convention — the top-left
+         * logo is the "escape hatch" from any deep page. Using a
+         * <button> (not <a>) keeps the SPA router in charge; React
+         * Router's useNavigate() avoids a full page reload.
+         * Accessible name comes from aria-label; the <img> alt is still
+         * descriptive for screen readers that read both.
+         */}
         <div className="flex-shrink-0">
-          <div
-            className="flex items-center gap-3 px-4"
+          <button
+            type="button"
+            onClick={() => navigate("/dashboard")}
+            aria-label={t("sidebar.dashboard")}
+            className="w-full flex items-center gap-3 px-4 transition-colors duration-150 hover:bg-[#3bb582]/5"
             style={{ height: 64, minHeight: 64 }}
           >
             <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 shadow ring-2 ring-[#3bb582]/40">
@@ -140,7 +152,7 @@ export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
             >
               ISUMS
             </h1>
-          </div>
+          </button>
           <div
             className="mx-4"
             style={{

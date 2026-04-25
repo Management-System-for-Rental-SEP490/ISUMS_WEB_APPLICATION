@@ -110,10 +110,41 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
             </div>
           )}
 
+          {/* Missing legal fields warning — contract template renders "—" without these. */}
+          {!loadingHouse && houseDetail && (
+            houseDetail.areaM2 == null ||
+            !houseDetail.structure ||
+            !houseDetail.landCertNumber
+          ) && (
+            <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 flex items-start gap-3">
+              <span className="text-amber-600 text-xl leading-none">⚠️</span>
+              <div className="flex-1 text-sm">
+                <p className="font-semibold text-amber-900">Nhà chưa đủ thông tin pháp lý</p>
+                <p className="text-xs text-amber-800 mt-0.5">
+                  {houseDetail.areaM2 == null && "Chưa có diện tích. "}
+                  {!houseDetail.structure && "Chưa có kết cấu. "}
+                  {!houseDetail.landCertNumber && "Chưa có số GCN. "}
+                  Hợp đồng sẽ hiển thị <b>—</b> thay cho các ô này khi render.
+                  Cập nhật ở <b>Quản lý nhà → chi tiết nhà</b> rồi quay lại.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* House preview card */}
           {!loadingHouse && houseDetail && (
             <div className="rounded-xl border-2 border-teal-400 bg-white overflow-hidden grid" style={{ gridTemplateColumns: "2fr 3fr", minHeight: 220 }}>
-              <div className="overflow-hidden">
-                <ImageCarousel images={houseDetail.images ?? []} alt={houseDetail.name} height="h-full" />
+              {/*
+                Grid cell needs `h-full min-h-[220px]` because the parent
+                only sets minHeight on the container, not the row track —
+                without it, the inner ImageCarousel's `h-full` computed
+                to 0 and the image column rendered blank (screenshot
+                feedback 2026-04: "Mất ảnh rồi"). `min-h-[220px]` also
+                covers the "no images" fallback so the empty-state icon
+                stays centred inside a visible box.
+              */}
+              <div className="overflow-hidden h-full min-h-[220px]">
+                <ImageCarousel images={houseDetail.images ?? []} alt={houseDetail.name} height="h-full min-h-[220px]" />
               </div>
               <div className="flex-1 min-w-0 flex flex-col gap-3 p-4">
                 <div className="flex items-start justify-between gap-2">

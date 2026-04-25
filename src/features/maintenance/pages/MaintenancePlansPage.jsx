@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ClipboardList, Plus, RefreshCw, Wrench } from "lucide-react";
 import MaintenancePlanList from "../components/MaintenancePlanList";
 import CreatePlanDrawer from "../components/CreatePlanDrawer";
@@ -8,14 +9,16 @@ import AssignStaffModal from "../components/AssignStaffModal";
 import GenerateJobsResultModal from "../components/GenerateJobsResultModal";
 import { getMaintenancePlans, generateMaintenanceJobs } from "../api/maintenance.api";
 
-function formatDate(value) {
+const DATE_LOCALE = { vi: "vi-VN", en: "en-GB", ja: "ja-JP" };
+
+function formatDate(value, locale = "vi-VN") {
   if (!value) return "—";
   const d = new Date(value);
   if (isNaN(d)) return value;
-  return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+  return d.toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-function normalizePlan(raw) {
+function normalizePlan(raw, locale) {
   return {
     id:            raw.id,
     name:          raw.name ?? raw.planName ?? "—",
@@ -25,14 +28,16 @@ function normalizePlan(raw) {
     status:        raw.isActive !== undefined
                      ? (raw.isActive ? "ACTIVE" : "INACTIVE")
                      : (raw.status ?? "INACTIVE"),
-    nextRunDate:   formatDate(raw.nextRunAt ?? raw.nextRunDate ?? raw.nextScheduleDate),
-    effectiveFrom: formatDate(raw.effectiveFrom),
-    effectiveTo:   formatDate(raw.effectiveTo),
+    nextRunDate:   formatDate(raw.nextRunAt ?? raw.nextRunDate ?? raw.nextScheduleDate, locale),
+    effectiveFrom: formatDate(raw.effectiveFrom, locale),
+    effectiveTo:   formatDate(raw.effectiveTo, locale),
     jobCount:      raw.jobCount ?? raw.totalJobs ?? 0,
   };
 }
 
 export default function MaintenancePlansPage() {
+  const { t, i18n } = useTranslation("common");
+  const dateLocale = DATE_LOCALE[i18n.language] ?? "vi-VN";
   const [plans, setPlans]           = useState([]);
   const [loading, setLoading]       = useState(true);
   const [error, setError]           = useState(null);
@@ -61,7 +66,7 @@ export default function MaintenancePlansPage() {
     getMaintenancePlans()
       .then((data) => {
         const raw = Array.isArray(data) ? data : (data?.data ?? data?.items ?? []);
-        setPlans(raw.map(normalizePlan));
+        setPlans(raw.map((p) => normalizePlan(p, dateLocale)));
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
@@ -71,18 +76,18 @@ export default function MaintenancePlansPage() {
     getMaintenancePlans()
       .then((data) => {
         const raw = Array.isArray(data) ? data : (data?.data ?? data?.items ?? []);
-        setPlans(raw.map(normalizePlan));
+        setPlans(raw.map((p) => normalizePlan(p, dateLocale)));
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [dateLocale]);
 
   const activeCount = plans.filter((p) => p.status === "ACTIVE").length;
 
   const stats = [
-    { label: "Tổng kế hoạch",      value: loading ? "—" : plans.length, iconBg: "rgba(59,181,130,0.12)",  iconColor: "#3bb582" },
-    { label: "Đang hoạt động",     value: loading ? "—" : activeCount,  iconBg: "rgba(59,181,130,0.12)",  iconColor: "#3bb582" },
-    { label: "Thực hiện tháng này", value: loading ? "—" : 0,           iconBg: "rgba(32,150,216,0.12)",  iconColor: "#2096d8" },
+    { label: t("maintenance.plansPage.statTotal"),     value: loading ? "—" : plans.length, iconBg: "rgba(59,181,130,0.12)",  iconColor: "#3bb582" },
+    { label: t("maintenance.plansPage.statActive"),    value: loading ? "—" : activeCount,  iconBg: "rgba(59,181,130,0.12)",  iconColor: "#3bb582" },
+    { label: t("maintenance.plansPage.statThisMonth"), value: loading ? "—" : 0,            iconBg: "rgba(32,150,216,0.12)",  iconColor: "#2096d8" },
   ];
 
   return (
@@ -90,7 +95,7 @@ export default function MaintenancePlansPage() {
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-<h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Kế hoạch bảo trì</h2>
+<h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>{t("maintenance.plansPage.title")}</h2>
         </div>
         <div className="flex items-center gap-2 mt-1">
           <button
@@ -103,7 +108,7 @@ export default function MaintenancePlansPage() {
             onMouseLeave={e => e.currentTarget.style.background = "#ffffff"}
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} style={{ color: "#3bb582" }} />
-            Làm mới
+            {t("maintenance.plansPage.refresh")}
           </button>
           <button
             type="button"
@@ -115,7 +120,7 @@ export default function MaintenancePlansPage() {
             onMouseLeave={e => e.currentTarget.style.opacity = "1"}
           >
             <Wrench className={`w-4 h-4 ${generatingJobs ? "animate-spin" : ""}`} />
-            Tạo công việc bảo trì
+            {t("maintenance.plansPage.generateJobs")}
           </button>
           <button
             type="button"
@@ -126,7 +131,7 @@ export default function MaintenancePlansPage() {
             onMouseLeave={e => e.currentTarget.style.opacity = "1"}
           >
             <Plus className="w-4 h-4" />
-            Tạo kế hoạch
+            {t("maintenance.plansPage.createPlan")}
           </button>
         </div>
       </div>
@@ -179,7 +184,7 @@ export default function MaintenancePlansPage() {
             className="mt-3 text-xs font-semibold underline transition"
             style={{ color: "#D95F4B" }}
           >
-            Thử lại
+            {t("maintenance.plansPage.retry")}
           </button>
         </div>
       )}
@@ -190,8 +195,8 @@ export default function MaintenancePlansPage() {
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3" style={{ background: "#EAF4F0" }}>
             <ClipboardList className="w-7 h-7" style={{ color: "#3bb582" }} />
           </div>
-          <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>Chưa có kế hoạch bảo trì nào</p>
-          <p className="text-xs mt-1 mb-5" style={{ color: "#5A7A6E" }}>Tạo kế hoạch đầu tiên để bắt đầu</p>
+          <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>{t("maintenance.plansPage.emptyTitle")}</p>
+          <p className="text-xs mt-1 mb-5" style={{ color: "#5A7A6E" }}>{t("maintenance.plansPage.emptyHint")}</p>
           <button
             type="button"
             onClick={() => setShowCreate(true)}
@@ -199,7 +204,7 @@ export default function MaintenancePlansPage() {
             style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
           >
             <Plus className="w-4 h-4" />
-            Tạo kế hoạch
+            {t("maintenance.plansPage.createPlan")}
           </button>
         </div>
       )}

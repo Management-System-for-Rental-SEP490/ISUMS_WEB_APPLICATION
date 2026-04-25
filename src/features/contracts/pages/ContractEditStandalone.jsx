@@ -12,6 +12,7 @@ import {
   wrapBodyWithFullDocument,
 } from "../utils/contractHtml.utils";
 import ContractHtmlEditor from "../components/editor/ContractHtmlEditor";
+import ContractQuickEditPanel from "../components/editor/ContractQuickEditPanel";
 import Icons from "../components/standalone/ContractEditIcons";
 
 export default function ContractEditStandalone() {
@@ -160,7 +161,8 @@ export default function ContractEditStandalone() {
 
         {/* Editor area */}
         {!loading && contract && (
-          <div className="max-w-4xl mx-auto space-y-4">
+          <div className="max-w-6xl mx-auto grid gap-4 lg:grid-cols-[1fr_360px]">
+            <div className="space-y-4 min-w-0">
             {/* Info banner */}
             <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-[13px] font-medium text-blue-700">
               <Icons.Info />
@@ -227,6 +229,10 @@ export default function ContractEditStandalone() {
                 </button>
               </div>
             </div>
+            </div>
+            <aside className="lg:sticky lg:top-20 self-start max-h-[calc(100vh-6rem)] overflow-y-auto">
+              <ContractQuickEditPanel contract={contract} onSaved={() => { /* could re-fetch */ }} />
+            </aside>
           </div>
         )}
       </main>

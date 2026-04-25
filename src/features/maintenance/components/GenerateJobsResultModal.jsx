@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   X,
   Wrench,
@@ -8,26 +9,34 @@ import {
 } from "lucide-react";
 import { getHouseById } from "../../houses/api/houses.api";
 
-const STATUS_LABEL = {
-  CREATED: { text: "Mới tạo", cls: "bg-blue-50 text-blue-600" },
-  IN_PROGRESS: { text: "Đang xử lý", cls: "bg-amber-50 text-amber-600" },
-  DONE: { text: "Hoàn tất", cls: "bg-green-50 text-green-600" },
+const STATUS_CLS = {
+  CREATED:     "bg-blue-50 text-blue-600",
+  IN_PROGRESS: "bg-amber-50 text-amber-600",
+  DONE:        "bg-green-50 text-green-600",
 };
 
-function formatDate(iso) {
+const STATUS_KEY = {
+  CREATED:     "maintenance.generateJobs.statusCreated",
+  IN_PROGRESS: "maintenance.generateJobs.statusInProgress",
+  DONE:        "maintenance.generateJobs.statusDone",
+};
+
+const DATE_LOCALE = { vi: "vi-VN", en: "en-GB", ja: "ja-JP" };
+
+function formatDate(iso, locale) {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("vi-VN", {
+  return new Date(iso).toLocaleDateString(locale, {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
   });
 }
 
-// --- Empty popup: tự đóng sau 2s ---
 function EmptyNotice({ onClose }) {
+  const { t } = useTranslation("common");
   useEffect(() => {
-    const t = setTimeout(onClose, 2000);
-    return () => clearTimeout(t);
+    const tm = setTimeout(onClose, 2000);
+    return () => clearTimeout(tm);
   }, [onClose]);
 
   return (
@@ -37,16 +46,17 @@ function EmptyNotice({ onClose }) {
           <CalendarClock className="w-6 h-6 text-slate-400" />
         </div>
         <p className="text-slate-700 font-semibold text-center">
-          Hiện tại chưa có kế hoạch bảo trì
+          {t("maintenance.generateJobs.emptyTitle")}
         </p>
-        <p className="text-xs text-slate-400">Đang tự đóng...</p>
+        <p className="text-xs text-slate-400">{t("maintenance.generateJobs.autoClosing")}</p>
       </div>
     </div>
   );
 }
 
-// --- Result modal: danh sách jobs ---
 export default function GenerateJobsResultModal({ jobs, onClose }) {
+  const { t, i18n } = useTranslation("common");
+  const dateLocale = DATE_LOCALE[i18n.language] ?? "vi-VN";
   const [houseNames, setHouseNames] = useState({});
 
   useEffect(() => {
@@ -71,7 +81,6 @@ export default function GenerateJobsResultModal({ jobs, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
       <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl flex flex-col max-h-[80vh]">
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center">
@@ -79,10 +88,10 @@ export default function GenerateJobsResultModal({ jobs, onClose }) {
             </div>
             <div>
               <h3 className="font-bold text-slate-800 text-[15px]">
-                Công việc vừa được tạo
+                {t("maintenance.generateJobs.resultTitle")}
               </h3>
               <p className="text-xs text-slate-400">
-                {jobs.length} công việc từ kế hoạch bảo trì
+                {t("maintenance.generateJobs.resultSubtitle", { count: jobs.length })}
               </p>
             </div>
           </div>
@@ -94,13 +103,12 @@ export default function GenerateJobsResultModal({ jobs, onClose }) {
           </button>
         </div>
 
-        {/* List */}
         <div className="overflow-y-auto flex-1 px-6 py-4 flex flex-col gap-3">
           {jobs.map((job, idx) => {
-            const statusCfg = STATUS_LABEL[job.status] ?? {
-              text: job.status,
-              cls: "bg-slate-100 text-slate-500",
-            };
+            const cls = STATUS_CLS[job.status] ?? "bg-slate-100 text-slate-500";
+            const statusText = STATUS_KEY[job.status]
+              ? t(STATUS_KEY[job.status])
+              : job.status;
             return (
               <div
                 key={job.id}
@@ -114,24 +122,24 @@ export default function GenerateJobsResultModal({ jobs, onClose }) {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <span className="text-[13px] font-semibold text-slate-700 truncate">
-                      Kỳ bắt đầu: {formatDate(job.periodStartDate)}
+                      {t("maintenance.generateJobs.periodStart", { date: formatDate(job.periodStartDate, dateLocale) })}
                     </span>
                     <span
-                      className={`text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0 ${statusCfg.cls}`}
+                      className={`text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0 ${cls}`}
                     >
-                      {statusCfg.text}
+                      {statusText}
                     </span>
                   </div>
                   <p className="text-xs text-slate-400 mt-1">
-                    Hạn hoàn thành:{" "}
+                    {t("maintenance.generateJobs.dueDate")}{" "}
                     <span className="text-slate-600 font-medium">
-                      {formatDate(job.dueDate)}
+                      {formatDate(job.dueDate, dateLocale)}
                     </span>
                   </p>
                   {job.houseId && (
                     <p className="text-[11px] text-slate-500 mt-1 flex items-center gap-1 truncate">
                       <Building2 className="w-3 h-3 flex-shrink-0" />
-                      {houseNames[job.houseId] ?? "Đang tải..."}
+                      {houseNames[job.houseId] ?? t("maintenance.generateJobs.houseLoading")}
                     </p>
                   )}
                 </div>
@@ -140,17 +148,16 @@ export default function GenerateJobsResultModal({ jobs, onClose }) {
           })}
         </div>
 
-        {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-1.5 text-xs text-green-600 font-semibold">
             <CheckCircle2 className="w-4 h-4" />
-            Tạo thành công {jobs.length} công việc
+            {t("maintenance.generateJobs.successCount", { count: jobs.length })}
           </div>
           <button
             onClick={onClose}
             className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold rounded-xl transition"
           >
-            Đóng
+            {t("maintenance.generateJobs.close")}
           </button>
         </div>
       </div>

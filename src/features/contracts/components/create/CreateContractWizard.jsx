@@ -4,8 +4,17 @@ import { ArrowLeft, ArrowRight, Save } from "lucide-react";
 import StepGeneralInfo from "./StepGeneralInfo";
 import StepHouseAndMoney from "./StepHouseAndMoney";
 import StepContractClauses from "./StepContractClauses";
+import StepRulesAndLanguage from "./StepRulesAndLanguage";
 
-const STEP_KEYS = ["contracts.wizard.step1", "contracts.wizard.step2", "contracts.wizard.step3"];
+// 4-step wizard: tenant info → house & money → clauses → rules & language.
+// Step 4 was added to support passport validation for foreign tenants.
+// i18n keys must be defined in locales/*/common.json.
+const STEP_KEYS = [
+  "contracts.wizard.step1",
+  "contracts.wizard.step2",
+  "contracts.wizard.step3",
+  "contracts.wizard.step4",
+];
 
 export default function CreateContractWizard({
   initialForm,
@@ -65,23 +74,38 @@ export default function CreateContractWizard({
       newErrors.email = t("contracts.validation.checkEmailFirst");
     }
 
-    const identityNumber = safeTrim(currentForm.identityNumber);
-    if (!identityNumber) {
-      newErrors.identityNumber = t("contracts.validation.required");
-    } else if (!/^\d{9,12}$/.test(identityNumber)) {
-      newErrors.identityNumber = t("contracts.validation.invalidId");
+    // Tenant identity validation — split by tenantType which is now set
+    // up-front in step 1. Foreigner path requires passport + nationality;
+    // VN path requires CCCD + issue date sanity checks.
+    const isForeigner = currentForm.tenantType === "FOREIGNER";
+    if (isForeigner) {
+      const pp = safeTrim(currentForm.passportNumber).toUpperCase();
+      if (!pp) {
+        newErrors.passportNumber = t("contracts.validation.passportRequired");
+      } else if (!/^[A-Z0-9]{6,9}$/.test(pp)) {
+        newErrors.passportNumber = t("contracts.validation.passportFormat");
+      }
+      if (!safeTrim(currentForm.nationality)) {
+        newErrors.nationality = t("contracts.validation.nationalityRequired");
+      }
+    } else {
+      const identityNumber = safeTrim(currentForm.identityNumber);
+      if (!identityNumber) {
+        newErrors.identityNumber = t("contracts.validation.required");
+      } else if (!/^\d{9,12}$/.test(identityNumber)) {
+        newErrors.identityNumber = t("contracts.validation.invalidId");
+      }
+      if (currentForm.dateOfIssue) {
+        if (currentForm.dateOfIssue > todayIso) {
+          newErrors.dateOfIssue = t("contracts.validation.idIssueFuture");
+        }
+        if (currentForm.startDate && currentForm.dateOfIssue > currentForm.startDate) {
+          newErrors.dateOfIssue = t("contracts.validation.idIssueAfterStart");
+        }
+      }
     }
 
-    if (currentForm.dateOfIssue) {
-      if (currentForm.dateOfIssue > todayIso) {
-        newErrors.dateOfIssue = t("contracts.validation.idIssueFuture");
-      }
-      if (currentForm.startDate && currentForm.dateOfIssue > currentForm.startDate) {
-        newErrors.dateOfIssue = t("contracts.validation.idIssueAfterStart");
-      }
-    }
-
-    if (!safeTrim(currentForm.tenantAddress)) newErrors.tenantAddress = t("contracts.validation.required");
+    if (!safeTrim(currentForm.permanentAddress)) newErrors.permanentAddress = t("contracts.validation.required");
 
     return newErrors;
   };
@@ -143,9 +167,8 @@ export default function CreateContractWizard({
     const newErrors = {};
     const safeTrim = (v) => String(v ?? "").trim();
 
-    if (!safeTrim(currentForm.area))          newErrors.area          = t("contracts.validation.required");
-    if (!safeTrim(currentForm.structure))     newErrors.structure     = t("contracts.validation.required");
-    if (!safeTrim(currentForm.ownershipDocs)) newErrors.ownershipDocs = t("contracts.validation.required");
+    // Purpose hardcoded ("thuê để ở"); area/structure/GCN pulled from House-service.
+    // No need to revalidate on the contract side.
 
     const numericFields = [
       "lateDays", "maxLateDays", "cureDays", "renewNoticeDays",
@@ -160,12 +183,7 @@ export default function CreateContractWizard({
       }
     }
 
-    const eachKeepRaw = safeTrim(currentForm.eachKeep);
-    if (!eachKeepRaw) {
-      newErrors.eachKeep = t("contracts.validation.required");
-    } else if (Number.isNaN(Number(eachKeepRaw)) || Number(eachKeepRaw) < 1) {
-      newErrors.eachKeep = t("contracts.validation.required");
-    }
+    // copies + eachKeep removed: meaningless for e-contract (single signed PDF).
 
     if (!safeTrim(currentForm.disputeForum)) newErrors.disputeForum = t("contracts.validation.required");
 
@@ -179,15 +197,13 @@ export default function CreateContractWizard({
       }
     }
 
-    const copiesRaw = safeTrim(currentForm.copies);
-    if (!copiesRaw) {
-      newErrors.copies = t("contracts.validation.required");
-    } else if (Number.isNaN(Number(copiesRaw)) || Number(copiesRaw) < 1) {
-      newErrors.copies = t("contracts.validation.copiesMin");
-    }
-
     return newErrors;
   };
+
+  // Step 4: rules + language + co-tenants only. Passport / nationality
+  // moved to step 1 (tenant-type-aware identity fields). Left as a no-op
+  // validator to keep the handleSubmit wiring simple.
+  const validateStep4 = () => ({});
 
   const handleNext = () => {
     if (currentStep === 1) {
@@ -197,6 +213,11 @@ export default function CreateContractWizard({
     }
     if (currentStep === 2) {
       const stepErrors = validateStep2(form);
+      setErrors(stepErrors);
+      if (Object.keys(stepErrors).length > 0) return;
+    }
+    if (currentStep === 3) {
+      const stepErrors = validateStep3(form);
       setErrors(stepErrors);
       if (Object.keys(stepErrors).length > 0) return;
     }
@@ -215,6 +236,7 @@ export default function CreateContractWizard({
       ...validateStep1(form),
       ...validateStep2(form),
       ...validateStep3(form),
+      ...validateStep4(form),
     };
     setErrors(combinedErrors);
     if (Object.keys(combinedErrors).length > 0 || !canSubmitStep2) return;
@@ -252,6 +274,7 @@ export default function CreateContractWizard({
         {currentStep === 1 && <StepGeneralInfo form={form} update={update} errors={errors} />}
         {currentStep === 2 && <StepHouseAndMoney form={form} update={update} houses={houses} errors={errors} />}
         {currentStep === 3 && <StepContractClauses form={form} update={update} errors={errors} />}
+        {currentStep === 4 && <StepRulesAndLanguage form={form} update={update} setForm={setForm} errors={errors} />}
 
         <div className="flex items-center justify-between gap-4 pt-4 border-t border-gray-200">
           <div className="flex gap-2">

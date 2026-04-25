@@ -9,4 +9,19 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    host: true,
+    port: 5173,
+    strictPort: true,
+    // Required when serving through Cloudflare Tunnel — Vite 5.1+ rejects
+    // unknown Host headers by default.
+    allowedHosts: ["dev.isums.pro", "localhost", "127.0.0.1"],
+    // HMR client needs to know it's reaching the dev server over public
+    // HTTPS (port 443) rather than localhost:5173.
+    hmr: {
+      host: "dev.isums.pro",
+      protocol: "wss",
+      clientPort: 443,
+    },
+  },
 });

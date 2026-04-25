@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import CreateContractWizard from "../components/create/CreateContractWizard";
 import ContractLoadingModal from "../components/create/ContractLoadingModal";
 import { useHouses } from "../../houses/hooks/useHouses";
@@ -6,15 +7,40 @@ import { createContract } from "../api/contracts.api";
 import { toast } from "react-toastify";
 
 const getInitialForm = (todayISO) => ({
+  // Tenant identity
+  tenantType: "VIETNAMESE",         // VIETNAMESE | FOREIGNER
+  contractLanguage: "VI",           // VI | VI_EN | VI_JA
   name: "",
   email: "",
   emailChecked: false,
   phoneNumber: "",
+
+  // VN CCCD
   identityNumber: "",
-  houseId: "",
   dateOfIssue: "",
   placeOfIssue: "Cục Cảnh sát QLHC về TTXH",
+
+  // Foreign passport
+  passportNumber: "",
+  passportIssueDate: "",
+  passportIssuePlace: "",
+  passportExpiryDate: "",
+  nationality: "",
+  visaType: "",
+  visaExpiryDate: "",
+
+  // Tenant personal
+  dateOfBirth: "",
+  gender: "",
+  occupation: "",
+  permanentAddress: "",
   tenantAddress: "",
+
+  // House
+  houseId: "",
+  // Diện tích, kết cấu, GCN: lấy tự động từ house-service (fact của nhà).
+
+  // Dates + money
   startDate: todayISO,
   endDate: "",
   rentAmount: "",
@@ -35,17 +61,29 @@ const getInitialForm = (todayISO) => ({
   forceMajeureNoticeHours: 24,
   disputeDays: 30,
   disputeForum: "",
-  copies: 2,
-  eachKeep: 1,
-  purpose: "Để ở",
-  area: "",
-  structure: "",
-  ownershipDocs: "",
   taxFeeNote: "",
   hasPowerCutClause: false,
+
+  // House-rule policies
+  petPolicy: "ALLOWED_WITH_APPROVAL",
+  smokingPolicy: "OUTDOOR_ONLY",
+  subleasePolicy: "NOT_ALLOWED",
+  visitorPolicy: "UNRESTRICTED",
+  tempResidenceRegisterBy: "LANDLORD",
+  taxResponsibility: "LANDLORD",
+
+  // Meter readings at handover (record-only, not billed; gas omitted —
+  // TP.HCM rentals predominantly use bottled gas with no meter).
+  meterElectric: "",
+  meterWater: "",
+  meterNote: "",
+
+  // Co-tenants
+  coTenants: [],
 });
 
 export default function CreateContract({ onCancel, onCreated }) {
+  const { t } = useTranslation("common");
   const todayISO = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const initialForm = useMemo(() => getInitialForm(todayISO), [todayISO]);
   const { houses } = useHouses();
@@ -69,9 +107,9 @@ export default function CreateContract({ onCancel, onCreated }) {
     } catch (err) {
       const status = err?.response?.status;
       const msg =
-        status === 400 ? "Dữ liệu không hợp lệ hoặc thông tin chủ nhà chưa được cập nhật đầy đủ." :
-        status === 404 ? "Không tìm thấy nhà hoặc email người dùng không tồn tại." :
-        "Tạo hợp đồng thất bại, vui lòng thử lại.";
+        status === 400 ? t("contracts.create.err400") :
+        status === 404 ? t("contracts.create.err404") :
+        t("contracts.create.errGeneric");
       setIsError(true);
       setErrorMessage(msg);
       setIsApiDone(true);
@@ -88,7 +126,7 @@ export default function CreateContract({ onCancel, onCreated }) {
     setModalOpen(false);
     const form = pendingForm;
     const house = houseOptions.find((h) => h.id === form?.houseId);
-    toast.success("Tạo hợp đồng thành công!");
+    toast.success(t("contracts.create.success"));
     onCreated?.({
       id: Date.now(),
       contractNumber: `HD-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
@@ -124,10 +162,8 @@ export default function CreateContract({ onCancel, onCreated }) {
         onClose={() => setModalOpen(false)}
       />
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">Tạo Hợp Đồng</h2>
-        <p className="text-gray-600">
-          Bước 1: Người thuê — Bước 2: Nhà & chi phí — Bước 3: Điều khoản
-        </p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t("contracts.create.title")}</h2>
+        <p className="text-gray-600">{t("contracts.create.subtitle")}</p>
       </div>
       <CreateContractWizard
         initialForm={initialForm}

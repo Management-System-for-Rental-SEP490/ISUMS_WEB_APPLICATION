@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { createPortal } from "react-dom";
 import { X, Search, Check, Building2, MapPin } from "lucide-react";
 import { getAllHouses } from "../../houses/api/houses.api";
@@ -12,6 +13,7 @@ export default function AddHousesModal({
   onClose,
   onAdded,
 }) {
+  const { t } = useTranslation("common");
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const [houses, setHouses] = useState([]);
@@ -42,15 +44,15 @@ export default function AddHousesModal({
         })
         .catch((err) => {
           setHouses([]);
-          setError(err?.message ?? "Không thể tải danh sách bất động sản");
+          setError(err?.message ?? t("maintenance.addHouses.loadError"));
         })
         .finally(() => setLoading(false));
     } else {
       setVisible(false);
-      const t = setTimeout(() => setMounted(false), 300);
-      return () => clearTimeout(t);
+      const tm = setTimeout(() => setMounted(false), 300);
+      return () => clearTimeout(tm);
     }
-  }, [open]);
+  }, [open, t]);
 
   if (!mounted) return null;
 
@@ -75,14 +77,14 @@ export default function AddHousesModal({
     try {
       await addHousesToPlan(planId, [...selected]);
       onAdded?.();
-      toast.success("Thêm bất động sản vào kế hoạch bảo trì thành công!", {
+      toast.success(t("maintenance.addHouses.toastSuccess"), {
         autoClose: 3000,
         hideProgressBar: true,
         closeOnClick: true,
       });
       handleClose();
     } catch (e) {
-      setError(e.message ?? "Đã xảy ra lỗi, vui lòng thử lại.");
+      setError(e.message ?? t("maintenance.addHouses.submitError"));
     } finally {
       setSubmitting(false);
     }
@@ -121,14 +123,13 @@ export default function AddHousesModal({
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="px-6 pt-5 pb-4 border-b border-slate-100 flex items-start justify-between gap-3 flex-shrink-0">
           <div>
             <h3 className="text-[17px] font-bold text-slate-800">
-              Thêm bất động sản
+              {t("maintenance.addHouses.title")}
             </h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              Chọn nhà muốn áp dụng kế hoạch bảo trì này
+              {t("maintenance.addHouses.subtitle")}
             </p>
           </div>
           <button
@@ -140,20 +141,18 @@ export default function AddHousesModal({
           </button>
         </div>
 
-        {/* Search */}
         <div className="px-6 py-3 border-b border-slate-100 flex-shrink-0">
           <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 focus-within:border-teal-400 focus-within:ring-2 focus-within:ring-teal-500/10 transition">
             <Search className="w-4 h-4 text-slate-400 flex-shrink-0" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Tìm theo tên hoặc địa chỉ..."
+              placeholder={t("maintenance.addHouses.searchPlaceholder")}
               className="flex-1 text-sm bg-transparent outline-none text-slate-700 placeholder-slate-400"
             />
           </div>
         </div>
 
-        {/* List */}
         <div className="flex-1 overflow-y-auto px-6 py-4">
           {loading ? (
             <div className="space-y-2">
@@ -168,7 +167,7 @@ export default function AddHousesModal({
             <div className="text-center py-10">
               <Building2 className="w-10 h-10 mx-auto mb-3 text-slate-200" />
               <p className="text-sm text-slate-400">
-                Không tìm thấy bất động sản nào
+                {t("maintenance.addHouses.empty")}
               </p>
             </div>
           ) : (
@@ -212,7 +211,7 @@ export default function AddHousesModal({
                     </div>
                     {alreadyAdded ? (
                       <span className="text-[10px] font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full flex-shrink-0">
-                        Đã thêm
+                        {t("maintenance.addHouses.alreadyAdded")}
                       </span>
                     ) : isSelected ? (
                       <Check className="w-4 h-4 text-teal-500 flex-shrink-0" />
@@ -224,7 +223,6 @@ export default function AddHousesModal({
           )}
         </div>
 
-        {/* Error */}
         {error && (
           <div className="px-6 pb-2 flex-shrink-0">
             <p className="text-xs text-red-500 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
@@ -233,14 +231,13 @@ export default function AddHousesModal({
           </div>
         )}
 
-        {/* Footer */}
         <div className="px-6 pb-6 pt-2 flex gap-3 border-t border-slate-100 flex-shrink-0">
           <button
             type="button"
             onClick={handleClose}
             className="flex-1 py-3 border border-slate-200 rounded-xl text-slate-600 text-sm font-semibold hover:bg-slate-50 transition"
           >
-            Hủy
+            {t("maintenance.addHouses.cancel")}
           </button>
           <button
             type="button"
@@ -249,10 +246,10 @@ export default function AddHousesModal({
             className="flex-[2] py-3 bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold rounded-xl transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {submitting
-              ? "Đang thêm..."
+              ? t("maintenance.addHouses.adding")
               : selected.size > 0
-                ? `Thêm ${selected.size} nhà`
-                : "Thêm"}
+                ? t("maintenance.addHouses.addCount", { count: selected.size })
+                : t("maintenance.addHouses.addDefault")}
           </button>
         </div>
       </div>

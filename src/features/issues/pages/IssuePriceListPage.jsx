@@ -1,9 +1,26 @@
 import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 import { RefreshCw, Tag, Plus, X, Pencil, Check } from "lucide-react";
 import { toast } from "react-toastify";
 import { getBanners, createBanner, updateBannerPrice } from "../api/issues.api";
 
+/**
+ * Service price list page. Fully i18n'd (vi / en / ja) — sibling pages
+ * in /features/issues/ already follow the same pattern (see
+ * IssueListPage, IssueAssignmentPage), and the sidebar entry and route
+ * title already read from `sidebar.priceList` / `routeTitles.priceList`,
+ * so leaving this page hardcoded to Vietnamese created a jarring mix
+ * of languages (EN breadcrumb + VN page header).
+ *
+ * Locale keys live under `issuePriceList.*` in every common.json.
+ */
+
+// VND is the canonical currency regardless of UI locale — rental
+// prices in the ISUMS domain are always denominated in VND. The
+// Intl formatter's locale only affects digit grouping / symbol
+// placement; use `vi-VN` for consistency with the rest of the app
+// (tenant-facing invoices, contract PDFs, etc.).
 function formatCurrency(amount) {
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
@@ -11,9 +28,15 @@ function formatCurrency(amount) {
   }).format(amount);
 }
 
-const EMPTY_FORM = { name: "", price: "", estimateCost: "" };
+// Field names match what createBanner() sends on the wire.
+// Previously the form state was {name, price, estimateCost} while the
+// inputs were keyed `estimatedCost` / `currentPrice` — so typing in the
+// two price fields never updated state, and the Create button submitted
+// undefined. Aligning state + inputs + request shape here also.
+const EMPTY_FORM = { name: "", estimatedCost: "", currentPrice: "" };
 
 function CreateBannerModal({ open, onClose, onCreated }) {
+  const { t } = useTranslation("common");
   const [form, setForm] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -42,20 +65,24 @@ function CreateBannerModal({ open, onClose, onCreated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.name.trim() || !form.price || !form.estimateCost) return;
+    if (!form.name.trim() || !form.estimatedCost || !form.currentPrice) return;
     setError(null);
     setSubmitting(true);
     try {
+      // Backend contract (see issues.api#createBanner): name + both
+      // prices. Keep numeric coercion at the edge so the wire payload
+      // is always plain numbers — avoids string/number type confusion
+      // in the BE validator.
       await createBanner({
         name: form.name.trim(),
-        price: Number(form.price),
-        estimateCost: Number(form.estimateCost),
+        estimatedCost: Number(form.estimatedCost),
+        currentPrice: Number(form.currentPrice),
       });
-      toast.success(`Đã thêm báo giá: ${form.name.trim()}`);
+      toast.success(t("issuePriceList.create.successToast", { name: form.name.trim() }));
       onCreated();
       handleClose();
     } catch (e) {
-      setError(e.message ?? "Tạo thất bại, vui lòng thử lại.");
+      setError(e.message ?? t("issuePriceList.create.failed"));
     } finally {
       setSubmitting(false);
     }
@@ -91,10 +118,10 @@ function CreateBannerModal({ open, onClose, onCreated }) {
         <div className="px-6 pt-5 pb-4 flex items-center justify-between" style={{ borderBottom: "1px solid #C4DED5" }}>
           <div>
             <h3 className="text-lg font-bold" style={{ color: "#1E2D28" }}>
-              Thêm báo giá mới
+              {t("issuePriceList.create.title")}
             </h3>
             <p className="text-xs mt-0.5" style={{ color: "#5A7A6E" }}>
-              Điền thông tin thiết bị / dịch vụ
+              {t("issuePriceList.create.subtitle")}
             </p>
           </div>
           <button
@@ -113,13 +140,13 @@ function CreateBannerModal({ open, onClose, onCreated }) {
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
           <div>
             <label className="block text-xs font-semibold mb-1.5" style={{ color: "#5A7A6E" }}>
-              Tên dịch vụ / thiết bị <span style={{ color: "#D95F4B" }}>*</span>
+              {t("issuePriceList.create.nameLabel")} <span style={{ color: "#D95F4B" }}>*</span>
             </label>
             <input
               name="name"
               value={form.name}
               onChange={handleChange}
-              placeholder="VD: Vệ sinh máy lạnh"
+              placeholder={t("issuePriceList.create.namePlaceholder")}
               className="w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition"
               style={{ border: "1px solid #C4DED5", color: "#1E2D28", background: "#ffffff" }}
               onFocus={e => { e.currentTarget.style.borderColor = "#3bb582"; }}
@@ -131,7 +158,7 @@ function CreateBannerModal({ open, onClose, onCreated }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold mb-1.5" style={{ color: "#5A7A6E" }}>
-                Giá mua (đ) <span style={{ color: "#D95F4B" }}>*</span>
+                {t("issuePriceList.create.costLabel")} <span style={{ color: "#D95F4B" }}>*</span>
               </label>
               <input
                 name="estimatedCost"
@@ -149,7 +176,7 @@ function CreateBannerModal({ open, onClose, onCreated }) {
             </div>
             <div>
               <label className="block text-xs font-semibold mb-1.5" style={{ color: "#5A7A6E" }}>
-                Giá bán (đ) <span style={{ color: "#D95F4B" }}>*</span>
+                {t("issuePriceList.create.sellLabel")} <span style={{ color: "#D95F4B" }}>*</span>
               </label>
               <input
                 name="currentPrice"
@@ -178,7 +205,7 @@ function CreateBannerModal({ open, onClose, onCreated }) {
               onMouseEnter={e => { e.currentTarget.style.background = "#EAF4F0"; }}
               onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
             >
-              Hủy
+              {t("issuePriceList.create.cancel")}
             </button>
             <button
               type="submit"
@@ -186,7 +213,7 @@ function CreateBannerModal({ open, onClose, onCreated }) {
               className="px-6 py-2.5 rounded-full text-white text-sm font-bold transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
             >
-              {submitting ? "Đang tạo..." : "Tạo báo giá"}
+              {submitting ? t("issuePriceList.create.submitting") : t("issuePriceList.create.submit")}
             </button>
           </div>
         </form>
@@ -197,6 +224,7 @@ function CreateBannerModal({ open, onClose, onCreated }) {
 }
 
 function EditPriceInline({ item, onUpdated }) {
+  const { t } = useTranslation("common");
   const [editing, setEditing] = useState(false);
   const [price, setPrice] = useState("");
   const [saving, setSaving] = useState(false);
@@ -211,11 +239,11 @@ function EditPriceInline({ item, onUpdated }) {
     setSaving(true);
     try {
       await updateBannerPrice(item.id, Number(price));
-      toast.success(`Đã cập nhật giá bán: ${item.name}`);
+      toast.success(t("issuePriceList.edit.successToast", { name: item.name }));
       setEditing(false);
       onUpdated();
     } catch (e) {
-      toast.error(e.message ?? "Cập nhật thất bại.");
+      toast.error(e.message ?? t("issuePriceList.edit.failed"));
     } finally {
       setSaving(false);
     }
@@ -280,6 +308,7 @@ function EditPriceInline({ item, onUpdated }) {
 }
 
 export default function IssuePriceListPage() {
+  const { t } = useTranslation("common");
   const [banners, setBanners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -292,23 +321,32 @@ export default function IssuePriceListPage() {
       const data = await getBanners();
       setBanners(Array.isArray(data) ? data : []);
     } catch (e) {
-      setError(e.message ?? "Không thể tải danh sách, vui lòng thử lại.");
+      setError(e.message ?? t("issuePriceList.loadFailed"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchBanners();
   }, [fetchBanners]);
+
+  // Table column headers — key against the structured `table.*` block
+  // so reordering / renaming stays localized without touching JSX.
+  const tableHeaders = [
+    t("issuePriceList.table.index"),
+    t("issuePriceList.table.name"),
+    t("issuePriceList.table.costPrice"),
+    t("issuePriceList.table.sellPrice"),
+  ];
 
   return (
     <div className="space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-<h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>
-            Bảng giá dịch vụ
+          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>
+            {t("issuePriceList.title")}
           </h2>
         </div>
         <div className="flex items-center gap-2">
@@ -321,7 +359,7 @@ export default function IssuePriceListPage() {
             onMouseLeave={e => { e.currentTarget.style.background = "#FFFFFF"; }}
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            Làm mới
+            {t("issuePriceList.refresh")}
           </button>
           <button
             onClick={() => setModalOpen(true)}
@@ -329,7 +367,7 @@ export default function IssuePriceListPage() {
             style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
           >
             <Plus className="w-4 h-4" />
-            Thêm báo giá
+            {t("issuePriceList.addBanner")}
           </button>
         </div>
       </div>
@@ -338,7 +376,7 @@ export default function IssuePriceListPage() {
         <div className="rounded-xl px-4 py-3 flex items-center justify-between" style={{ background: "rgba(217,95,75,0.04)", border: "1px solid rgba(217,95,75,0.3)" }}>
           <p className="text-sm" style={{ color: "#D95F4B" }}>{error}</p>
           <button onClick={fetchBanners} className="text-xs underline" style={{ color: "#D95F4B" }}>
-            Thử lại
+            {t("issuePriceList.retry")}
           </button>
         </div>
       )}
@@ -346,13 +384,11 @@ export default function IssuePriceListPage() {
       <div className="rounded-2xl overflow-hidden" style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
         {/* Table header */}
         <div className="grid grid-cols-[48px_minmax(0,1fr)_200px_220px] gap-4 px-6 py-3" style={{ borderBottom: "1px solid #C4DED5", background: "#EAF4F0" }}>
-          {["STT", "Tên dịch vụ / thiết bị", "Giá mua vào", "Giá bán"].map(
-            (h) => (
-              <p key={h} className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>
-                {h}
-              </p>
-            ),
-          )}
+          {tableHeaders.map((h) => (
+            <p key={h} className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>
+              {h}
+            </p>
+          ))}
         </div>
 
         {/* Skeleton */}
@@ -376,7 +412,7 @@ export default function IssuePriceListPage() {
             <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "#EAF4F0" }}>
               <Tag className="w-7 h-7" style={{ color: "#3bb582" }} />
             </div>
-            <p className="text-sm" style={{ color: "#5A7A6E" }}>Chưa có dữ liệu bảng giá</p>
+            <p className="text-sm" style={{ color: "#5A7A6E" }}>{t("issuePriceList.empty")}</p>
           </div>
         )}
 

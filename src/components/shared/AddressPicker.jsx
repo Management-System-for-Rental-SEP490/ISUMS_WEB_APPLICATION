@@ -48,10 +48,22 @@ const PinIcon = () => (
  * Props:
  *   value         — string địa chỉ đầy đủ (để reset khi form clear)
  *   onChange      — (e: { target: { value: string } }) => void
- *   onPartsChange — ({ street, ward, city }) => void
+ *   onPartsChange — ({ street, ward, city, country }) => void
  *   error         — string | undefined
  *   label         — string
  *   showMap       — boolean (default false)
+ *   isForeigner   — boolean (default false). When true, the component switches
+ *                   from the VN Province/Ward picker to just City + Street
+ *                   inputs. Country is NOT rendered here — it's derived from
+ *                   the tenant's `nationality` in Step 1 (passing `country`
+ *                   prop below). Rendering a separate country dropdown here
+ *                   would duplicate that field and create a mismatch risk
+ *                   (tenant picks Japan as nationality but USA as address
+ *                   country — that combination is legal but 99% user error).
+ *   country       — string (foreign mode only). The country value supplied
+ *                   externally (typically `form.nationality`). Appended to
+ *                   the combined address string so BE receives
+ *                   "street, city, country" without a local dropdown.
  */
 export default function AddressPicker({
   value,
@@ -61,6 +73,8 @@ export default function AddressPicker({
   error,
   label,
   showMap = false,
+  isForeigner = false,
+  country = "",
 }) {
   const { t } = useTranslation("common");
   const {
@@ -68,22 +82,56 @@ export default function AddressPicker({
     loadingProvinces, loadingWards,
     selectedProvince, selectedWard,
     selectProvince, selectWard,
-    reset,
+    reset, resolveFromString,
   } = useVietnamAddress();
 
   const [street, setStreet]     = useState("");
+  const [city, setCity]         = useState("");          // foreign mode only
   const [coords, setCoords]     = useState(null);
   const [geocoding, setGeocoding] = useState(false);
   const onChangeRef  = useRef(onChange);
   const onPartsRef   = useRef(onPartsChange);
   const geocodeTimer = useRef(null);
+  // Guard: only reverse-parse ONCE per non-empty incoming value. Prevents an
+  // infinite loop where our own emitAddress() triggers the effect again.
+  const lastResolvedRef = useRef("");
 
   useEffect(() => { onChangeRef.current = onChange; onPartsRef.current = onPartsChange; });
 
+  // Reset local state when the wizard flips tenantType (isForeigner toggles)
+  // so we don't carry a VN province into the foreign view (or vice versa).
   useEffect(() => {
-    if (!value) { reset(); setStreet(""); setCoords(null); }
+    setStreet("");
+    setCity("");
+    reset();
+    setCoords(null);
+    lastResolvedRef.current = "";
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
+  }, [isForeigner]);
+
+  useEffect(() => {
+    if (!value) {
+      reset();
+      setStreet("");
+      setCity("");
+      setCoords(null);
+      lastResolvedRef.current = "";
+      return;
+    }
+    // Auto-resolve only applies to VN mode — foreign addresses have no
+    // canonical province list to match against. Free-text stays free-text.
+    if (isForeigner) return;
+    if (value !== lastResolvedRef.current && !selectedProvince && !street) {
+      lastResolvedRef.current = value;
+      let cancelled = false;
+      resolveFromString(value).then((res) => {
+        if (cancelled || !res) return;
+        if (res.street && res.street !== value) setStreet(res.street);
+      });
+      return () => { cancelled = true; };
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, isForeigner]);
 
   // Sync combined address string (for validation / parent display)
   const emitAddress = (s, ward, province) => {
@@ -91,14 +139,43 @@ export default function AddressPicker({
     onChangeRef.current?.({ target: { value: parts.join(", ") } });
   };
 
-  // Always keep addrParts in sync with local state — avoids stale closure bugs
+  /** Foreign-mode equivalent: "{street}, {city}, {country}" — blank parts dropped. */
+  const emitForeignAddress = (s, c, ctry) => {
+    const parts = [s.trim(), c.trim(), ctry].filter(Boolean);
+    onChangeRef.current?.({ target: { value: parts.join(", ") } });
+  };
+
+  // Always keep addrParts in sync with local state — avoids stale closure bugs.
+  // Foreign mode: country comes from the parent (Nationality picker in Step 1)
+  // via the `country` prop, so we echo it back through onPartsChange without
+  // owning the state locally. VN mode: country is always "".
   useEffect(() => {
-    onPartsRef.current?.({
-      street: street.trim(),
-      ward: selectedWard?.name ?? "",
-      city: selectedProvince?.name ?? "",
-    });
-  }, [street, selectedWard, selectedProvince]);
+    if (isForeigner) {
+      onPartsRef.current?.({
+        street: street.trim(),
+        city: city.trim(),
+        country: country,
+        // Keep `ward` present but blank so consumers expecting the key
+        // don't hit `undefined` (e.g. the BE payload builder).
+        ward: "",
+      });
+    } else {
+      onPartsRef.current?.({
+        street: street.trim(),
+        ward: selectedWard?.name ?? "",
+        city: selectedProvince?.name ?? "",
+        country: "",
+      });
+    }
+  }, [isForeigner, street, city, country, selectedWard, selectedProvince]);
+
+  // When the parent-supplied country changes (user flips nationality in
+  // Step 1), re-emit the combined address string so `form.permanentAddress`
+  // picks up the new tail segment.
+  useEffect(() => {
+    if (isForeigner) emitForeignAddress(street, city, country);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [country]);
 
   const handleProvinceChange = (val) => {
     const found = selectProvince(val);
@@ -113,10 +190,18 @@ export default function AddressPicker({
 
   const handleStreetChange = (e) => {
     setStreet(e.target.value);
-    emitAddress(e.target.value, selectedWard, selectedProvince);
+    if (isForeigner) emitForeignAddress(e.target.value, city, country);
+    else emitAddress(e.target.value, selectedWard, selectedProvince);
   };
 
-  const preview = [street.trim(), selectedWard?.name, selectedProvince?.name].filter(Boolean).join(", ");
+  const handleCityChange = (e) => {
+    setCity(e.target.value);
+    emitForeignAddress(street, e.target.value, country);
+  };
+
+  const preview = isForeigner
+    ? [street.trim(), city.trim(), country].filter(Boolean).join(", ")
+    : [street.trim(), selectedWard?.name, selectedProvince?.name].filter(Boolean).join(", ");
 
   // Geocode khi preview thay đổi (debounce 800ms), chỉ khi showMap=true
   useEffect(() => {
@@ -148,45 +233,71 @@ export default function AddressPicker({
         <span className="text-red-500 text-sm">*</span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {/* Foreign mode: City + Street only. Country comes from the
+          Nationality picker in Step 1 (passed via `country` prop) — no
+          local dropdown, because having both led to tenant / UI
+          mismatches and duplicated the same data point. VN province /
+          ward hidden too (would produce nonsense like a Japanese
+          address forced into "Quận 1, TP.HCM"). */}
+      {isForeigner ? (
         <div>
-          <label className={labelClass}>{t("addressPicker.province")}</label>
-          <Select
-            value={selectedProvince?.code ?? undefined}
-            onChange={handleProvinceChange}
-            disabled={loadingProvinces}
-            loading={loadingProvinces}
-            placeholder={t("addressPicker.provincePlaceholder")}
-            showSearch
-            optionFilterProp="label"
-            style={{ width: "100%" }}
-            status={!selectedProvince && error ? "error" : ""}
-            options={provinces.map((p) => ({ value: p.code, label: p.name }))}
+          <label className={labelClass}>{t("addressPicker.city")}</label>
+          <input
+            value={city}
+            onChange={handleCityChange}
+            placeholder={t("addressPicker.cityPlaceholder")}
+            className={`${inputClass} ${!city && error ? "border-red-500" : ""}`}
           />
+          {country && (
+            <p className="mt-1 text-xs text-slate-500">
+              {t("addressPicker.country")}: <strong>{country}</strong>
+              <span className="text-slate-400"> ({t("addressPicker.fromNationality", { defaultValue: "từ mục Quốc tịch" })})</span>
+            </p>
+          )}
         </div>
-        <div>
-          <label className={labelClass}>{t("addressPicker.ward")}</label>
-          <Select
-            value={selectedWard?.code ?? undefined}
-            onChange={handleWardChange}
-            disabled={!selectedProvince || loadingWards}
-            loading={loadingWards}
-            placeholder={!selectedProvince ? t("addressPicker.wardPlaceholderFirst") : t("addressPicker.wardPlaceholder")}
-            showSearch
-            optionFilterProp="label"
-            style={{ width: "100%" }}
-            status={!selectedWard && error ? "error" : ""}
-            options={wards.map((w) => ({ value: w.code, label: w.name }))}
-          />
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className={labelClass}>{t("addressPicker.province")}</label>
+            <Select
+              value={selectedProvince?.code ?? undefined}
+              onChange={handleProvinceChange}
+              disabled={loadingProvinces}
+              loading={loadingProvinces}
+              placeholder={t("addressPicker.provincePlaceholder")}
+              showSearch
+              optionFilterProp="label"
+              style={{ width: "100%" }}
+              status={!selectedProvince && error ? "error" : ""}
+              options={provinces.map((p) => ({ value: p.code, label: p.name }))}
+            />
+          </div>
+          <div>
+            <label className={labelClass}>{t("addressPicker.ward")}</label>
+            <Select
+              value={selectedWard?.code ?? undefined}
+              onChange={handleWardChange}
+              disabled={!selectedProvince || loadingWards}
+              loading={loadingWards}
+              placeholder={!selectedProvince ? t("addressPicker.wardPlaceholderFirst") : t("addressPicker.wardPlaceholder")}
+              showSearch
+              optionFilterProp="label"
+              style={{ width: "100%" }}
+              status={!selectedWard && error ? "error" : ""}
+              options={wards.map((w) => ({ value: w.code, label: w.name }))}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       <div>
         <label className={labelClass}>{t("addressPicker.street")}</label>
         <input
           value={street}
           onChange={handleStreetChange}
-          placeholder={t("addressPicker.streetPlaceholder")}
+          placeholder={isForeigner
+            ? t("addressPicker.streetForeignPlaceholder")
+            : t("addressPicker.streetPlaceholder")}
           className={`${inputClass} ${error ? "border-red-500" : ""}`}
         />
       </div>
