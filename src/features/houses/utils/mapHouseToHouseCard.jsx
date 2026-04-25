@@ -13,7 +13,9 @@ export function mapHouseToHouseCard(house) {
     images: Array.isArray(house?.images) ? house.images : [],
     nameTranslations: house?.nameTranslations ?? null,
     addressTranslations: house?.addressTranslations ?? null,
+    ward: house?.ward ?? "",
     wardTranslations: house?.wardTranslations ?? null,
+    city: house?.city ?? "",
     cityTranslations: house?.cityTranslations ?? null,
     descriptionTranslations: house?.descriptionTranslations ?? null,
   };

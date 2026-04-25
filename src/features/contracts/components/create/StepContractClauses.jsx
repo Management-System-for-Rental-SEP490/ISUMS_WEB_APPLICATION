@@ -10,40 +10,19 @@ export default function StepContractClauses({ form, update, errors = {} }) {
 
   return (
     <div className="space-y-6">
-      {/* Asset info & purpose */}
+      {/* Mục đích mặc định "thuê để ở"; diện tích + kết cấu + GCN lấy từ
+          hồ sơ nhà (house-service), không nhập lại mỗi lần tạo HĐ. */}
       <div className="bg-white rounded-xl p-6 shadow-sm border">
-        <h3 className="text-lg font-semibold mb-4">{t("contracts.form.assetInfo")}</h3>
+        <h3 className="text-lg font-semibold mb-4">{t("contracts.form.taxNotesTitle")}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className={labelClass}>{t("contracts.form.purpose")}</label>
-            <select value={form.purpose} onChange={update("purpose")} className={inputClass}>
-              <option value="Kinh doanh">{t("contracts.form.purposeBusiness")}</option>
-              <option value="Để ở">{t("contracts.form.purposeLiving")}</option>
-              <option value="Làm văn phòng">{t("contracts.form.purposeOffice")}</option>
-              <option value="Cho thuê">{t("contracts.form.purposeSublet")}</option>
-            </select>
-          </div>
-          <div>
-            <label className={labelClass}>{t("contracts.form.area")}</label>
-            <input value={form.area ?? ""} onChange={update("area")} placeholder="50m²"
-              className={`${inputClass} ${errors.area ? "border-red-500 focus:ring-red-500" : ""}`} />
-            {errors.area && <p className="mt-1 text-xs text-red-600">{errors.area}</p>}
-          </div>
           <div className="md:col-span-2">
-            <label className={labelClass}>{t("contracts.form.structure")}</label>
-            <input value={form.structure ?? ""} onChange={update("structure")} placeholder="1 phòng ngủ, 1 phòng khách, 1 bếp, 1 WC"
-              className={`${inputClass} ${errors.structure ? "border-red-500 focus:ring-red-500" : ""}`} />
-            {errors.structure && <p className="mt-1 text-xs text-red-600">{errors.structure}</p>}
-          </div>
-          <div>
-            <label className={labelClass}>{t("contracts.form.ownershipDocs")}</label>
-            <input value={form.ownershipDocs ?? ""} onChange={update("ownershipDocs")} placeholder="Sổ hồng, sổ GCN"
-              className={`${inputClass} ${errors.ownershipDocs ? "border-red-500 focus:ring-red-500" : ""}`} />
-            {errors.ownershipDocs && <p className="mt-1 text-xs text-red-600">{errors.ownershipDocs}</p>}
-          </div>
-          <div>
             <label className={labelClass}>{t("contracts.form.taxFeeNote")}</label>
-            <input value={form.taxFeeNote ?? ""} onChange={update("taxFeeNote")} placeholder="Ai chịu thuế VAT, v.v." className={inputClass} />
+            <input
+              value={form.taxFeeNote ?? ""}
+              onChange={update("taxFeeNote")}
+              placeholder={t("contracts.form.taxFeeNotePlaceholder")}
+              className={inputClass}
+            />
           </div>
           <div className="md:col-span-2 flex items-center gap-3">
             <button
@@ -146,24 +125,7 @@ export default function StepContractClauses({ form, update, errors = {} }) {
         </div>
       </div>
 
-      {/* Contract details */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border">
-        <h3 className="text-lg font-semibold mb-4">{t("contracts.form.contractDetails")}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className={labelClass}>{t("contracts.form.copies")}</label>
-            <input type="number" min={1} value={form.copies ?? ""} onChange={update("copies")} placeholder="2"
-              className={`${inputClass} ${errors.copies ? "border-red-500 focus:ring-red-500" : ""}`} />
-            {errors.copies && <p className="mt-1 text-xs text-red-600">{errors.copies}</p>}
-          </div>
-          <div>
-            <label className={labelClass}>{t("contracts.form.eachKeep")}</label>
-            <input type="number" min={1} value={form.eachKeep ?? ""} onChange={update("eachKeep")} placeholder="1"
-              className={`${inputClass} ${errors.eachKeep ? "border-red-500 focus:ring-red-500" : ""}`} />
-            {errors.eachKeep && <p className="mt-1 text-xs text-red-600">{errors.eachKeep}</p>}
-          </div>
-        </div>
-      </div>
+      {/* copies/eachKeep removed: e-contract is a single signed PDF. */}
     </div>
   );
 }

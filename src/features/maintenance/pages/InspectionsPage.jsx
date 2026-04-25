@@ -461,6 +461,7 @@ export default function InspectionsPage() {
 
       <CreateInspectionModal
         open={showCreate}
+        type={activeTab}
         onClose={() => setShowCreate(false)}
         onCreated={() => { setShowCreate(false); fetchInspections(); }}
       />

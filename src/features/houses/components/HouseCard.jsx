@@ -29,7 +29,10 @@ export default function HouseCard({ house, onView, onEdit }) {
   const { t } = useTranslation("common");
   const cfg = STATUS_CONFIG[house?.status] ?? STATUS_CONFIG.default;
   const name = getLocalized(house?.nameTranslations, house?.name ?? house?.title) || t("houses.noName");
-  const address = getLocalized(house?.addressTranslations, house?.address);
+  const addressPart = getLocalized(house?.addressTranslations, house?.address);
+  const wardPart = getLocalized(house?.wardTranslations, house?.ward);
+  const cityPart = getLocalized(house?.cityTranslations, house?.city);
+  const address = [addressPart, wardPart, cityPart].filter(Boolean).join(", ");
   const priceStr = formatPrice(house?.rentPrice ?? house?.rent);
   const bedrooms = house?.bedrooms ?? house?.bedroom ?? null;
   const bathrooms = house?.bathrooms ?? house?.bathroom ?? null;

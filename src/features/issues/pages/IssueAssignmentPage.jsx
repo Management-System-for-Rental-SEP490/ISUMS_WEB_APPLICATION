@@ -30,19 +30,49 @@ export default function IssueAssignmentPage() {
   const [images, setImages] = useState([]);
   const [lightboxIndex, setLightboxIndex] = useState(null);
 
-  const fetchIssues = useCallback(async () => {
+  const fetchIssues = useCallback(async (keepSelectedId) => {
     setLoading(true);
     setError(null);
     try {
       const data = await getAllIssues({ type: "REPAIR", status: "WAITING_MANAGER_CONFIRM" });
       const list = Array.isArray(data) ? data : (Array.isArray(data?.items) ? data.items : []);
       setIssues(list);
-      if (list.length > 0) setSelected(list[0]);
+
       const ids = [...new Set(list.map((i) => i.houseId).filter(Boolean))];
       const entries = await Promise.all(
         ids.map((id) => getHouseById(id).then((h) => [id, h?.name ?? h?.houseName ?? "—"]).catch(() => [id, "—"])),
       );
       setHouseNames(Object.fromEntries(entries));
+
+      // Re-select: keep current selection if still in list, otherwise pick first
+      const nextSelected = keepSelectedId
+        ? (list.find((i) => i.id === keepSelectedId) ?? list[0])
+        : list[0];
+
+      if (nextSelected) {
+        setSelected(nextSelected);
+        setSelectedDetail(null);
+        setStaffDetail(null);
+        setImages(Array.isArray(nextSelected.images) ? nextSelected.images : []);
+        setDetailLoading(true);
+        try {
+          const detail = await getIssueById(nextSelected.id);
+          setSelectedDetail(detail);
+          if (Array.isArray(detail?.images) && detail.images.length > 0) setImages(detail.images);
+          if (detail?.assignedStaffId) {
+            getUserById(detail.assignedStaffId).then(setStaffDetail).catch(() => {});
+          }
+        } catch {
+          // fallback to list data
+        } finally {
+          setDetailLoading(false);
+        }
+      } else {
+        setSelected(null);
+        setSelectedDetail(null);
+        setStaffDetail(null);
+        setImages([]);
+      }
     } catch (err) {
       setError(err?.message ?? t("issues.loadListError"));
     } finally {
@@ -50,7 +80,7 @@ export default function IssueAssignmentPage() {
     }
   }, []);
 
-  useEffect(() => { fetchIssues(); }, [fetchIssues]);
+  useEffect(() => { fetchIssues(null); }, [fetchIssues]);
 
   const handleSelectIssue = async (issue) => {
     setSelected(issue);
@@ -85,11 +115,7 @@ export default function IssueAssignmentPage() {
     try {
       await confirmManagerWorkSlot(selected.id);
       toast.success(t("issues.confirmWorkSlot", { title: selected.title }));
-      setSelected(null);
-      setSelectedDetail(null);
-      setStaffDetail(null);
-      setImages([]);
-      fetchIssues();
+      fetchIssues(null);
     } catch (e) {
       toast.error(e.message ?? t("issues.confirmFailed"));
     } finally {
@@ -113,7 +139,7 @@ export default function IssueAssignmentPage() {
           <h2 className="font-heading text-3xl font-bold" style={{ color: B.fg }}>{t("issues.assignmentTitle")}</h2>
         </div>
         <button
-          onClick={fetchIssues}
+          onClick={() => fetchIssues(selected?.id)}
           disabled={loading}
           className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ background: B.muted, color: B.green, border: `1px solid ${B.border}` }}

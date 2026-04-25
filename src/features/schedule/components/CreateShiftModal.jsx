@@ -215,7 +215,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
       onClick={handleClose}
     >
       <div
-        className="relative bg-white rounded-2xl shadow-2xl w-full flex flex-col"
+        className="relative bg-white rounded-2xl shadow-2xl w-full flex flex-col overflow-hidden"
         style={{
           maxWidth: 700, maxHeight: "92vh",
           transform: visible ? "translateY(0) scale(1)" : "translateY(24px) scale(0.96)",
@@ -237,6 +237,21 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
           </div>
           <StepIndicator current={step} />
         </div>
+
+        {/* Submit overlay */}
+        {submitting && (
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 rounded-2xl bg-white/80 backdrop-blur-sm">
+            <div className="relative w-14 h-14">
+              <div className="absolute inset-0 rounded-full border-4 border-teal-100" />
+              <div className="absolute inset-0 rounded-full border-4 border-teal-600 border-t-transparent animate-spin" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-4 h-4 rounded-full bg-teal-600 animate-pulse" />
+              </div>
+            </div>
+            <p className="text-sm font-semibold text-slate-700">{t("schedule.creating")}</p>
+            <p className="text-xs text-slate-400">{t("schedule.creatingHint", { defaultValue: "Vui lòng đợi..." })}</p>
+          </div>
+        )}
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-7 py-5">

@@ -1,4 +1,5 @@
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 import UsersFilters from "../components/UsersFilters";
 import UsersHeader from "../components/UsersHeader";
 import UsersStats from "../components/UsersStats";
@@ -6,6 +7,7 @@ import UsersTable from "../components/UsersTable";
 import { useUsers } from "../hooks/useUsers";
 
 export default function UsersPage() {
+  const { t } = useTranslation("common");
   const {
     filteredUsers,
     loading,
@@ -18,7 +20,7 @@ export default function UsersPage() {
 
   const handleRefresh = async () => {
     await refetch();
-    toast.success("Đã làm mới danh sách người dùng.");
+    toast.success(t("users.refreshSuccess"));
   };
 
   return (
@@ -39,7 +41,7 @@ export default function UsersPage() {
             className="text-xs font-semibold underline underline-offset-2 transition flex-shrink-0"
             style={{ color: "#D95F4B" }}
           >
-            Thử lại
+            {t("users.retry")}
           </button>
         </div>
       )}
