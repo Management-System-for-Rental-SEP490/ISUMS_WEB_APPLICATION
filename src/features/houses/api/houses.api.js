@@ -114,6 +114,16 @@ export async function assignStaffToRegion(regionId, staffId) {
   }
 }
 
+export async function getHousesByRegion(regionId) {
+  try {
+    const response = await api.get(HOUSES_ENDPOINTS.HOUSES_BY_REGION(regionId));
+    const data = extractResponseData(response);
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
 /**
  * Upload images for a house (multipart/form-data)
  * @param {string} houseId - House ID

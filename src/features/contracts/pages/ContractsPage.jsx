@@ -76,24 +76,12 @@ export default function ContractsPage() {
       <ContractCreateView
         onBack={goList}
         onCreated={(payload) => {
-          if (payload) {
-            const contract = {
-              contractNumber: payload.contractNumber,
-              tenant: payload.tenantName,
-              property: payload.propertyName,
-              unit: payload.unit,
-              startDate: payload.startDate,
-              endDate: payload.endDate,
-              rent: Number(payload.rent) || 0,
-              deposit: Number(payload.deposit) || 0,
-              status: "pending",
-              paymentType: payload.paymentType || "monthly",
-              autoRenew: payload.autoRenew ?? true,
-            };
-            addContract(contract);
+          if (payload?.id) {
+            navigate(`/contracts/${payload.id}`);
+          } else {
+            goList();
+            refetch();
           }
-          goList();
-          refetch();
         }}
       />
     );
