@@ -441,7 +441,7 @@
     const nativeSlice = Array.prototype.slice;
     const nativeIndexOf = Array.prototype.indexOf;
     const nativePush = Array.prototype.push;
-    /* eslint-enable */
+     
     const rawIndexOf = (ts, t) => nativeIndexOf.call(ts, t);
     const indexOf$1 = (xs, x) => {
         // The rawIndexOf method does not wrap up in an option. This is for performance reasons.
@@ -748,7 +748,7 @@
                     match,
                     // NOTE: Only for debugging.
                     log: (label) => {
-                        // eslint-disable-next-line no-console
+                         
                         console.log(label, {
                             constructors,
                             constructor: key,
@@ -1875,7 +1875,7 @@
         div.innerHTML = html;
         if (!div.hasChildNodes() || div.childNodes.length > 1) {
             const message = 'HTML does not have a single root node';
-            // eslint-disable-next-line no-console
+             
             console.error(message, html);
             throw new Error(message);
         }
@@ -2311,7 +2311,7 @@
             dom.setAttribute(key, value + '');
         }
         else {
-            // eslint-disable-next-line no-console
+             
             console.error('Invalid call to Attribute.set. Key ', key, ':: Value ', value, ':: Element ', dom);
             throw new Error('Attribute value was not simple');
         }
@@ -2447,7 +2447,7 @@
         // JQuery coerces numbers to pixels for certain property names, and other times lets numbers through.
         // we're going to be explicit; strings only.
         if (!isString(value)) {
-            // eslint-disable-next-line no-console
+             
             console.error('Invalid call to CSS.set. Property ', property, ':: Value ', value, ':: Element ', dom);
             throw new Error('CSS value must be a string: ' + value);
         }
@@ -4121,7 +4121,7 @@
             // Support upper UTF
             if (numeric > 0xFFFF) {
                 numeric -= 0x10000;
-                // eslint-disable-next-line no-bitwise
+                 
                 return String.fromCharCode(0xD800 + (numeric >> 10), 0xDC00 + (numeric & 0x3FF));
             }
             return asciiMap[numeric] || String.fromCharCode(numeric);
@@ -5234,7 +5234,7 @@
         return hexColour(value);
     };
 
-    /* eslint-disable no-console */
+     
     const rgbRegex = /^\s*rgb\s*\(\s*(\d+)\s*[,\s]\s*(\d+)\s*[,\s]\s*(\d+)\s*\)\s*$/i;
     // This regex will match rgba(0, 0, 0, 0.5) or rgba(0, 0, 0, 50%) , or without commas
     const rgbaRegex = /^\s*rgba\s*\(\s*(\d+)\s*[,\s]\s*(\d+)\s*[,\s]\s*(\d+)\s*[,\s]\s*((?:\d?\.\d+|\d+)%?)\s*\)\s*$/i;
@@ -9434,7 +9434,7 @@
     };
     const fromRawPatterns = (patterns) => {
         const normalized = partition$1(map$3(patterns, normalizePattern));
-        // eslint-disable-next-line no-console
+         
         each$e(normalized.errors, (err) => console.error(err.message, err.pattern));
         return normalized.values;
     };
@@ -18637,7 +18637,7 @@
     };
 
     // TINY-10350: A modification of the Regexes.link regex to specifically capture host.
-    // eslint-disable-next-line max-len
+     
     const hostCaptureRegex = /^(?:(?:(?:[A-Za-z][A-Za-z\d.+-]{0,14}:\/\/(?:[-.~*+=!&;:'%@?^${}(),\w]+@)?|www\.|[-;:&=+$,.\w]+@)([A-Za-z\d-]+(?:\.[A-Za-z\d-]+)*))(?::\d+)?(?:\/(?:[-.~*+=!;:'%@$(),\/\w]*[-~*+=%@$()\/\w])?)?(?:\?(?:[-.~*+=!&;:'%@?^${}(),\/\w]+)?)?(?:#(?:[-.~*+=!&;:'%@?^${}(),\/\w]+)?)?)$/;
     const extractHost = (url) => Optional.from(url.match(hostCaptureRegex)).bind((ms) => get$b(ms, 1)).map((h) => startsWith(h, 'www.') ? h.substring(4) : h);
 
@@ -19329,7 +19329,7 @@
        *
        * @param cfg optional config literal
        */
-      // eslint-disable-next-line complexity
+       
       const _parseConfig = function _parseConfig() {
         let cfg = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
         if (CONFIG && CONFIG === cfg) {
@@ -19667,7 +19667,7 @@
        */
       const _createNodeIterator = function _createNodeIterator(root) {
         return createNodeIterator.call(root.ownerDocument || root, root,
-        // eslint-disable-next-line no-bitwise
+         
         NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT | NodeFilter.SHOW_PROCESSING_INSTRUCTION | NodeFilter.SHOW_CDATA_SECTION, null);
       };
       /**
@@ -19796,7 +19796,7 @@
        * @param value Attribute value.
        * @return Returns true if `value` is valid, otherwise false.
        */
-      // eslint-disable-next-line complexity
+       
       const _isValidAttribute = function _isValidAttribute(lcTag, lcName, value) {
         /* Make sure attribute cannot clobber */
         if (SANITIZE_DOM && (lcName === 'id' || lcName === 'name') && (value in document || value in formElement)) {
@@ -19984,7 +19984,7 @@
         /* Execute a hook if present */
         _executeHooks(hooks.afterSanitizeShadowDOM, fragment, null);
       };
-      // eslint-disable-next-line complexity
+       
       DOMPurify.sanitize = function (dirty) {
         let cfg = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
         let body = null;
@@ -20413,14 +20413,14 @@
          * @returns {Boolean} True if the origins are the same.
          */
         isSameOrigin(uri) {
-            // eslint-disable-next-line eqeqeq
+             
             if (this.host == uri.host && this.protocol == uri.protocol) {
-                // eslint-disable-next-line eqeqeq
+                 
                 if (this.port == uri.port) {
                     return true;
                 }
                 const defaultPort = this.protocol ? DEFAULT_PORTS[this.protocol] : null;
-                // eslint-disable-next-line eqeqeq
+                 
                 if (defaultPort && ((this.port || defaultPort) == (uri.port || defaultPort))) {
                     return true;
                 }
@@ -20838,7 +20838,7 @@
         }
         else {
             const sanitizeHtmlElement = (body, _mimeType) => {
-                // eslint-disable-next-line no-bitwise
+                 
                 const nodeIterator = document.createNodeIterator(body, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_TEXT);
                 let node;
                 while ((node = nodeIterator.nextNode())) {
@@ -23461,7 +23461,7 @@
             const themesMessage = isLegacyMobileTheme ? `\n\nThemes:${listJoiner}mobile` : '';
             const pluginsMessage = hasRemovedPlugins ? `\n\nPlugins:${listJoiner}${removedPlugins.join(listJoiner)}` : '';
             const optionsMessage = hasRemovedOptions ? `\n\nOptions:${listJoiner}${removedOptions.join(listJoiner)}` : '';
-            // eslint-disable-next-line no-console
+             
             console.warn('The following deprecated features are currently enabled and have been removed in TinyMCE 7.0. These features will no longer work and should be removed from the TinyMCE configuration. ' +
                 'See https://www.tiny.cloud/docs/tinymce/7/migration-from-6x/ for more information.' +
                 themesMessage +
@@ -23487,7 +23487,7 @@
             const listJoiner = '\n- ';
             const pluginsMessage = hasDeprecatedPlugins ? `\n\nPlugins:${listJoiner}${deprecatedPlugins.map(getPluginDescription).join(listJoiner)}` : '';
             const optionsMessage = hasDeprecatedOptions ? `\n\nOptions:${listJoiner}${deprecatedOptions.join(listJoiner)}` : '';
-            // eslint-disable-next-line no-console
+             
             console.warn('The following deprecated features are currently enabled but will be removed soon.' +
                 pluginsMessage +
                 optionsMessage);
@@ -23946,7 +23946,7 @@
     };
     const logError = (editor, errorType, msg) => {
         fireError(editor, errorType, { message: msg });
-        // eslint-disable-next-line no-console
+         
         console.error(msg);
     };
     const createLoadError = (type, url, name) => name ?
@@ -28249,7 +28249,7 @@
     };
     const setHtmlData = (dataTransfer, html) => dataTransfer.setData('text/html', html);
 
-    // eslint-disable-next-line max-len
+     
     const deflate = (rect, delta) => ({
         left: rect.left - delta,
         top: rect.top - delta,
@@ -34085,7 +34085,7 @@
         const licenseKey = getLicenseKey(editor);
         const hasApiKey = isString(getApiKey(editor));
         if (!hasApiKey && (isUndefined(licenseKey) || validateLicenseKey(licenseKey) === 'INVALID')) {
-            // eslint-disable-next-line no-console
+             
             console.warn(`TinyMCE is running in evaluation mode. Provide a valid license key or add license_key: 'gpl' to the init config to agree to the open source license terms. Read more at https://www.tiny.cloud/license-key/`);
         }
     };
@@ -35951,7 +35951,7 @@
          * instance.fire('event', {...});
          */
         fire(name, args, bubble) {
-            // eslint-disable-next-line no-console
+             
             console.warn('The "fire" event api has been deprecated and will be removed in TinyMCE 9. Use "dispatch" instead.', new Error().stack);
             return this.dispatch(name, args, bubble);
         },
@@ -36284,7 +36284,7 @@
                 return result.value;
             }
             else {
-                // eslint-disable-next-line no-console
+                 
                 console.error(getErrorMessage(`Invalid default value passed for the "${name}" option`, result));
             }
         }
@@ -36300,7 +36300,7 @@
                 return true;
             }
             else {
-                // eslint-disable-next-line no-console
+                 
                 console.warn(getErrorMessage(`Invalid value passed for the ${name} option`, result));
                 return false;
             }
@@ -36325,14 +36325,14 @@
             .getOrUndefined();
         const set = (name, value) => {
             if (!isRegistered(name)) {
-                // eslint-disable-next-line no-console
+                 
                 console.warn(`"${name}" is not a registered option. Ensure the option has been registered before setting a value.`);
                 return false;
             }
             else {
                 const spec = registry[name];
                 if (spec.immutable) {
-                    // eslint-disable-next-line no-console
+                     
                     console.error(`"${name}" is an immutable option and cannot be updated`);
                     return false;
                 }
@@ -36351,7 +36351,7 @@
         const isSet = (name) => has$2(values, name);
         const debug = () => {
             try {
-                // eslint-disable-next-line no-console
+                 
                 console.log(JSON.parse(JSON.stringify(rawInitialOptions, (_key, value) => {
                     if (isBoolean(value) ||
                         isNumber(value) ||
@@ -36365,7 +36365,7 @@
                 })));
             }
             catch (error) {
-                // eslint-disable-next-line no-console
+                 
                 console.error(error);
             }
         };
@@ -36451,7 +36451,7 @@
             newMode.activate();
         }
         catch (e) {
-            // eslint-disable-next-line no-console
+             
             console.error(`problem while activating editor mode ${mode}:`, e);
             return;
         }
@@ -36490,7 +36490,7 @@
                         api.deactivate();
                     }
                     catch (e) {
-                        // eslint-disable-next-line no-console
+                         
                         console.error(`problem while deactivating editor mode ${mode}:`, e);
                     }
                 }

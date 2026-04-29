@@ -23,8 +23,7 @@ export function useVietnamAddress() {
   }, []);
 
   useEffect(() => {
-    if (!selectedProvince) { setWards([]); return; }
-    setLoadingWards(true);
+    if (!selectedProvince) return;
     fetch(`${API}/p/${selectedProvince.code}?depth=2`)
       .then((r) => r.json())
       .then((data) => setWards(data.wards ?? data.districts ?? []))
@@ -34,6 +33,7 @@ export function useVietnamAddress() {
 
   const selectProvince = (code) => {
     const found = provinces.find((p) => String(p.code) === String(code)) ?? null;
+    setLoadingWards(!!found);
     setSelectedProvince(found);
     setSelectedWard(null);
     setWards([]);
@@ -50,6 +50,7 @@ export function useVietnamAddress() {
     setSelectedProvince(null);
     setSelectedWard(null);
     setWards([]);
+    setLoadingWards(false);
   };
 
   /**
@@ -90,6 +91,7 @@ export function useVietnamAddress() {
       .sort((a, b) => b.name.length - a.name.length)[0];
     if (!matchP) return { province: null, ward: null, street: addressStr };
     setSelectedProvince(matchP);
+    setLoadingWards(true);
 
     let wardList = [];
     try {
@@ -98,8 +100,10 @@ export function useVietnamAddress() {
       setWards(wardList);
     } catch {
       // ward fetch failed — still return the matched province
+      setLoadingWards(false);
       return { province: matchP, ward: null, street: addressStr };
     }
+    setLoadingWards(false);
 
     const matchW = wardList
       .filter((w) => addrN.includes(norm(w.name)))

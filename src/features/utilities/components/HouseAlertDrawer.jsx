@@ -36,8 +36,6 @@ export default function HouseAlertDrawer({ open, onClose, house, metric }) {
 
   useEffect(() => {
     if (!open || !house?.houseId) {
-      setAlerts([]);
-      setError(null);
       return;
     }
     let cancelled = false;
@@ -47,21 +45,34 @@ export default function HouseAlertDrawer({ open, onClose, house, metric }) {
       .then((res) => {
         if (cancelled) return;
         // Endpoint returns PagedResponse<AlertDto>. Unwrap defensively.
-        setAlerts(Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : []);
+        setAlerts(
+          Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : [],
+        );
       })
-      .catch((e) => { if (!cancelled) setError(e.message); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .catch((e) => {
+        if (!cancelled) setError(e.message);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [open, house?.houseId]);
 
-  const title = house ? t("utilitiesPage.drawer.title", { house: house.houseName || "—" }) : "";
+  const title = house
+    ? t("utilitiesPage.drawer.title", { house: house.houseName || "—" })
+    : "";
 
   return (
     <Drawer
       open={open}
       onClose={onClose}
       title={title}
-      width={Math.min(560, typeof window !== "undefined" ? window.innerWidth - 32 : 560)}
+      width={Math.min(
+        560,
+        typeof window !== "undefined" ? window.innerWidth - 32 : 560,
+      )}
       destroyOnClose
     >
       {!house ? null : (
@@ -76,25 +87,45 @@ export default function HouseAlertDrawer({ open, onClose, house, metric }) {
               {t("utilitiesPage.drawer.activeAlerts")}
             </h4>
             {loading ? (
-              <div className="py-6 flex justify-center"><Spin /></div>
+              <div className="py-6 flex justify-center">
+                <Spin />
+              </div>
             ) : error ? (
-              <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">{error}</div>
+              <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-600">
+                {error}
+              </div>
             ) : alerts.length === 0 ? (
-              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t("utilitiesPage.drawer.noAlerts")} />
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={t("utilitiesPage.drawer.noAlerts")}
+              />
             ) : (
               <ul className="space-y-2">
                 {alerts.map((a) => (
-                  <li key={a.alertId ?? `${a.metric}-${a.ts}`} className="rounded-lg border border-slate-200 p-3 text-sm">
+                  <li
+                    key={a.alertId ?? `${a.metric}-${a.ts}`}
+                    className="rounded-lg border border-slate-200 p-3 text-sm"
+                  >
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="font-medium text-slate-800">{a.title ?? a.metric ?? "—"}</p>
-                        {a.detail && <p className="text-xs text-slate-500 mt-0.5">{a.detail}</p>}
+                        <p className="font-medium text-slate-800">
+                          {a.title ?? a.metric ?? "—"}
+                        </p>
+                        {a.detail && (
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            {a.detail}
+                          </p>
+                        )}
                       </div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        a.level === "CRITICAL" ? "bg-red-100 text-red-700" :
-                        a.level === "WARNING"  ? "bg-amber-100 text-amber-700" :
-                        "bg-slate-100 text-slate-600"
-                      }`}>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          a.level === "CRITICAL"
+                            ? "bg-red-100 text-red-700"
+                            : a.level === "WARNING"
+                              ? "bg-amber-100 text-amber-700"
+                              : "bg-slate-100 text-slate-600"
+                        }`}
+                      >
                         {a.level ?? "INFO"}
                       </span>
                     </div>
@@ -111,9 +142,18 @@ export default function HouseAlertDrawer({ open, onClose, house, metric }) {
 
           {/* Action strip */}
           <section className="pt-3 border-t border-slate-100 flex flex-wrap gap-2">
-            <ActionButton icon={Phone}         label={t("utilitiesPage.drawer.contactTenant")}   />
-            <ActionButton icon={ClipboardList} label={t("utilitiesPage.drawer.createInspection")} />
-            <ActionButton icon={Settings2}     label={t("utilitiesPage.drawer.manageLimit")}      />
+            <ActionButton
+              icon={Phone}
+              label={t("utilitiesPage.drawer.contactTenant")}
+            />
+            <ActionButton
+              icon={ClipboardList}
+              label={t("utilitiesPage.drawer.createInspection")}
+            />
+            <ActionButton
+              icon={Settings2}
+              label={t("utilitiesPage.drawer.manageLimit")}
+            />
           </section>
         </div>
       )}
@@ -127,18 +167,35 @@ function SummaryBlock({ house, metric, t }) {
     <section className="rounded-xl border border-slate-200 p-4 bg-slate-50">
       <div className="flex items-center justify-between gap-3 mb-3">
         <div>
-          <p className="text-xs text-slate-500">{t(`utilitiesPage.tabs.${metric}`)}</p>
+          <p className="text-xs text-slate-500">
+            {t(`utilitiesPage.tabs.${metric}`)}
+          </p>
           <p className="text-lg font-bold text-slate-800">
-            {fmt(house.currentUsage)} <span className="text-sm font-medium text-slate-500">/ {fmt(house.monthlyLimit)} {unit}</span>
+            {fmt(house.currentUsage)}{" "}
+            <span className="text-sm font-medium text-slate-500">
+              / {fmt(house.monthlyLimit)} {unit}
+            </span>
           </p>
         </div>
         {house.usagePercent != null && (
-          <span className="text-xl font-bold text-teal-600">{house.usagePercent.toFixed(1)}%</span>
+          <span className="text-xl font-bold text-teal-600">
+            {house.usagePercent.toFixed(1)}%
+          </span>
         )}
       </div>
       <div className="grid grid-cols-2 gap-3 text-xs">
-        <Stat label={t("utilitiesPage.consumption.forecast")} value={house.forecastTotal != null ? `${fmt(house.forecastTotal)} ${unit}` : "—"} />
-        <Stat label={t("utilitiesPage.summary.alerts")}       value={house.activeAlertCount ?? 0} />
+        <Stat
+          label={t("utilitiesPage.consumption.forecast")}
+          value={
+            house.forecastTotal != null
+              ? `${fmt(house.forecastTotal)} ${unit}`
+              : "—"
+          }
+        />
+        <Stat
+          label={t("utilitiesPage.summary.alerts")}
+          value={house.activeAlertCount ?? 0}
+        />
       </div>
     </section>
   );

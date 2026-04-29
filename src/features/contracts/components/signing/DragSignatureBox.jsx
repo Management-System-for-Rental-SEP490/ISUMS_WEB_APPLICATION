@@ -77,7 +77,7 @@ export default function DragSignatureBox({
   });
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef(null);
-  const containerHeightRef = useRef(1200);
+  const [containerHeight, setContainerHeight] = useState(1200);
 
   // offset thực tế: chỉ dùng nếu đúng trang đang ký
   const activeOffset =
@@ -89,7 +89,7 @@ export default function DragSignatureBox({
       const rect = containerRef.current?.getBoundingClientRect();
       if (rect?.width) setContainerWidth(rect.width);
       const scrollHeight = containerRef.current?.scrollHeight;
-      if (scrollHeight) containerHeightRef.current = scrollHeight;
+      if (scrollHeight) setContainerHeight(scrollHeight);
     };
     update();
     const ro = new ResizeObserver(update);
@@ -114,7 +114,6 @@ export default function DragSignatureBox({
     if (!info) {
       const boxW = 170;
       const boxH = 90;
-      const containerHeight = containerHeightRef.current || 1200;
       return {
         x: Math.max(0, Math.round((containerWidth - boxW) / 2)),
         y: Math.max(0, Math.round((containerHeight - boxH) / 2)),

@@ -84,7 +84,7 @@ export default function ContractLegalSummary({ contract }) {
           // Log in dev to diagnose "shows 0 but DB has row" — the request
           // may be 401/403/OK-empty. Silent catch was hiding the root cause.
           if (list.length === 0) {
-            // eslint-disable-next-line no-console
+             
             console.info("[ContractLegalSummary] listCoTenants returned 0 rows for", contract.id, "raw:", data);
           }
           setCoTenants(list);
@@ -92,7 +92,7 @@ export default function ContractLegalSummary({ contract }) {
       })
       .catch((err) => {
         if (!cancelled) {
-          // eslint-disable-next-line no-console
+           
           console.error("[ContractLegalSummary] listCoTenants failed:", err?.response?.status, err?.response?.data, err?.message);
           setCoTenants([]);
         }

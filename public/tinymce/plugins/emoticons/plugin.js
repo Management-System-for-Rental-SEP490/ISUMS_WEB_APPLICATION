@@ -540,7 +540,7 @@
                 const userEmojis = getUserDefinedEmoji(editor);
                 processEmojis(merge(emojis, userEmojis));
             }, (err) => {
-                // eslint-disable-next-line no-console
+                 
                 console.log(`Failed to load emojis: ${err}`);
                 categories.set({});
                 all.set([]);
@@ -571,7 +571,7 @@
                         else {
                             numRetries--;
                             if (numRetries < 0) {
-                                // eslint-disable-next-line no-console
+                                 
                                 console.log('Could not load emojis from url: ' + databaseUrl);
                                 clearInterval(interval);
                                 reject(false);

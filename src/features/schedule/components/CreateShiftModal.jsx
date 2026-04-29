@@ -78,7 +78,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
     setSelectedStaffId(null);
     setError(null);
     setJobSearch("");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [open]);
 
   // ── ESC key ────────────────────────────────────────────────────────────────

@@ -357,7 +357,7 @@
   const nativeSlice = Array.prototype.slice;
   const nativeIndexOf = Array.prototype.indexOf;
   const nativePush = Array.prototype.push;
-  /* eslint-enable */
+   
   const rawIndexOf = (ts, t) => nativeIndexOf.call(ts, t);
   const indexOf = (xs, x) => {
     // The rawIndexOf method does not wrap up in an option. This is for performance reasons.
@@ -708,7 +708,7 @@
           match,
           // NOTE: Only for debugging.
           log: (label) => {
-            // eslint-disable-next-line no-console
+             
             console.log(label, {
               constructors,
               constructor: key,
@@ -1362,7 +1362,7 @@
     div.innerHTML = html;
     if (!div.hasChildNodes() || div.childNodes.length > 1) {
       const message = "HTML does not have a single root node";
-      // eslint-disable-next-line no-console
+       
       console.error(message, html);
       throw new Error(message);
     }
@@ -2261,7 +2261,7 @@
     if (isString(value) || isBoolean(value) || isNumber(value)) {
       dom.setAttribute(key, value + "");
     } else {
-      // eslint-disable-next-line no-console
+       
       console.error(
         "Invalid call to Attribute.set. Key ",
         key,
@@ -2421,7 +2421,7 @@
     // JQuery coerces numbers to pixels for certain property names, and other times lets numbers through.
     // we're going to be explicit; strings only.
     if (!isString(value)) {
-      // eslint-disable-next-line no-console
+       
       console.error(
         "Invalid call to CSS.set. Property ",
         property,
@@ -4133,7 +4133,7 @@
         ) {
           return;
         }
-        // eslint-disable-next-line no-console
+         
         console.log(eventName, {
           event: eventName,
           time: finishTime - startTime,
@@ -7005,7 +7005,7 @@
       // available for all keying modes
       setGridSize: (component, keyConfig, keyState, numRows, numColumns) => {
         if (!isFlatgridState(keyState)) {
-          // eslint-disable-next-line no-console
+           
           console.error("Layout does not support setGridSize");
         } else {
           keyState.setGridSize(numRows, numColumns);
@@ -7398,7 +7398,7 @@
       const originator = event.originator;
       const target = event.target;
       if (isRecursive(component, originator, target)) {
-        // eslint-disable-next-line no-console
+         
         console.warn(
           focus$3() +
             " did not get interpreted by the desired target. " +
@@ -7456,7 +7456,7 @@
       throw new Error(getMessage(event));
     };
     const warn = (event) => () => {
-      // eslint-disable-next-line no-console
+       
       console.warn(getMessage(event));
     };
     return {
@@ -8922,7 +8922,7 @@
   const withinRange = (coord1, coord2, xRange, yRange, scroll, origin) => {
     const a1 = asAbsolute(coord1, scroll, origin);
     const a2 = asAbsolute(coord2, scroll, origin);
-    // eslint-disable-next-line no-console
+     
     // console.log(`a1.left: ${a1.left}, a2.left: ${a2.left}, leftDelta: ${a1.left - a2.left}, xRange: ${xRange}, lD <= xRange: ${Math.abs(a1.left - a2.left) <= xRange}`);
     // console.log(`a1.top: ${a1.top}, a2.top: ${a2.top}, topDelta: ${a1.top - a2.top}, yRange: ${yRange}, lD <= xRange: ${Math.abs(a1.top - a2.top) <= yRange}`);
     return (
@@ -13205,7 +13205,7 @@
         () => {
           // check that the group container existed. It may not have if the components
           // did not list anything, and shell was false.
-          // eslint-disable-next-line no-console
+           
           console.error(
             "Custom List was defined to not be a shell, but no item container was specified in components",
           );
@@ -15093,7 +15093,7 @@
         () => {
           // check that the group container existed. It may not have if the components
           // did not list anything, and shell was false.
-          // eslint-disable-next-line no-console
+           
           console.error(
             "Toolbar was defined to not be a shell, but no groups container was specified in components",
           );
@@ -20641,7 +20641,7 @@
      *
      * @param cfg optional config literal
      */
-    // eslint-disable-next-line complexity
+     
     const _parseConfig = function _parseConfig() {
       let cfg =
         arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
@@ -21074,7 +21074,7 @@
       return createNodeIterator.call(
         root.ownerDocument || root,
         root,
-        // eslint-disable-next-line no-bitwise
+         
         NodeFilter.SHOW_ELEMENT |
           NodeFilter.SHOW_COMMENT |
           NodeFilter.SHOW_TEXT |
@@ -21246,7 +21246,7 @@
      * @param value Attribute value.
      * @return Returns true if `value` is valid, otherwise false.
      */
-    // eslint-disable-next-line complexity
+     
     const _isValidAttribute = function _isValidAttribute(lcTag, lcName, value) {
       /* Make sure attribute cannot clobber */
       if (
@@ -21478,7 +21478,7 @@
       /* Execute a hook if present */
       _executeHooks(hooks.afterSanitizeShadowDOM, fragment, null);
     };
-    // eslint-disable-next-line complexity
+     
     DOMPurify.sanitize = function (dirty) {
       let cfg =
         arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -22763,9 +22763,9 @@
   const menuHasIcons = (xs) =>
     exists(xs, (item) => "icon" in item && item.icon !== undefined);
   const handleError = (error) => {
-    // eslint-disable-next-line no-console
+     
     console.error(formatError(error));
-    // eslint-disable-next-line no-console
+     
     console.log(error);
     return Optional.none();
   };
@@ -24032,7 +24032,7 @@
             descendant(component.element, "img").each((image$1) => {
               image(image$1)
                 .catch((e) => {
-                  // eslint-disable-next-line no-console
+                   
                   console.error(e);
                 })
                 .finally(() => {
@@ -24616,7 +24616,7 @@
     return hsvColour(Math.round(h), Math.round(s * 100), Math.round(v * 100));
   };
 
-  /* eslint-disable no-console */
+   
   const min = Math.min;
   const max = Math.max;
   const round$1 = Math.round;
@@ -26173,7 +26173,7 @@
           (d) => fancy(d, backstage),
         );
       default: {
-        // eslint-disable-next-line no-console
+         
         console.error("Unknown item in general menu", item);
         return Optional.none();
       }
@@ -27852,7 +27852,7 @@
             const optRgbForm = Composing.getCurrent(picker);
             optRgbForm.fold(
               () => {
-                // eslint-disable-next-line no-console
+                 
                 console.log("Can not find form");
               },
               (rgbForm) => {
@@ -30509,7 +30509,7 @@
     } else if (buttonType === "cancel") {
       emit(comp, formCancelEvent);
     } else {
-      // eslint-disable-next-line no-console
+       
       console.error("Unknown button type: ", buttonType);
     }
   };
@@ -30642,7 +30642,7 @@
         spec.text.or(spec.tooltip).getOrUndefined(),
       );
     } else {
-      // eslint-disable-next-line no-console
+       
       console.error("Unknown footer button type: ", buttonType);
       throw new Error("Unknown footer button type");
     }
@@ -32025,7 +32025,7 @@
       history = JSON.parse(unparsedHistory);
     } catch (e) {
       if (e instanceof SyntaxError) {
-        // eslint-disable-next-line no-console
+         
         console.log("Local storage " + STORAGE_KEY + " was not valid JSON", e);
         return {};
       }
@@ -32033,7 +32033,7 @@
     }
     // validate the parsed value
     if (!isRecordOfUrlArray(history)) {
-      // eslint-disable-next-line no-console
+       
       console.log(
         "Local storage " + STORAGE_KEY + " was not valid format",
         history,
@@ -33226,7 +33226,7 @@
     });
   };
 
-  // eslint-disable-next-line max-len
+   
   const renderToolbarGroupCommon = (toolbarGroup) => {
     const attributes = toolbarGroup.label.isNone()
       ? toolbarGroup.title.fold(
@@ -36209,7 +36209,7 @@
   const extractFrom = (spec, backstage, editor, btnName) =>
     get$h(types, spec.type).fold(
       () => {
-        // eslint-disable-next-line no-console
+         
         console.error("skipping button defined by", spec);
         return Optional.none();
       },
@@ -36266,7 +36266,7 @@
     } else if (isToolbarGroupSettingArray(toolbar)) {
       return toolbar;
     } else {
-      // eslint-disable-next-line no-console
+       
       console.error(
         "Toolbar type should be string, string[], boolean or ToolbarGroup[]",
       );
@@ -36302,7 +36302,7 @@
         (spec) => {
           if (spec.type === "grouptoolbarbutton" && !allowToolbarGroups) {
             // TODO change this message when sliding is available
-            // eslint-disable-next-line no-console
+             
             console.warn(
               `Ignoring the '${toolbarItem}' toolbar button. Group toolbar buttons are only supported when using floating toolbar mode and cannot be nested.`,
             );
@@ -40838,7 +40838,7 @@
         memento(memForm, {
           postprocess: (formValue) =>
             toValidValues(formValue).fold((err) => {
-              // eslint-disable-next-line no-console
+               
               console.error(err);
               return {};
             }, identity),
