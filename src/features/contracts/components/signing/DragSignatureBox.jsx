@@ -22,10 +22,17 @@ function getPageOffsetY(signingPage, pageInfo) {
 function toSigningPosition(x, y, containerWidth, signingPage, pageInfo) {
   const info = pageInfo[signingPage - 1];
   if (!info) {
-    console.warn("[DragSignatureBox] pageInfo chưa sẵn sàng cho trang", signingPage);
+    console.warn(
+      "[DragSignatureBox] pageInfo chưa sẵn sàng cho trang",
+      signingPage,
+    );
     return "0,0,0,0";
   }
-  const { heightPx: pageHeightPx, widthPt: pageWidthPt, heightPt: pageHeightPt } = info;
+  const {
+    heightPx: pageHeightPx,
+    widthPt: pageWidthPt,
+    heightPt: pageHeightPt,
+  } = info;
   const pageOffsetY = getPageOffsetY(signingPage, pageInfo);
   const yInPage = y - pageOffsetY;
 
@@ -57,19 +64,24 @@ export default function DragSignatureBox({
   pageInfo = [],
 }) {
   const signatureSrc = signatureImage
-    ? (signatureImage.startsWith("data:")
-        ? signatureImage
-        : `data:image/png;base64,${signatureImage}`)
+    ? signatureImage.startsWith("data:")
+      ? signatureImage
+      : `data:image/png;base64,${signatureImage}`
     : "";
   const [containerWidth, setContainerWidth] = useState(0);
   // dragOffset lưu kèm trang — nếu trang thay đổi, offset tự bị bỏ qua khi render
-  const [dragOffset, setDragOffset] = useState({ page: signingPage, x: 0, y: 0 });
+  const [dragOffset, setDragOffset] = useState({
+    page: signingPage,
+    x: 0,
+    y: 0,
+  });
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef(null);
   const containerHeightRef = useRef(1200);
 
   // offset thực tế: chỉ dùng nếu đúng trang đang ký
-  const activeOffset = dragOffset.page === signingPage ? dragOffset : { x: 0, y: 0 };
+  const activeOffset =
+    dragOffset.page === signingPage ? dragOffset : { x: 0, y: 0 };
 
   // Đo container width và cập nhật khi resize
   useEffect(() => {
@@ -147,22 +159,33 @@ export default function DragSignatureBox({
       e.preventDefault();
       const { x, y } = getClientXY(e);
       const {
-        startMouseX, startMouseY,
-        startOffsetX, startOffsetY,
-        startContainerLeft, startContainerTop,
+        startMouseX,
+        startMouseY,
+        startOffsetX,
+        startOffsetY,
+        startContainerLeft,
+        startContainerTop,
       } = dragRef.current;
       const rect = containerRef.current?.getBoundingClientRect();
       const cw = rect?.width ?? containerWidth;
       const ch = containerRef.current?.scrollHeight ?? 1200;
-      const containerLeftDelta = (rect?.left ?? startContainerLeft) - startContainerLeft;
-      const containerTopDelta = (rect?.top ?? startContainerTop) - startContainerTop;
+      const containerLeftDelta =
+        (rect?.left ?? startContainerLeft) - startContainerLeft;
+      const containerTopDelta =
+        (rect?.top ?? startContainerTop) - startContainerTop;
 
-      const rawX = defaultPos.x + startOffsetX + (x - startMouseX) - containerLeftDelta;
-      const rawY = defaultPos.y + startOffsetY + (y - startMouseY) - containerTopDelta;
+      const rawX =
+        defaultPos.x + startOffsetX + (x - startMouseX) - containerLeftDelta;
+      const rawY =
+        defaultPos.y + startOffsetY + (y - startMouseY) - containerTopDelta;
       const clampedX = Math.max(0, Math.min(rawX, cw - boxSize.w));
       const clampedY = Math.max(0, Math.min(rawY, ch - boxSize.h));
 
-      setDragOffset({ page: signingPage, x: clampedX - defaultPos.x, y: clampedY - defaultPos.y });
+      setDragOffset({
+        page: signingPage,
+        x: clampedX - defaultPos.x,
+        y: clampedY - defaultPos.y,
+      });
     };
 
     const handleEnd = () => {
@@ -180,13 +203,26 @@ export default function DragSignatureBox({
       window.removeEventListener("touchmove", handleMove);
       window.removeEventListener("touchend", handleEnd);
     };
-  }, [isDragging, containerRef, boxSize, containerWidth, defaultPos, signingPage]);
+  }, [
+    isDragging,
+    containerRef,
+    boxSize,
+    containerWidth,
+    defaultPos,
+    signingPage,
+  ]);
 
   const handleConfirm = () => {
     const rectWidth = containerRef.current?.getBoundingClientRect().width ?? 0;
     const effectiveWidth = containerWidth || rectWidth;
     if (!pos || !effectiveWidth) return;
-    const signingPosition = toSigningPosition(pos.x, pos.y, effectiveWidth, signingPage, pageInfo);
+    const signingPosition = toSigningPosition(
+      pos.x,
+      pos.y,
+      effectiveWidth,
+      signingPage,
+      pageInfo,
+    );
     onPositionSet({ signingPosition, page: signingPage });
   };
 
@@ -195,10 +231,18 @@ export default function DragSignatureBox({
   return (
     <div className="absolute inset-0 z-10" style={{ pointerEvents: "none" }}>
       {/* Instruction banner */}
-      <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 whitespace-nowrap" style={{ pointerEvents: "none" }}>
+      <div
+        className="absolute top-3 left-1/2 -translate-x-1/2 z-20 whitespace-nowrap"
+        style={{ pointerEvents: "none" }}
+      >
         <div className="bg-white/95 border border-teal-300 rounded-xl px-4 py-2 shadow-md text-center">
-          <p className="text-xs font-semibold text-teal-700">Kéo ô chữ ký đến vị trí mong muốn</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">Sau đó bấm &quot;Xác nhận vị trí&quot; — trang ký: <strong>{signingPage}</strong></p>
+          <p className="text-xs font-semibold text-teal-700">
+            Kéo ô chữ ký đến vị trí mong muốn
+          </p>
+          <p className="text-[11px] text-slate-500 mt-0.5">
+            Sau đó bấm &quot;Xác nhận vị trí&quot; — trang ký:{" "}
+            <strong>{signingPage}</strong>
+          </p>
         </div>
       </div>
 
@@ -225,36 +269,73 @@ export default function DragSignatureBox({
               className="w-1/2 h-full object-contain p-1 pointer-events-none"
               draggable={false}
             />
-            <div className="w-1/2 flex flex-col justify-start pt-1 pr-6 text-blue-600 leading-tight" style={{ fontSize: 12 }}>
+            <div
+              className="w-1/2 flex flex-col justify-start pt-1 pr-6 text-blue-600 leading-tight"
+              style={{ fontSize: 12 }}
+            >
               <span className="font-medium">{userName}</span>
               <span>
                 {new Date().toLocaleString("vi-VN", {
-                  day: "2-digit", month: "2-digit", year: "numeric",
-                  hour: "2-digit", minute: "2-digit", second: "2-digit",
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
                 })}
               </span>
             </div>
           </div>
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-xs text-teal-600 font-semibold">Chữ ký</div>
+          <div className="w-full h-full flex items-center justify-center text-xs text-teal-600 font-semibold">
+            Chữ ký
+          </div>
         )}
         <div className="absolute top-1 right-1 bg-teal-600/80 rounded p-0.5 pointer-events-none">
-          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+          <svg
+            className="w-3 h-3 text-white"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+            />
           </svg>
         </div>
       </div>
 
       {/* Confirm button */}
       {!disabled && (
-        <div style={{ position: "fixed", bottom: "24px", right: "40px", zIndex: 50, pointerEvents: "auto" }}>
+        <div
+          style={{
+            position: "fixed",
+            bottom: "24px",
+            right: "40px",
+            zIndex: 50,
+            pointerEvents: "auto",
+          }}
+        >
           <button
             type="button"
             onClick={handleConfirm}
             className="px-5 py-2.5 text-white text-sm font-semibold rounded-xl shadow-lg transition flex items-center gap-2 bg-teal-600 hover:bg-teal-700"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M5 13l4 4L19 7"
+              />
             </svg>
             Xác nhận vị trí
           </button>

@@ -94,7 +94,14 @@ export default function ContractDocumentViewer({
     const scrollTarget = wrapperTopInMain + boxY - main.clientHeight / 2;
     main.scrollTo({ top: Math.max(0, scrollTarget), behavior: "smooth" });
     hasScrolledRef.current = true;
-  }, [showDragBox, pageInfo, effectiveSigningPage, signingSession, mainRef, iframeWrapperRef]);
+  }, [
+    showDragBox,
+    pageInfo,
+    effectiveSigningPage,
+    signingSession,
+    mainRef,
+    iframeWrapperRef,
+  ]);
 
   useEffect(() => {
     const currentSignature = signatureData?.signatureImage ?? null;
