@@ -26,6 +26,8 @@ export default function ContractDocumentViewer({
   // pageInfo[i] = { heightPx, widthPt, heightPt } — kích thước thực tế từ react-pdf
   const [pageInfo, setPageInfo] = useState([]);
   const hasScrolledRef = useRef(false);
+  const lastSignatureRef = useRef(null);
+  const effectiveSigningPage = numPages ?? 1;
 
   // Đo width thực của iframeWrapperRef để Page fill đúng
   useEffect(() => {
@@ -50,9 +52,14 @@ export default function ContractDocumentViewer({
     }
     if (hasScrolledRef.current) return;
 
-    const signingPageIdx = (signingSession?.signingPage ?? 1) - 1;
+    const signingPageIdx = effectiveSigningPage - 1;
     const info = pageInfo[signingPageIdx];
-    if (!info) return; // chờ trang PDF load xong
+    if (!info) {
+      const fallbackTarget = Math.max(0, main.scrollHeight - main.clientHeight);
+      main.scrollTo({ top: fallbackTarget, behavior: "smooth" });
+      hasScrolledRef.current = true;
+      return;
+    }
 
     const main = mainRef.current;
     const wrapper = iframeWrapperRef.current;
@@ -87,7 +94,20 @@ export default function ContractDocumentViewer({
     const scrollTarget = wrapperTopInMain + boxY - main.clientHeight / 2;
     main.scrollTo({ top: Math.max(0, scrollTarget), behavior: "smooth" });
     hasScrolledRef.current = true;
-  }, [showDragBox, pageInfo, signingSession, mainRef, iframeWrapperRef]);
+  }, [showDragBox, pageInfo, effectiveSigningPage, signingSession, mainRef, iframeWrapperRef]);
+
+  useEffect(() => {
+    const currentSignature = signatureData?.signatureImage ?? null;
+    if (!currentSignature) return;
+    if (currentSignature !== lastSignatureRef.current) {
+      lastSignatureRef.current = currentSignature;
+      hasScrolledRef.current = false;
+    }
+  }, [signatureData]);
+
+  useEffect(() => {
+    if (numPages) hasScrolledRef.current = false;
+  }, [numPages]);
 
   const pdfUrl = contract?.pdfUrl ?? null;
 
@@ -208,7 +228,7 @@ export default function ContractDocumentViewer({
             <DragSignatureBox
               containerRef={iframeWrapperRef}
               onPositionSet={onPositionSet}
-              signingPage={signingSession?.signingPage ?? 1}
+              signingPage={effectiveSigningPage}
               signatureImage={signatureData.signatureImage}
               userName={userName}
               disabled={false}

@@ -22,6 +22,11 @@ export default function SigningActionsSidebar({
   onResendOtp,
 }) {
   const { t } = useTranslation("common");
+  const signatureSrc = signatureData?.signatureImage
+    ? (signatureData.signatureImage.startsWith("data:")
+        ? signatureData.signatureImage
+        : `data:image/png;base64,${signatureData.signatureImage}`)
+    : "";
 
   return (
     <aside className="w-64 bg-white border-l border-slate-200 flex flex-col overflow-y-auto flex-shrink-0 p-5 gap-3">
@@ -116,7 +121,7 @@ export default function SigningActionsSidebar({
             <div className="border-2 border-teal-400 rounded-xl overflow-hidden bg-slate-50">
               <div className="flex w-full h-20">
                 <img
-                  src={`data:image/png;base64,${signatureData.signatureImage}`}
+                  src={signatureSrc}
                   alt={t("contracts.signing.defaultSignature")}
                   className="w-1/2 h-full object-contain p-1"
                 />

@@ -56,11 +56,17 @@ export default function DragSignatureBox({
   userName = "",
   pageInfo = [],
 }) {
+  const signatureSrc = signatureImage
+    ? (signatureImage.startsWith("data:")
+        ? signatureImage
+        : `data:image/png;base64,${signatureImage}`)
+    : "";
   const [containerWidth, setContainerWidth] = useState(0);
   // dragOffset lưu kèm trang — nếu trang thay đổi, offset tự bị bỏ qua khi render
   const [dragOffset, setDragOffset] = useState({ page: signingPage, x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef(null);
+  const containerHeightRef = useRef(1200);
 
   // offset thực tế: chỉ dùng nếu đúng trang đang ký
   const activeOffset = dragOffset.page === signingPage ? dragOffset : { x: 0, y: 0 };
@@ -70,6 +76,8 @@ export default function DragSignatureBox({
     const update = () => {
       const rect = containerRef.current?.getBoundingClientRect();
       if (rect?.width) setContainerWidth(rect.width);
+      const scrollHeight = containerRef.current?.scrollHeight;
+      if (scrollHeight) containerHeightRef.current = scrollHeight;
     };
     update();
     const ro = new ResizeObserver(update);
@@ -90,7 +98,16 @@ export default function DragSignatureBox({
 
   // Vị trí mặc định: chính giữa trang ký
   const defaultPos = useMemo(() => {
-    if (!info || !containerWidth) return null;
+    if (!containerWidth) return null;
+    if (!info) {
+      const boxW = 170;
+      const boxH = 90;
+      const containerHeight = containerHeightRef.current || 1200;
+      return {
+        x: Math.max(0, Math.round((containerWidth - boxW) / 2)),
+        y: Math.max(0, Math.round((containerHeight - boxH) / 2)),
+      };
+    }
     const pageOffsetY = getPageOffsetY(signingPage, pageInfo);
     const boxW = Math.round(SIG_W_PT * (containerWidth / info.widthPt));
     const boxH = Math.round(SIG_H_PT * (info.heightPx / info.heightPt));
@@ -166,8 +183,10 @@ export default function DragSignatureBox({
   }, [isDragging, containerRef, boxSize, containerWidth, defaultPos, signingPage]);
 
   const handleConfirm = () => {
-    if (!pos || !containerWidth) return;
-    const signingPosition = toSigningPosition(pos.x, pos.y, containerWidth, signingPage, pageInfo);
+    const rectWidth = containerRef.current?.getBoundingClientRect().width ?? 0;
+    const effectiveWidth = containerWidth || rectWidth;
+    if (!pos || !effectiveWidth) return;
+    const signingPosition = toSigningPosition(pos.x, pos.y, effectiveWidth, signingPage, pageInfo);
     onPositionSet({ signingPosition, page: signingPage });
   };
 
@@ -201,7 +220,7 @@ export default function DragSignatureBox({
         {signatureImage ? (
           <div className="flex w-full h-full">
             <img
-              src={`data:image/png;base64,${signatureImage}`}
+              src={signatureSrc}
               alt="Chữ ký"
               className="w-1/2 h-full object-contain p-1 pointer-events-none"
               draggable={false}
