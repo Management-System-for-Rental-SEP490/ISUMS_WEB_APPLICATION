@@ -7,12 +7,12 @@ const API = "https://provinces.open-api.vn/api/v2";
  * @returns {{ provinces, wards, loadingProvinces, loadingWards, selectedProvince, selectProvince, selectedWard, selectWard }}
  */
 export function useVietnamAddress() {
-  const [provinces, setProvinces]               = useState([]);
-  const [wards, setWards]                       = useState([]);
+  const [provinces, setProvinces] = useState([]);
+  const [wards, setWards] = useState([]);
   const [selectedProvince, setSelectedProvince] = useState(null);
-  const [selectedWard, setSelectedWard]         = useState(null);
+  const [selectedWard, setSelectedWard] = useState(null);
   const [loadingProvinces, setLoadingProvinces] = useState(true);
-  const [loadingWards, setLoadingWards]         = useState(false);
+  const [loadingWards, setLoadingWards] = useState(false);
 
   useEffect(() => {
     fetch(`${API}/p/`)
@@ -32,7 +32,8 @@ export function useVietnamAddress() {
   }, [selectedProvince]);
 
   const selectProvince = (code) => {
-    const found = provinces.find((p) => String(p.code) === String(code)) ?? null;
+    const found =
+      provinces.find((p) => String(p.code) === String(code)) ?? null;
     setLoadingWards(!!found);
     setSelectedProvince(found);
     setSelectedWard(null);
@@ -70,8 +71,12 @@ export function useVietnamAddress() {
    */
   const resolveFromString = async (addressStr) => {
     if (!addressStr || typeof addressStr !== "string") return null;
-    const norm = (s) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase().replace(/[đĐ]/g, "d");
+    const norm = (s) =>
+      (s || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[đĐ]/g, "d");
     const addrN = norm(addressStr);
 
     // Wait until provinces are loaded (defensive — caller might invoke during
@@ -95,7 +100,9 @@ export function useVietnamAddress() {
 
     let wardList = [];
     try {
-      const data = await fetch(`${API}/p/${matchP.code}?depth=2`).then((r) => r.json());
+      const data = await fetch(`${API}/p/${matchP.code}?depth=2`).then((r) =>
+        r.json(),
+      );
       wardList = data.wards ?? data.districts ?? [];
       setWards(wardList);
     } catch {
@@ -105,9 +112,10 @@ export function useVietnamAddress() {
     }
     setLoadingWards(false);
 
-    const matchW = wardList
-      .filter((w) => addrN.includes(norm(w.name)))
-      .sort((a, b) => b.name.length - a.name.length)[0] ?? null;
+    const matchW =
+      wardList
+        .filter((w) => addrN.includes(norm(w.name)))
+        .sort((a, b) => b.name.length - a.name.length)[0] ?? null;
     if (matchW) setSelectedWard(matchW);
 
     // Remove matched province + ward from the original string to recover the
@@ -115,8 +123,11 @@ export function useVietnamAddress() {
     let remaining = addressStr;
     if (matchP) remaining = remaining.replace(new RegExp(matchP.name, "i"), "");
     if (matchW) remaining = remaining.replace(new RegExp(matchW.name, "i"), "");
-    remaining = remaining.replace(/[,\s]+$/g, "").replace(/^[,\s]+/g, "")
-      .replace(/,\s*,+/g, ",").trim();
+    remaining = remaining
+      .replace(/[,\s]+$/g, "")
+      .replace(/^[,\s]+/g, "")
+      .replace(/,\s*,+/g, ",")
+      .trim();
 
     return { province: matchP, ward: matchW, street: remaining };
   };
