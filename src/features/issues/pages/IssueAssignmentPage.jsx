@@ -162,17 +162,31 @@ export default function IssueAssignmentPage() {
         <IssueListPanel issues={issues} loading={loading} selected={selected} onSelect={handleSelectIssue} t={t} />
 
         {!loading && detail ? (
-          <IssueDetailPanel
-            detail={detail}
-            houseNames={houseNames}
-            staffDetail={staffDetail}
-            images={images}
-            imagesLoading={detailLoading}
-            onConfirm={handleConfirm}
-            confirming={confirming}
-            onOpenLightbox={setLightboxIndex}
-            t={t}
-          />
+          detailLoading ? (
+            <div
+              className="flex-1 rounded-2xl flex items-center justify-center py-24"
+              style={{ background: B.card, border: `1px solid ${B.border}`, boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+            >
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: B.muted }}>
+                  <Wrench className="w-7 h-7 animate-spin" style={{ color: B.green }} />
+                </div>
+                <p className="text-sm font-medium" style={{ color: B.mutedFg }}>{t("issues.detailLoading")}</p>
+              </div>
+            </div>
+          ) : (
+            <IssueDetailPanel
+              detail={detail}
+              houseNames={houseNames}
+              staffDetail={staffDetail}
+              images={images}
+              imagesLoading={detailLoading}
+              onConfirm={handleConfirm}
+              confirming={confirming}
+              onOpenLightbox={setLightboxIndex}
+              t={t}
+            />
+          )
         ) : (
           !loading && (
             <div

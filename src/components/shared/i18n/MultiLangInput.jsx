@@ -5,7 +5,6 @@ import {
   Textarea,
   Tabs,
   Tab,
-  Switch,
   Select,
   SelectItem,
   Tooltip,
@@ -57,9 +56,38 @@ export default function MultiLangInput({
   const { i18n, t } = useTranslation("common");
   const [autoMode, setAutoMode] = useState(defaultAutoTranslate);
   const [sourceLocale, setSourceLocale] = useState(
-    () => value?._source || (SUPPORTED.find((l) => l.code === i18n.language)?.code ?? "vi"),
+    () =>
+      value?._source ||
+      (SUPPORTED.find((l) => l.code === i18n.language)?.code ?? "vi"),
   );
-  const { translate, loading: translating, error: translateError } = useAutoTranslate();
+  const {
+    translate,
+    loading: translating,
+    error: translateError,
+  } = useAutoTranslate();
+
+  const inputClassNames = multiline
+    ? {
+        inputWrapper: "rounded-xl border border-slate-200 bg-white shadow-none",
+        input: "text-sm text-slate-700 placeholder:text-slate-400",
+      }
+    : {
+        inputWrapper:
+          "h-10 min-h-10 rounded-xl border border-slate-200 bg-white shadow-none",
+        input: "text-sm text-slate-700 placeholder:text-slate-400",
+      };
+
+  const selectClassNames = {
+    trigger:
+      "h-10 min-h-10 rounded-xl border border-slate-200 bg-white shadow-none",
+    value: "text-sm text-slate-700",
+    selectorIcon: "text-slate-400",
+    popoverContent: "rounded-xl border border-slate-200 bg-white shadow-lg",
+    listboxWrapper: "p-1 bg-white",
+    listbox: "text-sm bg-white",
+    listboxItem:
+      "rounded-lg data-[hover=true]:bg-slate-50 data-[selected=true]:bg-teal-50",
+  };
 
   const safeValue = useMemo(() => value || {}, [value]);
   const autoSet = useMemo(() => {
@@ -96,7 +124,9 @@ export default function MultiLangInput({
   async function translateNow() {
     const sourceText = safeValue[sourceLocale];
     if (!sourceText || !sourceText.trim()) return;
-    const targets = SUPPORTED.map((l) => l.code).filter((c) => c !== sourceLocale);
+    const targets = SUPPORTED.map((l) => l.code).filter(
+      (c) => c !== sourceLocale,
+    );
     try {
       const result = await translate({
         text: sourceText,
@@ -130,22 +160,28 @@ export default function MultiLangInput({
   // The previous implementation put a long Switch label inline next to
   // the field label, which collided when the field label wrapped.
   const Header = (
-    <div className="flex items-start justify-between gap-3 min-w-0">
+    <div className="flex items-center justify-between gap-3 min-w-0">
       <span className="text-sm font-medium leading-5 break-words">
         {label}
         {isRequired ? <span className="text-danger ml-1">*</span> : null}
       </span>
-      <div className="flex items-center gap-2 flex-shrink-0 mt-0.5">
-        <span className="text-xs text-default-500 whitespace-nowrap">
+      <button
+        type="button"
+        aria-pressed={autoMode}
+        onClick={() => setAutoMode((prev) => !prev)}
+        className={`flex items-center gap-2 flex-shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold transition ${
+          autoMode
+            ? "border-teal-600 bg-teal-600 text-white"
+            : "border-slate-200 bg-white text-slate-600"
+        }`}
+      >
+        <span
+          className={`h-2 w-2 rounded-full ${autoMode ? "bg-white" : "bg-slate-300"}`}
+        />
+        <span className="whitespace-nowrap">
           {t("i18nInput.autoTranslate", { defaultValue: "Auto-translate" })}
         </span>
-        <Switch
-          size="sm"
-          isSelected={autoMode}
-          onValueChange={setAutoMode}
-          aria-label={t("i18nInput.autoTranslate", { defaultValue: "Auto-translate" })}
-        />
-      </div>
+      </button>
     </div>
   );
 
@@ -153,15 +189,21 @@ export default function MultiLangInput({
     return (
       <div className="flex flex-col gap-2">
         {Header}
-        <div className="flex gap-2 items-start">
+        <div className="flex gap-2 items-center">
           <Select
-            className="w-44 flex-shrink-0"
+            className="w-36 flex-shrink-0"
+            size="sm"
+            radius="lg"
+            variant="bordered"
             selectedKeys={new Set([sourceLocale])}
-            aria-label={t("i18nInput.sourceLanguage", { defaultValue: "Source language" })}
+            aria-label={t("i18nInput.sourceLanguage", {
+              defaultValue: "Source language",
+            })}
             onSelectionChange={(keys) => {
               const code = [...keys][0];
               if (code) setSourceLocale(code);
             }}
+            classNames={selectClassNames}
           >
             {SUPPORTED.map((l) => (
               <SelectItem key={l.code}>
@@ -174,7 +216,11 @@ export default function MultiLangInput({
             onValueChange={(text) => setLocale(sourceLocale, text)}
             placeholder={placeholder}
             isRequired={isRequired}
+            variant="bordered"
+            radius="lg"
+            size="sm"
             className="flex-1 min-w-0"
+            classNames={inputClassNames}
             minRows={multiline ? 3 : undefined}
           />
         </div>
@@ -205,7 +251,11 @@ export default function MultiLangInput({
   return (
     <div className="flex flex-col gap-2">
       {Header}
-      <Tabs aria-label={t("i18nInput.editPerLanguage", { defaultValue: "Edit per language" })}>
+      <Tabs
+        aria-label={t("i18nInput.editPerLanguage", {
+          defaultValue: "Edit per language",
+        })}
+      >
         {SUPPORTED.map((l) => (
           <Tab
             key={l.code}
@@ -230,6 +280,10 @@ export default function MultiLangInput({
               value={safeValue[l.code] || ""}
               onValueChange={(text) => setLocale(l.code, text)}
               placeholder={placeholder}
+              variant="bordered"
+              radius="lg"
+              size="sm"
+              classNames={inputClassNames}
               minRows={multiline ? 3 : undefined}
             />
           </Tab>
