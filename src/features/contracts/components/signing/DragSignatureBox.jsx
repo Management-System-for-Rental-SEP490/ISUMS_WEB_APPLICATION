@@ -107,6 +107,7 @@ export default function DragSignatureBox({
   pageInfo = [],
   defaultVnptPosition = null,
 }) {
+  const { t } = useTranslation("common");
   const signatureSrc = signatureImage
     ? signatureImage.startsWith("data:")
       ? signatureImage
@@ -142,22 +143,22 @@ export default function DragSignatureBox({
   }, [containerRef]);
 
   const info = useMemo(
-    () => getPageInfo(activePage, pageInfo, containerSize.width, containerSize.height),
-    [activePage, containerSize.height, containerSize.width, pageInfo],
+    () => getPageInfo(signingPage, pageInfo, containerWidth, containerHeight),
+    [signingPage, containerHeight, containerWidth, pageInfo],
   );
 
   const pageOffsetY = useMemo(
-    () => getPageOffsetY(activePage, pageInfo, info.heightPx),
-    [activePage, info.heightPx, pageInfo],
+    () => getPageOffsetY(signingPage, pageInfo, info.heightPx),
+    [signingPage, info.heightPx, pageInfo],
   );
 
   const boxSize = useMemo(() => {
-    if (!containerSize.width) return { w: 170, h: 90 };
+    if (!containerWidth) return { w: 170, h: 90 };
     return {
-      w: Math.round(SIG_W_PT * (containerSize.width / info.widthPt)),
+      w: Math.round(SIG_W_PT * (containerWidth / info.widthPt)),
       h: Math.round(SIG_H_PT * (info.heightPx / info.heightPt)),
     };
-  }, [containerSize.width, info]);
+  }, [containerWidth, info]);
 
   const defaultPos = useMemo(() => {
     if (!containerWidth) return null;
@@ -169,14 +170,13 @@ export default function DragSignatureBox({
         y: Math.max(0, Math.round((containerHeight - boxH) / 2)),
       };
     }
-    const pageOffsetY = getPageOffsetY(signingPage, pageInfo);
     const boxW = Math.round(SIG_W_PT * (containerWidth / info.widthPt));
     const boxH = Math.round(SIG_H_PT * (info.heightPx / info.heightPt));
     return {
-      x: Math.round((containerSize.width - boxSize.w) / 2),
+      x: Math.round((containerWidth - boxSize.w) / 2),
       y: Math.round(pageOffsetY + (info.heightPx - boxSize.h) / 2),
     };
-  }, [boxSize.h, boxSize.w, containerSize.width, defaultVnptPosition, info, pageOffsetY]);
+  }, [boxSize.h, boxSize.w, containerHeight, containerWidth, defaultVnptPosition, info, pageOffsetY]);
 
   const pos = defaultPos
     ? { x: defaultPos.x + activeOffset.x, y: defaultPos.y + activeOffset.y }
