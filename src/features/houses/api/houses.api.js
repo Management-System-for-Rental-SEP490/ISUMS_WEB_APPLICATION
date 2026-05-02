@@ -109,6 +109,34 @@ export async function getRegions() {
   }
 }
 
+export async function createRegion(payload) {
+  try {
+    const response = await api.post(HOUSES_ENDPOINTS.REGIONS_CREATE, payload);
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+export async function assignStaffToRegion(regionId, staffId) {
+  try {
+    const response = await api.post(HOUSES_ENDPOINTS.REGIONS_ASSIGN_STAFF(regionId, staffId));
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+export async function getHousesByRegion(regionId) {
+  try {
+    const response = await api.get(HOUSES_ENDPOINTS.HOUSES_BY_REGION(regionId));
+    const data = extractResponseData(response);
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
 /**
  * Upload images for a house (multipart/form-data)
  * @param {string} houseId - House ID

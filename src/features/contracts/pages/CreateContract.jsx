@@ -56,6 +56,7 @@ export default function CreateContract({ onCancel, onCreated }) {
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [pendingForm, setPendingForm] = useState(null);
+  const [createdId, setCreatedId] = useState(null);
 
   const houseOptions = useMemo(() => {
     return Array.isArray(houses) ? houses : [];
@@ -66,14 +67,15 @@ export default function CreateContract({ onCancel, onCreated }) {
     setIsError(false);
     setErrorMessage("");
     try {
-      await createContract(form);
+      const result = await createContract(form);
+      setCreatedId(result?.id ?? null);
       setIsApiDone(true);
     } catch (err) {
       const status = err?.response?.status;
       const msg =
-        status === 400 ? "Dữ liệu không hợp lệ hoặc thông tin chủ nhà chưa được cập nhật đầy đủ." :
-        status === 404 ? "Không tìm thấy nhà hoặc email người dùng không tồn tại." :
-        "Tạo hợp đồng thất bại, vui lòng thử lại.";
+        status === 400 ? t("contracts.create.err400") :
+        status === 404 ? t("contracts.create.err404") :
+        t("contracts.create.errGeneric");
       setIsError(true);
       setErrorMessage(msg);
       setIsApiDone(true);
@@ -88,23 +90,8 @@ export default function CreateContract({ onCancel, onCreated }) {
 
   const handleModalSuccess = () => {
     setModalOpen(false);
-    const form = pendingForm;
-    const house = houseOptions.find((h) => h.id === form?.houseId);
     toast.success(t("contract.toastCreateSuccess"));
-    onCreated?.({
-      id: Date.now(),
-      contractNumber: `HD-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
-      tenant: form?.name,
-      property: house?.name || house?.title || form?.houseId || "—",
-      unit: house?.unit || "—",
-      startDate: form?.startDate,
-      endDate: form?.endDate,
-      rent: Number(form?.rentAmount) || 0,
-      deposit: Number(form?.depositAmount) || 0,
-      status: "pending",
-      paymentType: "monthly",
-      autoRenew: true,
-    });
+    onCreated?.({ id: createdId });
   };
 
   const handleRetry = () => {
@@ -126,10 +113,8 @@ export default function CreateContract({ onCancel, onCreated }) {
         onClose={() => setModalOpen(false)}
       />
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">Tạo Hợp Đồng</h2>
-        <p className="text-gray-600">
-          Bước 1: Người thuê — Bước 2: Nhà & chi phí — Bước 3: Điều khoản
-        </p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t("contracts.create.title")}</h2>
+        <p className="text-gray-600">{t("contracts.create.subtitle")}</p>
       </div>
       <CreateContractWizard
         initialForm={initialForm}

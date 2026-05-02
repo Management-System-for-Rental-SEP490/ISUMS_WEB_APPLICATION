@@ -12,6 +12,9 @@ export const HOUSES_ENDPOINTS = {
   DELETE: (id) => `/houses/${id}`,
   IMAGES: (id) => `/houses/${id}/images`,
   REGIONS: "/houses/regions",
+  REGIONS_CREATE: "/houses/regions",
+  REGIONS_ASSIGN_STAFF: (regionId, staffId) => `/houses/regions/${regionId}/staff/${staffId}`,
+  HOUSES_BY_REGION: (regionId) => `/houses/region/${regionId}`,
   FUNCTIONAL_AREAS: "/houses/functionalAreas",
   HISTORY: (id) => `/houses/${id}/history`,
   TRANSLATIONS: (id) => `/houses/${id}/translations`,
@@ -19,6 +22,7 @@ export const HOUSES_ENDPOINTS = {
 
 export const CONTRACTS_ENDPOINTS = {
   BASE: "/econtracts",
+  NATIONALITIES: "/econtracts/lookups/nationalities",
   BY_ID: (id) => `/econtracts/${id}`,
   CREATE: "/econtracts",
   UPDATE: (id) => `/econtracts/${id}`,

@@ -48,7 +48,9 @@
       "Bash(node -e ' *)",
       "Bash(grep -E \"\\\\.\\(jsx|js\\)$\")",
       "Bash(grep -v \"//.*[Ă Ă¡áº¡]\")",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(node -e \"const f=require\\('d:/University/Semester_9th/SEP490/ISUMS_WEB/ISUMS_WEB_APPLICATION/src/locales/vi/common.json'\\); console.log\\(Object.keys\\(f\\).join\\('\\\\n'\\)\\)\")",
+      "Bash(node -e \"const f=require\\('d:/University/Semester_9th/SEP490/ISUMS_WEB/ISUMS_WEB_APPLICATION/src/locales/vi/common.json'\\); console.log\\(JSON.stringify\\(f.houses, null, 2\\)\\)\")"
     ]
   }
 }

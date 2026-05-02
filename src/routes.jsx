@@ -10,6 +10,7 @@ import AdminSignContract from "./features/contracts/pages/AdminSignContract";
 import ContractDetailStandalone from "./features/contracts/pages/ContractDetailStandalone";
 import ContractEditStandalone from "./features/contracts/pages/ContractEditStandalone";
 import HouseDetailPage from "./features/houses/pages/HouseDetailPage";
+import RegionsPage from "./features/regions/pages/RegionsPage";
 import FloorDetailPage from "./features/houses/pages/FloorDetailPage";
 import AssetsPage from "./features/assets/pages/AssetsPage";
 
@@ -65,6 +66,7 @@ export const router = createBrowserRouter([
             children: [
               { path: "/dashboard", element: <DashboardPage /> },
               { path: "/houses", element: <Houses /> },
+              { path: "/regions", element: <RegionsPage /> },
               { path: "/houses/:id", element: <HouseDetailPage /> },
               { path: "/houses/:id/floors/:floorNo", element: <FloorDetailPage /> },
               { path: "/assets", element: <AssetsPage /> },

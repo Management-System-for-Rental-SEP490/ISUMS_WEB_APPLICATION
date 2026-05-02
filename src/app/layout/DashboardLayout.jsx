@@ -16,6 +16,7 @@ import keycloak from "../../keycloak";
 const PATH_TITLE_KEYS = {
   "/dashboard":                    "pages.dashboard",
   "/houses":                       "pages.manageProperties",
+  "/regions":                      "pages.regions",
   "/houses/:id":                   "pages.propertyDetail",
   "/utilities":                    "pages.utilities",
   "/users":                        "pages.tenants",

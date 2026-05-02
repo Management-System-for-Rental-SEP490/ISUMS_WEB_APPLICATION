@@ -1,4 +1,7 @@
+import { useTranslation } from "react-i18next";
+
 export default function UsersFilters({ searchTerm, onSearch }) {
+  const { t } = useTranslation("common");
   return (
     <div
       className="rounded-2xl px-4 py-3"
@@ -16,7 +19,7 @@ export default function UsersFilters({ searchTerm, onSearch }) {
           type="text"
           value={searchTerm}
           onChange={(e) => onSearch(e.target.value)}
-          placeholder="Tìm theo tên, email, số điện thoại..."
+          placeholder={t("users.searchPlaceholder")}
           className="w-full pl-10 pr-8 py-2 rounded-full text-sm outline-none transition"
           style={{ background: "#EAF4F0", border: "1px solid #C4DED5", color: "#1E2D28" }}
           onFocus={e => { e.currentTarget.style.background = "#ffffff"; e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59,181,130,0.12)"; }}
