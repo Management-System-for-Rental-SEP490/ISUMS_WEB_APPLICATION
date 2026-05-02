@@ -3,11 +3,31 @@ import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/features/auth/store/auth.store.js";
 import {
-  AlertCircle, ArrowRightLeft, BarChart2, Bell, Building2, CalendarDays,
-  ChevronDown, ClipboardList,
-  FileText, Home, LogOut, CheckCircle, MailQuestionIcon,
-  PenLine, Tag, Settings, UserCheck, Users, UserCog, Briefcase,
-  Wrench, Zap, LayoutDashboard, ShieldCheck, CreditCard,
+  AlertCircle,
+  ArrowRightLeft,
+  BarChart2,
+  Bell,
+  Building2,
+  CalendarDays,
+  ChevronDown,
+  ClipboardList,
+  FileText,
+  Home,
+  LogOut,
+  CheckCircle,
+  MailQuestionIcon,
+  PenLine,
+  Tag,
+  Settings,
+  UserCheck,
+  Users,
+  UserCog,
+  Briefcase,
+  Wrench,
+  Zap,
+  LayoutDashboard,
+  ShieldCheck,
+  CreditCard,
   MapPin,
 } from "lucide-react";
 import logo from "../../assets/logo.jpg";
@@ -15,11 +35,12 @@ import logo from "../../assets/logo.jpg";
 export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
   const { t } = useTranslation("common");
   const roles = useAuthStore((s) => s.roles ?? []);
-  const canSeePendingSign = roles.includes("ADMIN") || roles.includes("LANDLORD");
+  const canSeePendingSign =
+    roles.includes("ADMIN") || roles.includes("LANDLORD");
   const canSeeManagersTab = !roles.includes("MANAGER");
 
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [openGroups, setOpenGroups] = useState({});
 
   const [isHovering, setIsHovering] = useState(false);
@@ -31,72 +52,225 @@ export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
 
   const sections = [
     {
-      id: "tong-quan", label: t("sidebar.overview"), icon: LayoutDashboard, collapsible: false,
+      id: "tong-quan",
+      label: t("sidebar.overview"),
+      icon: LayoutDashboard,
+      collapsible: false,
       items: [
-        { id: "dashboard",   label: t("sidebar.dashboard"), icon: Home,         path: "/dashboard" },
-        { id: "utilities",   label: t("sidebar.utilities"), icon: Zap,          path: "/utilities" },
-        { id: "maintenance", label: t("sidebar.schedule"),  icon: CalendarDays, path: "/maintenance" },
+        {
+          id: "dashboard",
+          label: t("sidebar.dashboard"),
+          icon: Home,
+          path: "/dashboard",
+        },
+        {
+          id: "utilities",
+          label: t("sidebar.utilities"),
+          icon: Zap,
+          path: "/utilities",
+        },
+        {
+          id: "maintenance",
+          label: t("sidebar.schedule"),
+          icon: CalendarDays,
+          path: "/maintenance",
+        },
       ],
     },
     {
-      id: "bat-dong-san-group", label: t("sidebar.realEstate"), icon: Building2, collapsible: true,
+      id: "bat-dong-san-group",
+      label: t("sidebar.realEstate"),
+      icon: Building2,
+      collapsible: true,
       items: [
-        { id: "houses",   label: t("sidebar.manageHouses"), icon: Building2, path: "/houses" },
-        { id: "regions",  label: t("sidebar.regions"),      icon: MapPin,    path: "/regions" },
-        { id: "assets",   label: t("sidebar.devices"),      icon: Wrench,    path: "/assets" },
+        {
+          id: "houses",
+          label: t("sidebar.manageHouses"),
+          icon: Building2,
+          path: "/houses",
+        },
+        {
+          id: "regions",
+          label: t("sidebar.regions"),
+          icon: MapPin,
+          path: "/regions",
+        },
+        {
+          id: "assets",
+          label: t("sidebar.devices"),
+          icon: Wrench,
+          path: "/assets",
+        },
       ],
     },
     {
-      id: "nguoi-dung-group", label: t("sidebar.users"), icon: Users, collapsible: true,
+      id: "nguoi-dung-group",
+      label: t("sidebar.users"),
+      icon: Users,
+      collapsible: true,
       items: [
-        { id: "users",    label: t("sidebar.tenants"),  icon: Users,     path: "/users" },
-        ...(canSeeManagersTab ? [{ id: "managers", label: t("sidebar.managers"), icon: Briefcase, path: "/managers" }] : []),
-        { id: "staff",    label: t("sidebar.staff"),    icon: UserCog,   path: "/staff" },
+        {
+          id: "users",
+          label: t("sidebar.tenants"),
+          icon: Users,
+          path: "/users",
+        },
+        ...(canSeeManagersTab
+          ? [
+              {
+                id: "managers",
+                label: t("sidebar.managers"),
+                icon: Briefcase,
+                path: "/managers",
+              },
+            ]
+          : []),
+        {
+          id: "staff",
+          label: t("sidebar.staff"),
+          icon: UserCog,
+          path: "/staff",
+        },
       ],
     },
     {
-      id: "hop-dong-group", label: t("sidebar.contracts"), icon: FileText, collapsible: true,
+      id: "hop-dong-group",
+      label: t("sidebar.contracts"),
+      icon: FileText,
+      collapsible: true,
       items: [
-        { id: "contracts",               label: t("sidebar.manageContracts"),   icon: FileText,      path: "/contracts" },
-        ...(canSeePendingSign ? [{
-          id: "contracts-sign",          label: t("sidebar.pendingContracts"),  icon: PenLine,       path: "/contracts/pending",
-        }] : []),
-        { id: "contracts-relocations",   label: t("sidebar.relocationRequests", { defaultValue: "Yêu cầu đổi nhà" }), icon: ArrowRightLeft, path: "/contracts/relocations" },
-        { id: "maintenance-inspections", label: t("sidebar.checkinCheckout"),   icon: ClipboardList, path: "/maintenance/inspections" },
+        {
+          id: "contracts",
+          label: t("sidebar.manageContracts"),
+          icon: FileText,
+          path: "/contracts",
+        },
+        ...(canSeePendingSign
+          ? [
+              {
+                id: "contracts-sign",
+                label: t("sidebar.pendingContracts"),
+                icon: PenLine,
+                path: "/contracts/pending",
+              },
+            ]
+          : []),
+        {
+          id: "contracts-relocations",
+          label: t("sidebar.relocationRequests", {
+            defaultValue: "Yêu cầu đổi nhà",
+          }),
+          icon: ArrowRightLeft,
+          path: "/contracts/relocations",
+        },
+        {
+          id: "maintenance-inspections",
+          label: t("sidebar.checkinCheckout"),
+          icon: ClipboardList,
+          path: "/maintenance/inspections",
+        },
       ],
     },
     {
-      id: "bao-tri-group", label: t("sidebar.maintenance"), icon: ClipboardList, collapsible: true,
+      id: "bao-tri-group",
+      label: t("sidebar.maintenance"),
+      icon: ClipboardList,
+      collapsible: true,
       items: [
-        { id: "maintenance-plans", label: t("sidebar.maintenancePlans"), icon: ClipboardList, path: "/maintenance/plans" },
-        { id: "maintenance-jobs",  label: t("sidebar.maintenanceJobs"),  icon: ClipboardList, path: "/maintenance/jobs" },
+        {
+          id: "maintenance-plans",
+          label: t("sidebar.maintenancePlans"),
+          icon: ClipboardList,
+          path: "/maintenance/plans",
+        },
+        {
+          id: "maintenance-jobs",
+          label: t("sidebar.maintenanceJobs"),
+          icon: ClipboardList,
+          path: "/maintenance/jobs",
+        },
       ],
     },
     {
-      id: "sua-chua-group", label: t("sidebar.repair"), icon: AlertCircle, collapsible: true,
+      id: "sua-chua-group",
+      label: t("sidebar.repair"),
+      icon: AlertCircle,
+      collapsible: true,
       items: [
-        { id: "issue-requests",       label: t("sidebar.issuesList"),        icon: MailQuestionIcon, path: "/issues" },
-        { id: "issue-assignment",     label: t("sidebar.assignment"),         icon: UserCheck,        path: "/issues/assignment" },
-        { id: "issue-quote-approval", label: t("sidebar.quoteApproval"),      icon: CheckCircle,      path: "/issues/quotes" },
-        { id: "issue-history",        label: t("sidebar.historyByProperty"),  icon: BarChart2,        path: "/issues/history" },
-        { id: "issue-price-list",     label: t("sidebar.priceList"),          icon: Tag,              path: "/issues/price-list" },
+        {
+          id: "issue-requests",
+          label: t("sidebar.issuesList"),
+          icon: MailQuestionIcon,
+          path: "/issues",
+        },
+        {
+          id: "issue-assignment",
+          label: t("sidebar.assignment"),
+          icon: UserCheck,
+          path: "/issues/assignment",
+        },
+        {
+          id: "issue-quote-approval",
+          label: t("sidebar.quoteApproval"),
+          icon: CheckCircle,
+          path: "/issues/quotes",
+        },
+        {
+          id: "issue-history",
+          label: t("sidebar.historyByProperty"),
+          icon: BarChart2,
+          path: "/issues/history",
+        },
+        {
+          id: "issue-price-list",
+          label: t("sidebar.priceList"),
+          icon: Tag,
+          path: "/issues/price-list",
+        },
       ],
     },
     {
-      id: "he-thong", label: t("sidebar.system"), icon: Settings, collapsible: false,
+      id: "he-thong",
+      label: t("sidebar.system"),
+      icon: Settings,
+      collapsible: false,
       items: [
-        { id: "notifications",       label: t("sidebar.notifications"),    icon: Bell,        path: "/notifications", badge: unreadCount },
-        { id: "subscription-plans",  label: t("sidebar.subscriptionPlans"), icon: CreditCard,  path: "/subscription-plans" },
-        { id: "audit-logs",          label: t("sidebar.auditLogs"),        icon: ShieldCheck, path: "/audit-logs" },
-        { id: "settings",            label: t("sidebar.settings"),         icon: Settings,    path: "/settings" },
+        {
+          id: "notifications",
+          label: t("sidebar.notifications"),
+          icon: Bell,
+          path: "/notifications",
+          badge: unreadCount,
+        },
+        {
+          id: "subscription-plans",
+          label: t("sidebar.subscriptionPlans"),
+          icon: CreditCard,
+          path: "/subscription-plans",
+        },
+        {
+          id: "audit-logs",
+          label: t("sidebar.auditLogs"),
+          icon: ShieldCheck,
+          path: "/audit-logs",
+        },
+        {
+          id: "settings",
+          label: t("sidebar.settings"),
+          icon: Settings,
+          path: "/settings",
+        },
       ],
     },
   ];
 
-  const isItemActive   = (item)    => location.pathname === item.path;
-  const hasActiveChild = (section) => section.items?.some((i) => i.path && location.pathname === i.path);
+  const isItemActive = (item) => location.pathname === item.path;
+  const hasActiveChild = (section) =>
+    section.items?.some((i) => i.path && location.pathname === i.path);
 
-  const brandGradientStyle = { background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" };
+  const brandGradientStyle = {
+    background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)",
+  };
 
   return (
     <aside
@@ -111,11 +285,12 @@ export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
       ].join(" ")}
       style={{ willChange: "width, transform" }}
       aria-label="Sidebar"
-      onMouseEnter={() => { if (!isOpen) setIsHovering(true); }}
+      onMouseEnter={() => {
+        if (!isOpen) setIsHovering(true);
+      }}
       onMouseLeave={() => setIsHovering(false)}
     >
       <div className="h-full flex flex-col overflow-hidden">
-
         {/* ── Logo ── */}
         {/*
          * Clicking the brand lock-up takes the user home (`/dashboard`).
@@ -135,7 +310,11 @@ export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
             style={{ height: 64, minHeight: 64 }}
           >
             <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 shadow ring-2 ring-[#3bb582]/40">
-              <img src={logo} alt="ISUMS Logo" className="w-full h-full object-cover" />
+              <img
+                src={logo}
+                alt="ISUMS Logo"
+                className="w-full h-full object-cover"
+              />
             </div>
             {/* Text fades — no mount/unmount */}
             <h1
@@ -158,14 +337,14 @@ export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
             className="mx-4"
             style={{
               height: 1,
-              background: "linear-gradient(90deg, rgba(59,181,130,0.25), rgba(59,181,130,0.04))",
+              background:
+                "linear-gradient(90deg, rgba(59,181,130,0.25), rgba(59,181,130,0.04))",
             }}
           />
         </div>
 
         {/* ── Nav ── */}
         <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-1 overflow-x-hidden">
-
           {/* ── COLLAPSED view (icons only) — always in DOM, opacity toggled ── */}
           <div
             className="flex flex-col items-center gap-1 transition-opacity duration-200"
@@ -177,20 +356,24 @@ export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
           >
             {sections.map((section) => {
               const SectionIcon = section.icon;
-              const isActive    = hasActiveChild(section);
+              const isActive = hasActiveChild(section);
               return (
                 <button
                   key={section.id}
                   type="button"
                   onClick={() => {
-                    const first = section.items.find((i) => !i.disabled && i.path);
+                    const first = section.items.find(
+                      (i) => !i.disabled && i.path,
+                    );
                     if (first) navigate(first.path);
                   }}
                   title={section.label}
                   style={isActive ? brandGradientStyle : undefined}
                   className={[
                     "relative flex items-center justify-center w-11 h-11 rounded-xl transition-colors duration-150",
-                    isActive ? "text-white shadow-sm" : "text-slate-400 hover:bg-white hover:shadow-sm",
+                    isActive
+                      ? "text-white shadow-sm"
+                      : "text-slate-400 hover:bg-white hover:shadow-sm",
                   ].join(" ")}
                 >
                   <SectionIcon className="w-[18px] h-[18px]" />
@@ -200,116 +383,129 @@ export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
                 </button>
               );
             })}
-
           </div>
 
           {/* ── EXPANDED view (full cards) — always in DOM, opacity toggled ── */}
           {/* overflow:hidden + height:0 removes from layout flow when collapsed so nav doesn't get extra scroll height */}
           <div style={{ overflow: "hidden", height: isExpanded ? "auto" : 0 }}>
-          <div
-            className="space-y-2 transition-opacity duration-200"
-            style={{
-              opacity: isExpanded ? 1 : 0,
-              pointerEvents: isExpanded ? "auto" : "none",
-            }}
-          >
-            {sections.map((section) => {
-              const isGroupExpanded  = !!openGroups[section.id];
-              const sectionHasActive = hasActiveChild(section);
+            <div
+              className="space-y-2 transition-opacity duration-200"
+              style={{
+                opacity: isExpanded ? 1 : 0,
+                pointerEvents: isExpanded ? "auto" : "none",
+              }}
+            >
+              {sections.map((section) => {
+                const isGroupExpanded = !!openGroups[section.id];
+                const sectionHasActive = hasActiveChild(section);
 
-              return (
-                <div
-                  key={section.id}
-                  className="rounded-2xl border border-slate-200 bg-white overflow-hidden"
-                  style={{ boxShadow: "0px 1px 2px 0px rgba(16,24,40,0.05)" }}
-                >
-                  {section.collapsible ? (
-                    <button
-                      type="button"
-                      onClick={() => toggleGroup(section.id)}
-                      className={[
-                        "w-full flex items-center justify-between px-4 py-3 transition-colors hover:bg-slate-50",
-                        isGroupExpanded ? "border-b border-slate-100" : "",
-                      ].join(" ")}
-                    >
-                      <span
-                        className="text-[11px] font-bold uppercase tracking-widest"
-                        style={sectionHasActive ? { color: "#3bb582" } : { color: "#94a3b8" }}
+                return (
+                  <div
+                    key={section.id}
+                    className="rounded-2xl border border-slate-200 bg-white overflow-hidden"
+                    style={{ boxShadow: "0px 1px 2px 0px rgba(16,24,40,0.05)" }}
+                  >
+                    {section.collapsible ? (
+                      <button
+                        type="button"
+                        onClick={() => toggleGroup(section.id)}
+                        className={[
+                          "w-full flex items-center justify-between px-4 py-3 transition-colors hover:bg-slate-50",
+                          isGroupExpanded ? "border-b border-slate-100" : "",
+                        ].join(" ")}
                       >
-                        {section.label}
-                      </span>
-                      <ChevronDown
-                        className={`w-3.5 h-3.5 transition-transform duration-200 ${isGroupExpanded ? "rotate-180" : ""}`}
-                        style={sectionHasActive ? { color: "#3bb582" } : { color: "#cbd5e1" }}
-                      />
-                    </button>
-                  ) : (
-                    <div className="px-4 py-3 border-b border-slate-100">
-                      <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
-                        {section.label}
-                      </span>
-                    </div>
-                  )}
+                        <span
+                          className="text-[11px] font-bold uppercase tracking-widest"
+                          style={
+                            sectionHasActive
+                              ? { color: "#3bb582" }
+                              : { color: "#94a3b8" }
+                          }
+                        >
+                          {section.label}
+                        </span>
+                        <ChevronDown
+                          className={`w-3.5 h-3.5 transition-transform duration-200 ${isGroupExpanded ? "rotate-180" : ""}`}
+                          style={
+                            sectionHasActive
+                              ? { color: "#3bb582" }
+                              : { color: "#cbd5e1" }
+                          }
+                        />
+                      </button>
+                    ) : (
+                      <div className="px-4 py-3 border-b border-slate-100">
+                        <span className="text-[11px] font-bold uppercase tracking-widest text-slate-400">
+                          {section.label}
+                        </span>
+                      </div>
+                    )}
 
-                  {(!section.collapsible || isGroupExpanded) && (
-                    <div className="p-1.5 space-y-0.5">
-                      {section.items.map((item) => {
-                        const isActive = isItemActive(item);
-                        const Icon     = item.icon;
+                    {(!section.collapsible || isGroupExpanded) && (
+                      <div className="p-1.5 space-y-0.5">
+                        {section.items.map((item) => {
+                          const isActive = isItemActive(item);
+                          const Icon = item.icon;
 
-                        if (item.disabled) {
-                          return (
-                            <div
-                              key={item.id}
-                              className="flex items-center gap-3 px-3 py-2 rounded-xl opacity-40 cursor-not-allowed"
-                            >
-                              <Icon className="w-4 h-4 flex-shrink-0 text-slate-400" />
-                              <span className="text-sm text-slate-400 flex-1">{item.label}</span>
-                              <span className="text-[10px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded font-medium">
-                                {t("sidebar.soon")}
-                              </span>
-                            </div>
-                          );
-                        }
-
-                        return (
-                          <button
-                            key={item.id}
-                            type="button"
-                            onClick={() => navigate(item.path)}
-                            style={isActive ? brandGradientStyle : undefined}
-                            className={[
-                              "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-150",
-                              isActive
-                                ? "text-white shadow-sm"
-                                : "text-slate-600 hover:bg-[#3bb582]/10 hover:text-[#3bb582]",
-                            ].join(" ")}
-                          >
-                            <Icon
-                              className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-white" : "text-slate-400"}`}
-                            />
-                            <span className={`text-sm flex-1 text-left ${isActive ? "font-semibold" : ""}`}>
-                              {item.label}
-                            </span>
-                            {item.badge > 0 && (
-                              <span
-                                className={[
-                                  "min-w-[20px] h-5 text-[10px] font-bold rounded-full flex items-center justify-center px-1",
-                                  isActive ? "bg-white/30 text-white" : "bg-red-500 text-white",
-                                ].join(" ")}
+                          if (item.disabled) {
+                            return (
+                              <div
+                                key={item.id}
+                                className="flex items-center gap-3 px-3 py-2 rounded-xl opacity-40 cursor-not-allowed"
                               >
-                                {item.badge > 9 ? "9+" : item.badge}
+                                <Icon className="w-4 h-4 flex-shrink-0 text-slate-400" />
+                                <span className="text-sm text-slate-400 flex-1">
+                                  {item.label}
+                                </span>
+                                <span className="text-[10px] bg-slate-100 text-slate-400 px-1.5 py-0.5 rounded font-medium">
+                                  {t("sidebar.soon")}
+                                </span>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <button
+                              key={item.id}
+                              type="button"
+                              onClick={() => navigate(item.path)}
+                              style={isActive ? brandGradientStyle : undefined}
+                              className={[
+                                "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors duration-150",
+                                isActive
+                                  ? "text-white shadow-sm"
+                                  : "text-slate-600 hover:bg-[#3bb582]/10 hover:text-[#3bb582]",
+                              ].join(" ")}
+                            >
+                              <Icon
+                                className={`w-4 h-4 flex-shrink-0 ${isActive ? "text-white" : "text-slate-400"}`}
+                              />
+                              <span
+                                className={`text-sm flex-1 text-left ${isActive ? "font-semibold" : ""}`}
+                              >
+                                {item.label}
                               </span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                              {item.badge > 0 && (
+                                <span
+                                  className={[
+                                    "min-w-[20px] h-5 text-[10px] font-bold rounded-full flex items-center justify-center px-1",
+                                    isActive
+                                      ? "bg-white/30 text-white"
+                                      : "bg-red-500 text-white",
+                                  ].join(" ")}
+                                >
+                                  {item.badge > 9 ? "9+" : item.badge}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </nav>
 
