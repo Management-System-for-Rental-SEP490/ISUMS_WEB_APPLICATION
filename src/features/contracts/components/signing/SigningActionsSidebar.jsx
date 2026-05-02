@@ -1,5 +1,10 @@
 import { useTranslation } from "react-i18next";
 
+function signatureImageSrc(value) {
+  if (!value) return "";
+  return value.startsWith("data:") ? value : `data:image/png;base64,${value}`;
+}
+
 export default function SigningActionsSidebar({
   initiating,
   error,

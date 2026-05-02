@@ -1,32 +1,6 @@
 import { useEffect, useState } from "react";
-import api from "../../../lib/axios";
+import { fetchNationalities } from "../api/contracts.api";
 
-/**
- * Full nationality list for the tenant form, proxied through
- *   GET /api/econtracts/lookups/nationalities (econtract-service)
- * which in turn hits the HCM ESB "GetDanhMucQuocTich" endpoint
- *   (https://hcmesb.tphcm.gov.vn/...) — authoritative VN government list.
- *
- * Why a BE proxy (not direct):
- *   HCM ESB requires a signed Authorization header derived from AccessKey +
- *   SecretKey + AppName. Those secrets must not live in the browser bundle,
- *   and the platform doesn't emit CORS headers either. The BE holds the
- *   creds, caches the response for 24h, and returns a clean shape to us.
- *
- * Failure mode:
- *   If the BE call fails (offline, backend down), fall back to a bundled
- *   list of ~30 nationalities common in TP.HCM rental contracts — the form
- *   stays usable even with network partition.
- *
- * Cache:
- *   Module-scope cache avoids re-fetching across component re-mounts in the
- *   same page session.
- */
-
-// Emergency fallback when the BE is unreachable on the very first load
-// (module-scope cache hasn't been populated yet). Covers the 30 most
-// common nationalities in HCMC rental contracts so the form stays
-// usable offline. labelJa added so the JA-locale dropdown isn't blank.
 const FALLBACK = [
   { code: "KOR", labelVi: "Hàn Quốc",        labelEn: "South Korea",    labelJa: "韓国" },
   { code: "JPN", labelVi: "Nhật Bản",        labelEn: "Japan",          labelJa: "日本" },
@@ -60,40 +34,7 @@ const FALLBACK = [
   { code: "BRA", labelVi: "Brazil",          labelEn: "Brazil",         labelJa: "ブラジル" },
 ];
 
-let cache = null; // module-scope cache; persists across component re-mounts
-
-async function fetchCountries() {
-  // BE proxy → HCM ESB. Response shape (per HCM spec):
-  //   { StatusCode, Description, ResultObject: [{code,name,description,used}], Status }
-  // We unwrap via the standard ApiResponse envelope used elsewhere in the
-  // project. Timeout 8s; BE has an in-process 24h cache so subsequent calls
-  // are fast.
-  // Path is relative to `VITE_API_BASE_URL` (which already includes `/api`),
-  // so we pass `/econtracts/...` — NOT `/api/econtracts/...`. Adding a
-  // second `/api` prefix was what caused the 404 on
-  // `/api/api/econtracts/lookups/nationalities` earlier.
-  //
-  // Lives under `/econtracts/lookups` to match the gateway route
-  // `/api/econtracts/**` — a top-level `/lookups/**` would need a
-  // dedicated gateway route and redeploy, so we keep everything
-  // under econtract-service's base path.
-  const res = await api.get("/econtracts/lookups/nationalities", { timeout: 8000 });
-  const items = res?.data?.data || [];
-  // BE returns per-locale names: { code, nameVi, nameEn, nameJa, used }
-  // (plus legacy aliases `name` / `description` that mirror VI/EN). We
-  // surface all three so the Select can render the one matching the
-  // current app locale without another round-trip.
-  return items
-    .filter((c) => c?.code && (c.nameVi || c.nameEn || c.name))
-    .map((c) => ({
-      code: c.code,
-      labelVi: c.nameVi ?? c.name ?? c.nameEn ?? c.code,
-      labelEn: c.nameEn ?? c.description ?? c.nameVi ?? c.code,
-      labelJa: c.nameJa ?? c.nameEn ?? c.description ?? c.nameVi ?? c.code,
-      flag: "",
-    }))
-    .sort((a, b) => a.labelVi.localeCompare(b.labelVi, "vi"));
-}
+let cache = null;
 
 export function useCountries() {
   const [countries, setCountries] = useState(() => cache ?? FALLBACK);
@@ -103,8 +44,7 @@ export function useCountries() {
   useEffect(() => {
     if (cache) return;
     let cancelled = false;
-    setLoading(true);
-    fetchCountries()
+    fetchNationalities()
       .then((list) => {
         if (cancelled) return;
         cache = list;
@@ -113,9 +53,6 @@ export function useCountries() {
       })
       .catch((e) => {
         if (cancelled) return;
-        // Keep FALLBACK already in state. Surface the error for debugging
-        // but don't block the form — the 30 most-common nationalities cover
-        // virtually every foreign tenant we'll see.
         setError(e.message || "fetch failed");
       })
       .finally(() => {

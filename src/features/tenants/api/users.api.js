@@ -42,3 +42,26 @@ export async function createStaff({ name, email, phoneNumber, identityNumber }) 
     throw new Error(getErrorMessage(error));
   }
 }
+
+export async function getManagers() {
+  try {
+    const response = await api.get(USERS_ENDPOINTS.GET_MANAGERS);
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+export async function createManager({ name, email, phoneNumber, identityNumber }) {
+  try {
+    const response = await api.post(USERS_ENDPOINTS.CREATE_MANAGER, {
+      name,
+      email,
+      phoneNumber,
+      identityNumber,
+    });
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}

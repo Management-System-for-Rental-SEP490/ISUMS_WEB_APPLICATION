@@ -9,6 +9,12 @@ import {
 } from "../api/contracts.api";
 import { mapContractFromApi } from "../utils/mapContractFromApi";
 
+function normalizeSigningPage(pageSign) {
+  const parsed = Number(pageSign);
+  if (!Number.isFinite(parsed) || parsed < 1) return 1;
+  return Math.floor(parsed);
+}
+
 export function useAdminSignContract(id) {
   const navigate = useNavigate();
   const { t } = useTranslation("common");
@@ -65,7 +71,7 @@ export function useAdminSignContract(id) {
     return () => {
       mounted = false;
     };
-  }, [id, navigate]);
+  }, [id, navigate, t]);
 
   // ─── Signing session ──────────────────────────────────────────────────────────
   const ensureSigningSession = async () => {
@@ -75,7 +81,7 @@ export function useAdminSignContract(id) {
     const vnptDoc = await getVnptDocument(documentId);
     const processId = vnptDoc?.waitingProcess?.id;
     if (!processId) throw new Error("Không tìm thấy tiến trình ký.");
-    const signingPage = vnptDoc?.waitingProcess?.pageSign ?? 1;
+    const signingPage = normalizeSigningPage(vnptDoc?.waitingProcess?.pageSign);
     const vnptPosition = vnptDoc?.waitingProcess?.position ?? null;
     const session = { processId, signingPage, vnptPosition };
     setSigningSession(session);

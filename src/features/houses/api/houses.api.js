@@ -7,6 +7,17 @@ import api from "../../../lib/axios";
 import { HOUSES_ENDPOINTS, ASSET_ENDPOINTS } from "../../../lib/api-endpoints";
 import { extractResponseData, getErrorMessage } from "../../../lib/api-helpers";
 
+const normalizeHouseQueryParams = (params = {}) => {
+  const normalized = { ...params };
+  if (normalized.page !== undefined) {
+    normalized.page = Math.max(1, Number(normalized.page) || 1);
+  }
+  if (normalized.size !== undefined) {
+    normalized.size = Math.min(100, Math.max(1, Number(normalized.size) || 20));
+  }
+  return normalized;
+};
+
 /**
  * Get all houses with optional server-side filtering/pagination
  * @param {Object} params - Query params: page, size, keyword, sortBy, sortDir, status
@@ -15,7 +26,9 @@ import { extractResponseData, getErrorMessage } from "../../../lib/api-helpers";
  */
 export async function getAllHouses(params = {}) {
   try {
-    const response = await api.get(HOUSES_ENDPOINTS.BASE, { params });
+    const response = await api.get(HOUSES_ENDPOINTS.BASE, {
+      params: normalizeHouseQueryParams(params),
+    });
     return extractResponseData(response);
   } catch (error) {
     throw new Error(getErrorMessage(error));
@@ -109,6 +122,16 @@ export async function assignStaffToRegion(regionId, staffId) {
   try {
     const response = await api.post(HOUSES_ENDPOINTS.REGIONS_ASSIGN_STAFF(regionId, staffId));
     return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+export async function getHousesByRegion(regionId) {
+  try {
+    const response = await api.get(HOUSES_ENDPOINTS.HOUSES_BY_REGION(regionId));
+    const data = extractResponseData(response);
+    return Array.isArray(data) ? data : [];
   } catch (error) {
     throw new Error(getErrorMessage(error));
   }

@@ -99,7 +99,7 @@ export default function IssueDetailDrawer({ open, ticketId, onClose }) {
     <Drawer
       open={open}
       onClose={onClose}
-      width={520}
+      size={520}
       destroyOnClose
       title={
         <div className="flex items-center gap-2 flex-wrap">

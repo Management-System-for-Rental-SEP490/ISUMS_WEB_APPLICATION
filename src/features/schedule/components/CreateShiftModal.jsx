@@ -105,7 +105,7 @@ export default function CreateShiftModal({ open, onClose, onCreated }) {
       jobType === "ISSUE"
         ? getAllIssues({ status: "WAITING_MANAGER_CONFIRM", type: "REPAIR" })
         : jobType === "INSPECTION"
-          ? getInspections("CREATED")
+          ? getInspections({ status: "CREATED" })
           : getMaintenanceJobsByStatus("CREATED");
     fetcher
       .then(async (data) => {

@@ -3,9 +3,8 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { MapPin, Plus, X, Users, Building2, RefreshCw, Check, Search } from "lucide-react";
-import { getRegions, createRegion, assignStaffToRegion } from "../../houses/api/houses.api";
+import { getRegions, createRegion, assignStaffToRegion, getHousesByRegion } from "../../houses/api/houses.api";
 import { getStaffs } from "../../tenants/api/users.api";
-import { getAllHouses } from "../../houses/api/houses.api";
 import { LoadingSpinner } from "../../../components/shared/Loading";
 
 // ── Avatar ────────────────────────────────────────────────────────────────────
@@ -128,21 +127,30 @@ function CreateRegionModal({ onClose, onCreated }) {
 }
 
 // ── Region Detail Drawer ──────────────────────────────────────────────────────
-function RegionDetailDrawer({ region, allStaff, allHouses, onClose, onAssigned }) {
+function RegionDetailDrawer({ region, allStaff, onClose, onAssigned }) {
   const { t } = useTranslation("common");
   const [tab, setTab] = useState("staff");
   const [search, setSearch] = useState("");
   const [assigning, setAssigning] = useState(null);
   const [visible, setVisible] = useState(false);
+  const [regionHouses, setRegionHouses] = useState([]);
+  const [housesLoading, setHousesLoading] = useState(false);
 
   useEffect(() => {
     requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
   }, []);
 
+  useEffect(() => {
+    setHousesLoading(true);
+    getHousesByRegion(region.id)
+      .then(setRegionHouses)
+      .catch(() => setRegionHouses([]))
+      .finally(() => setHousesLoading(false));
+  }, [region.id]);
+
   const handleClose = () => { setVisible(false); setTimeout(onClose, 300); };
 
   const assignedIds = new Set(region.staffIds ?? []);
-  const regionHouses = allHouses.filter((h) => h.regionId === region.id);
 
   const filteredStaff = allStaff.filter(
     (s) => !search || s.name?.toLowerCase().includes(search.toLowerCase()) || s.email?.toLowerCase().includes(search.toLowerCase())
@@ -277,7 +285,18 @@ function RegionDetailDrawer({ region, allStaff, allHouses, onClose, onAssigned }
 
           {tab === "houses" && (
             <div className="space-y-2">
-              {regionHouses.length === 0 ? (
+              {housesLoading ? (
+                [...Array(3)].map((_, i) => (
+                  <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-xl animate-pulse" style={{ border: "1px solid #C4DED5", background: "#fff" }}>
+                    <div className="w-8 h-8 rounded-lg flex-shrink-0" style={{ background: "#EAF4F0" }} />
+                    <div className="flex-1 space-y-1.5">
+                      <div className="h-3 rounded-full w-2/5" style={{ background: "#E2EAE6" }} />
+                      <div className="h-2.5 rounded-full w-3/5" style={{ background: "#EAF4F0" }} />
+                    </div>
+                    <div className="h-5 w-14 rounded-full" style={{ background: "#EAF4F0" }} />
+                  </div>
+                ))
+              ) : regionHouses.length === 0 ? (
                 <p className="text-sm text-center py-10" style={{ color: "#5A7A6E" }}>{t("regions.noHouses")}</p>
               ) : (
                 regionHouses.map((house) => (
@@ -293,7 +312,7 @@ function RegionDetailDrawer({ region, allStaff, allHouses, onClose, onAssigned }
                     <span className="text-[11px] px-2 py-0.5 rounded-full font-medium"
                       style={{ background: house.status === "RENTED" ? "rgba(32,150,216,0.1)" : "rgba(59,181,130,0.1)",
                         color: house.status === "RENTED" ? "#2096d8" : "#3bb582" }}>
-                      {house.status}
+                      {t(`houses.status.${house.status}`, { defaultValue: house.status })}
                     </span>
                   </div>
                 ))
@@ -351,27 +370,30 @@ function RegionCard({ region, houseCount, onClick }) {
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function RegionsPage() {
   const { t } = useTranslation("common");
-  const [regions,   setRegions]   = useState([]);
-  const [allStaff,  setAllStaff]  = useState([]);
-  const [allHouses, setAllHouses] = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [error,     setError]     = useState(null);
-  const [showCreate,  setShowCreate]  = useState(false);
-  const [activeRegion, setActiveRegion] = useState(null);
+  const [regions,        setRegions]        = useState([]);
+  const [allStaff,       setAllStaff]       = useState([]);
+  const [houseCountMap,  setHouseCountMap]  = useState({});
+  const [loading,        setLoading]        = useState(true);
+  const [error,          setError]          = useState(null);
+  const [showCreate,     setShowCreate]     = useState(false);
+  const [activeRegion,   setActiveRegion]   = useState(null);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [regionsData, staffData, housesData] = await Promise.all([
+      const [regionsData, staffData] = await Promise.all([
         getRegions(),
         getStaffs(),
-        getAllHouses({ size: 100 }),
       ]);
-      setRegions(Array.isArray(regionsData) ? regionsData : []);
+      const regionList = Array.isArray(regionsData) ? regionsData : [];
+      setRegions(regionList);
       setAllStaff(Array.isArray(staffData) ? staffData : []);
-      const houseList = Array.isArray(housesData) ? housesData : (housesData?.items ?? []);
-      setAllHouses(houseList);
+
+      const counts = await Promise.all(
+        regionList.map((r) => getHousesByRegion(r.id).then((h) => [r.id, h.length]).catch(() => [r.id, 0]))
+      );
+      setHouseCountMap(Object.fromEntries(counts));
     } catch (err) {
       setError(err.message || t("regions.loadError"));
     } finally {
@@ -380,8 +402,6 @@ export default function RegionsPage() {
   }, [t]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
-
-  const getHouseCount = (regionId) => allHouses.filter((h) => h.regionId === regionId).length;
 
   const activeRegionData = regions.find((r) => r.id === activeRegion?.id) ?? activeRegion;
 
@@ -450,7 +470,7 @@ export default function RegionsPage() {
             <RegionCard
               key={region.id}
               region={region}
-              houseCount={getHouseCount(region.id)}
+              houseCount={houseCountMap[region.id] ?? "–"}
               onClick={() => setActiveRegion(region)}
             />
           ))}
@@ -469,7 +489,6 @@ export default function RegionsPage() {
         <RegionDetailDrawer
           region={activeRegionData}
           allStaff={allStaff}
-          allHouses={allHouses}
           onClose={() => setActiveRegion(null)}
           onAssigned={fetchAll}
         />

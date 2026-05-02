@@ -5,7 +5,22 @@ import { Loader2, Save, X } from "lucide-react";
 import AddressPicker from "../../../components/shared/AddressPicker";
 import HouseImageUploader from "../components/HouseImageUploader";
 import HouseRegionSelector from "../components/HouseRegionSelector";
+import MultiLangInput from "../../../components/shared/i18n/MultiLangInput";
 import { createHouse, getRegions, uploadHouseImages } from "../api/houses.api";
+
+// Pick the source-locale string from a TranslationMap, falling back to the
+// first non-empty locale. Used to fill the entity's source-language column
+// on POST while still sending the full TranslationMap as `*Translations`.
+const pickPrimary = (map) => {
+  if (!map || typeof map !== "object") return "";
+  const src = map._source;
+  if (src && typeof map[src] === "string" && map[src].trim()) return map[src];
+  for (const [k, v] of Object.entries(map)) {
+    if (k === "_source" || k === "_auto") continue;
+    if (typeof v === "string" && v.trim()) return v;
+  }
+  return "";
+};
 
 const inp = "w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 bg-slate-50 placeholder-slate-400 transition";
 const lbl = "block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5";
@@ -13,7 +28,7 @@ const lbl = "block text-xs font-semibold text-slate-500 uppercase tracking-wide 
 export default function CreateHousePage({ onBack, onSubmit }) {
   const { t } = useTranslation("common");
   const [form, setForm]           = useState({
-    name: "", description: "", numberOfFloors: "",
+    name: {}, description: {}, numberOfFloors: "",
     areaM2: "",      // Used on every contract template — prompt early.
     structure: "",   // HouseStructure enum value.
     // GCN (Giấy chứng nhận quyền sử dụng đất) — rendered into every
@@ -46,7 +61,7 @@ export default function CreateHousePage({ onBack, onSubmit }) {
 
   const validate = () => {
     const e = {};
-    if (!form.name.trim()) e.name     = t("houses.create.validation.name");
+    if (!pickPrimary(form.name).trim()) e.name = t("houses.create.validation.name");
     if (!regionId)         e.regionId = t("houses.create.validation.region");
     if (!address)          e.address  = t("houses.create.validation.address");
     setErrors(e);
@@ -58,13 +73,15 @@ export default function CreateHousePage({ onBack, onSubmit }) {
     setSubmitting(true);
     try {
       const payload = {
-        name:          form.name.trim(),
+        name:          pickPrimary(form.name).trim(),
+        nameTranslations:        form.name,
         address:       addrParts.street,
         regionId,
         ward:          wardName,
         commune:       "",
         city:          addrParts.city,
-        description:   form.description,
+        description:   pickPrimary(form.description),
+        descriptionTranslations: form.description,
         numberOfFloors: form.numberOfFloors ? Number(form.numberOfFloors) : 0,
         areaM2:        form.areaM2 !== "" ? Number(form.areaM2) : null,
         structure:     form.structure || null,
@@ -142,12 +159,14 @@ export default function CreateHousePage({ onBack, onSubmit }) {
             </div>
 
             <div>
-              <label className={lbl}>{t("houses.create.nameLabel")} <span className="text-red-500 normal-case">*</span></label>
-              <input
+              <MultiLangInput
                 value={form.name}
-                onChange={(e) => setField("name", e.target.value)}
+                onChange={(v) => setField("name", v)}
+                label={t("houses.create.nameLabel")}
                 placeholder={t("houses.create.namePlaceholder")}
-                className={`${inp} ${errors.name ? "border-red-400 bg-red-50" : ""}`}
+                resourceType="house.name"
+                intent="STAFF_INTERNAL"
+                isRequired
               />
               {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
             </div>
@@ -204,13 +223,14 @@ export default function CreateHousePage({ onBack, onSubmit }) {
             </div>
 
             <div>
-              <label className={lbl}>{t("houses.create.descriptionLabel")}</label>
-              <textarea
+              <MultiLangInput
                 value={form.description}
-                onChange={(e) => setField("description", e.target.value)}
-                rows={4}
+                onChange={(v) => setField("description", v)}
+                label={t("houses.create.descriptionLabel")}
                 placeholder={t("houses.create.descriptionPlaceholder")}
-                className={`${inp} resize-none`}
+                resourceType="house.description"
+                intent="STAFF_INTERNAL"
+                multiline
               />
             </div>
           </div>
@@ -296,3 +316,4 @@ export default function CreateHousePage({ onBack, onSubmit }) {
     </div>
   );
 }
+

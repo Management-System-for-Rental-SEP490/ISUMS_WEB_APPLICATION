@@ -16,11 +16,31 @@ function formatDate(value) {
   return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
+const RESERVED_TRANSLATION_KEYS = new Set(["_source", "_auto"]);
+
+function resolveText(value, fallback = "—") {
+  if (value == null) return fallback;
+  if (typeof value === "string") return value.trim() || fallback;
+  if (typeof value !== "object") return String(value);
+
+  const sourceLocale = value._source;
+  if (sourceLocale && typeof value[sourceLocale] === "string" && value[sourceLocale].trim()) {
+    return value[sourceLocale].trim();
+  }
+
+  for (const [key, text] of Object.entries(value)) {
+    if (RESERVED_TRANSLATION_KEYS.has(key)) continue;
+    if (typeof text === "string" && text.trim()) return text.trim();
+  }
+
+  return fallback;
+}
+
 function normalizePlan(raw) {
   return {
     id:            raw.id,
-    name:          raw.name ?? raw.planName ?? "—",
-    houseName:     raw.houseName ?? raw.house?.name ?? raw.houseId ?? "—",
+    name:          resolveText(raw.name ?? raw.planName ?? raw.nameTranslations, "—"),
+    houseName:     resolveText(raw.houseName ?? raw.house?.name ?? raw.house?.nameTranslations ?? raw.houseId, "—"),
     type:          raw.type ?? raw.maintenanceType ?? "GENERAL",
     cycle:         raw.frequencyType ?? raw.cycle ?? raw.cycleType ?? raw.frequency ?? "MONTHLY",
     status:        raw.isActive !== undefined

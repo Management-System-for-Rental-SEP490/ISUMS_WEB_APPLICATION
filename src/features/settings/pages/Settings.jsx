@@ -13,7 +13,9 @@ import {
 import keycloak from "../../../keycloak";
 import { useAuthStore } from "../../auth/store/auth.store";
 import { useLanguageStore, languageActions } from "../../../store/languageStore";
-import { updateUserLanguage } from "../../auth/api/auth.api";
+import { updateUserLanguage, getMe } from "../../auth/api/auth.api";
+import { updateMyPhone } from "../../auth/api/users.api";
+import NotificationPreferencesPanel from "../../notifications/components/NotificationPreferencesPanel";
 
 const ROLE_LABELS = {
   LANDLORD: "Chủ nhà",
@@ -33,12 +35,23 @@ export default function Settings() {
   const currentLanguage = useLanguageStore((s) => s.language);
   const [activeTab, setActiveTab] = useState("profile");
 
+  // Live profile pulled from user-service /users/me — DB is source of
+  // truth for phoneNumber. Token claims (keycloak.tokenParsed.phone_number)
+  // are NOT updated when the user PUTs /me/phone, so reading from the
+  // token causes "saved but refresh shows old value" complaints. We
+  // re-fetch every time the screen mounts and right after a save.
+  const [livePhone, setLivePhone] = useState(null);
+
   const getUserInfo = () => {
     const token = keycloak?.tokenParsed;
     return {
       name: token?.name || profile?.name || "Chưa có tên",
       email: token?.email || profile?.email || "Chưa có email",
-      phone: token?.phone_number || token?.phone || "Chưa có SĐT",
+      phone:
+        livePhone
+          ?? token?.phone_number
+          ?? token?.phone
+          ?? "Chưa có SĐT",
       position: token?.position || token?.job_title || getRoleLabel(roles),
       username: token?.preferred_username || "admin",
       avatar: (token?.name || profile?.name || "A").charAt(0).toUpperCase(),
@@ -79,7 +92,27 @@ export default function Settings() {
       const userInfo = getUserInfo();
       setFormData((prev) => ({ ...prev, profile: userInfo }));
     }
-  }, [keycloak?.authenticated, keycloak?.tokenParsed]);
+  }, [keycloak?.authenticated, keycloak?.tokenParsed, livePhone]);
+
+  // Fetch authoritative phone from BE on mount. Cheap idempotent call;
+  // overrides whatever stale value the JWT was carrying.
+  useEffect(() => {
+    let cancelled = false;
+    if (!keycloak?.authenticated) return undefined;
+    (async () => {
+      try {
+        const me = await getMe();
+        if (!cancelled) {
+          setLivePhone(me?.phoneNumber || me?.phone_number || "");
+        }
+      } catch {
+        // best-effort — leave token claim as fallback
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [keycloak?.authenticated]);
 
   // Sync language dropdown when store changes externally
   useEffect(() => {
@@ -101,12 +134,30 @@ export default function Settings() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      // Each tab persists what it owns: System → language, Profile → phone.
+      // Other profile fields (name/email/username) are admin-only via
+      // Keycloak so they aren't touched here.
       const selectedLang = formData.system.language;
       await updateUserLanguage(selectedLang);
       languageActions.setLanguage(selectedLang);
+
+      const newPhone = (formData.profile.phone || "").trim();
+      const initialPhone = (getUserInfo().phone || "").trim();
+      if (newPhone && newPhone !== initialPhone && newPhone !== "Chưa có SĐT") {
+        await updateMyPhone(newPhone);
+        // Re-pull from BE so the next render reflects what was actually
+        // persisted (avoids the "200 OK but UI shows old value" loop).
+        try {
+          const me = await getMe();
+          setLivePhone(me?.phoneNumber || me?.phone_number || newPhone);
+        } catch {
+          setLivePhone(newPhone);
+        }
+      }
+
       toast.success(t("settings.saveSuccess"));
-    } catch {
-      toast.error(t("settings.saveError"));
+    } catch (e) {
+      toast.error(e?.message || t("settings.saveError"));
     } finally {
       setSaving(false);
     }
@@ -154,6 +205,14 @@ export default function Settings() {
               </button>
             </div>
           </div>
+          {/* Identity fields (name/email/username) stay read-only — they
+              live in Keycloak. Phone is editable here because it drives
+              voice notifications and the user must be able to fix it
+              themselves without going through an admin. */}
+          <p className="text-xs mb-3" style={{ color: "#5A7A6E" }}>
+            {t("settings.profile.readOnlyHint",
+               "Tên, email, username do Keycloak quản trị (liên hệ admin để đổi). Số điện thoại có thể tự cập nhật.")}
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2" style={{ color: "#1E2D28" }}>
@@ -162,10 +221,9 @@ export default function Settings() {
               <input
                 type="text"
                 value={formData.profile.name}
-                onChange={(e) => handleInputChange("profile", "name", e.target.value)}
-                className="w-full px-4 py-2 rounded-xl outline-none transition" style={{ border: "1px solid #C4DED5", background: "#ffffff", color: "#1E2D28" }}
-                onFocus={e => { e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59,181,130,0.12)"; }}
-                onBlur={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.boxShadow = "none"; }}
+                readOnly
+                className="w-full px-4 py-2 rounded-xl"
+                style={{ border: "1px solid #C4DED5", background: "#EAF4F0", color: "#5A7A6E" }}
               />
             </div>
             <div>
@@ -176,7 +234,8 @@ export default function Settings() {
                 type="text"
                 value={formData.profile.username}
                 readOnly
-                className="w-full px-4 py-2 rounded-xl" style={{ border: "1px solid #C4DED5", background: "#EAF4F0", color: "#5A7A6E" }}
+                className="w-full px-4 py-2 rounded-xl"
+                style={{ border: "1px solid #C4DED5", background: "#EAF4F0", color: "#5A7A6E" }}
               />
             </div>
             <div>
@@ -186,10 +245,9 @@ export default function Settings() {
               <input
                 type="email"
                 value={formData.profile.email}
-                onChange={(e) => handleInputChange("profile", "email", e.target.value)}
-                className="w-full px-4 py-2 rounded-xl outline-none transition" style={{ border: "1px solid #C4DED5", background: "#ffffff", color: "#1E2D28" }}
-                onFocus={e => { e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59,181,130,0.12)"; }}
-                onBlur={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.boxShadow = "none"; }}
+                readOnly
+                className="w-full px-4 py-2 rounded-xl"
+                style={{ border: "1px solid #C4DED5", background: "#EAF4F0", color: "#5A7A6E" }}
               />
             </div>
             <div>
@@ -200,60 +258,25 @@ export default function Settings() {
                 type="tel"
                 value={formData.profile.phone}
                 onChange={(e) => handleInputChange("profile", "phone", e.target.value)}
-                className="w-full px-4 py-2 rounded-xl outline-none transition" style={{ border: "1px solid #C4DED5", background: "#ffffff", color: "#1E2D28" }}
+                placeholder="0901234567"
+                className="w-full px-4 py-2 rounded-xl outline-none transition"
+                style={{ border: "1px solid #C4DED5", background: "#ffffff", color: "#1E2D28" }}
                 onFocus={e => { e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59,181,130,0.12)"; }}
                 onBlur={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.boxShadow = "none"; }}
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: "#1E2D28" }}>
-                {t("settings.profile.position")}
-              </label>
-              <input
-                type="text"
-                value={formData.profile.position}
-                onChange={(e) => handleInputChange("profile", "position", e.target.value)}
-                className="w-full px-4 py-2 rounded-xl outline-none transition" style={{ border: "1px solid #C4DED5", background: "#ffffff", color: "#1E2D28" }}
-                onFocus={e => { e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59,181,130,0.12)"; }}
-                onBlur={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.boxShadow = "none"; }}
-              />
-            </div>
+            {/* Position field removed — not editable via API and the value
+                comes from the user's role in Keycloak anyway. */}
           </div>
         </div>
       </div>
     </div>
   );
 
-  const renderNotificationsTab = () => (
-    <div className="space-y-6">
-      <div className="rounded-2xl p-6" style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
-        <h3 className="text-lg font-semibold mb-4">{t("settings.notifications.title")}</h3>
-        <div className="space-y-4">
-          {Object.entries(formData.notifications).map(([key, value]) => (
-            <div key={key} className="flex items-center justify-between py-3" style={{ borderBottom: "1px solid #C4DED5" }}>
-              <div>
-                <label className="text-sm font-medium text-gray-900">
-                  {notificationLabels[key]?.label}
-                </label>
-                <p className="text-xs text-gray-500 mt-1">
-                  {notificationLabels[key]?.desc}
-                </p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={value}
-                  onChange={(e) => handleInputChange("notifications", key, e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#3bb582]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-green"></div>
-              </label>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+  // Notification tab now delegates to the dedicated panel — full
+  // multi-channel preferences (voice consent, quiet hours, escalation,
+  // tier-aware quotas, test-call) wired against the BE preferences API.
+  const renderNotificationsTab = () => <NotificationPreferencesPanel />;
 
   const renderSecurityTab = () => (
     <div className="space-y-6">

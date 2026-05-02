@@ -11,6 +11,18 @@ import {
   uploadAssetImages,
 } from "../api/houses.api";
 import { managerConfirmAsset } from "../../assets/api/assets.api";
+import MultiLangInput from "../../../components/shared/i18n/MultiLangInput";
+
+const pickPrimary = (map) => {
+  if (!map || typeof map !== "object") return "";
+  const src = map._source;
+  if (src && typeof map[src] === "string" && map[src].trim()) return map[src];
+  for (const [k, v] of Object.entries(map)) {
+    if (k === "_source" || k === "_auto") continue;
+    if (typeof v === "string" && v.trim()) return v;
+  }
+  return "";
+};
 
 const inp =
   "w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 bg-slate-50 placeholder-slate-400 transition";
@@ -28,7 +40,7 @@ export default function CreateAssetModal({
   const [catsLoading, setCatsLoading] = useState(true);
   const [form, setForm] = useState({
     categoryId: "",
-    displayName: "",
+    displayName: {},
     serialNumber: "",
     conditionPercent: 100,
     status: "IN_USE",
@@ -76,8 +88,8 @@ export default function CreateAssetModal({
 
   const validate = () => {
     const e = {};
-    if (!form.categoryId)          e.categoryId   = t("houses.createAsset.validation.category");
-    if (!form.displayName.trim())  e.displayName  = t("houses.createAsset.validation.name");
+    if (!form.categoryId)                       e.categoryId  = t("houses.createAsset.validation.category");
+    if (!pickPrimary(form.displayName).trim())  e.displayName = t("houses.createAsset.validation.name");
     setErrors(e);
     return !Object.keys(e).length;
   };
@@ -90,7 +102,7 @@ export default function CreateAssetModal({
         houseId,
         functionAreaId,
         categoryId: form.categoryId,
-        displayName: { vi: form.displayName.trim() },
+        displayName: form.displayName,
         serialNumber: form.serialNumber.trim() || undefined,
         conditionPercent: form.conditionPercent,
         status: form.status,
@@ -149,14 +161,14 @@ export default function CreateAssetModal({
           </div>
 
           <div>
-            <label className={lbl}>
-              {t("houses.createAsset.nameLabel")} <span className="text-red-500 normal-case">*</span>
-            </label>
-            <input
+            <MultiLangInput
               value={form.displayName}
-              onChange={(e) => setField("displayName", e.target.value)}
+              onChange={(v) => setField("displayName", v)}
+              label={t("houses.createAsset.nameLabel")}
               placeholder={t("houses.createAsset.namePlaceholder")}
-              className={`${inp} ${errors.displayName ? "border-red-400 bg-red-50" : ""}`}
+              resourceType="asset-item.displayName"
+              intent="STAFF_INTERNAL"
+              isRequired
             />
             {errors.displayName && (
               <p className="mt-1 text-xs text-red-500">{errors.displayName}</p>
@@ -254,3 +266,4 @@ export default function CreateAssetModal({
     document.body,
   );
 }
+
