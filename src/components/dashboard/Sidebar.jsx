@@ -16,6 +16,7 @@ export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
   const { t } = useTranslation("common");
   const roles = useAuthStore((s) => s.roles ?? []);
   const canSeePendingSign = roles.includes("ADMIN") || roles.includes("LANDLORD");
+  const canSeeManagersTab = !roles.includes("MANAGER");
 
   const navigate  = useNavigate();
   const location  = useLocation();
@@ -49,7 +50,7 @@ export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
       id: "nguoi-dung-group", label: t("sidebar.users"), icon: Users, collapsible: true,
       items: [
         { id: "users",    label: t("sidebar.tenants"),  icon: Users,     path: "/users" },
-        { id: "managers", label: t("sidebar.managers"), icon: Briefcase, path: "/managers" },
+        ...(canSeeManagersTab ? [{ id: "managers", label: t("sidebar.managers"), icon: Briefcase, path: "/managers" }] : []),
         { id: "staff",    label: t("sidebar.staff"),    icon: UserCog,   path: "/staff" },
       ],
     },
