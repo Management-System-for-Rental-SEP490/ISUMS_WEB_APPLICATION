@@ -58,7 +58,7 @@ export default function AuditLogDetailDrawer({ eventId, onClose }) {
           {data?.status && <StatusBadge value={data.status} />}
         </div>
       }
-      width={520}
+      size={520}
       styles={{ body: { padding: "16px 24px" } }}
     >
       {loading && (

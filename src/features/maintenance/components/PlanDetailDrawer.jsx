@@ -67,7 +67,7 @@ export default function PlanDetailDrawer({ open, planId, onClose, t }) {
       <Drawer
         open={open}
         onClose={onClose}
-        width={420}
+        size={420}
         destroyOnClose
         title={
           <div>

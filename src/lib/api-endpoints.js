@@ -14,6 +14,7 @@ export const HOUSES_ENDPOINTS = {
   REGIONS: "/houses/regions",
   REGIONS_CREATE: "/houses/regions",
   REGIONS_ASSIGN_STAFF: (regionId, staffId) => `/houses/regions/${regionId}/staff/${staffId}`,
+  HOUSES_BY_REGION: (regionId) => `/houses/region/${regionId}`,
   FUNCTIONAL_AREAS: "/houses/functionalAreas",
   HISTORY: (id) => `/houses/${id}/history`,
   TRANSLATIONS: (id) => `/houses/${id}/translations`,
@@ -21,6 +22,7 @@ export const HOUSES_ENDPOINTS = {
 
 export const CONTRACTS_ENDPOINTS = {
   BASE: "/econtracts",
+  NATIONALITIES: "/econtracts/lookups/nationalities",
   BY_ID: (id) => `/econtracts/${id}`,
   CREATE: "/econtracts",
   UPDATE: (id) => `/econtracts/${id}`,
@@ -35,6 +37,17 @@ export const CONTRACTS_ENDPOINTS = {
   CONFIRM_TERMINATION_OVERDUE: (id) =>
     `/econtracts/${id}/confirm-termination-overdue`,
   CONFIRM_POWER_CUT: (id) => `/econtracts/${id}/confirm-power-cut`,
+  RELOCATION_REQUESTS: "/econtracts/relocation-requests",
+  REPORT_LANDLORD_FAULT_RELOCATION: "/econtracts/relocation-requests/staff-report",
+  REVIEW_RELOCATION: (id) => `/econtracts/relocation-requests/${id}/review`,
+  CREATE_RELOCATION_REPLACEMENT: (id) =>
+    `/econtracts/relocation-requests/${id}/replacement-contract`,
+  CANCEL_RELOCATION_BY_MANAGER: (id) =>
+    `/econtracts/relocation-requests/${id}/cancel-by-manager`,
+  CONFIRM_RELOCATION_HANDOVER: (id) =>
+    `/econtracts/relocation-requests/${id}/confirm-handover`,
+  CONTRACT_RELOCATION_LINK: (contractId) =>
+    `/econtracts/${contractId}/relocation-link`,
 };
 
 // Users endpoints
@@ -44,6 +57,12 @@ export const USERS_ENDPOINTS = {
   GET_STAFF: "/users/staffs",
   CREATE_STAFF: "/users/technical-staff",
   LANGUAGE: "/users/language",
+  PHONE:    "/users/me/phone",
+  // Managers Ă¢â‚¬â€ feeds the escalation-target picker on the
+  // notification-preferences page (pick which manager gets called
+  // when tenant presses DTMF=2 or doesn't answer).
+  GET_MANAGERS:   "/users/managers",
+  CREATE_MANAGER: "/users/manager",
 };
 
 // Tenants endpoints
@@ -84,6 +103,38 @@ export const NOTIFICATIONS_ENDPOINTS = {
   MANAGER_UNREAD_COUNT: "/notifications/manager/unread-count",
   MANAGER_MARK_READ: (id) => `/notifications/manager/${id}/read`,
   MANAGER_MARK_ALL_READ: "/notifications/manager/read-all",
+
+  // Per-user channel preferences (voice / SMS / email / push opt-in,
+  // language, quiet hours, retry knobs, voice consent + escalation).
+  PREFERENCES_ME:           "/notifications/preferences/me",
+  PREFERENCES_SUBSCRIPTION: "/notifications/preferences/me/subscription",
+  PREFERENCES_QUOTA:        "/notifications/preferences/me/quota",
+  TEST_VOICE:               "/notifications/preferences/me/test-voice",
+
+  // Voice call audit history (paged by created_at desc)
+  CALLS_ME:                 "/notifications/calls/me",
+
+  // Subscription (PREMIUM 19k/thÄ‚Â¡ng) admin grant + self-upgrade flow
+  SUBSCRIPTIONS_GRANT:      "/notifications/subscriptions/admin/grant-premium",
+  SUBSCRIPTIONS_DOWNGRADE:  "/notifications/subscriptions/admin/downgrade",
+  SUBSCRIPTIONS_UPGRADE:    "/notifications/subscriptions/me/upgrade",
+
+  // Voice consent audit history (PDPL compliance)
+  CONSENT_HISTORY:          "/notifications/preferences/me/consent-history",
+
+  // Subscription plan catalogue (landlord-managed)
+  PLANS_PUBLIC:  "/notifications/subscriptions/plans",
+  PLANS_ADMIN:   "/notifications/subscriptions/plans/admin",
+  PLANS_BY_ID:   (id) => `/notifications/subscriptions/plans/${id}`,
+};
+
+// Payment-Service VNPay endpoints (existing service on port 8089).
+// Subscription endpoint is the new addition for PREMIUM upgrades; the
+// invoice/quote endpoints already exist for rental + repair payments.
+export const PAYMENTS_ENDPOINTS = {
+  VNPAY_INVOICE:      "/payments/vnpay",                // existing Ă¢â‚¬â€ invoice/quote pay
+  VNPAY_SUBSCRIPTION: "/payments/vnpay/subscription",   // new Ă¢â‚¬â€ PREMIUM upgrade
+  VNPAY_RETURN:       "/payments/vnpay/return",
 };
 
 // Maintenance endpoints
@@ -138,16 +189,16 @@ export const ASSET_ENDPOINTS = {
   CATEGORY_DETAIL: (id) => `/assets/categories/${id}`,
 };
 
-// Utility alerts dashboard — landlord/manager fleet view of monthly
+// Utility alerts dashboard Ă¢â‚¬â€ landlord/manager fleet view of monthly
 // electricity/water consumption against contract-agreed caps. Backed
 // by asset-service which joins EIF's esp32_forecast DynamoDB table
 // with the iot_thresholds Postgres table and live esp32_alerts.
-// Only GET for now; Phase 2 adds push notifications via Kafka — no
+// Only GET for now; Phase 2 adds push notifications via Kafka Ă¢â‚¬â€ no
 // extra FE endpoint needed (notifications arrive via the existing
 // /api/notifications channel).
 export const UTILITY_ENDPOINTS = {
   ALERTS: "/assets/utility-alerts",
-  // Per-house threshold config (already lives in asset-service — FE
+  // Per-house threshold config (already lives in asset-service Ă¢â‚¬â€ FE
   // deep-links here when user clicks "Set limit" on a tile).
   HOUSE_THRESHOLDS: (houseId) => `/assets/houses/${houseId}/iot/thresholds`,
   HOUSE_THRESHOLD_BY_METRIC: (houseId, metric) =>

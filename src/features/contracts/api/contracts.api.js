@@ -237,3 +237,17 @@ export async function replaceAllCoTenants(contractId, coTenants) {
   const response = await api.put(`/econtracts/${contractId}/co-tenants`, coTenants);
   return extractResponseData(response);
 }
+
+export async function fetchNationalities() {
+  const response = await api.get(CONTRACTS_ENDPOINTS.NATIONALITIES, { timeout: 8000 });
+  const items = response?.data?.data ?? [];
+  return items
+    .filter((c) => c?.code && (c.nameVi || c.nameEn || c.name))
+    .map((c) => ({
+      code: c.code,
+      labelVi: c.nameVi ?? c.name ?? c.nameEn ?? c.code,
+      labelEn: c.nameEn ?? c.description ?? c.nameVi ?? c.code,
+      labelJa: c.nameJa ?? c.nameEn ?? c.description ?? c.nameVi ?? c.code,
+    }))
+    .sort((a, b) => a.labelVi.localeCompare(b.labelVi, "vi"));
+}

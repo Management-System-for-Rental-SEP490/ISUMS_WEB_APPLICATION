@@ -5,6 +5,18 @@ import { getAllHouses } from "../../houses/api/houses.api";
 import { mapHouseToHouseCard } from "../../houses/utils/mapHouseToHouseCard";
 import HouseDetailModal from "../../houses/components/HouseDetailModal";
 import { createInspection } from "../api/maintenance.api";
+import MultiLangInput from "../../../components/shared/i18n/MultiLangInput";
+
+const pickPrimary = (map) => {
+  if (!map || typeof map !== "object") return "";
+  const src = map._source;
+  if (src && typeof map[src] === "string" && map[src].trim()) return map[src];
+  for (const [k, v] of Object.entries(map)) {
+    if (k === "_source" || k === "_auto") continue;
+    if (typeof v === "string" && v.trim()) return v;
+  }
+  return "";
+};
 
 const TYPE_CONFIG = {
   CHECK_IN:  { icon: LogIn,  color: "#3bb582", bg: "rgba(59,181,130,0.12)", border: "#3bb582" },
@@ -24,10 +36,10 @@ export default function CreateInspectionModal({ open, type: defaultType = "CHECK
   const [total, setTotal]                 = useState(0);
   const [housesLoading, setHousesLoading] = useState(false);
   const [selectedHouse, setSelectedHouse] = useState(null);
-  const [detailHouse, setDetailHouse]     = useState(null);
-  const [note, setNote]                   = useState("");
-  const [submitting, setSubmitting]       = useState(false);
-  const [error, setError]                 = useState(null);
+  const [detailHouse, setDetailHouse] = useState(null);
+  const [note, setNote] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
   const debounceRef = useRef(null);
 
@@ -77,7 +89,12 @@ export default function CreateInspectionModal({ open, type: defaultType = "CHECK
     setSubmitting(true);
     setError(null);
     try {
-      await createInspection({ houseId: selectedHouse.id, type, note });
+      await createInspection({
+        houseId: selectedHouse.id,
+        note: pickPrimary(note),
+        noteTranslations: note,
+      });
+      handleClose();
       onCreated?.();
       onClose();
     } catch (e) {
@@ -85,6 +102,14 @@ export default function CreateInspectionModal({ open, type: defaultType = "CHECK
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleClose = () => {
+    setSearch("");
+    setSelectedHouse(null);
+    setNote({});
+    setError(null);
+    onClose();
   };
 
   if (!open) return null;
@@ -280,15 +305,14 @@ export default function CreateInspectionModal({ open, type: defaultType = "CHECK
 
             {/* Note */}
             <div>
-              <label className="block text-xs font-semibold mb-2" style={{ color: "#5A7A6E" }}>
-                {t("inspection.createModal.noteLabel")}
-              </label>
-              <textarea rows={3} value={note} onChange={e => setNote(e.target.value)}
+              <MultiLangInput
+                value={note}
+                onChange={setNote}
+                label={t("inspection.createModal.noteLabel")}
                 placeholder={t("inspection.createModal.notePlaceholder")}
-                className="w-full text-sm border rounded-xl px-3 py-2.5 outline-none resize-none transition"
-                style={{ border: "1px solid #C4DED5", color: "#1E2D28" }}
-                onFocus={e => e.currentTarget.style.borderColor = "#3bb582"}
-                onBlur={e => e.currentTarget.style.borderColor = "#C4DED5"}
+                resourceType="inspection-job.note"
+                intent="STAFF_INTERNAL"
+                multiline
               />
             </div>
 
@@ -326,3 +350,4 @@ export default function CreateInspectionModal({ open, type: defaultType = "CHECK
     </>
   );
 }
+

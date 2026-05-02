@@ -124,26 +124,38 @@ export default function MultiLangInput({
 
   const Field = multiline ? Textarea : Input;
 
+  // Header is shared between auto + manual modes. Production layout:
+  //   row 1 → label (with * if required) on the left
+  //   row 1 → tiny "auto" pill toggle on the right (icon + on/off only)
+  // The previous implementation put a long Switch label inline next to
+  // the field label, which collided when the field label wrapped.
+  const Header = (
+    <div className="flex items-start justify-between gap-3 min-w-0">
+      <span className="text-sm font-medium leading-5 break-words">
+        {label}
+        {isRequired ? <span className="text-danger ml-1">*</span> : null}
+      </span>
+      <div className="flex items-center gap-2 flex-shrink-0 mt-0.5">
+        <span className="text-xs text-default-500 whitespace-nowrap">
+          {t("i18nInput.autoTranslate", { defaultValue: "Auto-translate" })}
+        </span>
+        <Switch
+          size="sm"
+          isSelected={autoMode}
+          onValueChange={setAutoMode}
+          aria-label={t("i18nInput.autoTranslate", { defaultValue: "Auto-translate" })}
+        />
+      </div>
+    </div>
+  );
+
   if (autoMode) {
     return (
       <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">
-            {label}
-            {isRequired ? <span className="text-danger ml-1">*</span> : null}
-          </span>
-          <Switch
-            size="sm"
-            isSelected={autoMode}
-            onValueChange={setAutoMode}
-            aria-label={t("i18nInput.autoTranslate", { defaultValue: "Auto-translate" })}
-          >
-            {t("i18nInput.autoTranslate", { defaultValue: "Auto-translate" })}
-          </Switch>
-        </div>
+        {Header}
         <div className="flex gap-2 items-start">
           <Select
-            className="w-44"
+            className="w-44 flex-shrink-0"
             selectedKeys={new Set([sourceLocale])}
             aria-label={t("i18nInput.sourceLanguage", { defaultValue: "Source language" })}
             onSelectionChange={(keys) => {
@@ -162,19 +174,19 @@ export default function MultiLangInput({
             onValueChange={(text) => setLocale(sourceLocale, text)}
             placeholder={placeholder}
             isRequired={isRequired}
-            className="flex-1"
+            className="flex-1 min-w-0"
             minRows={multiline ? 3 : undefined}
           />
         </div>
-        <div className="flex justify-between text-xs text-default-500">
-          <span>
+        <div className="flex justify-between text-xs text-default-500 gap-3">
+          <span className="flex-1 min-w-0">
             {t("i18nInput.willAutoFill", {
               defaultValue: "Other languages auto-translated on save",
             })}
           </span>
           <button
             type="button"
-            className="text-primary disabled:opacity-50"
+            className="text-primary disabled:opacity-50 flex-shrink-0"
             onClick={translateNow}
             disabled={translating || !safeValue[sourceLocale]}
           >
@@ -192,15 +204,7 @@ export default function MultiLangInput({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium">
-          {label}
-          {isRequired ? <span className="text-danger ml-1">*</span> : null}
-        </span>
-        <Switch size="sm" isSelected={autoMode} onValueChange={setAutoMode}>
-          {t("i18nInput.autoTranslate", { defaultValue: "Auto-translate" })}
-        </Switch>
-      </div>
+      {Header}
       <Tabs aria-label={t("i18nInput.editPerLanguage", { defaultValue: "Edit per language" })}>
         {SUPPORTED.map((l) => (
           <Tab

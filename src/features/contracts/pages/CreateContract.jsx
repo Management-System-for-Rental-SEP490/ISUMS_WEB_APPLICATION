@@ -56,6 +56,7 @@ export default function CreateContract({ onCancel, onCreated }) {
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [pendingForm, setPendingForm] = useState(null);
+  const [createdId, setCreatedId] = useState(null);
 
   const houseOptions = useMemo(() => {
     return Array.isArray(houses) ? houses : [];
@@ -66,7 +67,8 @@ export default function CreateContract({ onCancel, onCreated }) {
     setIsError(false);
     setErrorMessage("");
     try {
-      await createContract(form);
+      const result = await createContract(form);
+      setCreatedId(result?.id ?? null);
       setIsApiDone(true);
     } catch (err) {
       const status = err?.response?.status;
@@ -88,23 +90,8 @@ export default function CreateContract({ onCancel, onCreated }) {
 
   const handleModalSuccess = () => {
     setModalOpen(false);
-    const form = pendingForm;
-    const house = houseOptions.find((h) => h.id === form?.houseId);
     toast.success(t("contract.toastCreateSuccess"));
-    onCreated?.({
-      id: Date.now(),
-      contractNumber: `HD-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
-      tenant: form?.name,
-      property: house?.name || house?.title || form?.houseId || "—",
-      unit: house?.unit || "—",
-      startDate: form?.startDate,
-      endDate: form?.endDate,
-      rent: Number(form?.rentAmount) || 0,
-      deposit: Number(form?.depositAmount) || 0,
-      status: "pending",
-      paymentType: "monthly",
-      autoRenew: true,
-    });
+    onCreated?.({ id: createdId });
   };
 
   const handleRetry = () => {

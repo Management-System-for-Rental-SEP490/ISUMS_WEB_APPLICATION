@@ -10,6 +10,12 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url,
 ).toString();
 
+function normalizeSigningPage(rawPage, totalPages) {
+  const parsed = Number(rawPage);
+  const page = Number.isFinite(parsed) && parsed >= 1 ? Math.floor(parsed) : 1;
+  return totalPages ? Math.min(page, totalPages) : page;
+}
+
 export default function ContractDocumentViewer({
   mainRef,
   iframeWrapperRef,
@@ -64,6 +70,14 @@ export default function ContractDocumentViewer({
     const main = mainRef.current;
     const wrapper = iframeWrapperRef.current;
     if (!main || !wrapper) return;
+
+    const signingPageIdx = signingPage - 1;
+    const fallbackHeightPx = Math.max(wrapper.scrollHeight || wrapper.clientHeight || 0, 900);
+    const info = pageInfo[signingPageIdx] ?? {
+      heightPx: fallbackHeightPx,
+      widthPt: 595,
+      heightPt: 842,
+    };
 
     // Tính Y của ô chữ ký trong iframeWrapper — ưu tiên vị trí VNPT nếu có
     const SEPARATOR_H_PX = 16;
@@ -240,6 +254,7 @@ export default function ContractDocumentViewer({
               userName={userName}
               disabled={false}
               pageInfo={pageInfo}
+              pageCount={numPages}
               defaultVnptPosition={signingSession?.vnptPosition ?? null}
             />
           )}

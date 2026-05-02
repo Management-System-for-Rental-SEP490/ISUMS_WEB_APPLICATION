@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 // Kích thước ô chữ ký mặc định (pt) — khớp với VNPT
 const SIG_W_PT = 170;
@@ -6,13 +7,54 @@ const SIG_H_PT = 90;
 
 // Chiều cao phần separator giữa các trang PDF (py-2 = 8+8px)
 const SEPARATOR_H_PX = 16;
+const FALLBACK_PAGE_W_PT = 595;
+const FALLBACK_PAGE_H_PT = 842;
 
-function getPageOffsetY(signingPage, pageInfo) {
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(value, max));
+}
+
+function normalizeSigningPage(page, pageCount) {
+  const parsed = Number(page);
+  const normalized = Number.isFinite(parsed) && parsed >= 1 ? Math.floor(parsed) : 1;
+  return pageCount ? Math.min(normalized, pageCount) : normalized;
+}
+
+function createFallbackPageInfo(containerWidth, containerHeight) {
+  const widthPx = Math.max(containerWidth || 0, FALLBACK_PAGE_W_PT);
+  const heightPx = Math.max(containerHeight || 0, FALLBACK_PAGE_H_PT);
+  const scale = widthPx / FALLBACK_PAGE_W_PT;
+  return {
+    heightPx,
+    widthPt: FALLBACK_PAGE_W_PT,
+    heightPt: Math.max(Math.round(heightPx / scale), FALLBACK_PAGE_H_PT),
+    fallback: true,
+  };
+}
+
+function getPageInfo(signingPage, pageInfo, containerWidth, containerHeight) {
+  return pageInfo[signingPage - 1] ?? createFallbackPageInfo(containerWidth, containerHeight);
+}
+
+function getPageOffsetY(signingPage, pageInfo, fallbackHeightPx) {
   let offset = 0;
   for (let i = 0; i < signingPage - 1; i++) {
-    offset += (pageInfo[i]?.heightPx ?? 0) + SEPARATOR_H_PX;
+    offset += (pageInfo[i]?.heightPx ?? fallbackHeightPx) + SEPARATOR_H_PX;
   }
   return offset;
+}
+
+function parseVnptPosition(value) {
+  if (!value || typeof value !== "string") return null;
+  const parts = value.split(",").map((part) => Number(part.trim()));
+  if (parts.length !== 4 || parts.some((part) => !Number.isFinite(part))) return null;
+  const [llx, lly, urx, ury] = parts;
+  return { llx, lly, urx, ury };
+}
+
+function signatureImageSrc(value) {
+  if (!value) return "";
+  return value.startsWith("data:") ? value : `data:image/png;base64,${value}`;
 }
 
 /**
@@ -36,12 +78,12 @@ function toSigningPosition(x, y, containerWidth, signingPage, pageInfo) {
   const pageOffsetY = getPageOffsetY(signingPage, pageInfo);
   const yInPage = y - pageOffsetY;
 
-  const scaleX = pageWidthPt / containerWidth;
-  const scaleY = pageHeightPt / pageHeightPx;
+  const scaleX = info.widthPt / containerWidth;
+  const scaleY = info.heightPt / info.heightPx;
 
-  const llx = Math.round(x * scaleX);
+  const llx = clamp(Math.round(x * scaleX), 0, Math.max(info.widthPt - SIG_W_PT, 0));
   const urx = Math.round(llx + SIG_W_PT);
-  const ury = Math.round(pageHeightPt - yInPage * scaleY);
+  const ury = clamp(Math.round(info.heightPt - yInPage * scaleY), SIG_H_PT, info.heightPt);
   const lly = Math.round(ury - SIG_H_PT);
 
   return `${llx},${lly},${urx},${ury}`;
@@ -58,10 +100,12 @@ export default function DragSignatureBox({
   containerRef,
   onPositionSet,
   signingPage = 1,
+  pageCount = null,
   disabled = false,
   signatureImage,
   userName = "",
   pageInfo = [],
+  defaultVnptPosition = null,
 }) {
   const signatureSrc = signatureImage
     ? signatureImage.startsWith("data:")
@@ -83,7 +127,7 @@ export default function DragSignatureBox({
   const activeOffset =
     dragOffset.page === signingPage ? dragOffset : { x: 0, y: 0 };
 
-  // Đo container width và cập nhật khi resize
+  // Đo container để vẫn render được ô chữ ký khi preview là HTML/iframe hoặc PDF chưa có pageInfo.
   useEffect(() => {
     const update = () => {
       const rect = containerRef.current?.getBoundingClientRect();
@@ -97,18 +141,24 @@ export default function DragSignatureBox({
     return () => ro.disconnect();
   }, [containerRef]);
 
-  const info = pageInfo[signingPage - 1];
+  const info = useMemo(
+    () => getPageInfo(activePage, pageInfo, containerSize.width, containerSize.height),
+    [activePage, containerSize.height, containerSize.width, pageInfo],
+  );
 
-  // Kích thước box (px) — tính từ pt theo tỉ lệ trang
+  const pageOffsetY = useMemo(
+    () => getPageOffsetY(activePage, pageInfo, info.heightPx),
+    [activePage, info.heightPx, pageInfo],
+  );
+
   const boxSize = useMemo(() => {
-    if (!info || !containerWidth) return { w: 170, h: 90 };
+    if (!containerSize.width) return { w: 170, h: 90 };
     return {
-      w: Math.round(SIG_W_PT * (containerWidth / info.widthPt)),
+      w: Math.round(SIG_W_PT * (containerSize.width / info.widthPt)),
       h: Math.round(SIG_H_PT * (info.heightPx / info.heightPt)),
     };
-  }, [info, containerWidth]);
+  }, [containerSize.width, info]);
 
-  // Vị trí mặc định: chính giữa trang ký
   const defaultPos = useMemo(() => {
     if (!containerWidth) return null;
     if (!info) {
@@ -124,12 +174,11 @@ export default function DragSignatureBox({
     const boxW = Math.round(SIG_W_PT * (containerWidth / info.widthPt));
     const boxH = Math.round(SIG_H_PT * (info.heightPx / info.heightPt));
     return {
-      x: Math.round((containerWidth - boxW) / 2),
-      y: Math.round(pageOffsetY + (info.heightPx - boxH) / 2),
+      x: Math.round((containerSize.width - boxSize.w) / 2),
+      y: Math.round(pageOffsetY + (info.heightPx - boxSize.h) / 2),
     };
-  }, [info, containerWidth, signingPage, pageInfo]);
+  }, [boxSize.h, boxSize.w, containerSize.width, defaultVnptPosition, info, pageOffsetY]);
 
-  // Vị trí hiện tại = mặc định + offset drag của user
   const pos = defaultPos
     ? { x: defaultPos.x + activeOffset.x, y: defaultPos.y + activeOffset.y }
     : null;
@@ -152,7 +201,7 @@ export default function DragSignatureBox({
   };
 
   useEffect(() => {
-    if (!isDragging) return;
+    if (!isDragging) return undefined;
 
     const handleMove = (e) => {
       if (!dragRef.current || !defaultPos) return;
@@ -246,9 +295,8 @@ export default function DragSignatureBox({
         </div>
       </div>
 
-      {/* Draggable box */}
       <div
-        className="absolute border-2 border-teal-500 rounded-lg bg-white/95 shadow-xl overflow-hidden select-none"
+        className="absolute select-none overflow-hidden rounded-lg border-2 border-teal-500 bg-white/95 shadow-xl"
         style={{
           left: pos.x,
           top: pos.y,
@@ -262,7 +310,7 @@ export default function DragSignatureBox({
         onTouchStart={handleStart}
       >
         {signatureImage ? (
-          <div className="flex w-full h-full">
+          <div className="flex h-full w-full">
             <img
               src={signatureSrc}
               alt="Chữ ký"
@@ -308,7 +356,6 @@ export default function DragSignatureBox({
         </div>
       </div>
 
-      {/* Confirm button */}
       {!disabled && (
         <div
           style={{
@@ -322,7 +369,7 @@ export default function DragSignatureBox({
           <button
             type="button"
             onClick={handleConfirm}
-            className="px-5 py-2.5 text-white text-sm font-semibold rounded-xl shadow-lg transition flex items-center gap-2 bg-teal-600 hover:bg-teal-700"
+            className="flex items-center gap-2 rounded-xl bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-teal-700"
           >
             <svg
               className="w-4 h-4"
@@ -337,7 +384,7 @@ export default function DragSignatureBox({
                 d="M5 13l4 4L19 7"
               />
             </svg>
-            Xác nhận vị trí
+            {t("contracts.dragSignature.confirm")}
           </button>
         </div>
       )}

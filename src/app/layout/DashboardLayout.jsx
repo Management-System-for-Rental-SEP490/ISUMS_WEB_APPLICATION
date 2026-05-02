@@ -23,6 +23,7 @@ const PATH_TITLE_KEYS = {
   "/staff":                        "pages.staff",
   "/contracts":                    "pages.contracts",
   "/contracts/pending":            "pages.pendingContracts",
+  "/contracts/relocations":        "pages.relocationRequests",
   "/maintenance":                  "pages.workSchedule",
   "/maintenance/plans":            "pages.maintenancePlans",
   "/maintenance/jobs":             "pages.maintenanceJobs",

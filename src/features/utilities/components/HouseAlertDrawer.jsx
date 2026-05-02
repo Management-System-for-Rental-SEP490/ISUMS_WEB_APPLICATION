@@ -61,7 +61,7 @@ export default function HouseAlertDrawer({ open, onClose, house, metric }) {
       open={open}
       onClose={onClose}
       title={title}
-      width={Math.min(560, typeof window !== "undefined" ? window.innerWidth - 32 : 560)}
+      size={Math.min(560, typeof window !== "undefined" ? window.innerWidth - 32 : 560)}
       destroyOnClose
     >
       {!house ? null : (
