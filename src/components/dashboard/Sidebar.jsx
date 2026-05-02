@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAuthStore } from "../../features/auth/store/auth.store";
+import { useAuthStore } from "@/features/auth/store/auth.store.js";
 import {
   AlertCircle, ArrowRightLeft, BarChart2, Bell, Building2, CalendarDays,
   ChevronDown, ClipboardList,
   FileText, Home, LogOut, CheckCircle, MailQuestionIcon,
   PenLine, Tag, Settings, UserCheck, Users, UserCog, Briefcase,
   Wrench, Zap, LayoutDashboard, ShieldCheck, CreditCard,
+  MapPin,
 } from "lucide-react";
 import logo from "../../assets/logo.jpg";
 
