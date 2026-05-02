@@ -1,5 +1,10 @@
 import { useTranslation } from "react-i18next";
 
+function signatureImageSrc(value) {
+  if (!value) return "";
+  return value.startsWith("data:") ? value : `data:image/png;base64,${value}`;
+}
+
 export default function SigningActionsSidebar({
   initiating,
   error,
@@ -116,7 +121,7 @@ export default function SigningActionsSidebar({
             <div className="border-2 border-teal-400 rounded-xl overflow-hidden bg-slate-50">
               <div className="flex w-full h-20">
                 <img
-                  src={`data:image/png;base64,${signatureData.signatureImage}`}
+                  src={signatureImageSrc(signatureData.signatureImage)}
                   alt={t("contracts.signing.defaultSignature")}
                   className="w-1/2 h-full object-contain p-1"
                 />

@@ -1,17 +1,20 @@
 import { useState } from "react";
-import axios from "axios";
-
-const API_BASE = import.meta.env.VITE_API_BASE || "/api";
+import { api } from "../lib/axios";
 
 /**
- * Hook around POST /api/ai/translate. Returns:
- *   - translate({ text, sourceLanguage, targetLanguages, resourceType, intent })
- *     → { translations, statuses, provider, errors }
- *   - loading: bool
- *   - error: string | null
+ * Hook around POST /api/ai/translate. Reuses the global authenticated axios
+ * instance (`lib/axios.js`) so Keycloak Bearer + Accept-Language are attached
+ * automatically. No need to inject either here.
  *
- * Auth header is propagated by the global axios interceptor (Keycloak token);
- * we do not attach it here so this hook stays usable in tests.
+ *   const { translate, loading, error } = useAutoTranslate();
+ *   const result = await translate({
+ *     text: "Xin chào",
+ *     sourceLanguage: "vi",
+ *     targetLanguages: ["en", "ja"],
+ *     intent: "CUSTOMER_FACING_UI",
+ *     resourceType: "notification.title",
+ *   });
+ *   // result = { translations:{en,ja}, statuses:{en,ja}, provider, errors }
  */
 export function useAutoTranslate() {
   const [loading, setLoading] = useState(false);
@@ -28,7 +31,7 @@ export function useAutoTranslate() {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await axios.post(`${API_BASE}/ai/translate`, {
+      const { data } = await api.post("/api/ai/translate", {
         text,
         sourceLanguage,
         targetLanguages,

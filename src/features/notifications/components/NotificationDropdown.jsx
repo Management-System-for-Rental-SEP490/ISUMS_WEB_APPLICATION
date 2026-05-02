@@ -14,7 +14,14 @@ import {
   FileSignature,
 } from "lucide-react";
 
+import MultiLangText from "../../../components/shared/i18n/MultiLangText";
 import { useUnreadCount } from "../hooks/useUnreadCount";
+
+// Pick the right value to feed into MultiLangText: prefer the translation
+// map (so the auto-badge + locale picking kicks in); fall back to the legacy
+// flat string when the backend hasn't migrated yet.
+const titleValue = (n) => n?.titleTranslations || n?.title;
+const bodyValue  = (n) => n?.bodyTranslations  || n?.body || n?.message || n?.content;
 import {
   getManagerNotifications,
   markNotificationRead,
@@ -139,11 +146,11 @@ export default function NotificationDropdown() {
         </div>
         <div className="flex-1 min-w-0 py-0.5">
           <p className="text-sm font-semibold text-gray-900 leading-snug truncate">
-            {notif.title ?? t("notifications.newNotification")}
+            <MultiLangText value={titleValue(notif)} fallback={t("notifications.newNotification")} />
           </p>
-          {notif.body && (
+          {bodyValue(notif) && (
             <p className="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">
-              {notif.body}
+              <MultiLangText value={bodyValue(notif)} />
             </p>
           )}
           <div className="flex items-center justify-between mt-1.5">
@@ -327,8 +334,8 @@ export default function NotificationDropdown() {
                 const category = notif.category ?? notif.type ?? "";
                 const type = resolveType(category);
                 const isUnread = !notif.read;
-                const bodyText =
-                  notif.body ?? notif.message ?? notif.content ?? "";
+                const titleVal = titleValue(notif);
+                const bodyVal = bodyValue(notif);
 
                 return (
                   <button
@@ -346,11 +353,11 @@ export default function NotificationDropdown() {
                       <p
                         className={`text-sm leading-snug mb-0.5 ${isUnread ? "font-semibold text-gray-900" : "font-medium text-gray-700"}`}
                       >
-                        {notif.title ?? category ?? t("notifications.defaultTitle")}
+                        <MultiLangText value={titleVal} fallback={category || t("notifications.defaultTitle")} />
                       </p>
-                      {bodyText && (
+                      {bodyVal && (
                         <p className="text-xs text-gray-500 line-clamp-1 leading-relaxed">
-                          {bodyText}
+                          <MultiLangText value={bodyVal} />
                         </p>
                       )}
                       <p
@@ -389,3 +396,4 @@ export default function NotificationDropdown() {
     </div>
   );
 }
+

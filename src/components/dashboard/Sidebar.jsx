@@ -1,13 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../features/auth/store/auth.store";
 import {
-  AlertCircle, BarChart2, Bell, Building2, CalendarDays,
+  AlertCircle, ArrowRightLeft, BarChart2, Bell, Building2, CalendarDays,
   ChevronDown, ClipboardList,
   FileText, Home, LogOut, CheckCircle, MailQuestionIcon,
-  PenLine, Tag, Settings, UserCheck, Users, UserCog,
-  Wrench, Zap, LayoutDashboard, ShieldCheck,
+  PenLine, Tag, Settings, UserCheck, Users, UserCog, Briefcase,
+  Wrench, Zap, LayoutDashboard, ShieldCheck, CreditCard,
 } from "lucide-react";
 import logo from "../../assets/logo.jpg";
 
@@ -26,11 +26,6 @@ export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
     setOpenGroups((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const isExpanded = isOpen || isHovering;
-
-  // Auto-close all groups when sidebar collapses (not just hover)
-  useEffect(() => {
-    if (!isOpen && !isHovering) setOpenGroups({});
-  }, [isOpen, isHovering]);
 
   const sections = [
     {
@@ -51,8 +46,9 @@ export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
     {
       id: "nguoi-dung-group", label: t("sidebar.users"), icon: Users, collapsible: true,
       items: [
-        { id: "users", label: t("sidebar.tenants"), icon: Users,   path: "/users" },
-        { id: "staff", label: t("sidebar.staff"),   icon: UserCog, path: "/staff" },
+        { id: "users",    label: t("sidebar.tenants"),  icon: Users,     path: "/users" },
+        { id: "managers", label: t("sidebar.managers"), icon: Briefcase, path: "/managers" },
+        { id: "staff",    label: t("sidebar.staff"),    icon: UserCog,   path: "/staff" },
       ],
     },
     {
@@ -62,6 +58,7 @@ export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
         ...(canSeePendingSign ? [{
           id: "contracts-sign",          label: t("sidebar.pendingContracts"),  icon: PenLine,       path: "/contracts/pending",
         }] : []),
+        { id: "contracts-relocations",   label: t("sidebar.relocationRequests", { defaultValue: "Yêu cầu đổi nhà" }), icon: ArrowRightLeft, path: "/contracts/relocations" },
         { id: "maintenance-inspections", label: t("sidebar.checkinCheckout"),   icon: ClipboardList, path: "/maintenance/inspections" },
       ],
     },
@@ -85,9 +82,10 @@ export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
     {
       id: "he-thong", label: t("sidebar.system"), icon: Settings, collapsible: false,
       items: [
-        { id: "notifications", label: t("sidebar.notifications"), icon: Bell,        path: "/notifications", badge: unreadCount },
-        { id: "audit-logs",    label: t("sidebar.auditLogs"),     icon: ShieldCheck, path: "/audit-logs" },
-        { id: "settings",      label: t("sidebar.settings"),      icon: Settings,    path: "/settings" },
+        { id: "notifications",       label: t("sidebar.notifications"),    icon: Bell,        path: "/notifications", badge: unreadCount },
+        { id: "subscription-plans",  label: t("sidebar.subscriptionPlans"), icon: CreditCard,  path: "/subscription-plans" },
+        { id: "audit-logs",          label: t("sidebar.auditLogs"),        icon: ShieldCheck, path: "/audit-logs" },
+        { id: "settings",            label: t("sidebar.settings"),         icon: Settings,    path: "/settings" },
       ],
     },
   ];

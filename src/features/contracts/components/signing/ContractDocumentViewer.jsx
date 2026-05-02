@@ -10,6 +10,12 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url,
 ).toString();
 
+function normalizeSigningPage(rawPage, totalPages) {
+  const parsed = Number(rawPage);
+  const page = Number.isFinite(parsed) && parsed >= 1 ? Math.floor(parsed) : 1;
+  return totalPages ? Math.min(page, totalPages) : page;
+}
+
 export default function ContractDocumentViewer({
   mainRef,
   iframeWrapperRef,
@@ -26,6 +32,7 @@ export default function ContractDocumentViewer({
   // pageInfo[i] = { heightPx, widthPt, heightPt } — kích thước thực tế từ react-pdf
   const [pageInfo, setPageInfo] = useState([]);
   const hasScrolledRef = useRef(false);
+  const signingPage = normalizeSigningPage(signingSession?.signingPage, numPages);
 
   // Đo width thực của iframeWrapperRef để Page fill đúng
   useEffect(() => {
@@ -50,13 +57,17 @@ export default function ContractDocumentViewer({
     }
     if (hasScrolledRef.current) return;
 
-    const signingPageIdx = (signingSession?.signingPage ?? 1) - 1;
-    const info = pageInfo[signingPageIdx];
-    if (!info) return; // chờ trang PDF load xong
-
     const main = mainRef.current;
     const wrapper = iframeWrapperRef.current;
     if (!main || !wrapper) return;
+
+    const signingPageIdx = signingPage - 1;
+    const fallbackHeightPx = Math.max(wrapper.scrollHeight || wrapper.clientHeight || 0, 900);
+    const info = pageInfo[signingPageIdx] ?? {
+      heightPx: fallbackHeightPx,
+      widthPt: 595,
+      heightPt: 842,
+    };
 
     // Tính Y của ô chữ ký trong iframeWrapper — ưu tiên vị trí VNPT nếu có
     const SEPARATOR_H_PX = 16;
@@ -87,7 +98,7 @@ export default function ContractDocumentViewer({
     const scrollTarget = wrapperTopInMain + boxY - main.clientHeight / 2;
     main.scrollTo({ top: Math.max(0, scrollTarget), behavior: "smooth" });
     hasScrolledRef.current = true;
-  }, [showDragBox, pageInfo, signingSession, mainRef, iframeWrapperRef]);
+  }, [showDragBox, pageInfo, signingSession, signingPage, mainRef, iframeWrapperRef]);
 
   const pdfUrl = contract?.pdfUrl ?? null;
 
@@ -208,11 +219,12 @@ export default function ContractDocumentViewer({
             <DragSignatureBox
               containerRef={iframeWrapperRef}
               onPositionSet={onPositionSet}
-              signingPage={signingSession?.signingPage ?? 1}
+              signingPage={signingPage}
               signatureImage={signatureData.signatureImage}
               userName={userName}
               disabled={false}
               pageInfo={pageInfo}
+              pageCount={numPages}
               defaultVnptPosition={signingSession?.vnptPosition ?? null}
             />
           )}

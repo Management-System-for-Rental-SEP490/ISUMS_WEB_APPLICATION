@@ -31,7 +31,7 @@ export default function PlanJobsDrawer({ open, plan, onClose, onAssignStaff, t }
     <Drawer
       open={open && !!plan}
       onClose={onClose}
-      width={480}
+      size={480}
       destroyOnClose
       title={
         <div>

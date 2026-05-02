@@ -18,8 +18,11 @@ import Houses from "./features/houses/pages/Houses";
 import Utilities from "./app/layout/Utilities";
 import UsersPage from "./features/tenants/pages/UsersPage";
 import StaffPage from "./features/tenants/pages/StaffPage";
+import ManagersPage from "./features/tenants/pages/ManagersPage";
+import SubscriptionPlansPage from "./features/notifications/pages/SubscriptionPlansPage";
 import ContractsPage from "./features/contracts/pages/ContractsPage";
 import ContractsPendingSignPage from "./features/contracts/pages/ContractsPendingSignPage";
+import RelocationRequestsPage from "./features/relocations/pages/RelocationRequestsPage";
 import SchedulePage from "./features/schedule/pages/SchedulePage";
 import MaintenancePlansPage from "./features/maintenance/pages/MaintenancePlansPage";
 import MaintenanceJobsPage from "./features/maintenance/pages/MaintenanceJobsPage";
@@ -34,6 +37,7 @@ import Reports from "./features/reports/pages/Reports";
 import Notifications from "./features/notifications/pages/Notifications";
 import Settings from "./features/settings/pages/Settings";
 import AuditLogsPage from "./features/audit-logs/pages/AuditLogsPage";
+import MultiLangDemo from "./components/shared/i18n/MultiLangDemo";
 
 const ALLOWED_ROLES = ["ADMIN", "LANDLORD", "MANAGER"];
 
@@ -67,8 +71,11 @@ export const router = createBrowserRouter([
               { path: "/utilities", element: <Utilities /> },
               { path: "/users", element: <UsersPage /> },
               { path: "/staff", element: <StaffPage /> },
+              { path: "/managers", element: <ManagersPage /> },
+              { path: "/subscription-plans", element: <SubscriptionPlansPage /> },
               { path: "/contracts", element: <ContractsPage /> },
               { path: "/contracts/pending", element: <ContractsPendingSignPage /> },
+              { path: "/contracts/relocations", element: <RelocationRequestsPage /> },
               { path: "/maintenance", element: <SchedulePage /> },
               { path: "/maintenance/plans", element: <MaintenancePlansPage /> },
               { path: "/maintenance/jobs", element: <MaintenanceJobsPage /> },
@@ -83,6 +90,7 @@ export const router = createBrowserRouter([
               { path: "/notifications", element: <Notifications /> },
               { path: "/settings", element: <Settings /> },
               { path: "/audit-logs", element: <AuditLogsPage /> },
+              { path: "/dev/i18n", element: <MultiLangDemo /> },
             ],
           },
           { path: "/contracts/:id", element: <ContractDetailStandalone /> },

@@ -11,6 +11,7 @@ import {
 import Icons from "../components/standalone/ContractDetailIcons";
 import ContractPdfViewer from "../components/shared/ContractPdfViewer";
 import ContractLegalSummary from "../components/shared/ContractLegalSummary";
+import ContractRelocationLinkBanner from "../components/standalone/ContractRelocationLinkBanner";
 import { useAuthStore } from "../../../features/auth/store/auth.store";
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
@@ -27,6 +28,12 @@ const STATUS_STYLE = {
   CANCELLED_BY_LANDLORD:  { bg: "rgba(244,63,94,0.1)",    color: "#9f1239", border: "rgba(244,63,94,0.3)",   dot: "#f43f5e" },
   REJECTED_BY_TENANT:     { bg: "rgba(239,68,68,0.1)",    color: "#991b1b", border: "rgba(239,68,68,0.3)",   dot: "#ef4444" },
   REJECTED_BY_LANDLORD:   { bg: "rgba(244,63,94,0.1)",    color: "#9f1239", border: "rgba(244,63,94,0.3)",   dot: "#f43f5e" },
+  PENDING_REPLACEMENT_HANDOVER: { bg: "rgba(168,85,247,0.1)", color: "#6b21a8", border: "rgba(168,85,247,0.3)", dot: "#a855f7" },
+  REPLACED_BEFORE_DEPOSIT: { bg: "rgba(148,163,184,0.12)", color: "#475569", border: "rgba(148,163,184,0.4)", dot: "#94a3b8" },
+  REPLACED_AFTER_DEPOSIT: { bg: "rgba(148,163,184,0.12)", color: "#475569", border: "rgba(148,163,184,0.4)", dot: "#94a3b8" },
+  TERMINATED:             { bg: "rgba(113,113,122,0.1)",  color: "#3f3f46", border: "rgba(113,113,122,0.3)", dot: "#71717a" },
+  PENDING_TERMINATION:    { bg: "rgba(245,158,11,0.1)",   color: "#92400e", border: "rgba(245,158,11,0.3)",  dot: "#f59e0b" },
+  DEPOSIT_REFUND_PENDING: { bg: "rgba(168,85,247,0.1)",   color: "#6b21a8", border: "rgba(168,85,247,0.3)",  dot: "#a855f7" },
   default:                { bg: "rgba(107,114,128,0.1)",  color: "#374151", border: "rgba(107,114,128,0.2)", dot: "#9ca3af" },
 };
 
@@ -433,23 +440,26 @@ export default function ContractDetailStandalone() {
         )}
 
         {!loading && !error && (
-          <div className="max-w-6xl mx-auto grid gap-6 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              {isDraft ? (
-                <iframe
-                  title="Contract HTML"
-                  srcDoc={html}
-                  className="block w-full min-h-[1000px] rounded-2xl border border-slate-200 bg-white shadow-md"
-                  sandbox=""
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <ContractPdfViewer pdfUrl={pdfUrl} />
-              )}
+          <div className="max-w-6xl mx-auto space-y-6">
+            <ContractRelocationLinkBanner contractId={id} />
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                {isDraft ? (
+                  <iframe
+                    title="Contract HTML"
+                    srcDoc={html}
+                    className="block w-full min-h-[1000px] rounded-2xl border border-slate-200 bg-white shadow-md"
+                    sandbox=""
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <ContractPdfViewer pdfUrl={pdfUrl} />
+                )}
+              </div>
+              <aside className="lg:col-span-1 lg:sticky lg:top-20 self-start max-h-[calc(100vh-6rem)] overflow-y-auto">
+                <ContractLegalSummary contract={contract} />
+              </aside>
             </div>
-            <aside className="lg:col-span-1 lg:sticky lg:top-20 self-start max-h-[calc(100vh-6rem)] overflow-y-auto">
-              <ContractLegalSummary contract={contract} />
-            </aside>
           </div>
         )}
       </main>

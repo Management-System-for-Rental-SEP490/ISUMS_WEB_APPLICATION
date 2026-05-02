@@ -85,7 +85,7 @@ export default function JobDetailDrawer({ open, job, onClose, t }) {
     <Drawer
       open={open && !!job}
       onClose={onClose}
-      width={420}
+      size={420}
       destroyOnClose
       title={
         <div>

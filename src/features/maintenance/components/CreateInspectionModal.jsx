@@ -4,6 +4,18 @@ import { Building2, Search, X, Info, ExternalLink } from "lucide-react";
 import { useHouses } from "../../houses/hooks/useHouses";
 import HouseDetailModal from "../../houses/components/HouseDetailModal";
 import { createInspection } from "../api/maintenance.api";
+import MultiLangInput from "../../../components/shared/i18n/MultiLangInput";
+
+const pickPrimary = (map) => {
+  if (!map || typeof map !== "object") return "";
+  const src = map._source;
+  if (src && typeof map[src] === "string" && map[src].trim()) return map[src];
+  for (const [k, v] of Object.entries(map)) {
+    if (k === "_source" || k === "_auto") continue;
+    if (typeof v === "string" && v.trim()) return v;
+  }
+  return "";
+};
 
 export default function CreateInspectionModal({ open, onClose, onCreated }) {
   const { t } = useTranslation("common");
@@ -11,7 +23,7 @@ export default function CreateInspectionModal({ open, onClose, onCreated }) {
   const [search, setSearch] = useState("");
   const [selectedHouse, setSelectedHouse] = useState(null);
   const [detailHouse, setDetailHouse] = useState(null);
-  const [note, setNote] = useState("");
+  const [note, setNote] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
@@ -25,7 +37,11 @@ export default function CreateInspectionModal({ open, onClose, onCreated }) {
     setSubmitting(true);
     setError(null);
     try {
-      await createInspection({ houseId: selectedHouse.id, note });
+      await createInspection({
+        houseId: selectedHouse.id,
+        note: pickPrimary(note),
+        noteTranslations: note,
+      });
       handleClose();
       onCreated?.();
     } catch (e) {
@@ -38,7 +54,7 @@ export default function CreateInspectionModal({ open, onClose, onCreated }) {
   const handleClose = () => {
     setSearch("");
     setSelectedHouse(null);
-    setNote("");
+    setNote({});
     setError(null);
     onClose();
   };
@@ -176,15 +192,14 @@ export default function CreateInspectionModal({ open, onClose, onCreated }) {
 
             {/* Note */}
             <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-2">
-                {t("inspection.createModal.noteLabel")}
-              </label>
-              <textarea
-                rows={3}
+              <MultiLangInput
                 value={note}
-                onChange={(e) => setNote(e.target.value)}
+                onChange={setNote}
+                label={t("inspection.createModal.noteLabel")}
                 placeholder={t("inspection.createModal.notePlaceholder")}
-                className="w-full text-sm text-slate-700 border border-slate-200 rounded-xl px-3 py-2.5 outline-none resize-none placeholder-slate-400 focus:border-teal-400 focus:ring-2 focus:ring-teal-500/10 transition"
+                resourceType="inspection-job.note"
+                intent="STAFF_INTERNAL"
+                multiline
               />
             </div>
 
@@ -224,3 +239,4 @@ export default function CreateInspectionModal({ open, onClose, onCreated }) {
     </>
   );
 }
+

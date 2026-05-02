@@ -77,7 +77,7 @@ export default function AssetItemDetailDrawer({ assetId, onClose, onConfirmed })
     <Drawer
       open={!!assetId}
       onClose={onClose}
-      width={480}
+      size={480}
       autoFocus={false}
       title={
         <div className="flex items-center gap-2">
