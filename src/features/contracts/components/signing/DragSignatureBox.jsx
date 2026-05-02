@@ -16,7 +16,8 @@ function clamp(value, min, max) {
 
 function normalizeSigningPage(page, pageCount) {
   const parsed = Number(page);
-  const normalized = Number.isFinite(parsed) && parsed >= 1 ? Math.floor(parsed) : 1;
+  const normalized =
+    Number.isFinite(parsed) && parsed >= 1 ? Math.floor(parsed) : 1;
   return pageCount ? Math.min(normalized, pageCount) : normalized;
 }
 
@@ -33,7 +34,10 @@ function createFallbackPageInfo(containerWidth, containerHeight) {
 }
 
 function getPageInfo(signingPage, pageInfo, containerWidth, containerHeight) {
-  return pageInfo[signingPage - 1] ?? createFallbackPageInfo(containerWidth, containerHeight);
+  return (
+    pageInfo[signingPage - 1] ??
+    createFallbackPageInfo(containerWidth, containerHeight)
+  );
 }
 
 function getPageOffsetY(signingPage, pageInfo, fallbackHeightPx) {
@@ -47,7 +51,8 @@ function getPageOffsetY(signingPage, pageInfo, fallbackHeightPx) {
 function parseVnptPosition(value) {
   if (!value || typeof value !== "string") return null;
   const parts = value.split(",").map((part) => Number(part.trim()));
-  if (parts.length !== 4 || parts.some((part) => !Number.isFinite(part))) return null;
+  if (parts.length !== 4 || parts.some((part) => !Number.isFinite(part)))
+    return null;
   const [llx, lly, urx, ury] = parts;
   return { llx, lly, urx, ury };
 }
@@ -81,9 +86,17 @@ function toSigningPosition(x, y, containerWidth, signingPage, pageInfo) {
   const scaleX = info.widthPt / containerWidth;
   const scaleY = info.heightPt / info.heightPx;
 
-  const llx = clamp(Math.round(x * scaleX), 0, Math.max(info.widthPt - SIG_W_PT, 0));
+  const llx = clamp(
+    Math.round(x * scaleX),
+    0,
+    Math.max(info.widthPt - SIG_W_PT, 0),
+  );
   const urx = Math.round(llx + SIG_W_PT);
-  const ury = clamp(Math.round(info.heightPt - yInPage * scaleY), SIG_H_PT, info.heightPt);
+  const ury = clamp(
+    Math.round(info.heightPt - yInPage * scaleY),
+    SIG_H_PT,
+    info.heightPt,
+  );
   const lly = Math.round(ury - SIG_H_PT);
 
   return `${llx},${lly},${urx},${ury}`;
@@ -176,7 +189,15 @@ export default function DragSignatureBox({
       x: Math.round((containerWidth - boxSize.w) / 2),
       y: Math.round(pageOffsetY + (info.heightPx - boxSize.h) / 2),
     };
-  }, [boxSize.h, boxSize.w, containerHeight, containerWidth, defaultVnptPosition, info, pageOffsetY]);
+  }, [
+    boxSize.h,
+    boxSize.w,
+    containerHeight,
+    containerWidth,
+    defaultVnptPosition,
+    info,
+    pageOffsetY,
+  ]);
 
   const pos = defaultPos
     ? { x: defaultPos.x + activeOffset.x, y: defaultPos.y + activeOffset.y }
