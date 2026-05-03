@@ -17,6 +17,10 @@ import { DatePicker, Input, InputNumber, Modal, Select, Spin, Upload } from "ant
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import EmptyState from "../../../components/shared/EmptyState";
+import { LoadingSpinner } from "../../../components/shared/Loading";
+import StatCard from "../../../components/shared/StatCard";
+import StatusBadge from "../../../components/shared/StatusBadge";
 import { getAllHouses } from "../../houses/api/houses.api";
 import {
   cancelRelocationByManager,
@@ -91,6 +95,38 @@ const KIND_META = {
     tone: "border-rose-200 bg-rose-50 text-rose-700",
   },
 };
+
+const SECTION_CARD_CLASS = "rounded-2xl border border-brand-border bg-brand-card shadow-card";
+const HEADER_LAYOUT_CLASS =
+  "flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between";
+const HEADER_ICON_CLASS =
+  "flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-muted text-brand-green";
+const PRIMARY_BUTTON_CLASS =
+  "inline-flex items-center gap-2 rounded-full bg-brand-gradient px-4 py-2 text-sm font-semibold text-white shadow-soft transition hover:opacity-90";
+const FILTER_LAYOUT_CLASS =
+  "flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between";
+const FILTER_BUTTON_BASE =
+  "inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold transition";
+const FILTER_BUTTON_ACTIVE = "border-brand-green bg-brand-accent text-brand-green";
+const FILTER_BUTTON_INACTIVE =
+  "border-brand-border bg-brand-muted text-brand-muted-fg hover:border-brand-green hover:bg-brand-accent";
+const SEARCH_INPUT_CLASS =
+  "h-11 w-full rounded-full border border-brand-border bg-brand-muted pl-10 pr-4 text-sm text-brand-fg outline-none transition focus:border-brand-green focus:bg-white focus:ring-4 focus:ring-brand-accent";
+const TOOL_BUTTON_CLASS =
+  "inline-flex h-11 items-center gap-2 rounded-full border border-brand-border bg-white px-4 text-sm font-semibold text-brand-muted-fg transition hover:bg-brand-muted disabled:opacity-60";
+const TABLE_HEAD_CLASS =
+  "px-5 py-3 text-xs font-semibold uppercase tracking-wider text-brand-muted-fg";
+const TABLE_CELL_CLASS = "px-5 py-4 align-top text-sm text-brand-muted-fg";
+const ROW_ACTION_BASE =
+  "inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold transition disabled:opacity-60";
+const ROW_ACTION_PRIMARY = `${ROW_ACTION_BASE} bg-brand-green text-white hover:opacity-90`;
+const ROW_ACTION_SECONDARY = `${ROW_ACTION_BASE} bg-brand-blue text-white hover:opacity-90`;
+const ROW_ACTION_NEUTRAL =
+  `${ROW_ACTION_BASE} border border-brand-border bg-white text-brand-muted-fg hover:bg-brand-muted`;
+const ROW_ACTION_DANGER =
+  `${ROW_ACTION_BASE} border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100`;
+const ROW_ACTION_VIOLET =
+  `${ROW_ACTION_BASE} border border-violet-200 bg-violet-50 text-violet-700`;
 
 function shortId(value) {
   if (!value) return "-";
@@ -365,6 +401,17 @@ export default function RelocationRequestsPage() {
     [requests],
   );
 
+  const statCards = useMemo(
+    () => [
+      { label: "Tổng", value: stats.total, tone: "brand" },
+      { label: "Chờ duyệt", value: stats.requested, tone: "amber" },
+      { label: "Chờ khách", value: stats.quoted, tone: "indigo" },
+      { label: "Đã duyệt", value: stats.approved, tone: "emerald" },
+      { label: "Chờ hoàn", value: stats.refundPending, tone: "violet" },
+    ],
+    [stats],
+  );
+
   const openReview = (request) => {
     setActiveRequest(request);
     setForm(buildInitialForm(request));
@@ -534,47 +581,64 @@ export default function RelocationRequestsPage() {
     Boolean(form.approvedHouseId);
 
   return (
-    <div className="space-y-5">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+    <div className="space-y-6">
+      <section className={`${SECTION_CARD_CLASS} p-5`}>
+        <div className={HEADER_LAYOUT_CLASS}>
           <div className="min-w-0">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+            <div className="flex items-start gap-3">
+              <div className={HEADER_ICON_CLASS}>
                 <ArrowRightLeft className="h-5 w-5" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-slate-900">
-                  Yêu cầu đổi nhà
-                </h1>
-                <p className="mt-1 text-sm text-slate-500">
+                <h1 className="text-2xl font-semibold text-brand-fg">Yêu cầu đổi nhà</h1>
+                <p className="mt-1 text-sm text-brand-muted-fg">
                   Xử lý đổi nhà sau khi khách đã ký hợp đồng.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 xl:items-end">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <button
               type="button"
               onClick={() => setReportOpen(true)}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700"
+              className={PRIMARY_BUTTON_CLASS}
             >
               <ClipboardCheck className="h-4 w-4" />
               Báo nhà không ở được
             </button>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <Metric label="Tổng" value={stats.total} />
-              <Metric label="Chờ duyệt" value={stats.requested} tone="amber" />
-              <Metric label="Chờ khách" value={stats.quoted} tone="indigo" />
-              <Metric label="Đã duyệt" value={stats.approved} tone="emerald" />
-              <Metric label="Chờ hoàn" value={stats.refundPending} tone="violet" />
-            </div>
           </div>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-3 border-b border-slate-200 p-4 lg:flex-row lg:items-center lg:justify-between">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        {statCards.map((item) => (
+          <StatCard key={item.label} label={item.label} value={item.value} tone={item.tone} />
+        ))}
+      </section>
+
+      <section className={SECTION_CARD_CLASS}>
+        <div className="flex flex-col gap-4 p-5">
+          <div className={FILTER_LAYOUT_CLASS}>
+            <div className="relative w-full max-w-[360px]">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-muted-fg" />
+              <input
+                value={keyword}
+                onChange={(event) => setKeyword(event.target.value)}
+                className={SEARCH_INPUT_CLASS}
+                placeholder="Tìm theo mã hợp đồng, nhà, khách"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={loadData}
+              disabled={loading}
+              className={TOOL_BUTTON_CLASS}
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              Làm mới
+            </button>
+          </div>
           <div className="flex flex-wrap gap-2">
             {FILTERS.map((item) => {
               const active = filter === item.key;
@@ -583,127 +647,103 @@ export default function RelocationRequestsPage() {
                   key={item.key}
                   type="button"
                   onClick={() => setFilter(item.key)}
-                  className={[
-                    "rounded-lg border px-3 py-2 text-sm font-medium transition",
-                    active
-                      ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                      : "border-slate-200 bg-white text-slate-600 hover:border-emerald-200 hover:bg-emerald-50",
-                  ].join(" ")}
+                  className={`${FILTER_BUTTON_BASE} ${
+                    active ? FILTER_BUTTON_ACTIVE : FILTER_BUTTON_INACTIVE
+                  }`}
                 >
                   {item.label}
                 </button>
               );
             })}
           </div>
-
-          <div className="flex gap-2">
-            <div className="relative w-full min-w-[260px] lg:w-[320px]">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input
-                value={keyword}
-                onChange={(event) => setKeyword(event.target.value)}
-                className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
-                placeholder="Tìm theo mã hợp đồng, nhà, khách"
-              />
-            </div>
-            <button
-              type="button"
-              onClick={loadData}
-              disabled={loading}
-              className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-              Làm mới
-            </button>
-          </div>
         </div>
+      </section>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-slate-50">
-              <tr>
-                <TableHead>Yêu cầu</TableHead>
-                <TableHead>Hợp đồng cũ</TableHead>
-                <TableHead>Nhà</TableHead>
-                <TableHead>Tiền cọc</TableHead>
-                <TableHead>Ngày yêu cầu</TableHead>
-                <TableHead>Trạng thái</TableHead>
-                <TableHead align="right">Thao tác</TableHead>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
-              {loading ? (
+      <section className={SECTION_CARD_CLASS}>
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <LoadingSpinner />
+          </div>
+        ) : filteredRequests.length === 0 ? (
+          <div className="p-6">
+            <EmptyState title="Không có yêu cầu phù hợp." icon={ArrowRightLeft} />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-brand-border">
+              <thead className="bg-brand-muted">
                 <tr>
-                  <td colSpan={7} className="px-4 py-14 text-center">
-                    <Spin />
-                  </td>
+                  <TableHead>Yêu cầu</TableHead>
+                  <TableHead>Hợp đồng cũ</TableHead>
+                  <TableHead>Nhà</TableHead>
+                  <TableHead>Tiền cọc</TableHead>
+                  <TableHead>Ngày yêu cầu</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead align="right" className="w-[120px]">Thao tác</TableHead>
                 </tr>
-              ) : filteredRequests.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-14 text-center text-sm text-slate-500">
-                    Không có yêu cầu phù hợp.
-                  </td>
-                </tr>
-              ) : (
-                filteredRequests.map((request) => (
-                  <tr key={request.id} className="hover:bg-slate-50/70">
-                    <TableCell>
+              </thead>
+              <tbody className="divide-y divide-brand-border">
+                {filteredRequests.map((request) => (
+                  <tr key={request.id} className="transition hover:bg-brand-muted">
+                    <TableCell className="min-w-[240px]">
                       <div className="flex items-center gap-2">
-                        <div className="font-semibold text-slate-900">#{shortId(request.id)}</div>
+                        <div className="font-semibold text-brand-fg">#{shortId(request.id)}</div>
                         <FaultBadge fault={request.faultParty} />
                       </div>
                       <div className="mt-1">
                         <KindBadge kind={request.requestKind} />
                       </div>
-                      <div className="mt-1 max-w-[260px] truncate text-xs text-slate-500">
+                      <div className="mt-1 max-w-[260px] truncate text-xs text-brand-muted-fg">
                         {request.staffReportReason || request.tenantReason || "Không có ghi chú"}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="min-w-[190px]">
                       <button
                         type="button"
                         onClick={() => navigate(`/contracts/${request.oldContractId}`)}
-                        className="font-medium text-sky-700 hover:text-sky-900"
+                        className="font-semibold text-brand-blue hover:text-brand-fg"
                       >
                         {displayContractNumber(request)}
                       </button>
-                      <div className="mt-1 text-xs text-slate-500">
+                      <div className="mt-1 text-xs text-brand-muted-fg">
                         Khách #{shortId(request.tenantId)}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2 text-sm text-slate-700">
-                        <Home className="h-4 w-4 text-slate-400" />
+                    <TableCell className="min-w-[190px]">
+                      <div className="flex items-center gap-2 text-sm text-brand-muted-fg">
+                        <Home className="h-4 w-4 text-brand-muted-fg" />
                         <span>{shortId(request.oldHouseId)}</span>
-                        <span className="text-slate-300">→</span>
-                        <span className="font-medium text-slate-900">
+                        <span className="text-brand-border">→</span>
+                        <span className="font-semibold text-brand-fg">
                           {request.resolutionType === "REFUND_TERMINATE"
                             ? "Hoàn tiền"
                             : shortId(request.approvedHouseId || request.requestedHouseId)}
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="text-sm font-semibold text-slate-900">
+                    <TableCell className="whitespace-nowrap">
+                      <div className="text-sm font-semibold text-brand-fg">
                         {formatCurrency(request.depositAmount)}
                       </div>
-                      <div className="mt-1 text-xs text-slate-500">
+                      <div className="mt-1 text-xs text-brand-muted-fg">
                         {DEPOSIT_STATUS_META[request.depositStatusSnapshot] ||
                           request.depositStatusSnapshot ||
                           "-"}
                       </div>
                     </TableCell>
-                    <TableCell>{formatDate(request.requestedAt)}</TableCell>
-                    <TableCell>
-                      <StatusBadge status={request.status} />
+                    <TableCell className="whitespace-nowrap text-brand-fg">
+                      {formatDate(request.requestedAt)}
                     </TableCell>
-                    <TableCell align="right">
-                      <div className="flex justify-end gap-2">
+                    <TableCell className="whitespace-nowrap">
+                      <RelocationStatusBadge status={request.status} />
+                    </TableCell>
+                    <TableCell align="right" className="whitespace-nowrap">
+                      <div className="flex flex-wrap justify-end gap-2">
                         {request.status === "REQUESTED" && (
                           <button
                             type="button"
                             onClick={() => openReview(request)}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
+                            className={ROW_ACTION_PRIMARY}
                           >
                             <CheckCircle2 className="h-4 w-4" />
                             Duyệt
@@ -715,23 +755,25 @@ export default function RelocationRequestsPage() {
                             type="button"
                             onClick={() => createReplacement(request)}
                             disabled={submitting}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+                            className={ROW_ACTION_SECONDARY}
                           >
                             <FilePlus2 className="h-4 w-4" />
                             Tạo HĐ
                           </button>
                         )}
                         {request.status === "REFUND_PENDING" && (
-                          <span className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-sm font-semibold text-violet-700">
-                            <ReceiptText className="h-4 w-4" />
-                            Phiếu hoàn
-                          </span>
+                          <StatusBadge
+                            label="Phiếu hoàn"
+                            icon={ReceiptText}
+                            className="border-violet-200 bg-violet-50 text-violet-700"
+                          />
                         )}
                         {request.status === "QUOTED" && (
-                          <span className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700">
-                            <ReceiptText className="h-4 w-4" />
-                            Chờ khách
-                          </span>
+                          <StatusBadge
+                            label="Chờ khách"
+                            icon={ReceiptText}
+                            className="border-indigo-200 bg-indigo-50 text-indigo-700"
+                          />
                         )}
                         {(request.status === "REQUESTED" ||
                           request.status === "QUOTED" ||
@@ -740,7 +782,7 @@ export default function RelocationRequestsPage() {
                             type="button"
                             onClick={() => cancelRequest(request)}
                             disabled={submitting}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-white px-3 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-60"
+                            className={ROW_ACTION_DANGER}
                           >
                             <XCircle className="h-4 w-4" />
                             Hủy
@@ -752,7 +794,7 @@ export default function RelocationRequestsPage() {
                               type="button"
                               onClick={() => confirmHandover(request)}
                               disabled={submitting}
-                              className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:opacity-60"
+                              className={ROW_ACTION_VIOLET}
                             >
                               <CheckCircle2 className="h-4 w-4" />
                               Xác nhận bàn giao
@@ -762,7 +804,7 @@ export default function RelocationRequestsPage() {
                           <button
                             type="button"
                             onClick={() => navigate(`/contracts/${request.newContractId}`)}
-                            className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                            className={ROW_ACTION_NEUTRAL}
                           >
                             HĐ mới
                           </button>
@@ -770,11 +812,11 @@ export default function RelocationRequestsPage() {
                       </div>
                     </TableCell>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       <Modal
@@ -1298,81 +1340,58 @@ export default function RelocationRequestsPage() {
   );
 }
 
-function Metric({ label, value, tone = "sky" }) {
-  const toneClass =
-    tone === "amber"
-      ? "bg-amber-50 text-amber-700"
-      : tone === "emerald"
-        ? "bg-emerald-50 text-emerald-700"
-      : tone === "indigo"
-        ? "bg-indigo-50 text-indigo-700"
-      : tone === "slate"
-        ? "bg-slate-100 text-slate-700"
-        : tone === "violet"
-          ? "bg-violet-50 text-violet-700"
-          : "bg-sky-50 text-sky-700";
-
-  return (
-    <div className={`min-w-[118px] rounded-xl px-4 py-3 ${toneClass}`}>
-      <div className="text-xs font-medium opacity-80">{label}</div>
-      <div className="mt-1 text-2xl font-semibold leading-none">{value}</div>
-    </div>
-  );
-}
-
-function TableHead({ children, align = "left" }) {
+function TableHead({ children, align = "left", className = "" }) {
   const alignClass = align === "right" ? "text-right" : "text-left";
   return (
     <th
       scope="col"
-      className={`px-4 py-3 ${alignClass} text-xs font-semibold uppercase tracking-wide text-slate-500`}
+      className={`${TABLE_HEAD_CLASS} ${alignClass} ${className}`}
     >
       {children}
     </th>
   );
 }
 
-function TableCell({ children, align = "left" }) {
+function TableCell({ children, align = "left", className = "" }) {
   const alignClass = align === "right" ? "text-right" : "text-left";
   return (
-    <td className={`whitespace-nowrap px-4 py-4 ${alignClass} text-sm text-slate-700`}>
+    <td className={`${TABLE_CELL_CLASS} ${alignClass} ${className}`}>
       {children}
     </td>
   );
 }
 
-function StatusBadge({ status }) {
+function RelocationStatusBadge({ status }) {
   const meta = STATUS_META[status] || {
     label: status || "-",
     tone: "bg-slate-100 text-slate-700 border-slate-200",
   };
 
-  return (
-    <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${meta.tone}`}>
-      {meta.label}
-    </span>
-  );
+  return <StatusBadge label={meta.label} className={meta.tone} />;
 }
 
 function FaultBadge({ fault }) {
   if (fault === "LANDLORD") {
     return (
-      <span className="inline-flex rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[11px] font-semibold text-rose-700">
-        Lỗi chủ nhà
-      </span>
+      <StatusBadge
+        label="Lỗi chủ nhà"
+        className="border-rose-200 bg-rose-50 text-rose-700"
+      />
     );
   }
   if (fault === "TENANT") {
     return (
-      <span className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-        Lỗi khách
-      </span>
+      <StatusBadge
+        label="Lỗi khách"
+        className="border-amber-200 bg-amber-50 text-amber-700"
+      />
     );
   }
   return (
-    <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
-      {fault || "Chưa rõ lỗi"}
-    </span>
+    <StatusBadge
+      label={fault || "Chưa rõ lỗi"}
+      className="border-slate-200 bg-slate-50 text-slate-600"
+    />
   );
 }
 
@@ -1381,11 +1400,7 @@ function KindBadge({ kind }) {
     label: kind || "Chưa phân loại",
     tone: "border-slate-200 bg-slate-50 text-slate-600",
   };
-  return (
-    <span className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold ${meta.tone}`}>
-      {meta.label}
-    </span>
-  );
+  return <StatusBadge label={meta.label} className={meta.tone} />;
 }
 
 function Field({ label, children }) {
