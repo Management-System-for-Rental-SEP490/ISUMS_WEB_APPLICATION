@@ -112,9 +112,9 @@ export default function Houses() {
   ];
 
   const statusOptions = [
-    { value: "AVAILABLE",   label: t("houses.status.AVAILABLE")   },
-    { value: "RENTED",      label: t("houses.status.RENTED")      },
-    { value: "MAINTENANCE", label: t("houses.status.MAINTENANCE") },
+    { value: "AVAILABLE", label: t("houses.status.AVAILABLE") },
+    { value: "RENTED",    label: t("houses.status.RENTED")    },
+    { value: "REPAIRED",  label: t("houses.status.REPAIRED")  },
   ];
 
   if (showCreate) {

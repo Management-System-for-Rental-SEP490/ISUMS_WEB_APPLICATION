@@ -115,17 +115,17 @@ const client = (() => {
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
-        const parts = buffer.split("\n\n");
+        const parts = buffer.split(/\r?\n\r?\n/);
         buffer = parts.pop();
 
         for (const part of parts) {
-          const lines = part.trim().split("\n");
+          const lines = part.split(/\r?\n/);
           let eventType = "message";
           let dataStr = "";
 
           for (const line of lines) {
             if (line.startsWith("event:")) eventType = line.slice(6).trim();
-            else if (line.startsWith("data:")) dataStr += line.slice(5).trim();
+            else if (line.startsWith("data:")) dataStr += line.slice(5).trimStart();
           }
 
           if (!dataStr) continue;

@@ -143,6 +143,14 @@
   "dashboard": {
     "overview": "Overview",
     "welcome": "Welcome back 👋",
+    "bookableWidget": {
+      "title": "Houses ending soon — accepting deposits",
+      "unit": "house(s)",
+      "viewAll": "View all",
+      "empty": "No houses ending in the next 30 days",
+      "daysLeft": "{{days}} days left",
+      "now": "Available"
+    },
     "stats": {
       "totalContracts": "Total Contracts",
       "inSystem": "In the system",
@@ -646,9 +654,26 @@
       "dateOfIssue": "ID Issue Date",
       "placeOfIssue": "ID Issue Place",
       "rentalHouse": "Rental Property",
-      "availableHouses": "Available properties",
+      "availableHouses": "Choose a property to rent",
       "selectHouse": "-- Select property --",
       "loadingHouse": "Loading property details...",
+      "groupAvailableNow": "Vacant — move in now ({{count}})",
+      "groupBookable": "Coming soon — pre-book with deposit ({{count}})",
+      "bookableHint": "{{days}} days left — handover from {{date}}",
+      "bookableNowHint": "Ready for handover from {{date}}",
+      "bookableBanner": "Currently leased through its final month — you can place a deposit to reserve it",
+      "noHouseAvailable": "No matching properties",
+      "filterCategory": {
+        "ALL": "All",
+        "AVAILABLE_NOW": "Available now",
+        "DEPOSIT_BOOKABLE": "Pre-book with deposit"
+      },
+      "filterCityPlaceholder": "Filter by city",
+      "filterCount": "{{count}} matches",
+      "sort": {
+        "AVAILABLE_FIRST": "Earliest available",
+        "NAME_ASC": "Name A → Z"
+      },
       "houseAmenities": "Featured amenities",
       "money": "Rent & Costs",
       "rent": "Rent Amount (VND) *",
@@ -786,6 +811,17 @@
         "description": "The system will resend the notification email to the tenant to review and confirm the contract.",
         "confirmLabel": "Resend"
       },
+      "resendTenantSign": {
+        "button": "Resend signing email",
+        "dialogTitle": "Resend signing email to tenant",
+        "dialogDescription": "VNPT will issue a fresh signing code and email a new link to the tenant. The previous link in their inbox will stop working.",
+        "dialogConfirm": "Send new email",
+        "success": "Signing email resent to the tenant.",
+        "error": "Resend failed, please try again.",
+        "error403": "You do not have permission to resend the signing email.",
+        "error404": "Contract not found.",
+        "error422": "Contract is not awaiting tenant signature, or VNPT rejected the request."
+      },
       "confirmSuccess": "Confirmed! Email has been sent to the tenant for review.",
       "resendSuccess": "Contract has been resent to the tenant for review.",
       "confirm400": "Cannot confirm this contract (contract does not meet conditions).",
@@ -889,12 +925,36 @@
     "status": {
       "AVAILABLE": "Available",
       "RENTED": "Rented",
-      "MAINTENANCE": "Maintenance"
+      "MAINTENANCE": "Maintenance",
+      "REPAIRED": "Temporarily unavailable"
     },
     "statusCard": {
       "AVAILABLE": "VACANT",
       "RENTED": "RENTED",
-      "MAINTENANCE": "MAINTENANCE"
+      "MAINTENANCE": "MAINTENANCE",
+      "REPAIRED": "TEMPORARILY UNAVAILABLE"
+    },
+    "subscribe": {
+      "subscribe": "Notify when available",
+      "unsubscribe": "Stop notifications",
+      "subscribed": "You'll be notified when this house becomes available",
+      "unsubscribed": "Unsubscribed from this house",
+      "error": "Could not update subscription, please try again"
+    },
+    "statusUpdate": {
+      "title": "Update house status",
+      "current": "Current",
+      "next": "Change to",
+      "optionAvailable": "Available for rent",
+      "optionRepaired": "Temporarily unavailable (under repair)",
+      "rentedHint": "The 'Rented' status is driven by the contract lifecycle and cannot be changed manually.",
+      "trigger": "Change status",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "successAvailable": "House is now available for rent.",
+      "successRepaired": "House has been marked temporarily unavailable.",
+      "error": "Unable to update status. Please try again.",
+      "rentedBlocked": "Cannot change status while the house is rented."
     },
     "areaType": {
       "BEDROOM": "Bedroom",

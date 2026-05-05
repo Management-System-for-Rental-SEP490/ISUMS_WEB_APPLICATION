@@ -11,6 +11,9 @@ export const HOUSES_ENDPOINTS = {
   UPDATE: (id) => `/houses/${id}`,
   DELETE: (id) => `/houses/${id}`,
   IMAGES: (id) => `/houses/${id}/images`,
+  UPDATE_STATUS: (id) => `/houses/${id}/status`,
+  SUBSCRIBE: (id) => `/houses/${id}/subscriptions`,
+  SUBSCRIPTION_STATUS: (id) => `/houses/${id}/subscriptions/me`,
   REGIONS: "/houses/regions",
   REGIONS_CREATE: "/houses/regions",
   REGIONS_ASSIGN_STAFF: (regionId, staffId) => `/houses/regions/${regionId}/staff/${staffId}`,
@@ -33,6 +36,7 @@ export const CONTRACTS_ENDPOINTS = {
   CCCD_STATUS: (id) => `/econtracts/${id}/cccd-status`,
   GET_VNPT_DOCUMENT: (documentId) => `/econtracts/vnpt-document/${documentId}`,
   ADMIN_SIGN: "/econtracts/sign-admin",
+  RESEND_TENANT_SIGNATURE: (id) => `/econtracts/${id}/notifications/resend-tenant-signature`,
   CONFIRM_REFUND: (id) => `/econtracts/${id}/confirm-refund`,
   CONFIRM_TERMINATION_OVERDUE: (id) =>
     `/econtracts/${id}/confirm-termination-overdue`,
@@ -48,6 +52,8 @@ export const CONTRACTS_ENDPOINTS = {
     `/econtracts/relocation-requests/${id}/confirm-handover`,
   CONTRACT_RELOCATION_LINK: (contractId) =>
     `/econtracts/${contractId}/relocation-link`,
+  MARKETPLACE_BOOKABLE: "/econtracts/marketplace/deposit-bookable-houses",
+  MARKETPLACE_LOCKED: "/econtracts/marketplace/locked-house-ids",
 };
 
 // Users endpoints

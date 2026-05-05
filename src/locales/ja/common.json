@@ -143,6 +143,14 @@
   "dashboard": {
     "overview": "概要",
     "welcome": "おかえりなさい 👋",
+    "bookableWidget": {
+      "title": "近日契約終了 — 敷金予約受付中",
+      "unit": "件",
+      "viewAll": "すべて見る",
+      "empty": "30日以内に終了する物件はありません",
+      "daysLeft": "残り{{days}}日",
+      "now": "利用可能"
+    },
     "stats": {
       "totalContracts": "総契約数",
       "inSystem": "システム内",
@@ -648,9 +656,26 @@
       "dateOfIssue": "書類発行日",
       "placeOfIssue": "書類発行機関",
       "rentalHouse": "賃貸物件",
-      "availableHouses": "空き物件",
+      "availableHouses": "賃貸物件を選択",
       "selectHouse": "-- 物件を選択 --",
       "loadingHouse": "物件情報を読み込み中...",
+      "groupAvailableNow": "空室 — すぐ入居可 ({{count}})",
+      "groupBookable": "近日空き — 敷金で予約 ({{count}})",
+      "bookableHint": "残り{{days}}日 — {{date}}から引き渡し",
+      "bookableNowHint": "{{date}}から引き渡し可能",
+      "bookableBanner": "現在は最終月の入居中 — 敷金で先に予約できます",
+      "noHouseAvailable": "該当する物件がありません",
+      "filterCategory": {
+        "ALL": "すべて",
+        "AVAILABLE_NOW": "すぐ入居可",
+        "DEPOSIT_BOOKABLE": "敷金で予約"
+      },
+      "filterCityPlaceholder": "エリアで絞り込み",
+      "filterCount": "{{count}}件",
+      "sort": {
+        "AVAILABLE_FIRST": "入居可能日が早い順",
+        "NAME_ASC": "名前 A → Z"
+      },
       "houseAmenities": "主な設備",
       "money": "賃料と費用",
       "rent": "賃料（VND）*",
@@ -788,6 +813,17 @@
         "description": "システムがテナントに通知メールを再送し、契約の確認を求めます。",
         "confirmLabel": "再送する"
       },
+      "resendTenantSign": {
+        "button": "署名メールを再送",
+        "dialogTitle": "テナントへ署名メールを再送",
+        "dialogDescription": "VNPT が新しい署名コードを発行し、テナントへ新しいリンクをメールで送信します。以前のリンクは無効になります。",
+        "dialogConfirm": "新しいメールを送信",
+        "success": "テナントへ署名メールを再送しました。",
+        "error": "再送に失敗しました。再試行してください。",
+        "error403": "署名メールを再送する権限がありません。",
+        "error404": "契約が見つかりません。",
+        "error422": "契約はテナント署名待ちの状態ではないか、VNPT が要求を拒否しました。"
+      },
       "confirmSuccess": "確認しました！テナントへメールを送信しました。",
       "resendSuccess": "テナントに契約を再送しました。",
       "confirm400": "この契約を確認できません（条件を満たしていません）。",
@@ -891,12 +927,36 @@
     "status": {
       "AVAILABLE": "空室",
       "RENTED": "入居中",
-      "MAINTENANCE": "メンテナンス中"
+      "MAINTENANCE": "メンテナンス中",
+      "REPAIRED": "一時休止中"
     },
     "statusCard": {
       "AVAILABLE": "空室",
       "RENTED": "入居中",
-      "MAINTENANCE": "メンテナンス中"
+      "MAINTENANCE": "メンテナンス中",
+      "REPAIRED": "一時休止中"
+    },
+    "subscribe": {
+      "subscribe": "空き通知を受け取る",
+      "unsubscribe": "通知を停止",
+      "subscribed": "この物件が空いたら通知します",
+      "unsubscribed": "通知を停止しました",
+      "error": "登録できません。もう一度お試しください"
+    },
+    "statusUpdate": {
+      "title": "物件ステータスの更新",
+      "current": "現在",
+      "next": "変更先",
+      "optionAvailable": "貸出可能",
+      "optionRepaired": "一時休止中（修繕中）",
+      "rentedHint": "「入居中」ステータスは契約ライフサイクルに基づいて自動設定され、手動変更できません。",
+      "trigger": "ステータス変更",
+      "confirm": "確認",
+      "cancel": "キャンセル",
+      "successAvailable": "物件を貸出可能にしました。",
+      "successRepaired": "物件を一時休止中に変更しました。",
+      "error": "ステータスを更新できません。もう一度お試しください。",
+      "rentedBlocked": "入居中の物件はステータスを変更できません。"
     },
     "areaType": {
       "BEDROOM": "寝室",

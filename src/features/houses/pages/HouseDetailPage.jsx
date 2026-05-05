@@ -7,6 +7,8 @@ import {
 } from "lucide-react";
 import { useHouseDetail } from "../hooks/useHouseDetail";
 import AddAreaModal from "../components/AddAreaModal";
+import HouseStatusControl from "../components/HouseStatusControl";
+import HouseSubscribeButton from "../components/HouseSubscribeButton";
 import { STATUS_AREA } from "../components/HouseOverviewTab";
 import { getHouseHistory } from "../api/houses.api";
 
@@ -23,6 +25,7 @@ const HOUSE_STATUS_CLS = {
   AVAILABLE: "bg-emerald-100 text-emerald-700",
   RENTED:    "bg-blue-100 text-blue-700",
   MAINTENANCE: "bg-amber-100 text-amber-700",
+  REPAIRED: "bg-amber-100 text-amber-700",
   default:   "bg-gray-100 text-gray-500",
 };
 
@@ -220,6 +223,8 @@ export default function HouseDetailPage() {
             <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${hsCls}`}>
               {hsLabel}
             </span>
+            <HouseStatusControl house={house} onUpdated={refetch} />
+            <HouseSubscribeButton houseId={house.id} houseStatus={house.status} />
             {fullAddr && (
               <span className="flex items-center gap-1 text-sm" style={{ color: B.mutedFg }}>
                 <MapPin className="w-3.5 h-3.5 flex-shrink-0" style={{ color: B.green }} />

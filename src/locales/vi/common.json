@@ -143,6 +143,14 @@
   "dashboard": {
     "overview": "Tổng quan",
     "welcome": "Chào mừng trở lại 👋",
+    "bookableWidget": {
+      "title": "Nhà sắp trống — sẵn sàng nhận cọc",
+      "unit": "căn",
+      "viewAll": "Xem tất cả",
+      "empty": "Chưa có nhà nào sắp trống trong 30 ngày tới",
+      "daysLeft": "Còn {{days}} ngày",
+      "now": "Sẵn sàng"
+    },
     "stats": {
       "totalContracts": "Tổng hợp đồng",
       "inSystem": "Trong hệ thống",
@@ -648,9 +656,26 @@
       "dateOfIssue": "Ngày cấp CCCD",
       "placeOfIssue": "Nơi cấp CCCD",
       "rentalHouse": "Nhà cho thuê",
-      "availableHouses": "Các căn nhà trống",
+      "availableHouses": "Chọn nhà cho thuê",
       "selectHouse": "-- Chọn nhà --",
       "loadingHouse": "Đang tải thông tin nhà...",
+      "groupAvailableNow": "Còn trống — vào ở ngay ({{count}})",
+      "groupBookable": "Sắp trống — đặt cọc giữ chỗ ({{count}})",
+      "bookableHint": "Còn {{days}} ngày — nhận nhà từ {{date}}",
+      "bookableNowHint": "Sẵn sàng nhận nhà từ {{date}}",
+      "bookableBanner": "Nhà này đang được thuê đến hết tháng cuối — bạn có thể đặt cọc giữ chỗ",
+      "noHouseAvailable": "Không có nhà phù hợp",
+      "filterCategory": {
+        "ALL": "Tất cả",
+        "AVAILABLE_NOW": "Có thể vào ngay",
+        "DEPOSIT_BOOKABLE": "Đặt cọc giữ chỗ"
+      },
+      "filterCityPlaceholder": "Lọc theo khu vực",
+      "filterCount": "{{count}} căn",
+      "sort": {
+        "AVAILABLE_FIRST": "Có thể vào sớm nhất",
+        "NAME_ASC": "Tên A → Z"
+      },
       "houseAmenities": "Tiện ích nổi bật",
       "money": "Tiền & Chi phí",
       "rent": "Tiền thuê (VNĐ) *",
@@ -788,6 +813,17 @@
         "description": "Hệ thống sẽ gửi lại email thông báo cho người thuê để xem xét và xác nhận hợp đồng.",
         "confirmLabel": "Gửi lại"
       },
+      "resendTenantSign": {
+        "button": "Gửi lại email ký",
+        "dialogTitle": "Gửi lại email ký cho khách",
+        "dialogDescription": "VNPT sẽ tạo mã ký mới và gửi lại email cho khách thuê. Liên kết cũ trong email trước sẽ không còn hiệu lực.",
+        "dialogConfirm": "Gửi email mới",
+        "success": "Đã gửi lại email ký cho khách thuê.",
+        "error": "Gửi lại thất bại, vui lòng thử lại.",
+        "error403": "Bạn không có quyền gửi lại email ký.",
+        "error404": "Không tìm thấy hợp đồng.",
+        "error422": "Hợp đồng chưa ở trạng thái Chờ khách thuê ký, hoặc VNPT từ chối yêu cầu."
+      },
       "confirmSuccess": "Xác nhận thành công! Email đã được gửi cho khách thuê xem xét.",
       "resendSuccess": "Đã gửi lại hợp đồng cho người thuê xem xét.",
       "confirm400": "Không thể xác nhận hợp đồng này (hợp đồng không đủ điều kiện).",
@@ -891,12 +927,36 @@
     "status": {
       "AVAILABLE": "Còn trống",
       "RENTED": "Đã thuê",
-      "MAINTENANCE": "Bảo trì"
+      "MAINTENANCE": "Bảo trì",
+      "REPAIRED": "Tạm ngừng cho thuê"
     },
     "statusCard": {
       "AVAILABLE": "CHƯA CÓ KHÁCH THUÊ",
       "RENTED": "ĐÃ THUÊ",
-      "MAINTENANCE": "BẢO TRÌ"
+      "MAINTENANCE": "BẢO TRÌ",
+      "REPAIRED": "TẠM NGỪNG CHO THUÊ"
+    },
+    "subscribe": {
+      "subscribe": "Báo khi trống",
+      "unsubscribe": "Bỏ theo dõi",
+      "subscribed": "Đã đăng ký nhận thông báo khi nhà trống",
+      "unsubscribed": "Đã hủy theo dõi nhà này",
+      "error": "Không thể đăng ký, vui lòng thử lại"
+    },
+    "statusUpdate": {
+      "title": "Cập nhật trạng thái nhà",
+      "current": "Hiện tại",
+      "next": "Chuyển sang",
+      "optionAvailable": "Có thể cho thuê",
+      "optionRepaired": "Tạm ngừng cho thuê (đang sửa chữa)",
+      "rentedHint": "Trạng thái 'Đã thuê' do hệ thống tự cập nhật theo hợp đồng — không thể chỉnh tay.",
+      "trigger": "Đổi trạng thái",
+      "confirm": "Xác nhận",
+      "cancel": "Hủy",
+      "successAvailable": "Đã mở lại nhà cho thuê.",
+      "successRepaired": "Đã chuyển nhà sang trạng thái tạm ngừng cho thuê.",
+      "error": "Không thể cập nhật trạng thái. Vui lòng thử lại.",
+      "rentedBlocked": "Không thể đổi trạng thái khi nhà đang có người thuê."
     },
     "areaType": {
       "BEDROOM": "Phòng ngủ",

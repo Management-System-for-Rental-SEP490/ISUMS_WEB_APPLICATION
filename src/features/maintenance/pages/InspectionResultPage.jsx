@@ -7,6 +7,7 @@ import { getInspectionById, getAssetEventsByJob, updateInspectionStatus } from "
 import { getHouseById } from "../../houses/api/houses.api";
 import { getUserById } from "../../tenants/api/users.api";
 import InspectionHeader from "../components/inspection-result/InspectionHeader";
+import InspectionHouseCard from "../components/inspection-result/InspectionHouseCard";
 import InspectionInfoCards from "../components/inspection-result/InspectionInfoCards";
 import AssetEventsTable from "../components/inspection-result/AssetEventsTable";
 import InspectionConfirmModal from "../components/inspection-result/InspectionConfirmModal";
@@ -53,6 +54,7 @@ export default function InspectionResultPage() {
   const { t } = useTranslation("common");
 
   const [inspection, setInspection] = useState(null);
+  const [house, setHouse] = useState(null);
   const [staff, setStaff] = useState(null);
   const [events, setEvents] = useState([]);
   const [loadingInspection, setLoadingInspection] = useState(true);
@@ -69,12 +71,13 @@ export default function InspectionResultPage() {
       const raw = await getInspectionById(id);
 
       // Fetch house + staff in parallel
-      const [house, staffData] = await Promise.all([
+      const [houseData, staffData] = await Promise.all([
         raw.houseId ? getHouseById(raw.houseId).catch(() => null) : null,
         raw.assignedStaffId ? getUserById(raw.assignedStaffId).catch(() => null) : null,
       ]);
 
-      setInspection(normaliseInspection(raw, house));
+      setInspection(normaliseInspection(raw, houseData));
+      setHouse(houseData);
       setStaff(staffData);
 
       // Fetch asset events — dùng jobId nếu có, fallback về inspection id
@@ -143,6 +146,7 @@ export default function InspectionResultPage() {
   return (
     <div className="space-y-5 pb-12">
       <InspectionHeader inspection={inspection} id={id} onComplete={() => setConfirmOpen(true)} />
+      <InspectionHouseCard house={house} />
       <InspectionInfoCards inspection={inspection} staff={staff} />
       <AssetEventsTable events={events} loading={loadingEvents} />
       <InspectionConfirmModal

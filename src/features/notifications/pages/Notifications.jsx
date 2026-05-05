@@ -21,15 +21,10 @@ import {
 } from "../constants/notification.constants";
 import { NOTIFICATION_METADATA_LABEL_KEYS } from "../constants/notificationMetadataLabels";
 import InspectionResultDrawer from "../../maintenance/components/InspectionResultDrawer";
-import MultiLangText from "../../../components/shared/i18n/MultiLangText";
-
-// Extract title/body in a shape consumable by MultiLangText. Backend may
-// return either the legacy plain string or the new translation map.
-const titleValue = (n) => n?.titleTranslations || n?.title;
-const bodyValue  = (n) => n?.bodyTranslations  || n?.body || n?.message || n?.content;
+import { resolveNotificationText } from "../utils/notificationText";
 
 // Reduce a translation-map (or string) to a plain searchable string. Used
-// only for client-side text filtering — display still goes through MultiLangText.
+// only for client-side text filtering.
 const flatten = (v) => {
   if (v == null) return "";
   if (typeof v === "string") return v;
@@ -52,7 +47,8 @@ const SORT_OPTION_KEYS = [
 ];
 
 export default function Notifications() {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
+  const language = i18n?.resolvedLanguage || i18n?.language || "vi";
   const [filterKey, setFilterKey] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortKey, setSortKey] = useState("newest");
@@ -112,7 +108,7 @@ export default function Notifications() {
   const filtered = notifications
     .filter((n) => {
       const text =
-        `${flatten(titleValue(n))} ${flatten(bodyValue(n))}`.toLowerCase();
+        `${flatten(n?.titleTranslations)} ${flatten(n?.bodyTranslations)} ${n?.title ?? ""} ${n?.body ?? ""} ${n?.message ?? ""} ${n?.content ?? ""}`.toLowerCase();
       const matchSearch =
         !searchTerm || text.includes(searchTerm.toLowerCase());
       const matchFilter =
@@ -313,9 +309,14 @@ export default function Notifications() {
               const isUnread = !notif.read;
               const isExpanded = expandedId === notif.id;
               const metaTags = resolveMetaLabel(notif.metadata);
-              const titleVal = titleValue(notif);
-              const bodyVal = bodyValue(notif);
-              const hasBody = !!flatten(bodyVal);
+              const titleText = resolveNotificationText(
+                notif,
+                "title",
+                language,
+                notif.category ?? t("notifications.defaultTitle"),
+              );
+              const bodyText = resolveNotificationText(notif, "body", language, "");
+              const hasBody = !!bodyText;
               const metadata = notif.metadata ?? {};
 
               return (
@@ -347,7 +348,7 @@ export default function Notifications() {
                             className="text-sm font-semibold leading-snug mb-0.5"
                             style={{ color: isUnread ? "#1E2D28" : "#5A7A6E" }}
                           >
-                            <MultiLangText value={titleVal} fallback={notif.category ?? t("notifications.defaultTitle")} />
+                            {titleText}
                             {isUnread && (
                               <span
                                 className={`inline-block w-1.5 h-1.5 rounded-full ml-1.5 mb-0.5 align-middle ${cfg.dot}`}
@@ -356,7 +357,7 @@ export default function Notifications() {
                           </p>
                           {hasBody && !isExpanded && (
                             <p className="text-sm leading-relaxed line-clamp-2 mb-2" style={{ color: "#5A7A6E" }}>
-                              <MultiLangText value={bodyVal} />
+                              {bodyText}
                             </p>
                           )}
                           {/* Tags */}
@@ -421,7 +422,7 @@ export default function Notifications() {
                     <div className="px-5 pb-4 ml-14 space-y-3">
                       {hasBody && (
                         <p className="text-sm leading-relaxed rounded-xl px-4 py-3" style={{ color: "#1E2D28", background: "#ffffff", border: "1px solid #C4DED5" }}>
-                          <MultiLangText value={bodyVal} />
+                          {bodyText}
                         </p>
                       )}
                       {Object.keys(metadata).length > 0 && (
@@ -493,4 +494,3 @@ export default function Notifications() {
     </div>
   );
 }
-
