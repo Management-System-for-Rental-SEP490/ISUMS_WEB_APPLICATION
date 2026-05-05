@@ -13,10 +13,22 @@ import {
   UploadCloud,
   XCircle,
 } from "lucide-react";
-import { DatePicker, Input, InputNumber, Modal, Select, Spin, Upload } from "antd";
+import {
+  DatePicker,
+  Input,
+  InputNumber,
+  Modal,
+  Select,
+  Spin,
+  Upload,
+} from "antd";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import EmptyState from "../../../components/shared/EmptyState";
+import { LoadingSpinner } from "../../../components/shared/Loading";
+import StatCard from "../../../components/shared/StatCard";
+import StatusBadge from "../../../components/shared/StatusBadge";
 import { getAllHouses } from "../../houses/api/houses.api";
 import {
   cancelRelocationByManager,
@@ -42,15 +54,42 @@ const FILTERS = [
 ];
 
 const STATUS_META = {
-  REQUESTED: { label: "Chờ duyệt", tone: "bg-amber-50 text-amber-700 border-amber-200" },
-  QUOTED: { label: "Chờ khách xác nhận", tone: "bg-indigo-50 text-indigo-700 border-indigo-200" },
-  APPROVED: { label: "Đã duyệt", tone: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  REJECTED: { label: "Từ chối", tone: "bg-rose-50 text-rose-700 border-rose-200" },
-  CONTRACT_CREATED: { label: "Đã tạo HĐ", tone: "bg-sky-50 text-sky-700 border-sky-200" },
-  ADDITIONAL_PAYMENT_PENDING: { label: "Chờ thu thêm", tone: "bg-orange-50 text-orange-700 border-orange-200" },
-  REFUND_PENDING: { label: "Chờ hoàn tiền", tone: "bg-violet-50 text-violet-700 border-violet-200" },
-  COMPLETED: { label: "Hoàn tất", tone: "bg-slate-100 text-slate-700 border-slate-200" },
-  CANCELLED: { label: "Đã hủy", tone: "bg-slate-100 text-slate-500 border-slate-200" },
+  REQUESTED: {
+    label: "Chờ duyệt",
+    tone: "bg-amber-50 text-amber-700 border-amber-200",
+  },
+  QUOTED: {
+    label: "Chờ khách xác nhận",
+    tone: "bg-indigo-50 text-indigo-700 border-indigo-200",
+  },
+  APPROVED: {
+    label: "Đã duyệt",
+    tone: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  },
+  REJECTED: {
+    label: "Từ chối",
+    tone: "bg-rose-50 text-rose-700 border-rose-200",
+  },
+  CONTRACT_CREATED: {
+    label: "Đã tạo HĐ",
+    tone: "bg-sky-50 text-sky-700 border-sky-200",
+  },
+  ADDITIONAL_PAYMENT_PENDING: {
+    label: "Chờ thu thêm",
+    tone: "bg-orange-50 text-orange-700 border-orange-200",
+  },
+  REFUND_PENDING: {
+    label: "Chờ hoàn tiền",
+    tone: "bg-violet-50 text-violet-700 border-violet-200",
+  },
+  COMPLETED: {
+    label: "Hoàn tất",
+    tone: "bg-slate-100 text-slate-700 border-slate-200",
+  },
+  CANCELLED: {
+    label: "Đã hủy",
+    tone: "bg-slate-100 text-slate-500 border-slate-200",
+  },
 };
 
 const DEPOSIT_STATUS_META = {
@@ -91,6 +130,37 @@ const KIND_META = {
     tone: "border-rose-200 bg-rose-50 text-rose-700",
   },
 };
+
+const SECTION_CARD_CLASS =
+  "rounded-2xl border border-brand-border bg-brand-card shadow-card";
+const HEADER_LAYOUT_CLASS =
+  "flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between";
+const HEADER_ICON_CLASS =
+  "flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-muted text-brand-green";
+const PRIMARY_BUTTON_CLASS =
+  "inline-flex items-center gap-2 rounded-full bg-brand-gradient px-4 py-2 text-sm font-semibold text-white shadow-soft transition hover:opacity-90";
+const FILTER_LAYOUT_CLASS =
+  "flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between";
+const FILTER_BUTTON_BASE =
+  "inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold transition";
+const FILTER_BUTTON_ACTIVE =
+  "border-brand-green bg-brand-accent text-brand-green";
+const FILTER_BUTTON_INACTIVE =
+  "border-brand-border bg-brand-muted text-brand-muted-fg hover:border-brand-green hover:bg-brand-accent";
+const SEARCH_INPUT_CLASS =
+  "h-11 w-full rounded-full border border-brand-border bg-brand-muted pl-10 pr-4 text-sm text-brand-fg outline-none transition focus:border-brand-green focus:bg-white focus:ring-4 focus:ring-brand-accent";
+const TOOL_BUTTON_CLASS =
+  "inline-flex h-11 items-center gap-2 rounded-full border border-brand-border bg-white px-4 text-sm font-semibold text-brand-muted-fg transition hover:bg-brand-muted disabled:opacity-60";
+const TABLE_HEAD_CLASS =
+  "px-5 py-3 text-xs font-semibold uppercase tracking-wider text-brand-muted-fg";
+const TABLE_CELL_CLASS = "px-5 py-4 align-top text-sm text-brand-muted-fg";
+const ROW_ACTION_BASE =
+  "inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold transition disabled:opacity-60";
+const ROW_ACTION_PRIMARY = `${ROW_ACTION_BASE} bg-brand-green text-white hover:opacity-90`;
+const ROW_ACTION_SECONDARY = `${ROW_ACTION_BASE} bg-brand-blue text-white hover:opacity-90`;
+const ROW_ACTION_NEUTRAL = `${ROW_ACTION_BASE} border border-brand-border bg-white text-brand-muted-fg hover:bg-brand-muted`;
+const ROW_ACTION_DANGER = `${ROW_ACTION_BASE} border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100`;
+const ROW_ACTION_VIOLET = `${ROW_ACTION_BASE} border border-violet-200 bg-violet-50 text-violet-700`;
 
 function shortId(value) {
   if (!value) return "-";
@@ -149,7 +219,13 @@ function normalizeHouseItems(data) {
 }
 
 function totalPagesOf(data) {
-  const value = Number(data?.totalPages ?? data?.totalPage ?? data?.pages ?? data?.page?.totalPages ?? 1);
+  const value = Number(
+    data?.totalPages ??
+      data?.totalPage ??
+      data?.pages ??
+      data?.page?.totalPages ??
+      1,
+  );
   return Number.isFinite(value) && value > 1 ? Math.floor(value) : 1;
 }
 
@@ -159,7 +235,13 @@ function houseIdOf(house) {
 
 function houseLabelOf(house) {
   const id = houseIdOf(house);
-  return house?.name || house?.houseName || house?.address || house?.code || shortId(id);
+  return (
+    house?.name ||
+    house?.houseName ||
+    house?.address ||
+    house?.code ||
+    shortId(id)
+  );
 }
 
 function toDateValue(value) {
@@ -204,17 +286,22 @@ function buildInitialForm(request) {
   const isLandlordFault = request?.faultParty === "LANDLORD";
   const resolutionType =
     request?.resolutionType ||
-    (isLandlordFault && !request?.requestedHouseId ? "REFUND_TERMINATE" : "REPLACE_HOUSE");
+    (isLandlordFault && !request?.requestedHouseId
+      ? "REFUND_TERMINATE"
+      : "REPLACE_HOUSE");
   return {
     resolutionType,
-    approvedHouseId: request?.approvedHouseId || request?.requestedHouseId || null,
+    approvedHouseId:
+      request?.approvedHouseId || request?.requestedHouseId || null,
     depositHandling:
       request?.depositHandling ||
       (resolutionType === "REFUND_TERMINATE"
-        ? (isPaidDeposit(request?.depositStatusSnapshot) ? "REFUND_TO_TENANT" : "CANCEL_PENDING_DEPOSIT")
-        : (isPaidDeposit(request?.depositStatusSnapshot)
-            ? "TRANSFER_TO_REPLACEMENT"
-            : "CANCEL_PENDING_DEPOSIT")),
+        ? isPaidDeposit(request?.depositStatusSnapshot)
+          ? "REFUND_TO_TENANT"
+          : "CANCEL_PENDING_DEPOSIT"
+        : isPaidDeposit(request?.depositStatusSnapshot)
+          ? "TRANSFER_TO_REPLACEMENT"
+          : "CANCEL_PENDING_DEPOSIT"),
     newRentAmount: request?.newRentAmount ?? null,
     newDepositAmount: request?.newDepositAmount ?? request?.depositAmount ?? 0,
     newStartAt: toDateValue(request?.newStartAt),
@@ -228,7 +315,8 @@ function buildInitialForm(request) {
     oldDamageAmount: request?.oldDamageAmount ?? 0,
     adminFeeAmount: request?.adminFeeAmount ?? 0,
     settlementAmount: request?.settlementAmount ?? 0,
-    refundableDepositAmount: request?.refundableDepositAmount ?? request?.depositAmount ?? 0,
+    refundableDepositAmount:
+      request?.refundableDepositAmount ?? request?.depositAmount ?? 0,
     totalAdditionalPaymentAmount: request?.totalAdditionalPaymentAmount ?? 0,
     inspectionNote: request?.inspectionNote ?? "",
     refundAmount: request?.refundAmount ?? request?.depositAmount ?? 0,
@@ -302,7 +390,8 @@ export default function RelocationRequestsPage() {
         .map((contract) => {
           const number = contract.documentNo || contract.documentId;
           if (!number) return null;
-          const tenant = contract.tenantName || contract.name || "Chưa có tên khách";
+          const tenant =
+            contract.tenantName || contract.name || "Chưa có tên khách";
           return {
             value: number,
             searchText: `${number} ${tenant}`.toLowerCase(),
@@ -310,7 +399,8 @@ export default function RelocationRequestsPage() {
               <div className="flex flex-col">
                 <span className="font-medium text-slate-800">{number}</span>
                 <span className="text-xs text-slate-500">
-                  {tenant} · {formatDate(contract.startAt)} - {formatDate(contract.endAt)}
+                  {tenant} · {formatDate(contract.startAt)} -{" "}
+                  {formatDate(contract.endAt)}
                 </span>
               </div>
             ),
@@ -359,10 +449,22 @@ export default function RelocationRequestsPage() {
       requested: requests.filter((r) => r.status === "REQUESTED").length,
       quoted: requests.filter((r) => r.status === "QUOTED").length,
       approved: requests.filter((r) => r.status === "APPROVED").length,
-      refundPending: requests.filter((r) => r.status === "REFUND_PENDING").length,
+      refundPending: requests.filter((r) => r.status === "REFUND_PENDING")
+        .length,
       completed: requests.filter((r) => r.status === "COMPLETED").length,
     }),
     [requests],
+  );
+
+  const statCards = useMemo(
+    () => [
+      { label: "Tổng", value: stats.total, tone: "brand" },
+      { label: "Chờ duyệt", value: stats.requested, tone: "amber" },
+      { label: "Chờ khách", value: stats.quoted, tone: "indigo" },
+      { label: "Đã duyệt", value: stats.approved, tone: "emerald" },
+      { label: "Chờ hoàn", value: stats.refundPending, tone: "violet" },
+    ],
+    [stats],
   );
 
   const openReview = (request) => {
@@ -384,7 +486,12 @@ export default function RelocationRequestsPage() {
     const files = reportForm.evidenceFiles
       .map((file) => file.originFileObj || file)
       .filter(Boolean);
-    if (!contractNumber || !reportForm.reportReason.trim() || files.length === 0) return;
+    if (
+      !contractNumber ||
+      !reportForm.reportReason.trim() ||
+      files.length === 0
+    )
+      return;
 
     setSubmitting(true);
     try {
@@ -419,7 +526,9 @@ export default function RelocationRequestsPage() {
         newStartAt: approved ? toIso(form.newStartAt) : null,
         newEndAt: approved ? toIso(form.newEndAt) : null,
         newHandoverDate: approved ? toIso(form.newHandoverDate) : null,
-        transferredDepositAmount: approved ? form.transferredDepositAmount : null,
+        transferredDepositAmount: approved
+          ? form.transferredDepositAmount
+          : null,
         forfeitAmount: approved ? form.forfeitAmount : null,
         additionalDepositAmount:
           approved && Number(form.additionalDepositAmount ?? 0) > 0
@@ -433,7 +542,8 @@ export default function RelocationRequestsPage() {
         refundableDepositAmount:
           approved &&
           isActiveLeaseRequest(activeRequest) &&
-          Number(form.refundableDepositAmount ?? 0) !== Number(activeRequest.depositAmount ?? 0)
+          Number(form.refundableDepositAmount ?? 0) !==
+            Number(activeRequest.depositAmount ?? 0)
             ? form.refundableDepositAmount
             : null,
         totalAdditionalPaymentAmount:
@@ -448,7 +558,9 @@ export default function RelocationRequestsPage() {
         legalBasis: approved ? form.legalBasis || null : null,
         managerNote: form.managerNote || null,
       });
-      toast.success(approved ? "Đã duyệt yêu cầu đổi nhà." : "Đã từ chối yêu cầu.");
+      toast.success(
+        approved ? "Đã duyệt yêu cầu đổi nhà." : "Đã từ chối yêu cầu.",
+      );
       closeReview();
       await loadData();
     } catch (error) {
@@ -521,7 +633,9 @@ export default function RelocationRequestsPage() {
       : RESOLUTION_OPTIONS.filter((item) => item.value === "REPLACE_HOUSE");
   const activeHandlingOptions = HANDLING_OPTIONS.filter((item) => {
     if (activeLeaseReview) {
-      return !["CANCEL_PENDING_DEPOSIT", "REFUND_TO_TENANT"].includes(item.value);
+      return !["CANCEL_PENDING_DEPOSIT", "REFUND_TO_TENANT"].includes(
+        item.value,
+      );
     }
     if (activeRequest?.faultParty === "LANDLORD") {
       return item.value !== "FORFEIT";
@@ -529,52 +643,76 @@ export default function RelocationRequestsPage() {
     return item.value !== "REFUND_TO_TENANT";
   });
   const reviewCanApprove =
-    !activeRequest ||
-    isRefundResolution ||
-    Boolean(form.approvedHouseId);
+    !activeRequest || isRefundResolution || Boolean(form.approvedHouseId);
 
   return (
-    <div className="space-y-5">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+    <div className="space-y-6">
+      <section className={`${SECTION_CARD_CLASS} p-5`}>
+        <div className={HEADER_LAYOUT_CLASS}>
           <div className="min-w-0">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+            <div className="flex items-start gap-3">
+              <div className={HEADER_ICON_CLASS}>
                 <ArrowRightLeft className="h-5 w-5" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-slate-900">
+                <h1 className="text-2xl font-semibold text-brand-fg">
                   Yêu cầu đổi nhà
                 </h1>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-brand-muted-fg">
                   Xử lý đổi nhà sau khi khách đã ký hợp đồng.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 xl:items-end">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <button
               type="button"
               onClick={() => setReportOpen(true)}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700"
+              className={PRIMARY_BUTTON_CLASS}
             >
               <ClipboardCheck className="h-4 w-4" />
               Báo nhà không ở được
             </button>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <Metric label="Tổng" value={stats.total} />
-              <Metric label="Chờ duyệt" value={stats.requested} tone="amber" />
-              <Metric label="Chờ khách" value={stats.quoted} tone="indigo" />
-              <Metric label="Đã duyệt" value={stats.approved} tone="emerald" />
-              <Metric label="Chờ hoàn" value={stats.refundPending} tone="violet" />
-            </div>
           </div>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div className="flex flex-col gap-3 border-b border-slate-200 p-4 lg:flex-row lg:items-center lg:justify-between">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        {statCards.map((item) => (
+          <StatCard
+            key={item.label}
+            label={item.label}
+            value={item.value}
+            tone={item.tone}
+          />
+        ))}
+      </section>
+
+      <section className={SECTION_CARD_CLASS}>
+        <div className="flex flex-col gap-4 p-5">
+          <div className={FILTER_LAYOUT_CLASS}>
+            <div className="relative w-full max-w-[360px]">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-muted-fg" />
+              <input
+                value={keyword}
+                onChange={(event) => setKeyword(event.target.value)}
+                className={SEARCH_INPUT_CLASS}
+                placeholder="Tìm theo mã hợp đồng, nhà, khách"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={loadData}
+              disabled={loading}
+              className={TOOL_BUTTON_CLASS}
+            >
+              <RefreshCw
+                className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
+              />
+              Làm mới
+            </button>
+          </div>
           <div className="flex flex-wrap gap-2">
             {FILTERS.map((item) => {
               const active = filter === item.key;
@@ -583,127 +721,120 @@ export default function RelocationRequestsPage() {
                   key={item.key}
                   type="button"
                   onClick={() => setFilter(item.key)}
-                  className={[
-                    "rounded-lg border px-3 py-2 text-sm font-medium transition",
-                    active
-                      ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                      : "border-slate-200 bg-white text-slate-600 hover:border-emerald-200 hover:bg-emerald-50",
-                  ].join(" ")}
+                  className={`${FILTER_BUTTON_BASE} ${
+                    active ? FILTER_BUTTON_ACTIVE : FILTER_BUTTON_INACTIVE
+                  }`}
                 >
                   {item.label}
                 </button>
               );
             })}
           </div>
-
-          <div className="flex gap-2">
-            <div className="relative w-full min-w-[260px] lg:w-[320px]">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-              <input
-                value={keyword}
-                onChange={(event) => setKeyword(event.target.value)}
-                className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm outline-none transition focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-100"
-                placeholder="Tìm theo mã hợp đồng, nhà, khách"
-              />
-            </div>
-            <button
-              type="button"
-              onClick={loadData}
-              disabled={loading}
-              className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 px-3 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:opacity-60"
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-              Làm mới
-            </button>
-          </div>
         </div>
+      </section>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-slate-200">
-            <thead className="bg-slate-50">
-              <tr>
-                <TableHead>Yêu cầu</TableHead>
-                <TableHead>Hợp đồng cũ</TableHead>
-                <TableHead>Nhà</TableHead>
-                <TableHead>Tiền cọc</TableHead>
-                <TableHead>Ngày yêu cầu</TableHead>
-                <TableHead>Trạng thái</TableHead>
-                <TableHead align="right">Thao tác</TableHead>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
-              {loading ? (
+      <section className={SECTION_CARD_CLASS}>
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <LoadingSpinner />
+          </div>
+        ) : filteredRequests.length === 0 ? (
+          <div className="p-6">
+            <EmptyState
+              title="Không có yêu cầu phù hợp."
+              icon={ArrowRightLeft}
+            />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-brand-border">
+              <thead className="bg-brand-muted">
                 <tr>
-                  <td colSpan={7} className="px-4 py-14 text-center">
-                    <Spin />
-                  </td>
+                  <TableHead>Yêu cầu</TableHead>
+                  <TableHead>Hợp đồng cũ</TableHead>
+                  <TableHead>Nhà</TableHead>
+                  <TableHead>Tiền cọc</TableHead>
+                  <TableHead>Ngày yêu cầu</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead align="right" className="w-[120px]">
+                    Thao tác
+                  </TableHead>
                 </tr>
-              ) : filteredRequests.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-4 py-14 text-center text-sm text-slate-500">
-                    Không có yêu cầu phù hợp.
-                  </td>
-                </tr>
-              ) : (
-                filteredRequests.map((request) => (
-                  <tr key={request.id} className="hover:bg-slate-50/70">
-                    <TableCell>
+              </thead>
+              <tbody className="divide-y divide-brand-border">
+                {filteredRequests.map((request) => (
+                  <tr
+                    key={request.id}
+                    className="transition hover:bg-brand-muted"
+                  >
+                    <TableCell className="min-w-[240px]">
                       <div className="flex items-center gap-2">
-                        <div className="font-semibold text-slate-900">#{shortId(request.id)}</div>
+                        <div className="font-semibold text-brand-fg">
+                          #{shortId(request.id)}
+                        </div>
                         <FaultBadge fault={request.faultParty} />
                       </div>
                       <div className="mt-1">
                         <KindBadge kind={request.requestKind} />
                       </div>
-                      <div className="mt-1 max-w-[260px] truncate text-xs text-slate-500">
-                        {request.staffReportReason || request.tenantReason || "Không có ghi chú"}
+                      <div className="mt-1 max-w-[260px] truncate text-xs text-brand-muted-fg">
+                        {request.staffReportReason ||
+                          request.tenantReason ||
+                          "Không có ghi chú"}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="min-w-[190px]">
                       <button
                         type="button"
-                        onClick={() => navigate(`/contracts/${request.oldContractId}`)}
-                        className="font-medium text-sky-700 hover:text-sky-900"
+                        onClick={() =>
+                          navigate(`/contracts/${request.oldContractId}`)
+                        }
+                        className="font-semibold text-brand-blue hover:text-brand-fg"
                       >
                         {displayContractNumber(request)}
                       </button>
-                      <div className="mt-1 text-xs text-slate-500">
+                      <div className="mt-1 text-xs text-brand-muted-fg">
                         Khách #{shortId(request.tenantId)}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2 text-sm text-slate-700">
-                        <Home className="h-4 w-4 text-slate-400" />
+                    <TableCell className="min-w-[190px]">
+                      <div className="flex items-center gap-2 text-sm text-brand-muted-fg">
+                        <Home className="h-4 w-4 text-brand-muted-fg" />
                         <span>{shortId(request.oldHouseId)}</span>
-                        <span className="text-slate-300">→</span>
-                        <span className="font-medium text-slate-900">
+                        <span className="text-brand-border">→</span>
+                        <span className="font-semibold text-brand-fg">
                           {request.resolutionType === "REFUND_TERMINATE"
                             ? "Hoàn tiền"
-                            : shortId(request.approvedHouseId || request.requestedHouseId)}
+                            : shortId(
+                                request.approvedHouseId ||
+                                  request.requestedHouseId,
+                              )}
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="text-sm font-semibold text-slate-900">
+                    <TableCell className="whitespace-nowrap">
+                      <div className="text-sm font-semibold text-brand-fg">
                         {formatCurrency(request.depositAmount)}
                       </div>
-                      <div className="mt-1 text-xs text-slate-500">
+                      <div className="mt-1 text-xs text-brand-muted-fg">
                         {DEPOSIT_STATUS_META[request.depositStatusSnapshot] ||
                           request.depositStatusSnapshot ||
                           "-"}
                       </div>
                     </TableCell>
-                    <TableCell>{formatDate(request.requestedAt)}</TableCell>
-                    <TableCell>
-                      <StatusBadge status={request.status} />
+                    <TableCell className="whitespace-nowrap text-brand-fg">
+                      {formatDate(request.requestedAt)}
                     </TableCell>
-                    <TableCell align="right">
-                      <div className="flex justify-end gap-2">
+                    <TableCell className="whitespace-nowrap">
+                      <RelocationStatusBadge status={request.status} />
+                    </TableCell>
+                    <TableCell align="right" className="whitespace-nowrap">
+                      <div className="flex flex-wrap justify-end gap-2">
                         {request.status === "REQUESTED" && (
                           <button
                             type="button"
                             onClick={() => openReview(request)}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
+                            className={ROW_ACTION_PRIMARY}
                           >
                             <CheckCircle2 className="h-4 w-4" />
                             Duyệt
@@ -711,27 +842,29 @@ export default function RelocationRequestsPage() {
                         )}
                         {request.status === "APPROVED" &&
                           request.resolutionType !== "REFUND_TERMINATE" && (
-                          <button
-                            type="button"
-                            onClick={() => createReplacement(request)}
-                            disabled={submitting}
-                            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
-                          >
-                            <FilePlus2 className="h-4 w-4" />
-                            Tạo HĐ
-                          </button>
-                        )}
+                            <button
+                              type="button"
+                              onClick={() => createReplacement(request)}
+                              disabled={submitting}
+                              className={ROW_ACTION_SECONDARY}
+                            >
+                              <FilePlus2 className="h-4 w-4" />
+                              Tạo HĐ
+                            </button>
+                          )}
                         {request.status === "REFUND_PENDING" && (
-                          <span className="inline-flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-2 text-sm font-semibold text-violet-700">
-                            <ReceiptText className="h-4 w-4" />
-                            Phiếu hoàn
-                          </span>
+                          <StatusBadge
+                            label="Phiếu hoàn"
+                            icon={ReceiptText}
+                            className="border-violet-200 bg-violet-50 text-violet-700"
+                          />
                         )}
                         {request.status === "QUOTED" && (
-                          <span className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700">
-                            <ReceiptText className="h-4 w-4" />
-                            Chờ khách
-                          </span>
+                          <StatusBadge
+                            label="Chờ khách"
+                            icon={ReceiptText}
+                            className="border-indigo-200 bg-indigo-50 text-indigo-700"
+                          />
                         )}
                         {(request.status === "REQUESTED" ||
                           request.status === "QUOTED" ||
@@ -740,19 +873,20 @@ export default function RelocationRequestsPage() {
                             type="button"
                             onClick={() => cancelRequest(request)}
                             disabled={submitting}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 bg-white px-3 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50 disabled:opacity-60"
+                            className={ROW_ACTION_DANGER}
                           >
                             <XCircle className="h-4 w-4" />
                             Hủy
                           </button>
                         )}
                         {request.status === "CONTRACT_CREATED" &&
-                          request.requestKind === "ACTIVE_LEASE_TENANT_UPGRADE" && (
+                          request.requestKind ===
+                            "ACTIVE_LEASE_TENANT_UPGRADE" && (
                             <button
                               type="button"
                               onClick={() => confirmHandover(request)}
                               disabled={submitting}
-                              className="inline-flex items-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-violet-700 disabled:opacity-60"
+                              className={ROW_ACTION_VIOLET}
                             >
                               <CheckCircle2 className="h-4 w-4" />
                               Xác nhận bàn giao
@@ -761,8 +895,10 @@ export default function RelocationRequestsPage() {
                         {request.newContractId && (
                           <button
                             type="button"
-                            onClick={() => navigate(`/contracts/${request.newContractId}`)}
-                            className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                            onClick={() =>
+                              navigate(`/contracts/${request.newContractId}`)
+                            }
+                            className={ROW_ACTION_NEUTRAL}
                           >
                             HĐ mới
                           </button>
@@ -770,11 +906,11 @@ export default function RelocationRequestsPage() {
                       </div>
                     </TableCell>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
 
       <Modal
@@ -800,15 +936,15 @@ export default function RelocationRequestsPage() {
                     {activeLeaseReview
                       ? "Khách đang thuê muốn đổi sang nhà phù hợp hơn"
                       : activeRequest.faultParty === "LANDLORD"
-                      ? "Lỗi bên cho thuê: nhà không đủ điều kiện sử dụng"
-                      : "Lỗi khách yêu cầu đổi nhà"}
+                        ? "Lỗi bên cho thuê: nhà không đủ điều kiện sử dụng"
+                        : "Lỗi khách yêu cầu đổi nhà"}
                   </div>
                   <div className="mt-1 text-amber-800">
                     {activeLeaseReview
                       ? "Gửi báo giá/quyết toán cho khách xác nhận trước khi tạo hợp đồng thay thế."
                       : activeRequest.faultParty === "LANDLORD"
-                      ? "Khách không mất cọc. Chọn đổi nhà thay thế hoặc hoàn tiền theo điều khoản hợp đồng."
-                      : "Tiền cọc được xử lý theo lựa chọn bên dưới và điều khoản đã ký."}
+                        ? "Khách không mất cọc. Chọn đổi nhà thay thế hoặc hoàn tiền theo điều khoản hợp đồng."
+                        : "Tiền cọc được xử lý theo lựa chọn bên dưới và điều khoản đã ký."}
                   </div>
                 </div>
               </div>
@@ -816,35 +952,45 @@ export default function RelocationRequestsPage() {
 
             {activeRequest.staffReportReason && (
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
-                <div className="font-semibold text-slate-900">Biên bản kỹ thuật</div>
-                <p className="mt-1 whitespace-pre-line">{activeRequest.staffReportReason}</p>
+                <div className="font-semibold text-slate-900">
+                  Biên bản kỹ thuật
+                </div>
+                <p className="mt-1 whitespace-pre-line">
+                  {activeRequest.staffReportReason}
+                </p>
                 {evidenceItems(activeRequest.staffEvidence).length > 0 && (
                   <div className="mt-3 space-y-2">
                     <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                       Bằng chứng đã lưu S3
                     </div>
                     <div className="flex flex-wrap gap-3">
-                      {evidenceItems(activeRequest.staffEvidence).map((item) => {
-                        const url = evidenceUrl(item);
-                        return (
-                          <button
-                            key={item}
-                            type="button"
-                            onClick={() => url && setEvidencePreviewUrl(url)}
-                            className="group relative flex h-24 w-24 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
-                            title={evidenceName(item)}
-                          >
-                            {url ? (
-                              <img src={url} alt={evidenceName(item)} className="h-full w-full object-cover" />
-                            ) : (
-                              <FileImage className="h-6 w-6 text-sky-600" />
-                            )}
-                            <span className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/70 to-transparent px-1.5 py-1 text-[10px] font-medium text-white">
-                              {evidenceName(item)}
-                            </span>
-                          </button>
-                        );
-                      })}
+                      {evidenceItems(activeRequest.staffEvidence).map(
+                        (item) => {
+                          const url = evidenceUrl(item);
+                          return (
+                            <button
+                              key={item}
+                              type="button"
+                              onClick={() => url && setEvidencePreviewUrl(url)}
+                              className="group relative flex h-24 w-24 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
+                              title={evidenceName(item)}
+                            >
+                              {url ? (
+                                <img
+                                  src={url}
+                                  alt={evidenceName(item)}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <FileImage className="h-6 w-6 text-sky-600" />
+                              )}
+                              <span className="absolute inset-x-0 bottom-0 truncate bg-gradient-to-t from-black/70 to-transparent px-1.5 py-1 text-[10px] font-medium text-white">
+                                {evidenceName(item)}
+                              </span>
+                            </button>
+                          );
+                        },
+                      )}
                     </div>
                   </div>
                 )}
@@ -860,12 +1006,12 @@ export default function RelocationRequestsPage() {
                       resolutionType: value,
                       depositHandling:
                         value === "REFUND_TERMINATE"
-                          ? (isPaidDeposit(activeRequest.depositStatusSnapshot)
-                              ? "REFUND_TO_TENANT"
-                              : "CANCEL_PENDING_DEPOSIT")
-                          : (isPaidDeposit(activeRequest.depositStatusSnapshot)
-                              ? "TRANSFER_TO_REPLACEMENT"
-                              : "CANCEL_PENDING_DEPOSIT"),
+                          ? isPaidDeposit(activeRequest.depositStatusSnapshot)
+                            ? "REFUND_TO_TENANT"
+                            : "CANCEL_PENDING_DEPOSIT"
+                          : isPaidDeposit(activeRequest.depositStatusSnapshot)
+                            ? "TRANSFER_TO_REPLACEMENT"
+                            : "CANCEL_PENDING_DEPOSIT",
                     });
                   }}
                   options={activeResolutionOptions}
@@ -882,207 +1028,231 @@ export default function RelocationRequestsPage() {
               </Field>
               {!isRefundResolution && (
                 <>
-              <Field label="Nhà duyệt chuyển sang">
-                <Select
-                  value={form.approvedHouseId}
-                  onChange={(value) => patchForm({ approvedHouseId: value })}
-                  options={houseOptions}
-                  showSearch
-                  optionFilterProp="label"
-                  placeholder="Chọn nhà"
-                  className="w-full"
-                />
-              </Field>
-              <Field label="Giá thuê mới">
-                <InputNumber
-                  min={0}
-                  value={form.newRentAmount}
-                  onChange={(value) => patchForm({ newRentAmount: value ?? 0 })}
-                  formatter={(value) =>
-                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                  }
-                  parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
-                  className="w-full"
-                />
-              </Field>
-              <Field label="Cọc hợp đồng mới">
-                <InputNumber
-                  min={0}
-                  value={form.newDepositAmount}
-                  onChange={(value) => patchForm({ newDepositAmount: value ?? 0 })}
-                  formatter={(value) =>
-                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                  }
-                  parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
-                  className="w-full"
-                />
-              </Field>
-              <Field label="Cọc chuyển sang HĐ mới">
-                <InputNumber
-                  min={0}
-                  value={form.transferredDepositAmount}
-                  onChange={(value) =>
-                    patchForm({ transferredDepositAmount: value ?? 0 })
-                  }
-                  formatter={(value) =>
-                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                  }
-                  parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
-                  className="w-full"
-                />
-              </Field>
-              <Field label="Cọc giữ lại">
-                <InputNumber
-                  min={0}
-                  value={form.forfeitAmount}
-                  onChange={(value) => patchForm({ forfeitAmount: value ?? 0 })}
-                  formatter={(value) =>
-                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                  }
-                  parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
-                  className="w-full"
-                />
-              </Field>
-              <Field label="Ngày bắt đầu">
-                <DatePicker
-                  value={form.newStartAt}
-                  onChange={(value) => patchForm({ newStartAt: value })}
-                  format="DD/MM/YYYY"
-                  className="w-full"
-                />
-              </Field>
-              <Field label="Ngày kết thúc">
-                <DatePicker
-                  value={form.newEndAt}
-                  onChange={(value) => patchForm({ newEndAt: value })}
-                  format="DD/MM/YYYY"
-                  className="w-full"
-                />
-              </Field>
-              <Field label="Ngày bàn giao">
-                <DatePicker
-                  value={form.newHandoverDate}
-                  onChange={(value) => patchForm({ newHandoverDate: value })}
-                  format="DD/MM/YYYY"
-                  className="w-full"
-                />
-              </Field>
-              <Field label="Cọc cần thu thêm">
-                <InputNumber
-                  min={0}
-                  value={form.additionalDepositAmount}
-                  onChange={(value) =>
-                    patchForm({ additionalDepositAmount: value ?? 0 })
-                  }
-                  formatter={(value) =>
-                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                  }
-                  parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
-                  className="w-full"
-                />
-              </Field>
-              {activeLeaseReview && (
-                <>
-              <Field label="Tiền thuê còn phải quyết toán">
-                <InputNumber
-                  min={0}
-                  value={form.oldRentProratedAmount}
-                  onChange={(value) => patchForm({ oldRentProratedAmount: value ?? 0 })}
-                  formatter={(value) =>
-                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                  }
-                  parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
-                  className="w-full"
-                />
-              </Field>
-              <Field label="Điện nước/dịch vụ chưa thanh toán">
-                <InputNumber
-                  min={0}
-                  value={form.oldUtilitiesAmount}
-                  onChange={(value) => patchForm({ oldUtilitiesAmount: value ?? 0 })}
-                  formatter={(value) =>
-                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                  }
-                  parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
-                  className="w-full"
-                />
-              </Field>
-              <Field label="Chi phí hư hỏng do khách">
-                <InputNumber
-                  min={0}
-                  value={form.oldDamageAmount}
-                  onChange={(value) => patchForm({ oldDamageAmount: value ?? 0 })}
-                  formatter={(value) =>
-                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                  }
-                  parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
-                  className="w-full"
-                />
-              </Field>
-              <Field label="Phí xử lý/hành chính">
-                <InputNumber
-                  min={0}
-                  value={form.adminFeeAmount}
-                  onChange={(value) => patchForm({ adminFeeAmount: value ?? 0 })}
-                  formatter={(value) =>
-                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                  }
-                  parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
-                  className="w-full"
-                />
-              </Field>
-              <Field label="Cọc còn được đối trừ">
-                <InputNumber
-                  min={0}
-                  value={form.refundableDepositAmount}
-                  onChange={(value) => patchForm({ refundableDepositAmount: value ?? 0 })}
-                  formatter={(value) =>
-                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                  }
-                  parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
-                  className="w-full"
-                />
-              </Field>
-              <Field label="Tổng khách cần thanh toán thêm">
-                <InputNumber
-                  min={0}
-                  value={form.totalAdditionalPaymentAmount}
-                  onChange={(value) =>
-                    patchForm({ totalAdditionalPaymentAmount: value ?? 0 })
-                  }
-                  formatter={(value) =>
-                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                  }
-                  parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
-                  className="w-full"
-                />
-              </Field>
-                </>
-              )}
+                  <Field label="Nhà duyệt chuyển sang">
+                    <Select
+                      value={form.approvedHouseId}
+                      onChange={(value) =>
+                        patchForm({ approvedHouseId: value })
+                      }
+                      options={houseOptions}
+                      showSearch
+                      optionFilterProp="label"
+                      placeholder="Chọn nhà"
+                      className="w-full"
+                    />
+                  </Field>
+                  <Field label="Giá thuê mới">
+                    <InputNumber
+                      min={0}
+                      value={form.newRentAmount}
+                      onChange={(value) =>
+                        patchForm({ newRentAmount: value ?? 0 })
+                      }
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
+                      className="w-full"
+                    />
+                  </Field>
+                  <Field label="Cọc hợp đồng mới">
+                    <InputNumber
+                      min={0}
+                      value={form.newDepositAmount}
+                      onChange={(value) =>
+                        patchForm({ newDepositAmount: value ?? 0 })
+                      }
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
+                      className="w-full"
+                    />
+                  </Field>
+                  <Field label="Cọc chuyển sang HĐ mới">
+                    <InputNumber
+                      min={0}
+                      value={form.transferredDepositAmount}
+                      onChange={(value) =>
+                        patchForm({ transferredDepositAmount: value ?? 0 })
+                      }
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
+                      className="w-full"
+                    />
+                  </Field>
+                  <Field label="Cọc giữ lại">
+                    <InputNumber
+                      min={0}
+                      value={form.forfeitAmount}
+                      onChange={(value) =>
+                        patchForm({ forfeitAmount: value ?? 0 })
+                      }
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
+                      className="w-full"
+                    />
+                  </Field>
+                  <Field label="Ngày bắt đầu">
+                    <DatePicker
+                      value={form.newStartAt}
+                      onChange={(value) => patchForm({ newStartAt: value })}
+                      format="DD/MM/YYYY"
+                      className="w-full"
+                    />
+                  </Field>
+                  <Field label="Ngày kết thúc">
+                    <DatePicker
+                      value={form.newEndAt}
+                      onChange={(value) => patchForm({ newEndAt: value })}
+                      format="DD/MM/YYYY"
+                      className="w-full"
+                    />
+                  </Field>
+                  <Field label="Ngày bàn giao">
+                    <DatePicker
+                      value={form.newHandoverDate}
+                      onChange={(value) =>
+                        patchForm({ newHandoverDate: value })
+                      }
+                      format="DD/MM/YYYY"
+                      className="w-full"
+                    />
+                  </Field>
+                  <Field label="Cọc cần thu thêm">
+                    <InputNumber
+                      min={0}
+                      value={form.additionalDepositAmount}
+                      onChange={(value) =>
+                        patchForm({ additionalDepositAmount: value ?? 0 })
+                      }
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
+                      className="w-full"
+                    />
+                  </Field>
+                  {activeLeaseReview && (
+                    <>
+                      <Field label="Tiền thuê còn phải quyết toán">
+                        <InputNumber
+                          min={0}
+                          value={form.oldRentProratedAmount}
+                          onChange={(value) =>
+                            patchForm({ oldRentProratedAmount: value ?? 0 })
+                          }
+                          formatter={(value) =>
+                            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }
+                          parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
+                          className="w-full"
+                        />
+                      </Field>
+                      <Field label="Điện nước/dịch vụ chưa thanh toán">
+                        <InputNumber
+                          min={0}
+                          value={form.oldUtilitiesAmount}
+                          onChange={(value) =>
+                            patchForm({ oldUtilitiesAmount: value ?? 0 })
+                          }
+                          formatter={(value) =>
+                            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }
+                          parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
+                          className="w-full"
+                        />
+                      </Field>
+                      <Field label="Chi phí hư hỏng do khách">
+                        <InputNumber
+                          min={0}
+                          value={form.oldDamageAmount}
+                          onChange={(value) =>
+                            patchForm({ oldDamageAmount: value ?? 0 })
+                          }
+                          formatter={(value) =>
+                            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }
+                          parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
+                          className="w-full"
+                        />
+                      </Field>
+                      <Field label="Phí xử lý/hành chính">
+                        <InputNumber
+                          min={0}
+                          value={form.adminFeeAmount}
+                          onChange={(value) =>
+                            patchForm({ adminFeeAmount: value ?? 0 })
+                          }
+                          formatter={(value) =>
+                            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }
+                          parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
+                          className="w-full"
+                        />
+                      </Field>
+                      <Field label="Cọc còn được đối trừ">
+                        <InputNumber
+                          min={0}
+                          value={form.refundableDepositAmount}
+                          onChange={(value) =>
+                            patchForm({ refundableDepositAmount: value ?? 0 })
+                          }
+                          formatter={(value) =>
+                            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }
+                          parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
+                          className="w-full"
+                        />
+                      </Field>
+                      <Field label="Tổng khách cần thanh toán thêm">
+                        <InputNumber
+                          min={0}
+                          value={form.totalAdditionalPaymentAmount}
+                          onChange={(value) =>
+                            patchForm({
+                              totalAdditionalPaymentAmount: value ?? 0,
+                            })
+                          }
+                          formatter={(value) =>
+                            `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                          }
+                          parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
+                          className="w-full"
+                        />
+                      </Field>
+                    </>
+                  )}
                 </>
               )}
               {isRefundResolution && (
                 <>
-              <Field label="Số tiền hoàn">
-                <InputNumber
-                  min={0}
-                  value={form.refundAmount}
-                  onChange={(value) => patchForm({ refundAmount: value ?? 0 })}
-                  formatter={(value) =>
-                    `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                  }
-                  parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
-                  className="w-full"
-                />
-              </Field>
-              <Field label="Hạn hoàn tiền">
-                <DatePicker
-                  value={form.refundDueAt}
-                  onChange={(value) => patchForm({ refundDueAt: value })}
-                  format="DD/MM/YYYY"
-                  className="w-full"
-                />
-              </Field>
+                  <Field label="Số tiền hoàn">
+                    <InputNumber
+                      min={0}
+                      value={form.refundAmount}
+                      onChange={(value) =>
+                        patchForm({ refundAmount: value ?? 0 })
+                      }
+                      formatter={(value) =>
+                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                      }
+                      parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
+                      className="w-full"
+                    />
+                  </Field>
+                  <Field label="Hạn hoàn tiền">
+                    <DatePicker
+                      value={form.refundDueAt}
+                      onChange={(value) => patchForm({ refundDueAt: value })}
+                      format="DD/MM/YYYY"
+                      className="w-full"
+                    />
+                  </Field>
                 </>
               )}
             </div>
@@ -1091,7 +1261,9 @@ export default function RelocationRequestsPage() {
               <Field label="Căn cứ pháp lý/điều khoản">
                 <Input.TextArea
                   value={form.legalBasis}
-                  onChange={(event) => patchForm({ legalBasis: event.target.value })}
+                  onChange={(event) =>
+                    patchForm({ legalBasis: event.target.value })
+                  }
                   rows={3}
                   maxLength={1600}
                   showCount
@@ -1103,7 +1275,9 @@ export default function RelocationRequestsPage() {
               <Field label="Ghi nhận hiện trạng/quyết toán nhà cũ">
                 <Input.TextArea
                   value={form.inspectionNote}
-                  onChange={(event) => patchForm({ inspectionNote: event.target.value })}
+                  onChange={(event) =>
+                    patchForm({ inspectionNote: event.target.value })
+                  }
                   rows={3}
                   maxLength={1200}
                   showCount
@@ -1115,7 +1289,9 @@ export default function RelocationRequestsPage() {
             <Field label="Ghi chú xử lý">
               <Input.TextArea
                 value={form.managerNote}
-                onChange={(event) => patchForm({ managerNote: event.target.value })}
+                onChange={(event) =>
+                  patchForm({ managerNote: event.target.value })
+                }
                 rows={4}
                 maxLength={1000}
                 showCount
@@ -1163,15 +1339,18 @@ export default function RelocationRequestsPage() {
       >
         <div className="space-y-5 pt-2">
           <div className="rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900">
-            Staff/manager ghi nhận nhà không thể bàn giao hoặc không còn phù hợp để ở.
-            Hệ thống sẽ tạo yêu cầu lỗi bên cho thuê để manager chọn đổi nhà hoặc hoàn tiền.
+            Staff/manager ghi nhận nhà không thể bàn giao hoặc không còn phù hợp
+            để ở. Hệ thống sẽ tạo yêu cầu lỗi bên cho thuê để manager chọn đổi
+            nhà hoặc hoàn tiền.
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <Field label="Số hợp đồng đã ký">
               <Select
                 value={reportForm.contractNumber || undefined}
-                onChange={(value) => patchReportForm({ contractNumber: value || "" })}
+                onChange={(value) =>
+                  patchReportForm({ contractNumber: value || "" })
+                }
                 onSearch={searchReportContracts}
                 options={contractOptions}
                 showSearch
@@ -1179,7 +1358,13 @@ export default function RelocationRequestsPage() {
                 filterOption={(input, option) =>
                   (option?.searchText ?? "").includes(input.toLowerCase())
                 }
-                notFoundContent={contractSearching ? <Spin size="small" /> : "Không tìm thấy hợp đồng đã ký"}
+                notFoundContent={
+                  contractSearching ? (
+                    <Spin size="small" />
+                  ) : (
+                    "Không tìm thấy hợp đồng đã ký"
+                  )
+                }
                 placeholder="Nhập số hợp đồng/VNPT để tìm"
                 className="w-full"
               />
@@ -1187,7 +1372,9 @@ export default function RelocationRequestsPage() {
             <Field label="Nhà thay thế đề xuất">
               <Select
                 value={reportForm.recommendedHouseId}
-                onChange={(value) => patchReportForm({ recommendedHouseId: value })}
+                onChange={(value) =>
+                  patchReportForm({ recommendedHouseId: value })
+                }
                 options={houseOptions}
                 showSearch
                 allowClear
@@ -1201,7 +1388,9 @@ export default function RelocationRequestsPage() {
           <Field label="Nội dung biên bản">
             <Input.TextArea
               value={reportForm.reportReason}
-              onChange={(event) => patchReportForm({ reportReason: event.target.value })}
+              onChange={(event) =>
+                patchReportForm({ reportReason: event.target.value })
+              }
               rows={4}
               maxLength={1000}
               showCount
@@ -1220,7 +1409,9 @@ export default function RelocationRequestsPage() {
               }
               onRemove={(file) => {
                 patchReportForm({
-                  evidenceFiles: reportForm.evidenceFiles.filter((item) => item.uid !== file.uid),
+                  evidenceFiles: reportForm.evidenceFiles.filter(
+                    (item) => item.uid !== file.uid,
+                  ),
                 });
               }}
               className="bg-slate-50"
@@ -1234,7 +1425,8 @@ export default function RelocationRequestsPage() {
                     Chọn hoặc kéo thả ảnh biên bản/hiện trạng
                   </p>
                   <p className="mt-1 text-xs text-slate-500">
-                    Tối đa 5 ảnh, mỗi ảnh không quá 10MB. Hệ thống sẽ upload lên S3 khi tạo biên bản.
+                    Tối đa 5 ảnh, mỗi ảnh không quá 10MB. Hệ thống sẽ upload lên
+                    S3 khi tạo biên bản.
                   </p>
                 </div>
               </div>
@@ -1298,81 +1490,58 @@ export default function RelocationRequestsPage() {
   );
 }
 
-function Metric({ label, value, tone = "sky" }) {
-  const toneClass =
-    tone === "amber"
-      ? "bg-amber-50 text-amber-700"
-      : tone === "emerald"
-        ? "bg-emerald-50 text-emerald-700"
-      : tone === "indigo"
-        ? "bg-indigo-50 text-indigo-700"
-      : tone === "slate"
-        ? "bg-slate-100 text-slate-700"
-        : tone === "violet"
-          ? "bg-violet-50 text-violet-700"
-          : "bg-sky-50 text-sky-700";
-
-  return (
-    <div className={`min-w-[118px] rounded-xl px-4 py-3 ${toneClass}`}>
-      <div className="text-xs font-medium opacity-80">{label}</div>
-      <div className="mt-1 text-2xl font-semibold leading-none">{value}</div>
-    </div>
-  );
-}
-
-function TableHead({ children, align = "left" }) {
+function TableHead({ children, align = "left", className = "" }) {
   const alignClass = align === "right" ? "text-right" : "text-left";
   return (
     <th
       scope="col"
-      className={`px-4 py-3 ${alignClass} text-xs font-semibold uppercase tracking-wide text-slate-500`}
+      className={`${TABLE_HEAD_CLASS} ${alignClass} ${className}`}
     >
       {children}
     </th>
   );
 }
 
-function TableCell({ children, align = "left" }) {
+function TableCell({ children, align = "left", className = "" }) {
   const alignClass = align === "right" ? "text-right" : "text-left";
   return (
-    <td className={`whitespace-nowrap px-4 py-4 ${alignClass} text-sm text-slate-700`}>
+    <td className={`${TABLE_CELL_CLASS} ${alignClass} ${className}`}>
       {children}
     </td>
   );
 }
 
-function StatusBadge({ status }) {
+function RelocationStatusBadge({ status }) {
   const meta = STATUS_META[status] || {
     label: status || "-",
     tone: "bg-slate-100 text-slate-700 border-slate-200",
   };
 
-  return (
-    <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ${meta.tone}`}>
-      {meta.label}
-    </span>
-  );
+  return <StatusBadge label={meta.label} className={meta.tone} />;
 }
 
 function FaultBadge({ fault }) {
   if (fault === "LANDLORD") {
     return (
-      <span className="inline-flex rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[11px] font-semibold text-rose-700">
-        Lỗi chủ nhà
-      </span>
+      <StatusBadge
+        label="Lỗi chủ nhà"
+        className="border-rose-200 bg-rose-50 text-rose-700"
+      />
     );
   }
   if (fault === "TENANT") {
     return (
-      <span className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-        Lỗi khách
-      </span>
+      <StatusBadge
+        label="Lỗi khách"
+        className="border-amber-200 bg-amber-50 text-amber-700"
+      />
     );
   }
   return (
-    <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
-      {fault || "Chưa rõ lỗi"}
-    </span>
+    <StatusBadge
+      label={fault || "Chưa rõ lỗi"}
+      className="border-slate-200 bg-slate-50 text-slate-600"
+    />
   );
 }
 
@@ -1381,11 +1550,7 @@ function KindBadge({ kind }) {
     label: kind || "Chưa phân loại",
     tone: "border-slate-200 bg-slate-50 text-slate-600",
   };
-  return (
-    <span className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold ${meta.tone}`}>
-      {meta.label}
-    </span>
-  );
+  return <StatusBadge label={meta.label} className={meta.tone} />;
 }
 
 function Field({ label, children }) {

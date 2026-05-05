@@ -16,7 +16,8 @@ function clamp(value, min, max) {
 
 function normalizeSigningPage(page, pageCount) {
   const parsed = Number(page);
-  const normalized = Number.isFinite(parsed) && parsed >= 1 ? Math.floor(parsed) : 1;
+  const normalized =
+    Number.isFinite(parsed) && parsed >= 1 ? Math.floor(parsed) : 1;
   return pageCount ? Math.min(normalized, pageCount) : normalized;
 }
 
@@ -33,7 +34,10 @@ function createFallbackPageInfo(containerWidth, containerHeight) {
 }
 
 function getPageInfo(signingPage, pageInfo, containerWidth, containerHeight) {
-  return pageInfo[signingPage - 1] ?? createFallbackPageInfo(containerWidth, containerHeight);
+  return (
+    pageInfo[signingPage - 1] ??
+    createFallbackPageInfo(containerWidth, containerHeight)
+  );
 }
 
 function getPageOffsetY(signingPage, pageInfo, fallbackHeightPx) {
@@ -47,7 +51,8 @@ function getPageOffsetY(signingPage, pageInfo, fallbackHeightPx) {
 function parseVnptPosition(value) {
   if (!value || typeof value !== "string") return null;
   const parts = value.split(",").map((part) => Number(part.trim()));
-  if (parts.length !== 4 || parts.some((part) => !Number.isFinite(part))) return null;
+  if (parts.length !== 4 || parts.some((part) => !Number.isFinite(part)))
+    return null;
   const [llx, lly, urx, ury] = parts;
   return { llx, lly, urx, ury };
 }
@@ -81,9 +86,17 @@ function toSigningPosition(x, y, containerWidth, signingPage, pageInfo) {
   const scaleX = info.widthPt / containerWidth;
   const scaleY = info.heightPt / info.heightPx;
 
-  const llx = clamp(Math.round(x * scaleX), 0, Math.max(info.widthPt - SIG_W_PT, 0));
+  const llx = clamp(
+    Math.round(x * scaleX),
+    0,
+    Math.max(info.widthPt - SIG_W_PT, 0),
+  );
   const urx = Math.round(llx + SIG_W_PT);
-  const ury = clamp(Math.round(info.heightPt - yInPage * scaleY), SIG_H_PT, info.heightPt);
+  const ury = clamp(
+    Math.round(info.heightPt - yInPage * scaleY),
+    SIG_H_PT,
+    info.heightPt,
+  );
   const lly = Math.round(ury - SIG_H_PT);
 
   return `${llx},${lly},${urx},${ury}`;
@@ -107,6 +120,7 @@ export default function DragSignatureBox({
   pageInfo = [],
   defaultVnptPosition = null,
 }) {
+  const { t } = useTranslation("common");
   const signatureSrc = signatureImage
     ? signatureImage.startsWith("data:")
       ? signatureImage
@@ -121,7 +135,7 @@ export default function DragSignatureBox({
   });
   const [isDragging, setIsDragging] = useState(false);
   const dragRef = useRef(null);
-  const containerHeightRef = useRef(1200);
+  const [containerHeight, setContainerHeight] = useState(1200);
 
   // offset thực tế: chỉ dùng nếu đúng trang đang ký
   const activeOffset =
@@ -133,7 +147,7 @@ export default function DragSignatureBox({
       const rect = containerRef.current?.getBoundingClientRect();
       if (rect?.width) setContainerWidth(rect.width);
       const scrollHeight = containerRef.current?.scrollHeight;
-      if (scrollHeight) containerHeightRef.current = scrollHeight;
+      if (scrollHeight) setContainerHeight(scrollHeight);
     };
     update();
     const ro = new ResizeObserver(update);
@@ -142,42 +156,48 @@ export default function DragSignatureBox({
   }, [containerRef]);
 
   const info = useMemo(
-    () => getPageInfo(activePage, pageInfo, containerSize.width, containerSize.height),
-    [activePage, containerSize.height, containerSize.width, pageInfo],
+    () => getPageInfo(signingPage, pageInfo, containerWidth, containerHeight),
+    [signingPage, containerHeight, containerWidth, pageInfo],
   );
 
   const pageOffsetY = useMemo(
-    () => getPageOffsetY(activePage, pageInfo, info.heightPx),
-    [activePage, info.heightPx, pageInfo],
+    () => getPageOffsetY(signingPage, pageInfo, info.heightPx),
+    [signingPage, info.heightPx, pageInfo],
   );
 
   const boxSize = useMemo(() => {
-    if (!containerSize.width) return { w: 170, h: 90 };
+    if (!containerWidth) return { w: 170, h: 90 };
     return {
-      w: Math.round(SIG_W_PT * (containerSize.width / info.widthPt)),
+      w: Math.round(SIG_W_PT * (containerWidth / info.widthPt)),
       h: Math.round(SIG_H_PT * (info.heightPx / info.heightPt)),
     };
-  }, [containerSize.width, info]);
+  }, [containerWidth, info]);
 
   const defaultPos = useMemo(() => {
     if (!containerWidth) return null;
     if (!info) {
       const boxW = 170;
       const boxH = 90;
-      const containerHeight = containerHeightRef.current || 1200;
       return {
         x: Math.max(0, Math.round((containerWidth - boxW) / 2)),
         y: Math.max(0, Math.round((containerHeight - boxH) / 2)),
       };
     }
-    const pageOffsetY = getPageOffsetY(signingPage, pageInfo);
     const boxW = Math.round(SIG_W_PT * (containerWidth / info.widthPt));
     const boxH = Math.round(SIG_H_PT * (info.heightPx / info.heightPt));
     return {
-      x: Math.round((containerSize.width - boxSize.w) / 2),
+      x: Math.round((containerWidth - boxSize.w) / 2),
       y: Math.round(pageOffsetY + (info.heightPx - boxSize.h) / 2),
     };
-  }, [boxSize.h, boxSize.w, containerSize.width, defaultVnptPosition, info, pageOffsetY]);
+  }, [
+    boxSize.h,
+    boxSize.w,
+    containerHeight,
+    containerWidth,
+    defaultVnptPosition,
+    info,
+    pageOffsetY,
+  ]);
 
   const pos = defaultPos
     ? { x: defaultPos.x + activeOffset.x, y: defaultPos.y + activeOffset.y }

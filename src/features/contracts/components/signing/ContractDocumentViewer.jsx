@@ -58,6 +58,10 @@ export default function ContractDocumentViewer({
     }
     if (hasScrolledRef.current) return;
 
+    const main = mainRef.current;
+    const wrapper = iframeWrapperRef.current;
+    if (!main || !wrapper) return;
+
     const signingPageIdx = effectiveSigningPage - 1;
     const info = pageInfo[signingPageIdx];
     if (!info) {
@@ -66,18 +70,6 @@ export default function ContractDocumentViewer({
       hasScrolledRef.current = true;
       return;
     }
-
-    const main = mainRef.current;
-    const wrapper = iframeWrapperRef.current;
-    if (!main || !wrapper) return;
-
-    const signingPageIdx = signingPage - 1;
-    const fallbackHeightPx = Math.max(wrapper.scrollHeight || wrapper.clientHeight || 0, 900);
-    const info = pageInfo[signingPageIdx] ?? {
-      heightPx: fallbackHeightPx,
-      widthPt: 595,
-      heightPt: 842,
-    };
 
     // Tính Y của ô chữ ký trong iframeWrapper — ưu tiên vị trí VNPT nếu có
     const SEPARATOR_H_PX = 16;

@@ -245,12 +245,12 @@ function CoTenantsSection({ contractId }) {
       const data = await listCoTenants(contractId);
       const arr = Array.isArray(data) ? data : [];
       if (arr.length === 0) {
-        // eslint-disable-next-line no-console
+         
         console.info("[QuickEditPanel] listCoTenants 0 rows contractId=", contractId, "raw=", data);
       }
       setList(arr);
     } catch (err) {
-      // eslint-disable-next-line no-console
+       
       console.error("[QuickEditPanel] listCoTenants failed:",
         err?.response?.status, err?.response?.data, err?.message);
       setList([]);
