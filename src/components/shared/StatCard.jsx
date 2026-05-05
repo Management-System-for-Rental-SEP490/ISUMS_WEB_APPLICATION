@@ -3,7 +3,8 @@ import React from "react";
 const CARD_CLASS =
   "relative overflow-hidden rounded-2xl border border-brand-border bg-brand-card shadow-card";
 const BODY_CLASS = "flex items-center justify-between gap-4 px-4 py-3";
-const LABEL_CLASS = "text-xs font-semibold uppercase tracking-widest text-brand-muted-fg";
+const LABEL_CLASS =
+  "text-xs font-semibold uppercase tracking-widest text-brand-muted-fg";
 const VALUE_CLASS = "text-2xl font-semibold text-brand-fg";
 
 const TONE_STYLES = {
