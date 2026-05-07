@@ -95,13 +95,18 @@ export default function CreateContractWizard({
       } else if (!/^\d{9,12}$/.test(identityNumber)) {
         newErrors.identityNumber = t("contracts.validation.invalidId");
       }
-      if (currentForm.dateOfIssue) {
+      if (!currentForm.dateOfIssue) {
+        newErrors.dateOfIssue = t("contracts.validation.required");
+      } else {
         if (currentForm.dateOfIssue > todayIso) {
           newErrors.dateOfIssue = t("contracts.validation.idIssueFuture");
         }
         if (currentForm.startDate && currentForm.dateOfIssue > currentForm.startDate) {
           newErrors.dateOfIssue = t("contracts.validation.idIssueAfterStart");
         }
+      }
+      if (!safeTrim(currentForm.placeOfIssue)) {
+        newErrors.placeOfIssue = t("contracts.validation.required");
       }
     }
 
@@ -139,25 +144,9 @@ export default function CreateContractWizard({
       }
     }
 
-    if (!safeTrim(currentForm.depositDate))  newErrors.depositDate  = t("contracts.validation.selectDepositDate");
-    if (!safeTrim(currentForm.handoverDate)) newErrors.handoverDate = t("contracts.validation.selectHandoverDate");
-
     const payDateNumber = Number(currentForm.payDate);
     if (!Number.isFinite(payDateNumber) || payDateNumber < 1 || payDateNumber > 28) {
       newErrors.payDate = t("contracts.validation.payDateRange");
-    }
-
-    if (currentForm.depositDate && currentForm.startDate && currentForm.depositDate < currentForm.startDate) {
-      newErrors.depositDate = t("contracts.validation.depositBeforeStart");
-    }
-
-    if (currentForm.handoverDate) {
-      if (currentForm.startDate && currentForm.handoverDate < currentForm.startDate) {
-        newErrors.handoverDate = t("contracts.validation.handoverBeforeStart");
-      }
-      if (currentForm.endDate && currentForm.handoverDate > currentForm.endDate) {
-        newErrors.handoverDate = t("contracts.validation.handoverAfterEnd");
-      }
     }
 
     return newErrors;
@@ -172,7 +161,7 @@ export default function CreateContractWizard({
 
     const numericFields = [
       "lateDays", "maxLateDays", "cureDays", "renewNoticeDays",
-      "landlordNoticeDays", "forceMajeureNoticeHours", "disputeDays",
+      "landlordNoticeDays", "disputeDays",
     ];
     for (const key of numericFields) {
       const raw = safeTrim(currentForm[key]);

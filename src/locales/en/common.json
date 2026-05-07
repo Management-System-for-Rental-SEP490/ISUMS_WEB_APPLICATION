@@ -91,9 +91,89 @@
     "saveError": "Failed to save settings, please try again.",
     "tabs": {
       "profile": "Profile",
+      "landlord": "Rental Settings",
       "notifications": "Notifications",
       "security": "Security",
-      "system": "System"
+      "system": "System",
+      "voiceProvider": "Voice Provider"
+    },
+    "voiceProvider": {
+      "title": "Voice Provider",
+      "subtitle": "Select the outbound voice call provider for PREMIUM alerts. Applies immediately on save (5-minute cache).",
+      "active": "Active",
+      "reload": "Reload",
+      "save": "Save",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "savedTo": "Switched to {{provider}}",
+      "loadFailed": "Failed to load configuration",
+      "saveFailed": "Failed to save",
+      "empty": "No providers available.",
+      "providers": {
+        "STRINGEE": {
+          "title": "Stringee",
+          "desc": "Vietnamese phone numbers, native VN TTS, low cost. Production recommended."
+        },
+        "AWS_PINPOINT": {
+          "title": "AWS Pinpoint Voice",
+          "desc": "International numbers (US/UK), Polly Vietnamese (Lan/Hieu). Test only."
+        },
+        "TWILIO": {
+          "title": "Twilio",
+          "desc": "International numbers, TwiML voice. Fallback option."
+        },
+        "SPEEDSMS": {
+          "title": "SpeedSMS",
+          "desc": "Voice OTP digits-only. Limited for free-form text."
+        }
+      }
+    },
+    "landlord": {
+      "loading": "Loading settings...",
+      "loadError": "Could not load landlord settings.",
+      "profileMissing": "You don't have a landlord profile yet. Update your profile before setting rental options.",
+      "depositWaitTitle": "Deposit deadline",
+      "depositWaitSubtitle": "How many days the property is held for the tenant after signing. If the deposit is not paid in time, the contract is auto-cancelled and the property reopens to others.",
+      "depositWaitDaysLabel": "Days",
+      "depositWaitHint": "Between {{min}} and {{max}} days. Default 3.",
+      "depositExpiryWarning": "Signed contracts unpaid after {{days}} days are auto-cancelled. Both you and the tenant receive an email when this happens.",
+      "forceMajeureTitle": "Force majeure notice",
+      "forceMajeureSubtitle": "When a force majeure event occurs (natural disaster, fire, epidemic…), how many hours the affected party has to notify the other. Rendered into every new contract.",
+      "forceMajeureLabel": "Notice hours",
+      "forceMajeureHint": "Between {{min}} and {{max}} hours. Default 24.",
+      "hoursUnit": "hours",
+      "daysUnit": "days",
+      "saveButton": "Save settings",
+      "saving": "Saving...",
+      "saveSuccess": "Profile updated.",
+      "saveError": "Update failed, please try again.",
+      "personalInfoTitle": "Landlord details on the contract",
+      "personalInfoSubtitle": "These fields auto-fill the LANDLORD section on every new contract you create.",
+      "fullNameLabel": "Full name",
+      "fullNamePlaceholder": "John Doe",
+      "dobLabel": "Date of birth",
+      "identityNumberLabel": "ID / CCCD number",
+      "identityNumberPlaceholder": "12 digits",
+      "identityIssueDateLabel": "Issue date",
+      "identityIssueDatePlaceholder": "DD/MM/YYYY",
+      "identityIssuePlaceLabel": "Issue place",
+      "identityIssuePlacePlaceholder": "e.g. National Police Department",
+      "permanentAddressLabel": "Permanent address",
+      "permanentAddressPlaceholder": "Street, ward, district, city",
+      "addressLabel": "Contact address",
+      "addressPlaceholder": "If different from permanent address",
+      "phoneLabel": "Phone",
+      "phonePlaceholder": "0xxxxxxxxx",
+      "phoneNumberLabel": "Phone",
+      "phoneNumberPlaceholder": "0xxxxxxxxx",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "bankAccountLabel": "Bank account",
+      "bankAccountPlaceholder": "Account number",
+      "bankNameLabel": "Bank",
+      "bankNamePlaceholder": "e.g. Vietcombank",
+      "taxCodeLabel": "Tax code (optional)",
+      "taxCodePlaceholder": "10–13 digits"
     },
     "profile": {
       "title": "Personal Information",
@@ -143,6 +223,14 @@
   "dashboard": {
     "overview": "Overview",
     "welcome": "Welcome back 👋",
+    "bookableWidget": {
+      "title": "Houses ending soon — accepting deposits",
+      "unit": "house(s)",
+      "viewAll": "View all",
+      "empty": "No houses ending in the next 30 days",
+      "daysLeft": "{{days}} days left",
+      "now": "Available"
+    },
     "stats": {
       "totalContracts": "Total Contracts",
       "inSystem": "In the system",
@@ -400,6 +488,7 @@
       "IN_PROGRESS": "In Progress",
       "COMPLETED": "Completed",
       "PENDING_TERMINATION": "Expiring Soon",
+      "INSPECTION_DONE": "Inspection Done",
       "PENDING_REPLACEMENT_HANDOVER": "Pending replacement handover",
       "REPLACED_BEFORE_DEPOSIT": "Replaced (before deposit)",
       "REPLACED_AFTER_DEPOSIT": "Replaced (after deposit)",
@@ -646,9 +735,26 @@
       "dateOfIssue": "ID Issue Date",
       "placeOfIssue": "ID Issue Place",
       "rentalHouse": "Rental Property",
-      "availableHouses": "Available properties",
+      "availableHouses": "Choose a property to rent",
       "selectHouse": "-- Select property --",
       "loadingHouse": "Loading property details...",
+      "groupAvailableNow": "Vacant — move in now ({{count}})",
+      "groupBookable": "Coming soon — pre-book with deposit ({{count}})",
+      "bookableHint": "{{days}} days left — handover from {{date}}",
+      "bookableNowHint": "Ready for handover from {{date}}",
+      "bookableBanner": "Currently leased through its final month — you can place a deposit to reserve it",
+      "noHouseAvailable": "No matching properties",
+      "filterCategory": {
+        "ALL": "All",
+        "AVAILABLE_NOW": "Available now",
+        "DEPOSIT_BOOKABLE": "Pre-book with deposit"
+      },
+      "filterCityPlaceholder": "Filter by city",
+      "filterCount": "{{count}} matches",
+      "sort": {
+        "AVAILABLE_FIRST": "Earliest available",
+        "NAME_ASC": "Name A → Z"
+      },
       "houseAmenities": "Featured amenities",
       "money": "Rent & Costs",
       "rent": "Rent Amount (VND) *",
@@ -786,6 +892,17 @@
         "description": "The system will resend the notification email to the tenant to review and confirm the contract.",
         "confirmLabel": "Resend"
       },
+      "resendTenantSign": {
+        "button": "Resend signing email",
+        "dialogTitle": "Resend signing email to tenant",
+        "dialogDescription": "VNPT will issue a fresh signing code and email a new link to the tenant. The previous link in their inbox will stop working.",
+        "dialogConfirm": "Send new email",
+        "success": "Signing email resent to the tenant.",
+        "error": "Resend failed, please try again.",
+        "error403": "You do not have permission to resend the signing email.",
+        "error404": "Contract not found.",
+        "error422": "Contract is not awaiting tenant signature, or VNPT rejected the request."
+      },
       "confirmSuccess": "Confirmed! Email has been sent to the tenant for review.",
       "resendSuccess": "Contract has been resent to the tenant for review.",
       "confirm400": "Cannot confirm this contract (contract does not meet conditions).",
@@ -868,6 +985,36 @@
       "noPdf": "No PDF file available for this contract.",
       "loadError": "Failed to load PDF. Please try again later.",
       "loading": "Loading PDF..."
+    },
+    "cashDeposit": {
+      "button": "Confirm cash deposit",
+      "modal": {
+        "title": "Confirm cash deposit",
+        "subtitle": "Issue a receipt for the deposit you have received",
+        "contract": "Contract",
+        "tenant": "Tenant",
+        "amountLabel": "Amount (VND)",
+        "amountMismatch": "Amount must equal {{expected}} ₫",
+        "noteLabel": "Note",
+        "notePlaceholder": "Optional note",
+        "acknowledge": "I confirm I have received the full amount above",
+        "submit": "Issue receipt",
+        "cancel": "Cancel",
+        "issuedTitle": "Receipt issued",
+        "method": "Cash",
+        "issuedHint": "Print 2 copies, sign with the tenant and hand them one original.",
+        "printPdf": "Print PDF",
+        "close": "Close"
+      },
+      "toast": {
+        "success": "Receipt {{number}} issued",
+        "pdfError": "Failed to download receipt PDF",
+        "error400": "Invalid input, please check the amount",
+        "error403": "You don't have permission to confirm this deposit",
+        "error404": "Contract not found",
+        "error409": "Receipt already exists",
+        "errorDefault": "Could not issue receipt, please retry"
+      }
     }
   },
   "houses": {
@@ -889,12 +1036,36 @@
     "status": {
       "AVAILABLE": "Available",
       "RENTED": "Rented",
-      "MAINTENANCE": "Maintenance"
+      "MAINTENANCE": "Maintenance",
+      "REPAIRED": "Temporarily unavailable"
     },
     "statusCard": {
       "AVAILABLE": "VACANT",
       "RENTED": "RENTED",
-      "MAINTENANCE": "MAINTENANCE"
+      "MAINTENANCE": "MAINTENANCE",
+      "REPAIRED": "TEMPORARILY UNAVAILABLE"
+    },
+    "subscribe": {
+      "subscribe": "Notify when available",
+      "unsubscribe": "Stop notifications",
+      "subscribed": "You'll be notified when this house becomes available",
+      "unsubscribed": "Unsubscribed from this house",
+      "error": "Could not update subscription, please try again"
+    },
+    "statusUpdate": {
+      "title": "Update house status",
+      "current": "Current",
+      "next": "Change to",
+      "optionAvailable": "Available for rent",
+      "optionRepaired": "Temporarily unavailable (under repair)",
+      "rentedHint": "The 'Rented' status is driven by the contract lifecycle and cannot be changed manually.",
+      "trigger": "Change status",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "successAvailable": "House is now available for rent.",
+      "successRepaired": "House has been marked temporarily unavailable.",
+      "error": "Unable to update status. Please try again.",
+      "rentedBlocked": "Cannot change status while the house is rented."
     },
     "areaType": {
       "BEDROOM": "Bedroom",
@@ -946,6 +1117,14 @@
         "region": "Please select a region",
         "address": "Please select an address"
       }
+    },
+    "edit": {
+      "title": "Edit property",
+      "subtitle": "Update an existing property",
+      "save": "Save changes",
+      "saving": "Saving...",
+      "successToast": "Property updated successfully!",
+      "failToast": "Update failed, please try again."
     },
     "translations": {
       "title": "Review auto-translated content",
@@ -1008,18 +1187,16 @@
     },
     "addArea": {
       "title": "Add new area",
-      "nameLabel": "Area name",
-      "namePlaceholder": "e.g. Bedroom 1, Main kitchen...",
       "areaTypeLabel": "Area type",
       "floorLabel": "Floor",
       "floorOption": "Floor {{n}}",
-      "customTypeLabel": "Specific type",
+      "customTypeLabel": "Custom area type name",
       "customTypePlaceholder": "e.g. Balcony, Garage, Laundry room...",
       "descriptionLabel": "Description",
       "descriptionPlaceholder": "Add more details about this area...",
       "submit": "Add area",
-      "errorName": "Please enter an area name.",
-      "errorCustomType": "Please describe the area type."
+      "errorAreaType": "Please select an area type.",
+      "errorCustomType": "Please name the custom area type."
     },
     "createAsset": {
       "title": "Add new asset",
@@ -1512,6 +1689,7 @@
       "CREATED": "Created",
       "SCHEDULED": "Scheduled",
       "IN_PROGRESS": "In Progress",
+      "PENDING_MANAGER_REVIEW": "Awaiting manager review",
       "DONE": "Done",
       "APPROVED": "Approved",
       "CANCELLED": "Cancelled"

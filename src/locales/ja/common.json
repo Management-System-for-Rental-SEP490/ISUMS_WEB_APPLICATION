@@ -91,9 +91,62 @@
     "saveError": "保存に失敗しました。もう一度お試しください。",
     "tabs": {
       "profile": "プロフィール",
+      "landlord": "賃貸設定",
       "notifications": "通知",
       "security": "セキュリティ",
-      "system": "システム"
+      "system": "システム",
+      "voiceProvider": "音声プロバイダ"
+    },
+    "voiceProvider": {
+      "title": "音声プロバイダ",
+      "subtitle": "PREMIUM 通知の音声発信プロバイダを選択します。保存後すぐに反映されます（5分キャッシュ）。",
+      "active": "使用中",
+      "reload": "再読込",
+      "save": "保存",
+      "cancel": "キャンセル",
+      "saving": "保存中...",
+      "savedTo": "{{provider}} に切り替えました",
+      "loadFailed": "設定を読み込めませんでした",
+      "saveFailed": "保存できませんでした",
+      "empty": "利用可能なプロバイダがありません。",
+      "providers": {
+        "STRINGEE": {
+          "title": "Stringee",
+          "desc": "ベトナム番号、ネイティブ TTS、低コスト。本番推奨。"
+        },
+        "AWS_PINPOINT": {
+          "title": "AWS Pinpoint Voice",
+          "desc": "国際番号 (US/UK)、Polly Vietnamese (Lan/Hieu)。テスト用。"
+        },
+        "TWILIO": {
+          "title": "Twilio",
+          "desc": "国際番号、TwiML voice。フォールバック。"
+        },
+        "SPEEDSMS": {
+          "title": "SpeedSMS",
+          "desc": "Voice OTP は数字のみ。自由文不可。"
+        }
+      }
+    },
+    "landlord": {
+      "loading": "設定を読み込み中...",
+      "loadError": "設定を読み込めませんでした。",
+      "profileMissing": "オーナープロフィールがまだ作成されていません。プロフィールを更新してから設定してください。",
+      "depositWaitTitle": "敷金支払期限",
+      "depositWaitSubtitle": "契約署名後、テナントのために物件を確保する日数。期限までに敷金が支払われない場合、契約は自動キャンセルされ、物件は再度利用可能になります。",
+      "depositWaitDaysLabel": "日数",
+      "depositWaitHint": "{{min}}〜{{max}}日。デフォルトは3日。",
+      "depositExpiryWarning": "署名済み契約で{{days}}日以内に敷金が支払われない場合、自動キャンセルされます。発生時にあなたとテナントの両方にメールが届きます。",
+      "forceMajeureTitle": "不可抗力通知期限",
+      "forceMajeureSubtitle": "不可抗力（自然災害、火災、疫病など）が発生した際、影響を受けた当事者が相手方に通知すべき時間。新規契約にすべて反映されます。",
+      "forceMajeureLabel": "通知時間",
+      "forceMajeureHint": "{{min}}〜{{max}}時間。デフォルトは24時間。",
+      "hoursUnit": "時間",
+      "daysUnit": "日",
+      "saveButton": "設定を保存",
+      "saving": "保存中...",
+      "saveSuccess": "敷金支払期限を更新しました。",
+      "saveError": "更新に失敗しました。再試行してください。"
     },
     "profile": {
       "title": "個人情報",
@@ -143,6 +196,14 @@
   "dashboard": {
     "overview": "概要",
     "welcome": "おかえりなさい 👋",
+    "bookableWidget": {
+      "title": "近日契約終了 — 敷金予約受付中",
+      "unit": "件",
+      "viewAll": "すべて見る",
+      "empty": "30日以内に終了する物件はありません",
+      "daysLeft": "残り{{days}}日",
+      "now": "利用可能"
+    },
     "stats": {
       "totalContracts": "総契約数",
       "inSystem": "システム内",
@@ -402,6 +463,7 @@
       "IN_PROGRESS": "入居者署名待ち",
       "COMPLETED": "完了",
       "PENDING_TERMINATION": "間もなく期限切れ",
+      "INSPECTION_DONE": "検査完了",
       "PENDING_REPLACEMENT_HANDOVER": "代替引渡し待ち",
       "REPLACED_BEFORE_DEPOSIT": "代替済み（敷金前）",
       "REPLACED_AFTER_DEPOSIT": "代替済み（敷金後）",
@@ -648,9 +710,26 @@
       "dateOfIssue": "書類発行日",
       "placeOfIssue": "書類発行機関",
       "rentalHouse": "賃貸物件",
-      "availableHouses": "空き物件",
+      "availableHouses": "賃貸物件を選択",
       "selectHouse": "-- 物件を選択 --",
       "loadingHouse": "物件情報を読み込み中...",
+      "groupAvailableNow": "空室 — すぐ入居可 ({{count}})",
+      "groupBookable": "近日空き — 敷金で予約 ({{count}})",
+      "bookableHint": "残り{{days}}日 — {{date}}から引き渡し",
+      "bookableNowHint": "{{date}}から引き渡し可能",
+      "bookableBanner": "現在は最終月の入居中 — 敷金で先に予約できます",
+      "noHouseAvailable": "該当する物件がありません",
+      "filterCategory": {
+        "ALL": "すべて",
+        "AVAILABLE_NOW": "すぐ入居可",
+        "DEPOSIT_BOOKABLE": "敷金で予約"
+      },
+      "filterCityPlaceholder": "エリアで絞り込み",
+      "filterCount": "{{count}}件",
+      "sort": {
+        "AVAILABLE_FIRST": "入居可能日が早い順",
+        "NAME_ASC": "名前 A → Z"
+      },
       "houseAmenities": "主な設備",
       "money": "賃料と費用",
       "rent": "賃料（VND）*",
@@ -788,6 +867,17 @@
         "description": "システムがテナントに通知メールを再送し、契約の確認を求めます。",
         "confirmLabel": "再送する"
       },
+      "resendTenantSign": {
+        "button": "署名メールを再送",
+        "dialogTitle": "テナントへ署名メールを再送",
+        "dialogDescription": "VNPT が新しい署名コードを発行し、テナントへ新しいリンクをメールで送信します。以前のリンクは無効になります。",
+        "dialogConfirm": "新しいメールを送信",
+        "success": "テナントへ署名メールを再送しました。",
+        "error": "再送に失敗しました。再試行してください。",
+        "error403": "署名メールを再送する権限がありません。",
+        "error404": "契約が見つかりません。",
+        "error422": "契約はテナント署名待ちの状態ではないか、VNPT が要求を拒否しました。"
+      },
       "confirmSuccess": "確認しました！テナントへメールを送信しました。",
       "resendSuccess": "テナントに契約を再送しました。",
       "confirm400": "この契約を確認できません（条件を満たしていません）。",
@@ -870,6 +960,36 @@
       "noPdf": "この契約書にはPDFファイルがありません。",
       "loadError": "PDFを読み込めませんでした。後でもう一度お試しください。",
       "loading": "PDFを読み込み中..."
+    },
+    "cashDeposit": {
+      "button": "現金敷金の受領を確定",
+      "modal": {
+        "title": "現金敷金の受領を確定",
+        "subtitle": "受領した敷金の領収書を発行します",
+        "contract": "契約",
+        "tenant": "テナント",
+        "amountLabel": "金額 (VND)",
+        "amountMismatch": "金額は {{expected}} ₫ と一致する必要があります",
+        "noteLabel": "備考",
+        "notePlaceholder": "任意のメモ",
+        "acknowledge": "上記の金額を全額受領したことを確認します",
+        "submit": "領収書を発行",
+        "cancel": "キャンセル",
+        "issuedTitle": "領収書を発行しました",
+        "method": "現金",
+        "issuedHint": "2部印刷し、テナントと署名してから1部を渡してください。",
+        "printPdf": "PDFを印刷",
+        "close": "閉じる"
+      },
+      "toast": {
+        "success": "領収書 {{number}} を発行しました",
+        "pdfError": "領収書PDFをダウンロードできません",
+        "error400": "入力に誤りがあります。金額をご確認ください",
+        "error403": "この敷金を確定する権限がありません",
+        "error404": "契約が見つかりません",
+        "error409": "領収書はすでに発行されています",
+        "errorDefault": "領収書を発行できませんでした。再試行してください"
+      }
     }
   },
   "houses": {
@@ -891,12 +1011,36 @@
     "status": {
       "AVAILABLE": "空室",
       "RENTED": "入居中",
-      "MAINTENANCE": "メンテナンス中"
+      "MAINTENANCE": "メンテナンス中",
+      "REPAIRED": "一時休止中"
     },
     "statusCard": {
       "AVAILABLE": "空室",
       "RENTED": "入居中",
-      "MAINTENANCE": "メンテナンス中"
+      "MAINTENANCE": "メンテナンス中",
+      "REPAIRED": "一時休止中"
+    },
+    "subscribe": {
+      "subscribe": "空き通知を受け取る",
+      "unsubscribe": "通知を停止",
+      "subscribed": "この物件が空いたら通知します",
+      "unsubscribed": "通知を停止しました",
+      "error": "登録できません。もう一度お試しください"
+    },
+    "statusUpdate": {
+      "title": "物件ステータスの更新",
+      "current": "現在",
+      "next": "変更先",
+      "optionAvailable": "貸出可能",
+      "optionRepaired": "一時休止中（修繕中）",
+      "rentedHint": "「入居中」ステータスは契約ライフサイクルに基づいて自動設定され、手動変更できません。",
+      "trigger": "ステータス変更",
+      "confirm": "確認",
+      "cancel": "キャンセル",
+      "successAvailable": "物件を貸出可能にしました。",
+      "successRepaired": "物件を一時休止中に変更しました。",
+      "error": "ステータスを更新できません。もう一度お試しください。",
+      "rentedBlocked": "入居中の物件はステータスを変更できません。"
     },
     "areaType": {
       "BEDROOM": "寝室",
@@ -948,6 +1092,14 @@
         "region": "地域を選択してください",
         "address": "住所を選択してください"
       }
+    },
+    "edit": {
+      "title": "物件を編集",
+      "subtitle": "既存物件の情報を更新",
+      "save": "変更を保存",
+      "saving": "保存中...",
+      "successToast": "物件を更新しました！",
+      "failToast": "更新に失敗しました。再試行してください。"
     },
     "translations": {
       "title": "自動翻訳内容の確認",
@@ -1010,18 +1162,16 @@
     },
     "addArea": {
       "title": "新規エリアを追加",
-      "nameLabel": "エリア名",
-      "namePlaceholder": "例：寝室1、メインキッチン...",
       "areaTypeLabel": "エリアタイプ",
       "floorLabel": "階",
       "floorOption": "{{n}}階",
-      "customTypeLabel": "具体的なタイプ",
+      "customTypeLabel": "エリアタイプ名",
       "customTypePlaceholder": "例：バルコニー、ガレージ、ランドリー...",
       "descriptionLabel": "説明",
       "descriptionPlaceholder": "このエリアの詳細を記入...",
       "submit": "エリアを追加",
-      "errorName": "エリア名を入力してください。",
-      "errorCustomType": "エリアタイプを説明してください。"
+      "errorAreaType": "エリアタイプを選択してください。",
+      "errorCustomType": "「その他」のエリア名を入力してください。"
     },
     "createAsset": {
       "title": "新規資産を追加",
@@ -1513,6 +1663,7 @@
       "CREATED": "作成済み",
       "SCHEDULED": "スケジュール済み",
       "IN_PROGRESS": "進行中",
+      "PENDING_MANAGER_REVIEW": "管理者の転居承認待ち",
       "DONE": "完了",
       "APPROVED": "承認済み",
       "CANCELLED": "キャンセル"

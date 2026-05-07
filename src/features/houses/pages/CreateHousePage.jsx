@@ -6,7 +6,7 @@ import AddressPicker from "../../../components/shared/AddressPicker";
 import HouseImageUploader from "../components/HouseImageUploader";
 import HouseRegionSelector from "../components/HouseRegionSelector";
 import MultiLangInput from "../../../components/shared/i18n/MultiLangInput";
-import { createHouse, getRegions, uploadHouseImages } from "../api/houses.api";
+import { createHouse, getRegions, updateHouse, uploadHouseImages } from "../api/houses.api";
 
 // Pick the source-locale string from a TranslationMap, falling back to the
 // first non-empty locale. Used to fill the entity's source-language column
@@ -25,22 +25,50 @@ const pickPrimary = (map) => {
 const inp = "w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 bg-slate-50 placeholder-slate-400 transition";
 const lbl = "block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5";
 
-export default function CreateHousePage({ onBack, onSubmit }) {
+function buildInitialForm(house) {
+  if (!house) {
+    return {
+      name: {}, description: {}, numberOfFloors: "",
+      areaM2: "", structure: "",
+      landCertNumber: "", landCertIssueDate: "", landCertIssuer: "",
+    };
+  }
+  const nameMap = house.nameTranslations && Object.keys(house.nameTranslations).length
+    ? house.nameTranslations
+    : (house.name ? { vi: house.name, _source: "vi" } : {});
+  const descMap = house.descriptionTranslations && Object.keys(house.descriptionTranslations).length
+    ? house.descriptionTranslations
+    : (house.description ? { vi: house.description, _source: "vi" } : {});
+  return {
+    name: nameMap,
+    description: descMap,
+    numberOfFloors: house.numberOfFloors != null ? String(house.numberOfFloors) : "",
+    areaM2:        house.areaM2 != null ? String(house.areaM2) : "",
+    structure:     house.structure ?? "",
+    landCertNumber:    house.landCertNumber ?? "",
+    landCertIssueDate: house.landCertIssueDate ?? "",
+    landCertIssuer:    house.landCertIssuer ?? "",
+  };
+}
+
+function buildInitialAddress(house) {
+  if (!house) return { full: "", parts: { street: "", ward: "", city: "" }, ward: "" };
+  const street = house.address ?? "";
+  const ward   = house.ward ?? "";
+  const city   = house.city ?? "";
+  const full   = [street, ward, city].filter(Boolean).join(", ");
+  return { full, parts: { street, ward, city }, ward };
+}
+
+export default function CreateHousePage({ house, onBack, onSubmit }) {
   const { t } = useTranslation("common");
-  const [form, setForm]           = useState({
-    name: {}, description: {}, numberOfFloors: "",
-    areaM2: "",      // Used on every contract template — prompt early.
-    structure: "",   // HouseStructure enum value.
-    // GCN (Giấy chứng nhận quyền sử dụng đất) — rendered into every
-    // contract's "nguồn gốc nhà" clause. One fact per house.
-    landCertNumber: "",
-    landCertIssueDate: "",
-    landCertIssuer: "",
-  });
-  const [address, setAddress]     = useState("");
-  const [addrParts, setAddrParts] = useState({ street: "", ward: "", city: "" });
-  const [wardName, setWardName]   = useState("");
-  const [regionId, setRegionId]   = useState("");
+  const isEdit = !!house?.id;
+  const initialAddress = buildInitialAddress(house);
+  const [form, setForm]           = useState(() => buildInitialForm(house));
+  const [address, setAddress]     = useState(initialAddress.full);
+  const [addrParts, setAddrParts] = useState(initialAddress.parts);
+  const [wardName, setWardName]   = useState(initialAddress.ward);
+  const [regionId, setRegionId]   = useState(house?.regionId ?? "");
   const [regions, setRegions]     = useState([]);
   const [regionsLoading, setRegionsLoading] = useState(true);
   const [images, setImages]       = useState([]);
@@ -90,15 +118,21 @@ export default function CreateHousePage({ onBack, onSubmit }) {
         landCertIssuer:    form.landCertIssuer.trim() || null,
         houseImages:   [],
       };
-      const created = await createHouse(payload);
-      const houseId = created?.id;
-      if (houseId && images.length > 0) {
-        await uploadHouseImages(houseId, images.map((img) => img.file));
+      const result = isEdit
+        ? await updateHouse(house.id, payload)
+        : await createHouse(payload);
+      const targetId = result?.id ?? house?.id;
+      if (!isEdit && targetId && images.length > 0) {
+        await uploadHouseImages(targetId, images.map((img) => img.file));
       }
-      toast.success(t("houses.create.successToast"));
-      onSubmit?.(created);
+      toast.success(isEdit
+        ? t("houses.edit.successToast", { defaultValue: "Cập nhật bất động sản thành công" })
+        : t("houses.create.successToast"));
+      onSubmit?.(result);
     } catch (e) {
-      toast.error(e?.message ?? t("houses.create.failToast"));
+      toast.error(e?.message ?? (isEdit
+        ? t("houses.edit.failToast", { defaultValue: "Cập nhật bất động sản thất bại" })
+        : t("houses.create.failToast")));
     } finally {
       setSubmitting(false);
     }
@@ -109,8 +143,16 @@ export default function CreateHousePage({ onBack, onSubmit }) {
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">{t("houses.create.title")}</h2>
-          <p className="text-sm text-slate-400 mt-0.5">{t("houses.create.subtitle")}</p>
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">
+            {isEdit
+              ? t("houses.edit.title", { defaultValue: "Chỉnh sửa bất động sản" })
+              : t("houses.create.title")}
+          </h2>
+          <p className="text-sm text-slate-400 mt-0.5">
+            {isEdit
+              ? t("houses.edit.subtitle", { defaultValue: "Cập nhật thông tin bất động sản hiện có" })
+              : t("houses.create.subtitle")}
+          </p>
         </div>
 
         <div className="flex items-center gap-2 pt-1 shrink-0">
@@ -133,7 +175,13 @@ export default function CreateHousePage({ onBack, onSubmit }) {
               ? <Loader2 className="w-4 h-4 animate-spin" />
               : <Save className="w-4 h-4" />
             }
-            {submitting ? t("houses.create.saving") : t("houses.create.save")}
+            {submitting
+              ? (isEdit
+                  ? t("houses.edit.saving", { defaultValue: "Đang lưu..." })
+                  : t("houses.create.saving"))
+              : (isEdit
+                  ? t("houses.edit.save", { defaultValue: "Lưu thay đổi" })
+                  : t("houses.create.save"))}
           </button>
         </div>
       </div>
@@ -143,14 +191,16 @@ export default function CreateHousePage({ onBack, onSubmit }) {
 
         {/* Left col: Image upload + Basic info */}
         <div className="lg:col-span-3 space-y-5">
-          <div className="relative">
-            <div className="absolute top-3.5 right-3.5 z-10">
-              <span className="text-[10px] font-bold tracking-widest text-teal-600 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-full uppercase">
-                {t("houses.create.photoLibrary")}
-              </span>
+          {!isEdit && (
+            <div className="relative">
+              <div className="absolute top-3.5 right-3.5 z-10">
+                <span className="text-[10px] font-bold tracking-widest text-teal-600 bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-full uppercase">
+                  {t("houses.create.photoLibrary")}
+                </span>
+              </div>
+              <HouseImageUploader onImagesChange={setImages} />
             </div>
-            <HouseImageUploader onImagesChange={setImages} />
-          </div>
+          )}
 
           <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
             <div className="flex items-center gap-2 mb-1">

@@ -11,7 +11,7 @@ export function mapContractFromApi(item) {
     // override bằng giá trị đã chuẩn hóa
     id: item.id,
     contractNumber: item.name ?? item.contractNumber ?? item.id,
-    tenant: extractTenantFromName(item.name) ?? item.name ?? "—",
+    tenant: item.tenantName ?? extractTenantFromName(item.name)?.replace(/_/g, " ") ?? "—",
     property: item.property ?? item.houseName ?? "—",
     unit: item.unit ?? "—",
     startDate: item.startDate ?? item.startAt ?? item.createdAt ?? null,

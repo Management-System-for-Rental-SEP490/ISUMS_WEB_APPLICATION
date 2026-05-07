@@ -11,6 +11,13 @@ import {
 import NotificationDropdown from "../../features/notifications/components/NotificationDropdown";
 import { Search, Menu, MapPin, User, LogOut, ChevronDown } from "lucide-react";
 import keycloak from "../../keycloak";
+import { resolveRoleTheme } from "../../features/auth/utils/roleTheme";
+
+function getInitial(name) {
+  if (!name) return "U";
+  const last = name.trim().split(/\s+/).pop();
+  return last ? last[0].toUpperCase() : "U";
+}
 
 // path pattern → i18n key (no t() needed at module level)
 const PATH_TITLE_KEYS = {
@@ -55,8 +62,6 @@ const BREADCRUMB_PARENT_KEYS = {
   ],
 };
 
-const ROLE_KEYS = { LANDLORD: "roles.LANDLORD", MANAGER: "roles.MANAGER" };
-
 function resolvePathPattern(pathPattern, matchedPattern, pathname) {
   const patternParts = matchedPattern.split("/");
   const pathParts = pathname.split("/");
@@ -80,11 +85,13 @@ export default function DashboardLayout() {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const roles = useAuthStore((s) => s.roles ?? []);
+  const roleTheme = resolveRoleTheme(roles);
+  const RoleIcon = roleTheme.icon;
+  const roleLabel = t(roleTheme.labelKey);
 
-  const roleLabel = (() => {
-    for (const role of roles) if (ROLE_KEYS[role]) return t(ROLE_KEYS[role]);
-    return roles[0] ?? t("roles.user");
-  })();
+  const userName = keycloak?.tokenParsed?.name || "Admin";
+  const userEmail = keycloak?.tokenParsed?.email || "admin@smartutil.vn";
+  const userInitial = getInitial(userName);
 
   const isOnDashboard = location.pathname === "/dashboard";
 
@@ -141,10 +148,17 @@ export default function DashboardLayout() {
         className="flex-1 flex flex-col min-h-screen min-w-0 overflow-x-hidden"
         style={{ transition: "width 250ms ease-in-out" }}
       >
+        <div
+          className="sticky top-0 z-40 flex-shrink-0"
+          style={{ height: 4, background: roleTheme.gradient }}
+          aria-hidden
+        />
+
         {/* ── Topbar ── */}
         <header
-          className="sticky top-0 z-30 flex-shrink-0 flex items-center px-4 md:px-6 gap-3"
+          className="sticky z-30 flex-shrink-0 flex items-center px-4 md:px-6 gap-3"
           style={{
+            top: 4,
             height: 64,
             background: "#FFFFFF",
             borderBottom: "1px solid #C4DED5",
@@ -203,22 +217,22 @@ export default function DashboardLayout() {
               TP. HCM
             </button>
 
+            <span
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
+              style={{
+                background: roleTheme.badgeBg,
+                border: `1px solid ${roleTheme.badgeBorder}`,
+                color: roleTheme.badgeText,
+              }}
+              title={roleLabel}
+            >
+              <RoleIcon className="w-3.5 h-3.5" />
+              <span className="uppercase tracking-wide">{roleLabel}</span>
+            </span>
+
             <div className="hidden lg:block h-5 w-px" style={{ background: "#C4DED5" }} />
 
             <NotificationDropdown />
-
-            <button
-              type="button"
-              className="hidden md:flex items-center gap-1.5 px-3.5 py-2 text-white text-xs font-semibold shadow-sm flex-shrink-0"
-              style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)", borderRadius: 10, transition: "opacity 0.2s ease, transform 0.2s ease" }}
-              onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.9"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "translateY(0)"; }}
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-              </svg>
-              {t("layout.addNew")}
-            </button>
 
             <div className="h-5 w-px" style={{ background: "#C4DED5" }} />
 
@@ -231,15 +245,15 @@ export default function DashboardLayout() {
               >
                 <div
                   className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
-                  style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
+                  style={{ background: roleTheme.gradient }}
                 >
-                  A
+                  {userInitial}
                 </div>
                 <div className="hidden md:block text-left">
                   <p className="text-xs font-semibold leading-tight" style={{ color: "#1E2D28" }}>
-                    {keycloak?.tokenParsed?.name || "Admin"}
+                    {userName}
                   </p>
-                  <p className="text-[10px] leading-tight" style={{ color: "#5A7A6E" }}>
+                  <p className="text-[10px] leading-tight font-semibold" style={{ color: roleTheme.badgeText }}>
                     {roleLabel}
                   </p>
                 </div>
@@ -262,17 +276,27 @@ export default function DashboardLayout() {
                       <div className="flex items-center gap-3">
                         <div
                           className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
-                          style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
+                          style={{ background: roleTheme.gradient }}
                         >
-                          A
+                          {userInitial}
                         </div>
-                        <div>
-                          <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>
-                            {keycloak?.tokenParsed?.name || "Admin User"}
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold truncate" style={{ color: "#1E2D28" }}>
+                            {userName}
                           </p>
-                          <p className="text-xs" style={{ color: "#5A7A6E" }}>
-                            {keycloak?.tokenParsed?.email || "admin@smartutil.vn"}
+                          <p className="text-xs truncate" style={{ color: "#5A7A6E" }}>
+                            {userEmail}
                           </p>
+                          <span
+                            className="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide"
+                            style={{
+                              background: roleTheme.badgeBg,
+                              color: roleTheme.badgeText,
+                            }}
+                          >
+                            <RoleIcon className="w-3 h-3" />
+                            {roleLabel}
+                          </span>
                         </div>
                       </div>
                     </div>

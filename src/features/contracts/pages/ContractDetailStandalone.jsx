@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { confirmByAdmin, getContractById, getCccdStatus } from "../api/contracts.api";
+import { confirmByAdmin, getContractById, getCccdStatus, resendTenantSignatureEmail } from "../api/contracts.api";
 import { mapContractFromApi } from "../utils/mapContractFromApi";
 import { toast } from "react-toastify";
 import {
@@ -12,7 +12,9 @@ import Icons from "../components/standalone/ContractDetailIcons";
 import ContractPdfViewer from "../components/shared/ContractPdfViewer";
 import ContractLegalSummary from "../components/shared/ContractLegalSummary";
 import ContractRelocationLinkBanner from "../components/standalone/ContractRelocationLinkBanner";
+import CashDepositConfirmModal from "../components/standalone/CashDepositConfirmModal";
 import { useAuthStore } from "../../../features/auth/store/auth.store";
+import { Wallet } from "lucide-react";
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 const STATUS_STYLE = {
@@ -168,6 +170,8 @@ export default function ContractDetailStandalone() {
   // Manager confirm dialog (DRAFT → PENDING_TENANT_REVIEW)
   const [showManagerConfirm, setShowManagerConfirm] = useState(false);
   const [showResendConfirm, setShowResendConfirm] = useState(false);
+  const [showResendTenantSignConfirm, setShowResendTenantSignConfirm] = useState(false);
+  const [showCashDepositModal, setShowCashDepositModal] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
@@ -237,6 +241,29 @@ export default function ContractDetailStandalone() {
     }
   };
 
+  const handleResendTenantSign = async () => {
+    if (!id || confirming) return;
+    setShowResendTenantSignConfirm(false);
+    setConfirming(true);
+    try {
+      await resendTenantSignatureEmail(id);
+      toast.success(t("contracts.detail.resendTenantSign.success"));
+    } catch (err) {
+      const httpStatus = err?.response?.status;
+      const msg =
+        httpStatus === 403
+          ? t("contracts.detail.resendTenantSign.error403")
+          : httpStatus === 404
+            ? t("contracts.detail.resendTenantSign.error404")
+            : httpStatus === 422
+              ? t("contracts.detail.resendTenantSign.error422")
+              : t("contracts.detail.resendTenantSign.error");
+      toast.error(msg);
+    } finally {
+      setConfirming(false);
+    }
+  };
+
   // Gửi lại hợp đồng cho người thuê (PENDING_TENANT_REVIEW → gọi lại confirm)
   const handleResend = async () => {
     if (!id || confirming) return;
@@ -272,8 +299,14 @@ export default function ContractDetailStandalone() {
   // Điều kiện hiển thị buttons
   const canConfirm = normalizedStatus === "DRAFT";
   const canResend  = normalizedStatus === "PENDING_TENANT_REVIEW";
+  const canResendTenantSign = normalizedStatus === "IN_PROGRESS";
   const canLandlordSign = isLandlord && normalizedStatus === "READY";
   const canDownload = normalizedStatus === "COMPLETED" && !!pdfUrl;
+  const depositStatus = (contract?.depositStatus ?? "").toString().toUpperCase();
+  const canConfirmCashDeposit =
+    normalizedStatus === "COMPLETED" &&
+    (depositStatus === "" || depositStatus === "UNPAID" || depositStatus === "PENDING") &&
+    Number(contract?.depositAmount ?? 0) > 0;
 
   const goBack = () => navigate("/contracts");
 
@@ -375,6 +408,16 @@ export default function ContractDetailStandalone() {
                 {confirming ? t("contracts.detail.sending") : t("contracts.detail.resend")}
               </ActionButton>
             )}
+            {canResendTenantSign && (
+              <ActionButton
+                onClick={() => setShowResendTenantSignConfirm(true)}
+                disabled={confirming || loading || !!error}
+                variant="primary"
+                icon={confirming ? <Icons.Loader /> : <Icons.Send />}
+              >
+                {confirming ? t("contracts.detail.sending") : t("contracts.detail.resendTenantSign.button")}
+              </ActionButton>
+            )}
             {canLandlordSign && (
               <ActionButton
                 onClick={() => navigate(`/contracts/${id}/sign`)}
@@ -392,6 +435,15 @@ export default function ContractDetailStandalone() {
             {canDownload && (
               <ActionButton onClick={handleDownload} variant="teal" icon={<Icons.Download />}>
                 {t("contracts.detail.download")}
+              </ActionButton>
+            )}
+            {canConfirmCashDeposit && (
+              <ActionButton
+                onClick={() => setShowCashDepositModal(true)}
+                variant="primary"
+                icon={<Wallet className="h-4 w-4" />}
+              >
+                {t("contracts.cashDeposit.button")}
               </ActionButton>
             )}
             <button
@@ -486,6 +538,29 @@ export default function ContractDetailStandalone() {
         description={t("contracts.detail.resendDialog.description")}
         confirmLabel={t("contracts.detail.resendDialog.confirmLabel")}
         t={t}
+      />
+
+      <ConfirmDialog
+        open={showResendTenantSignConfirm}
+        onClose={() => !confirming && setShowResendTenantSignConfirm(false)}
+        onConfirm={handleResendTenantSign}
+        confirming={confirming}
+        title={t("contracts.detail.resendTenantSign.dialogTitle")}
+        description={t("contracts.detail.resendTenantSign.dialogDescription")}
+        confirmLabel={t("contracts.detail.resendTenantSign.dialogConfirm")}
+        t={t}
+      />
+
+      <CashDepositConfirmModal
+        open={showCashDepositModal}
+        onClose={() => setShowCashDepositModal(false)}
+        contractId={id}
+        contractNumber={contract?.contractNumber ?? contract?.name ?? id}
+        tenantName={contract?.tenantName ?? contract?.tenant ?? null}
+        expectedAmount={Number(contract?.depositAmount ?? contract?.deposit ?? 0) || null}
+        onConfirmed={() => {
+          refetchContract().catch(() => {});
+        }}
       />
     </div>
   );

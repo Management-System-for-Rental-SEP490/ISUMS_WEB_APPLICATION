@@ -49,10 +49,21 @@ const client = (() => {
   };
 
   const prependNotif = (data) => {
-    if (!data?.id) return;
-    if (liveNotifs.some((n) => n.id === data.id)) return;
+    if (!data?.id) return false;
+    const existingIdx = liveNotifs.findIndex((n) => n.id === data.id);
+    if (existingIdx >= 0) {
+      const merged = { ...liveNotifs[existingIdx], ...data };
+      liveNotifs = [
+        ...liveNotifs.slice(0, existingIdx),
+        merged,
+        ...liveNotifs.slice(existingIdx + 1),
+      ];
+      emit();
+      return false;
+    }
     liveNotifs = [data, ...liveNotifs].slice(0, MAX_LIVE_BUFFER);
     emit();
+    return true;
   };
 
   const fetchCount = async () => {
@@ -115,25 +126,25 @@ const client = (() => {
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
-        const parts = buffer.split("\n\n");
+        const parts = buffer.split(/\r?\n\r?\n/);
         buffer = parts.pop();
 
         for (const part of parts) {
-          const lines = part.trim().split("\n");
+          const lines = part.split(/\r?\n/);
           let eventType = "message";
           let dataStr = "";
 
           for (const line of lines) {
             if (line.startsWith("event:")) eventType = line.slice(6).trim();
-            else if (line.startsWith("data:")) dataStr += line.slice(5).trim();
+            else if (line.startsWith("data:")) dataStr += line.slice(5).trimStart();
           }
 
           if (!dataStr) continue;
           try {
             const data = JSON.parse(dataStr);
             if (eventType === "notification" || eventType === "message") {
-              prependNotif(data);
-              if (!data.read) setCount(unreadCount + 1);
+              const isNew = prependNotif(data);
+              if (isNew && !data.read) setCount(unreadCount + 1);
             } else if (
               eventType === "unread_count" ||
               eventType === "unread-count"

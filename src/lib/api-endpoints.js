@@ -11,6 +11,9 @@ export const HOUSES_ENDPOINTS = {
   UPDATE: (id) => `/houses/${id}`,
   DELETE: (id) => `/houses/${id}`,
   IMAGES: (id) => `/houses/${id}/images`,
+  UPDATE_STATUS: (id) => `/houses/${id}/status`,
+  SUBSCRIBE: (id) => `/houses/${id}/subscriptions`,
+  SUBSCRIPTION_STATUS: (id) => `/houses/${id}/subscriptions/me`,
   REGIONS: "/houses/regions",
   REGIONS_CREATE: "/houses/regions",
   REGIONS_ASSIGN_STAFF: (regionId, staffId) => `/houses/regions/${regionId}/staff/${staffId}`,
@@ -33,7 +36,13 @@ export const CONTRACTS_ENDPOINTS = {
   CCCD_STATUS: (id) => `/econtracts/${id}/cccd-status`,
   GET_VNPT_DOCUMENT: (documentId) => `/econtracts/vnpt-document/${documentId}`,
   ADMIN_SIGN: "/econtracts/sign-admin",
+  RESEND_TENANT_SIGNATURE: (id) => `/econtracts/${id}/notifications/resend-tenant-signature`,
   CONFIRM_REFUND: (id) => `/econtracts/${id}/confirm-refund`,
+  CASH_DEPOSIT_CONFIRM: (id) => `/econtracts/${id}/deposit/cash-receipt`,
+  CASH_DEPOSIT_ACTIVE: (id) => `/econtracts/${id}/deposit/cash-receipt`,
+  CASH_DEPOSIT_PDF: (id, receiptNumber) =>
+    `/econtracts/${id}/deposit/cash-receipt/${receiptNumber}/pdf`,
+  LANDLORD_PROFILE_ME: "/econtracts/landlord-profiles/me",
   CONFIRM_TERMINATION_OVERDUE: (id) =>
     `/econtracts/${id}/confirm-termination-overdue`,
   CONFIRM_POWER_CUT: (id) => `/econtracts/${id}/confirm-power-cut`,
@@ -48,6 +57,8 @@ export const CONTRACTS_ENDPOINTS = {
     `/econtracts/relocation-requests/${id}/confirm-handover`,
   CONTRACT_RELOCATION_LINK: (contractId) =>
     `/econtracts/${contractId}/relocation-link`,
+  MARKETPLACE_BOOKABLE: "/econtracts/marketplace/deposit-bookable-houses",
+  MARKETPLACE_LOCKED: "/econtracts/marketplace/locked-house-ids",
 };
 
 // Users endpoints
@@ -110,6 +121,7 @@ export const NOTIFICATIONS_ENDPOINTS = {
   PREFERENCES_SUBSCRIPTION: "/notifications/preferences/me/subscription",
   PREFERENCES_QUOTA:        "/notifications/preferences/me/quota",
   TEST_VOICE:               "/notifications/preferences/me/test-voice",
+  ADMIN_VOICE_PROVIDER:     "/notifications/admin/settings/voice-provider",
 
   // Voice call audit history (paged by created_at desc)
   CALLS_ME:                 "/notifications/calls/me",

@@ -357,20 +357,28 @@ export default function StepGeneralInfo({ form, update, errors = {} }) {
                   </div>
                   <div>
                     <label className={labelClass}>{t("contracts.step4.passportIssueDate")}</label>
-                    <input
-                      type="date"
-                      value={form.passportIssueDate ?? ""}
-                      onChange={update("passportIssueDate")}
-                      className={inputClass}
+                    <DatePicker
+                      className={`w-full ${inputClass}`}
+                      value={form.passportIssueDate ? dayjs(form.passportIssueDate, "YYYY-MM-DD") : null}
+                      format="DD/MM/YYYY"
+                      placeholder="DD/MM/YYYY"
+                      onChange={(_, dateString) => {
+                        const iso = dateString ? dayjs(dateString, "DD/MM/YYYY").format("YYYY-MM-DD") : "";
+                        update("passportIssueDate")({ target: { value: iso } });
+                      }}
                     />
                   </div>
                   <div>
                     <label className={labelClass}>{t("contracts.step4.passportExpiryDate")}</label>
-                    <input
-                      type="date"
-                      value={form.passportExpiryDate ?? ""}
-                      onChange={update("passportExpiryDate")}
-                      className={inputClass}
+                    <DatePicker
+                      className={`w-full ${inputClass}`}
+                      value={form.passportExpiryDate ? dayjs(form.passportExpiryDate, "YYYY-MM-DD") : null}
+                      format="DD/MM/YYYY"
+                      placeholder="DD/MM/YYYY"
+                      onChange={(_, dateString) => {
+                        const iso = dateString ? dayjs(dateString, "DD/MM/YYYY").format("YYYY-MM-DD") : "";
+                        update("passportExpiryDate")({ target: { value: iso } });
+                      }}
                     />
                   </div>
                   <div>
@@ -384,11 +392,15 @@ export default function StepGeneralInfo({ form, update, errors = {} }) {
                   </div>
                   <div>
                     <label className={labelClass}>{t("contracts.step4.visaExpiryDate")}</label>
-                    <input
-                      type="date"
-                      value={form.visaExpiryDate ?? ""}
-                      onChange={update("visaExpiryDate")}
-                      className={inputClass}
+                    <DatePicker
+                      className={`w-full ${inputClass}`}
+                      value={form.visaExpiryDate ? dayjs(form.visaExpiryDate, "YYYY-MM-DD") : null}
+                      format="DD/MM/YYYY"
+                      placeholder="DD/MM/YYYY"
+                      onChange={(_, dateString) => {
+                        const iso = dateString ? dayjs(dateString, "DD/MM/YYYY").format("YYYY-MM-DD") : "";
+                        update("visaExpiryDate")({ target: { value: iso } });
+                      }}
                     />
                   </div>
                   {/* Nationality — full HCM-ESB country list with antd Select
@@ -469,8 +481,9 @@ export default function StepGeneralInfo({ form, update, errors = {} }) {
                       value={form.placeOfIssue}
                       onChange={update("placeOfIssue")}
                       placeholder="Cục Cảnh sát QLHC về TTXH"
-                      className={inputClass}
+                      className={`${inputClass} ${errors.placeOfIssue ? "border-red-500 focus:ring-red-500" : ""}`}
                     />
+                    {errors.placeOfIssue && <p className="mt-1 text-xs text-red-600">{errors.placeOfIssue}</p>}
                   </div>
                 </>
               )}

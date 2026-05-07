@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Select, Pagination } from "antd";
 import {
@@ -16,6 +16,7 @@ import HouseCard from "../components/HouseCard";
 import CreateHousePage from "./CreateHousePage";
 import HouseTranslationReview from "../components/HouseTranslationReview";
 import { LoadingSpinner } from "../../../components/shared/Loading";
+import { getHouseById } from "../api/houses.api";
 
 const PAGE_SIZE = 9;
 
@@ -83,13 +84,35 @@ export default function Houses() {
   const [viewMode, setViewMode]       = useState("grid");
   const [page, setPage]               = useState(1);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showCreate, setShowCreate]   = useState(false);
+  const [editingHouse, setEditingHouse] = useState(null);
   const [pendingHouse, setPendingHouse] = useState(null);
 
   useEffect(() => {
     const timer = setTimeout(() => { setDebouncedKeyword(keyword); setPage(1); }, 400);
     return () => clearTimeout(timer);
   }, [keyword]);
+
+  useEffect(() => {
+    const editId = searchParams.get("edit");
+    if (!editId) return;
+    let cancelled = false;
+    getHouseById(editId)
+      .then((data) => {
+        if (cancelled || !data) return;
+        setEditingHouse(data);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) {
+          const next = new URLSearchParams(searchParams);
+          next.delete("edit");
+          setSearchParams(next, { replace: true });
+        }
+      });
+    return () => { cancelled = true; };
+  }, [searchParams, setSearchParams]);
 
   const handleStatusChange = (val) => { setFilterStatus(val); setPage(1); };
   const handleSortChange   = (val) => { setSortValue(val);    setPage(1); };
@@ -112,9 +135,9 @@ export default function Houses() {
   ];
 
   const statusOptions = [
-    { value: "AVAILABLE",   label: t("houses.status.AVAILABLE")   },
-    { value: "RENTED",      label: t("houses.status.RENTED")      },
-    { value: "MAINTENANCE", label: t("houses.status.MAINTENANCE") },
+    { value: "AVAILABLE", label: t("houses.status.AVAILABLE") },
+    { value: "RENTED",    label: t("houses.status.RENTED")    },
+    { value: "REPAIRED",  label: t("houses.status.REPAIRED")  },
   ];
 
   if (showCreate) {
@@ -129,6 +152,20 @@ export default function Houses() {
           }}
         />
       </>
+    );
+  }
+
+  if (editingHouse) {
+    return (
+      <CreateHousePage
+        house={editingHouse}
+        onBack={() => setEditingHouse(null)}
+        onSubmit={(updated) => {
+          setEditingHouse(null);
+          refetch();
+          if (updated) setPendingHouse(updated);
+        }}
+      />
     );
   }
 
@@ -284,7 +321,7 @@ export default function Houses() {
                   key={house.id}
                   house={house}
                   onView={(h) => navigate(`/houses/${h.id}`)}
-                  onEdit={(h) => console.log("edit", h?.id)}
+                  onEdit={(h) => setEditingHouse(h)}
                 />
               ))}
             </div>

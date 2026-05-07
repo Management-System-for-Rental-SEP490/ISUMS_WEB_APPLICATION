@@ -86,16 +86,12 @@ function toSigningPosition(x, y, containerWidth, signingPage, pageInfo) {
   const scaleX = info.widthPt / containerWidth;
   const scaleY = info.heightPt / info.heightPx;
 
-  const llx = clamp(
-    Math.round(x * scaleX),
-    0,
-    Math.max(info.widthPt - SIG_W_PT, 0),
+  const llx = Math.round(
+    clamp(x * scaleX, 0, Math.max(info.widthPt - SIG_W_PT, 0)),
   );
   const urx = Math.round(llx + SIG_W_PT);
-  const ury = clamp(
-    Math.round(info.heightPt - yInPage * scaleY),
-    SIG_H_PT,
-    info.heightPt,
+  const ury = Math.round(
+    clamp(info.heightPt - yInPage * scaleY, SIG_H_PT, info.heightPt),
   );
   const lly = Math.round(ury - SIG_H_PT);
 

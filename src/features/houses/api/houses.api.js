@@ -81,6 +81,30 @@ export async function updateHouse(id, payload) {
   }
 }
 
+export async function updateHouseStatus(id, status) {
+  try {
+    const response = await api.patch(HOUSES_ENDPOINTS.UPDATE_STATUS(id), { status });
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+export async function subscribeToHouse(id) {
+  const response = await api.post(HOUSES_ENDPOINTS.SUBSCRIBE(id));
+  return extractResponseData(response);
+}
+
+export async function unsubscribeFromHouse(id) {
+  const response = await api.delete(HOUSES_ENDPOINTS.SUBSCRIBE(id));
+  return extractResponseData(response);
+}
+
+export async function isSubscribedToHouse(id) {
+  const response = await api.get(HOUSES_ENDPOINTS.SUBSCRIPTION_STATUS(id));
+  return extractResponseData(response);
+}
+
 /**
  * Delete house
  * @param {string} id - House ID

@@ -12,7 +12,7 @@ function buildFloorOptions(numberOfFloors, t) {
   }));
 }
 
-const INITIAL = { name: "", areaType: "BEDROOM", floorNo: "1", description: "", customTypeName: "" };
+const INITIAL = { areaType: "BEDROOM", floorNo: "1", description: "", customTypeName: "" };
 
 export default function AddAreaModal({ houseId, numberOfFloors, onClose, onSuccess }) {
   const { t } = useTranslation("common");
@@ -32,20 +32,25 @@ export default function AddAreaModal({ houseId, numberOfFloors, onClose, onSucce
       label: t(`houses.areaType.${key}`, { defaultValue: cfg.label }),
     }));
 
+  const resolveAreaTypeLabel = (key) => {
+    const cfg = AREA_TYPE_CONFIG[key];
+    return t(`houses.areaType.${key}`, { defaultValue: cfg?.label ?? key });
+  };
+
   const handleSubmit = async () => {
-    if (!form.name.trim()) return setError(t("houses.addArea.errorName"));
+    if (!form.areaType) return setError(t("houses.addArea.errorAreaType"));
     if (isOther && !form.customTypeName.trim()) return setError(t("houses.addArea.errorCustomType"));
     setLoading(true);
     setError(null);
     try {
+      const customName = form.customTypeName.trim();
+      const derivedName = isOther ? customName : resolveAreaTypeLabel(form.areaType);
       const payload = {
         house: houseId,
-        name: form.name,
+        name: derivedName,
         areaType: form.areaType,
         floorNo: form.floorNo,
-        description: isOther && form.customTypeName.trim()
-          ? `[${form.customTypeName.trim()}] ${form.description}`.trim()
-          : form.description,
+        description: form.description,
       };
       await createFunctionalArea(payload);
       onSuccess?.();
@@ -79,21 +84,11 @@ export default function AddAreaModal({ houseId, numberOfFloors, onClose, onSucce
       }
     >
       <div className="space-y-4 py-1">
-        <div>
-          <label className="block text-xs font-semibold text-gray-600 mb-1.5">
-            {t("houses.addArea.nameLabel")} <span className="text-red-500">*</span>
-          </label>
-          <Input
-            value={form.name}
-            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            placeholder={t("houses.addArea.namePlaceholder")}
-            status={error && !form.name.trim() ? "error" : ""}
-          />
-        </div>
-
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-semibold text-gray-600 mb-1.5">{t("houses.addArea.areaTypeLabel")}</label>
+            <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+              {t("houses.addArea.areaTypeLabel")} <span className="text-red-500">*</span>
+            </label>
             <Select
               value={form.areaType}
               onChange={(val) => setForm((f) => ({ ...f, areaType: val, customTypeName: "" }))}
@@ -122,6 +117,7 @@ export default function AddAreaModal({ houseId, numberOfFloors, onClose, onSucce
               onChange={(e) => setForm((f) => ({ ...f, customTypeName: e.target.value }))}
               placeholder={t("houses.addArea.customTypePlaceholder")}
               status={error && isOther && !form.customTypeName.trim() ? "error" : ""}
+              maxLength={80}
             />
           </div>
         )}

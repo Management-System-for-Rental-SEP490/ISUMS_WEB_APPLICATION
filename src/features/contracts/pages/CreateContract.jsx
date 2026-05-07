@@ -1,9 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import CreateContractWizard from "../components/create/CreateContractWizard";
 import ContractLoadingModal from "../components/create/ContractLoadingModal";
 import { useHouses } from "../../houses/hooks/useHouses";
-import { createContract } from "../api/contracts.api";
+import { createContract, getDepositBookableHouses, getLockedHouseIds } from "../api/contracts.api";
 import { toast } from "react-toastify";
 
 const getInitialForm = (todayISO) => ({
@@ -22,9 +22,7 @@ const getInitialForm = (todayISO) => ({
   payDate: 5,
   payCycle: "monthly",
   depositAmount: "",
-  depositDate: "",
   depositRefundDays: 30,
-  handoverDate: "",
   lateDays: 3,
   latePenaltyPercent: 5,
   maxLateDays: 10,
@@ -33,7 +31,6 @@ const getInitialForm = (todayISO) => ({
   landlordBreachCompensation: "",
   renewNoticeDays: 30,
   landlordNoticeDays: 30,
-  forceMajeureNoticeHours: 24,
   disputeDays: 30,
   disputeForum: "",
   copies: 2,
@@ -50,7 +47,9 @@ export default function CreateContract({ onCancel, onCreated }) {
   const { t } = useTranslation("common");
   const todayISO = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const initialForm = useMemo(() => getInitialForm(todayISO), [todayISO]);
-  const { houses } = useHouses();
+  const { houses: vacantHouses } = useHouses({ status: "AVAILABLE", size: 100 });
+  const [bookable, setBookable] = useState([]);
+  const [lockedIds, setLockedIds] = useState(() => new Set());
   const [modalOpen, setModalOpen] = useState(false);
   const [isApiDone, setIsApiDone] = useState(false);
   const [isError, setIsError] = useState(false);
@@ -58,9 +57,44 @@ export default function CreateContract({ onCancel, onCreated }) {
   const [pendingForm, setPendingForm] = useState(null);
   const [createdId, setCreatedId] = useState(null);
 
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      getDepositBookableHouses().catch(() => []),
+      getLockedHouseIds().catch(() => []),
+    ]).then(([bookableRes, lockedRes]) => {
+      if (cancelled) return;
+      const arr = Array.isArray(bookableRes) ? bookableRes : (bookableRes?.items ?? []);
+      setBookable(arr);
+      const lockedArr = Array.isArray(lockedRes) ? lockedRes : (lockedRes?.items ?? []);
+      setLockedIds(new Set(lockedArr));
+    });
+    return () => { cancelled = true; };
+  }, []);
+
   const houseOptions = useMemo(() => {
-    return Array.isArray(houses) ? houses : [];
-  }, [houses]);
+    const vacant = (Array.isArray(vacantHouses) ? vacantHouses : [])
+      .filter((h) => !lockedIds.has(h.id))
+      .map((h) => ({
+        id: h.id,
+        name: h.name || h.title,
+        address: h.address,
+        category: "AVAILABLE_NOW",
+        availableFrom: null,
+        currentContractEndAt: null,
+      }));
+    const booked = (Array.isArray(bookable) ? bookable : [])
+      .filter((h) => !lockedIds.has(h.houseId))
+      .map((h) => ({
+        id: h.houseId,
+        name: h.houseName,
+        address: [h.houseAddress, h.ward, h.commune, h.city].filter(Boolean).join(", "),
+        category: "DEPOSIT_BOOKABLE",
+        availableFrom: h.availableFrom,
+        currentContractEndAt: h.currentContractEndAt,
+      }));
+    return [...vacant, ...booked];
+  }, [vacantHouses, bookable, lockedIds]);
 
   const callCreateApi = async (form) => {
     setIsApiDone(false);

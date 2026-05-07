@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   ArrowRightLeft,
@@ -180,7 +180,8 @@ function evidenceItems(value) {
 }
 
 function evidenceName(value) {
-  const last = String(value).split("/").filter(Boolean).pop();
+  const noQuery = String(value).split("?")[0];
+  const last = noQuery.split("/").filter(Boolean).pop();
   return last || value;
 }
 
@@ -261,14 +262,20 @@ function isActiveLeaseRequest(request) {
 }
 
 async function getRelocationHouseOptions() {
-  const firstPage = await getAllHouses({ page: 1, size: HOUSE_PAGE_SIZE });
+  const firstPage = await getAllHouses({
+    page: 1,
+    size: HOUSE_PAGE_SIZE,
+  });
   const totalPages = totalPagesOf(firstPage);
   const pages = [firstPage];
 
   if (totalPages > 1) {
     const restPages = await Promise.all(
       Array.from({ length: totalPages - 1 }, (_, index) =>
-        getAllHouses({ page: index + 2, size: HOUSE_PAGE_SIZE }),
+        getAllHouses({
+          page: index + 2,
+          size: HOUSE_PAGE_SIZE,
+        }),
       ),
     );
     pages.push(...restPages);
@@ -280,6 +287,12 @@ async function getRelocationHouseOptions() {
     if (id && !byId.has(id)) byId.set(id, house);
   });
   return Array.from(byId.values());
+}
+
+function houseStatusOf(house) {
+  const status = house?.status ?? house?.houseStatus ?? null;
+  if (status == null) return null;
+  return typeof status === "string" ? status.toUpperCase() : String(status).toUpperCase();
 }
 
 function buildInitialForm(request) {
@@ -350,10 +363,13 @@ export default function RelocationRequestsPage() {
   const [contractOptions, setContractOptions] = useState([]);
   const [contractSearching, setContractSearching] = useState(false);
   const [evidencePreviewUrl, setEvidencePreviewUrl] = useState(null);
+  const [highlightIds, setHighlightIds] = useState(() => new Set());
+  const seenIdsRef = useRef(null);
 
   const houseOptions = useMemo(
     () =>
       houses
+        .filter((house) => houseStatusOf(house) === "AVAILABLE")
         .map((house) => {
           const id = houseIdOf(house);
           return id ? { value: id, label: houseLabelOf(house) } : null;
@@ -362,25 +378,90 @@ export default function RelocationRequestsPage() {
     [houses],
   );
 
-  const loadData = async () => {
-    setLoading(true);
+  const housesById = useMemo(() => {
+    const map = new Map();
+    houses.forEach((house) => {
+      const id = houseIdOf(house);
+      if (id) map.set(id, house);
+    });
+    return map;
+  }, [houses]);
+
+  const houseDisplayName = useCallback(
+    (id) => {
+      if (!id) return "—";
+      const house = housesById.get(id);
+      return house ? houseLabelOf(house) : shortId(id);
+    },
+    [housesById],
+  );
+
+  const loadData = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const [requestData, houseData] = await Promise.all([
         getRelocationRequests(),
         getRelocationHouseOptions(),
       ]);
+
+      const incomingIds = new Set((requestData ?? []).map((r) => r.id));
+      const seen = seenIdsRef.current;
+      if (seen == null) {
+        seenIdsRef.current = incomingIds;
+      } else {
+        const fresh = [];
+        for (const id of incomingIds) {
+          if (!seen.has(id)) fresh.push(id);
+        }
+        if (fresh.length > 0) {
+          seenIdsRef.current = incomingIds;
+          setHighlightIds((prev) => {
+            const next = new Set(prev);
+            for (const id of fresh) next.add(id);
+            return next;
+          });
+          setTimeout(() => {
+            setHighlightIds((prev) => {
+              const next = new Set(prev);
+              for (const id of fresh) next.delete(id);
+              return next;
+            });
+          }, 3500);
+        } else {
+          seenIdsRef.current = incomingIds;
+        }
+      }
+
       setRequests(requestData);
       setHouses(houseData);
     } catch (error) {
-      toast.error(error.message || "Không tải được dữ liệu đổi nhà.");
+      if (!silent) toast.error(error.message || "Không tải được dữ liệu đổi nhà.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
+
+  useEffect(() => {
+    const POLL_MS = 10_000;
+    const tick = () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      if (activeRequest || reportOpen || submitting) return;
+      loadData({ silent: true });
+    };
+    const id = setInterval(tick, POLL_MS);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") tick();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [loadData, activeRequest, reportOpen, submitting]);
 
   const searchReportContracts = useCallback(async (searchText = "") => {
     setContractSearching(true);
@@ -526,14 +607,11 @@ export default function RelocationRequestsPage() {
         newStartAt: approved ? toIso(form.newStartAt) : null,
         newEndAt: approved ? toIso(form.newEndAt) : null,
         newHandoverDate: approved ? toIso(form.newHandoverDate) : null,
-        transferredDepositAmount: approved
-          ? form.transferredDepositAmount
+        transferredDepositAmount: null,
+        forfeitAmount: approved && form.depositHandling === "FORFEIT"
+          ? form.forfeitAmount
           : null,
-        forfeitAmount: approved ? form.forfeitAmount : null,
-        additionalDepositAmount:
-          approved && Number(form.additionalDepositAmount ?? 0) > 0
-            ? form.additionalDepositAmount
-            : null,
+        additionalDepositAmount: null,
         oldRentProratedAmount: approved ? form.oldRentProratedAmount : null,
         oldUtilitiesAmount: approved ? form.oldUtilitiesAmount : null,
         oldDamageAmount: approved ? form.oldDamageAmount : null,
@@ -703,7 +781,7 @@ export default function RelocationRequestsPage() {
             </div>
             <button
               type="button"
-              onClick={loadData}
+              onClick={() => loadData()}
               disabled={loading}
               className={TOOL_BUTTON_CLASS}
             >
@@ -765,7 +843,11 @@ export default function RelocationRequestsPage() {
                 {filteredRequests.map((request) => (
                   <tr
                     key={request.id}
-                    className="transition hover:bg-brand-muted"
+                    className={`transition hover:bg-brand-muted ${
+                      highlightIds.has(request.id)
+                        ? "relocation-row-flash"
+                        : ""
+                    }`}
                   >
                     <TableCell className="min-w-[240px]">
                       <div className="flex items-center gap-2">
@@ -797,20 +879,46 @@ export default function RelocationRequestsPage() {
                         Khách #{shortId(request.tenantId)}
                       </div>
                     </TableCell>
-                    <TableCell className="min-w-[190px]">
-                      <div className="flex items-center gap-2 text-sm text-brand-muted-fg">
-                        <Home className="h-4 w-4 text-brand-muted-fg" />
-                        <span>{shortId(request.oldHouseId)}</span>
-                        <span className="text-brand-border">→</span>
-                        <span className="font-semibold text-brand-fg">
-                          {request.resolutionType === "REFUND_TERMINATE"
-                            ? "Hoàn tiền"
-                            : shortId(
-                                request.approvedHouseId ||
-                                  request.requestedHouseId,
-                              )}
-                        </span>
-                      </div>
+                    <TableCell className="min-w-[260px] max-w-[340px]">
+                      {(() => {
+                        const oldName = houseDisplayName(request.oldHouseId);
+                        const isRefund = request.resolutionType === "REFUND_TERMINATE";
+                        const newId = request.approvedHouseId || request.requestedHouseId;
+                        const newName = isRefund ? "Hoàn tiền" : houseDisplayName(newId);
+                        const isPending = request.status === "REQUESTED";
+                        const showNewRow = !isRefund || !isPending;
+                        return (
+                          <div className="flex flex-col gap-1 text-sm">
+                            <div className="flex items-start gap-1.5">
+                              <span className="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-400 w-7 shrink-0">
+                                Cũ
+                              </span>
+                              <div className="inline-flex items-start gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-slate-700 break-words">
+                                <Home className="h-3 w-3 text-slate-500 mt-1 shrink-0" />
+                                <span className="leading-snug">{oldName}</span>
+                              </div>
+                            </div>
+                            {showNewRow && (
+                              <div className="flex items-start gap-1.5">
+                                <span className="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-emerald-500 w-7 shrink-0">
+                                  Mới
+                                </span>
+                                {isRefund ? (
+                                  <div className="inline-flex items-center gap-1 rounded-md border border-violet-200 bg-violet-50 px-2 py-0.5 font-semibold text-violet-700">
+                                    <ReceiptText className="h-3 w-3 shrink-0" />
+                                    {newName}
+                                  </div>
+                                ) : (
+                                  <div className="inline-flex items-start gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-700 break-words">
+                                    <Home className="h-3 w-3 text-emerald-600 mt-1 shrink-0" />
+                                    <span className="leading-snug">{newName}</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
                       <div className="text-sm font-semibold text-brand-fg">
@@ -1018,14 +1126,6 @@ export default function RelocationRequestsPage() {
                   className="w-full"
                 />
               </Field>
-              <Field label="Cách xử lý cọc">
-                <Select
-                  value={form.depositHandling}
-                  onChange={(value) => patchForm({ depositHandling: value })}
-                  options={activeHandlingOptions}
-                  className="w-full"
-                />
-              </Field>
               {!isRefundResolution && (
                 <>
                   <Field label="Nhà duyệt chuyển sang">
@@ -1069,34 +1169,22 @@ export default function RelocationRequestsPage() {
                       className="w-full"
                     />
                   </Field>
-                  <Field label="Cọc chuyển sang HĐ mới">
-                    <InputNumber
-                      min={0}
-                      value={form.transferredDepositAmount}
-                      onChange={(value) =>
-                        patchForm({ transferredDepositAmount: value ?? 0 })
-                      }
-                      formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
-                      parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
-                      className="w-full"
-                    />
-                  </Field>
-                  <Field label="Cọc giữ lại">
-                    <InputNumber
-                      min={0}
-                      value={form.forfeitAmount}
-                      onChange={(value) =>
-                        patchForm({ forfeitAmount: value ?? 0 })
-                      }
-                      formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
-                      parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
-                      className="w-full"
-                    />
-                  </Field>
+                  {form.depositHandling === "FORFEIT" && (
+                    <Field label="Cọc giữ lại">
+                      <InputNumber
+                        min={0}
+                        value={form.forfeitAmount}
+                        onChange={(value) =>
+                          patchForm({ forfeitAmount: value ?? 0 })
+                        }
+                        formatter={(value) =>
+                          `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                        parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
+                        className="w-full"
+                      />
+                    </Field>
+                  )}
                   <Field label="Ngày bắt đầu">
                     <DatePicker
                       value={form.newStartAt}
@@ -1113,30 +1201,46 @@ export default function RelocationRequestsPage() {
                       className="w-full"
                     />
                   </Field>
-                  <Field label="Ngày bàn giao">
-                    <DatePicker
-                      value={form.newHandoverDate}
-                      onChange={(value) =>
-                        patchForm({ newHandoverDate: value })
-                      }
-                      format="DD/MM/YYYY"
-                      className="w-full"
-                    />
-                  </Field>
-                  <Field label="Cọc cần thu thêm">
-                    <InputNumber
-                      min={0}
-                      value={form.additionalDepositAmount}
-                      onChange={(value) =>
-                        patchForm({ additionalDepositAmount: value ?? 0 })
-                      }
-                      formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
-                      parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
-                      className="w-full"
-                    />
-                  </Field>
+                  {form.depositHandling === "TRANSFER_TO_REPLACEMENT" && (() => {
+                    const oldDeposit = Number(activeRequest?.depositAmount ?? 0);
+                    const newDeposit = Number(form.newDepositAmount ?? 0);
+                    const transferred = Math.min(oldDeposit, newDeposit);
+                    const topUp = Math.max(0, newDeposit - oldDeposit);
+                    const refund = Math.max(0, oldDeposit - newDeposit);
+                    return (
+                      <div className="md:col-span-2 rounded-2xl border border-brand-border bg-brand-subtle p-4 space-y-2 text-sm">
+                        <div className="font-semibold text-brand-fg">Tóm tắt xử lý cọc (tự động)</div>
+                        <div className="flex justify-between">
+                          <span className="text-brand-muted-fg">Cọc nhà cũ</span>
+                          <span className="font-medium text-brand-fg">{formatCurrency(oldDeposit)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-brand-muted-fg">Cọc nhà mới</span>
+                          <span className="font-medium text-brand-fg">{formatCurrency(newDeposit)}</span>
+                        </div>
+                        <hr className="border-brand-border" />
+                        <div className="flex justify-between">
+                          <span className="text-brand-fg">→ Chuyển sang nhà mới</span>
+                          <span className="font-semibold text-emerald-600">{formatCurrency(transferred)}</span>
+                        </div>
+                        {topUp > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-amber-700">⚠ Tenant cần nộp thêm</span>
+                            <span className="font-semibold text-amber-700">{formatCurrency(topUp)}</span>
+                          </div>
+                        )}
+                        {refund > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-blue-700">💰 Hoàn lại tenant</span>
+                            <span className="font-semibold text-blue-700">{formatCurrency(refund)}</span>
+                          </div>
+                        )}
+                        <div className="text-xs text-brand-muted-fg pt-1">
+                          Hệ thống sẽ tự gửi mail thu thêm hoặc hoàn lại sau khi duyệt.
+                        </div>
+                      </div>
+                    );
+                  })()}
                   {activeLeaseReview && (
                     <>
                       <Field label="Tiền thuê còn phải quyết toán">
@@ -1230,30 +1334,20 @@ export default function RelocationRequestsPage() {
                 </>
               )}
               {isRefundResolution && (
-                <>
-                  <Field label="Số tiền hoàn">
-                    <InputNumber
-                      min={0}
-                      value={form.refundAmount}
-                      onChange={(value) =>
-                        patchForm({ refundAmount: value ?? 0 })
-                      }
-                      formatter={(value) =>
-                        `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-                      }
-                      parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
-                      className="w-full"
-                    />
-                  </Field>
-                  <Field label="Hạn hoàn tiền">
-                    <DatePicker
-                      value={form.refundDueAt}
-                      onChange={(value) => patchForm({ refundDueAt: value })}
-                      format="DD/MM/YYYY"
-                      className="w-full"
-                    />
-                  </Field>
-                </>
+                <Field label="Số tiền hoàn">
+                  <InputNumber
+                    min={0}
+                    value={form.refundAmount}
+                    onChange={(value) =>
+                      patchForm({ refundAmount: value ?? 0 })
+                    }
+                    formatter={(value) =>
+                      `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                    }
+                    parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
+                    className="w-full"
+                  />
+                </Field>
               )}
             </div>
 
@@ -1264,9 +1358,7 @@ export default function RelocationRequestsPage() {
                   onChange={(event) =>
                     patchForm({ legalBasis: event.target.value })
                   }
-                  rows={3}
-                  maxLength={1600}
-                  showCount
+                  autoSize={{ minRows: 3, maxRows: 12 }}
                 />
               </Field>
             )}

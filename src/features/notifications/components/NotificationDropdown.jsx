@@ -14,14 +14,8 @@ import {
   FileSignature,
 } from "lucide-react";
 
-import MultiLangText from "../../../components/shared/i18n/MultiLangText";
 import { useUnreadCount } from "../hooks/useUnreadCount";
-
-// Pick the right value to feed into MultiLangText: prefer the translation
-// map (so the auto-badge + locale picking kicks in); fall back to the legacy
-// flat string when the backend hasn't migrated yet.
-const titleValue = (n) => n?.titleTranslations || n?.title;
-const bodyValue  = (n) => n?.bodyTranslations  || n?.body || n?.message || n?.content;
+import { resolveNotificationText } from "../utils/notificationText";
 import {
   getManagerNotifications,
   markNotificationRead,
@@ -83,8 +77,9 @@ function resolveType(category) {
 }
 
 export default function NotificationDropdown() {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const navigate = useNavigate();
+  const language = i18n?.resolvedLanguage || i18n?.language || "vi";
 
   function formatTime(dateStr) {
     if (!dateStr) return "";
@@ -129,6 +124,13 @@ export default function NotificationDropdown() {
 
     const type = resolveType(notif.category ?? "");
     const accent = TYPE_ACCENT[type] ?? "#3bb582";
+    const titleText = resolveNotificationText(
+      notif,
+      "title",
+      language,
+      t("notifications.newNotification"),
+    );
+    const bodyText = resolveNotificationText(notif, "body", language, "");
     toast(
       <div
         role="button"
@@ -146,11 +148,11 @@ export default function NotificationDropdown() {
         </div>
         <div className="flex-1 min-w-0 py-0.5">
           <p className="text-sm font-semibold text-gray-900 leading-snug truncate">
-            <MultiLangText value={titleValue(notif)} fallback={t("notifications.newNotification")} />
+            {titleText}
           </p>
-          {bodyValue(notif) && (
+          {bodyText && (
             <p className="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">
-              <MultiLangText value={bodyValue(notif)} />
+              {bodyText}
             </p>
           )}
           <div className="flex items-center justify-between mt-1.5">
@@ -177,7 +179,7 @@ export default function NotificationDropdown() {
         },
       },
     );
-  }, [liveNotifs, navigate]);
+  }, [liveNotifs, navigate, language, t]);
 
   // ── Fetch list when dropdown opens ───────────────────────────────────────
   const fetchPreviews = useCallback(async () => {
@@ -334,8 +336,13 @@ export default function NotificationDropdown() {
                 const category = notif.category ?? notif.type ?? "";
                 const type = resolveType(category);
                 const isUnread = !notif.read;
-                const titleVal = titleValue(notif);
-                const bodyVal = bodyValue(notif);
+                const titleText = resolveNotificationText(
+                  notif,
+                  "title",
+                  language,
+                  category || t("notifications.defaultTitle"),
+                );
+                const bodyText = resolveNotificationText(notif, "body", language, "");
 
                 return (
                   <button
@@ -353,11 +360,11 @@ export default function NotificationDropdown() {
                       <p
                         className={`text-sm leading-snug mb-0.5 ${isUnread ? "font-semibold text-gray-900" : "font-medium text-gray-700"}`}
                       >
-                        <MultiLangText value={titleVal} fallback={category || t("notifications.defaultTitle")} />
+                        {titleText}
                       </p>
-                      {bodyVal && (
+                      {bodyText && (
                         <p className="text-xs text-gray-500 line-clamp-1 leading-relaxed">
-                          <MultiLangText value={bodyVal} />
+                          {bodyText}
                         </p>
                       )}
                       <p
@@ -396,4 +403,3 @@ export default function NotificationDropdown() {
     </div>
   );
 }
-

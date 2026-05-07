@@ -1,6 +1,6 @@
 import { DatePicker, Select } from "antd";
 import dayjs from "dayjs";
-import { MapPin } from "lucide-react";
+import { MapPin, Clock } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getHouseById } from "../../../houses/api/houses.api";
@@ -21,7 +21,127 @@ const HOUSE_STATUS_KEYS = {
   AVAILABLE:   { tKey: "AVAILABLE",   cls: "bg-emerald-50 text-emerald-700 border border-emerald-200" },
   RENTED:      { tKey: "RENTED",      cls: "bg-orange-50 text-orange-700 border border-orange-200"   },
   MAINTENANCE: { tKey: "MAINTENANCE", cls: "bg-slate-100 text-slate-600 border border-slate-200"     },
+  REPAIRED:    { tKey: "REPAIRED",    cls: "bg-amber-50 text-amber-700 border border-amber-200"      },
 };
+
+function daysUntil(iso) {
+  if (!iso) return null;
+  const target = dayjs(iso).startOf("day");
+  const today = dayjs().startOf("day");
+  const diff = target.diff(today, "day");
+  return diff;
+}
+
+const CATEGORY_FILTERS = ["ALL", "AVAILABLE_NOW", "DEPOSIT_BOOKABLE"];
+const SORT_OPTIONS = ["AVAILABLE_FIRST", "NAME_ASC"];
+
+function HousePicker({ value, onChange, houses, error, t }) {
+  const [category, setCategory] = useState("ALL");
+  const [sortBy, setSortBy] = useState("AVAILABLE_FIRST");
+
+  const dataById = useMemo(() => {
+    const map = new Map();
+    for (const h of houses) map.set(h.id, h);
+    return map;
+  }, [houses]);
+
+  const filtered = useMemo(() => {
+    let arr = [...houses];
+    if (category !== "ALL") arr = arr.filter((h) => h.category === category);
+    if (sortBy === "AVAILABLE_FIRST") {
+      arr.sort((a, b) => {
+        const av = a.category === "AVAILABLE_NOW" ? 0 : 1;
+        const bv = b.category === "AVAILABLE_NOW" ? 0 : 1;
+        if (av !== bv) return av - bv;
+        const aa = a.availableFrom ? new Date(a.availableFrom).getTime() : Number.MAX_SAFE_INTEGER;
+        const bb = b.availableFrom ? new Date(b.availableFrom).getTime() : Number.MAX_SAFE_INTEGER;
+        return aa - bb;
+      });
+    } else {
+      arr.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+    }
+    return arr;
+  }, [houses, category, sortBy]);
+
+  const options = useMemo(() => {
+    const vacant = filtered.filter((h) => h.category === "AVAILABLE_NOW");
+    const bookable = filtered.filter((h) => h.category === "DEPOSIT_BOOKABLE");
+    const out = [];
+    if (vacant.length) {
+      out.push({
+        label: t("contracts.form.groupAvailableNow", { count: vacant.length }),
+        title: t("contracts.form.groupAvailableNow", { count: vacant.length }),
+        options: vacant.map((h) => ({
+          value: h.id,
+          label: `${h.name}${h.address ? ` — ${h.address}` : ""}`,
+        })),
+      });
+    }
+    if (bookable.length) {
+      out.push({
+        label: t("contracts.form.groupBookable", { count: bookable.length }),
+        title: t("contracts.form.groupBookable", { count: bookable.length }),
+        options: bookable.map((h) => {
+          const days = daysUntil(h.availableFrom);
+          const dateStr = h.availableFrom ? dayjs(h.availableFrom).format("DD/MM/YYYY") : "";
+          const hint = days != null && days > 0
+            ? t("contracts.form.bookableHint", { days, date: dateStr })
+            : t("contracts.form.bookableNowHint", { date: dateStr });
+          return {
+            value: h.id,
+            label: `${h.name}${h.address ? ` — ${h.address}` : ""} · ${hint}`,
+          };
+        }),
+      });
+    }
+    return out;
+  }, [filtered, t]);
+
+  const handleChange = (val) => {
+    onChange?.(val, dataById.get(val) ?? null);
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <Select
+          value={category}
+          onChange={setCategory}
+          size="small"
+          style={{ minWidth: 160 }}
+          options={CATEGORY_FILTERS.map((c) => ({
+            value: c,
+            label: t(`contracts.form.filterCategory.${c}`),
+          }))}
+        />
+        <Select
+          value={sortBy}
+          onChange={setSortBy}
+          size="small"
+          style={{ minWidth: 180 }}
+          options={SORT_OPTIONS.map((s) => ({
+            value: s,
+            label: t(`contracts.form.sort.${s}`),
+          }))}
+        />
+        <span className="text-xs ml-auto" style={{ color: "#5A7A6E" }}>
+          {t("contracts.form.filterCount", { count: filtered.length })}
+        </span>
+      </div>
+      <Select
+        value={value ?? undefined}
+        onChange={handleChange}
+        placeholder={t("contracts.form.selectHouse")}
+        showSearch
+        optionFilterProp="label"
+        status={error ? "error" : ""}
+        style={{ width: "100%" }}
+        options={options}
+        notFoundContent={t("contracts.form.noHouseAvailable")}
+      />
+    </div>
+  );
+}
 
 export default function StepHouseAndMoney({ form, update, houses, errors = {} }) {
   const { t } = useTranslation("common");
@@ -44,18 +164,14 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
     return () => { cancelled = true; };
   }, [form.houseId]);
 
-  const depositDateValue = useMemo(
-    () => (form.depositDate ? dayjs(form.depositDate, "YYYY-MM-DD") : null),
-    [form.depositDate],
-  );
-  const handoverDateValue = useMemo(
-    () => (form.handoverDate ? dayjs(form.handoverDate, "YYYY-MM-DD") : null),
-    [form.handoverDate],
-  );
 
   const statusCfg = HOUSE_STATUS_KEYS[houseDetail?.status];
   const addressParts = [houseDetail?.address, houseDetail?.ward, houseDetail?.commune, houseDetail?.city]
     .filter(Boolean).join(", ");
+  const selectedMeta = useMemo(
+    () => (Array.isArray(houses) ? houses.find((h) => h.id === form.houseId) : null) ?? null,
+    [houses, form.houseId],
+  );
 
   const areaChips = useMemo(() => {
     const areas = Array.isArray(houseDetail?.functionalAreas) ? houseDetail.functionalAreas : [];
@@ -84,21 +200,39 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
 
           <div>
             <label className={labelClass}>{t("contracts.form.availableHouses")}</label>
-            <Select
-              value={form.houseId ?? undefined}
-              onChange={(val) => update("houseId")({ target: { value: val } })}
-              placeholder={t("contracts.form.selectHouse")}
-              showSearch
-              optionFilterProp="label"
-              status={errors.houseId ? "error" : ""}
-              style={{ width: "100%" }}
-              options={Array.isArray(houses) ? houses.map((h) => ({
-                value: h.id,
-                label: `${h.name || h.title}${h.address ? ` — ${h.address}` : ""}`,
-              })) : []}
+            <HousePicker
+              value={form.houseId}
+              onChange={(val, meta) => {
+                update("houseId")({ target: { value: val } });
+                if (meta?.availableFrom) {
+                  const iso = meta.availableFrom.slice(0, 10);
+                  update("startDate")({ target: { value: iso } });
+                }
+              }}
+              houses={Array.isArray(houses) ? houses : []}
+              error={errors.houseId}
+              t={t}
             />
             {errors.houseId && <p className="mt-1 text-xs text-red-500">{errors.houseId}</p>}
           </div>
+
+          {selectedMeta?.category === "DEPOSIT_BOOKABLE" && selectedMeta.availableFrom && (
+            <div className="flex items-start gap-2 rounded-xl px-3 py-2.5 bg-amber-50 border border-amber-200 text-amber-800">
+              <Clock className="w-4 h-4 shrink-0 mt-0.5" />
+              <div className="text-xs leading-relaxed">
+                <p className="font-semibold">{t("contracts.form.bookableBanner")}</p>
+                <p>
+                  {(() => {
+                    const days = daysUntil(selectedMeta.availableFrom);
+                    const dateStr = dayjs(selectedMeta.availableFrom).format("DD/MM/YYYY");
+                    return days != null && days > 0
+                      ? t("contracts.form.bookableHint", { days, date: dateStr })
+                      : t("contracts.form.bookableNowHint", { date: dateStr });
+                  })()}
+                </p>
+              </div>
+            </div>
+          )}
 
           {loadingHouse && (
             <div className="flex items-center gap-2 text-sm text-slate-400 py-1">
@@ -222,26 +356,6 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
               <label className={labelClass}>{t("contracts.form.depositRefundDays")}</label>
               <input type="number" min={0} value={form.depositRefundDays ?? ""} onChange={update("depositRefundDays")}
                 placeholder="30" className={inputClass} />
-            </div>
-
-            <div>
-              <label className={labelClass}>{t("contracts.form.depositDate")}</label>
-              <DatePicker className={`w-full ${errors.depositDate ? "border-red-400" : ""}`}
-                value={depositDateValue} format="DD/MM/YYYY"
-                placeholder={t("contracts.form.depositDate")}
-                status={errors.depositDate ? "error" : ""}
-                onChange={(d) => update("depositDate")({ target: { value: d ? d.format("YYYY-MM-DD") : "" } })} />
-              {errors.depositDate && <p className="mt-1 text-xs text-red-500">{errors.depositDate}</p>}
-            </div>
-
-            <div>
-              <label className={labelClass}>{t("contracts.form.handoverDate")}</label>
-              <DatePicker className={`w-full ${errors.handoverDate ? "border-red-400" : ""}`}
-                value={handoverDateValue} format="DD/MM/YYYY"
-                placeholder={t("contracts.form.handoverDate")}
-                status={errors.handoverDate ? "error" : ""}
-                onChange={(d) => update("handoverDate")({ target: { value: d ? d.format("YYYY-MM-DD") : "" } })} />
-              {errors.handoverDate && <p className="mt-1 text-xs text-red-500">{errors.handoverDate}</p>}
             </div>
           </div>
         </div>

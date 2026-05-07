@@ -91,9 +91,89 @@
     "saveError": "Lưu thất bại, vui lòng thử lại.",
     "tabs": {
       "profile": "Hồ Sơ",
+      "landlord": "Cấu Hình Thuê",
       "notifications": "Thông Báo",
       "security": "Bảo Mật",
-      "system": "Hệ Thống"
+      "system": "Hệ Thống",
+      "voiceProvider": "Nhà Cung Cấp Voice"
+    },
+    "voiceProvider": {
+      "title": "Nhà Cung Cấp Voice",
+      "subtitle": "Chọn nhà cung cấp dịch vụ gọi voice cho cảnh báo PREMIUM. Áp dụng ngay sau khi lưu (cache 5 phút).",
+      "active": "Đang dùng",
+      "reload": "Tải lại",
+      "save": "Lưu",
+      "cancel": "Hủy",
+      "saving": "Đang lưu...",
+      "savedTo": "Đã chuyển sang {{provider}}",
+      "loadFailed": "Không tải được cấu hình",
+      "saveFailed": "Không lưu được",
+      "empty": "Không có provider nào sẵn sàng.",
+      "providers": {
+        "STRINGEE": {
+          "title": "Stringee",
+          "desc": "Số Việt Nam, TTS tiếng Việt native, giá rẻ. Production recommended."
+        },
+        "AWS_PINPOINT": {
+          "title": "AWS Pinpoint Voice",
+          "desc": "Số quốc tế (US/UK), Polly Vietnamese (Lan/Hieu). Test only — caller ID nước ngoài."
+        },
+        "TWILIO": {
+          "title": "Twilio",
+          "desc": "Số quốc tế, TwiML voice. Fallback option."
+        },
+        "SPEEDSMS": {
+          "title": "SpeedSMS",
+          "desc": "Voice OTP digits-only. Hạn chế free-form text."
+        }
+      }
+    },
+    "landlord": {
+      "loading": "Đang tải cấu hình...",
+      "loadError": "Không tải được cấu hình.",
+      "profileMissing": "Bạn chưa có hồ sơ chủ nhà. Hãy cập nhật hồ sơ trước khi đặt cấu hình thuê.",
+      "depositWaitTitle": "Hạn chờ đặt cọc",
+      "depositWaitSubtitle": "Số ngày khách thuê được giữ nhà sau khi ký hợp đồng. Quá hạn mà chưa đặt cọc, hệ thống tự huỷ hợp đồng và mở lại nhà cho người khác.",
+      "depositWaitDaysLabel": "Số ngày",
+      "depositWaitHint": "Từ {{min}} đến {{max}} ngày. Mặc định 3 ngày.",
+      "depositExpiryWarning": "Hợp đồng đã ký nhưng quá {{days}} ngày không đặt cọc sẽ tự động bị huỷ. Email cảnh báo gửi cho cả khách thuê và bạn khi điều này xảy ra.",
+      "forceMajeureTitle": "Hạn báo bất khả kháng",
+      "forceMajeureSubtitle": "Khi xảy ra sự kiện bất khả kháng (thiên tai, hoả hoạn, dịch bệnh…), bên gặp sự kiện phải thông báo cho bên kia trong bao lâu. Số giờ này sẽ render vào mọi hợp đồng mới.",
+      "forceMajeureLabel": "Số giờ thông báo",
+      "forceMajeureHint": "Từ {{min}} đến {{max}} giờ. Mặc định 24 giờ.",
+      "hoursUnit": "giờ",
+      "daysUnit": "ngày",
+      "saveButton": "Lưu cấu hình",
+      "saving": "Đang lưu...",
+      "saveSuccess": "Đã cập nhật hồ sơ.",
+      "saveError": "Cập nhật thất bại, vui lòng thử lại.",
+      "personalInfoTitle": "Thông tin chủ nhà trong hợp đồng",
+      "personalInfoSubtitle": "Các thông tin này sẽ được điền tự động vào phần BÊN CHO THUÊ trên mọi hợp đồng mới.",
+      "fullNameLabel": "Họ và tên",
+      "fullNamePlaceholder": "Nguyễn Văn A",
+      "dobLabel": "Ngày sinh",
+      "identityNumberLabel": "Số CCCD/CMND",
+      "identityNumberPlaceholder": "12 chữ số",
+      "identityIssueDateLabel": "Ngày cấp",
+      "identityIssueDatePlaceholder": "DD/MM/YYYY",
+      "identityIssuePlaceLabel": "Nơi cấp",
+      "identityIssuePlacePlaceholder": "VD: Cục Cảnh sát QLHC về TTXH",
+      "permanentAddressLabel": "Địa chỉ thường trú",
+      "permanentAddressPlaceholder": "Số nhà, đường, phường/xã, quận/huyện, tỉnh/TP",
+      "addressLabel": "Địa chỉ liên hệ",
+      "addressPlaceholder": "Nếu khác địa chỉ thường trú",
+      "phoneLabel": "Số điện thoại",
+      "phonePlaceholder": "0xxxxxxxxx",
+      "phoneNumberLabel": "Số điện thoại",
+      "phoneNumberPlaceholder": "0xxxxxxxxx",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "bankAccountLabel": "Tài khoản nhận tiền",
+      "bankAccountPlaceholder": "Số tài khoản",
+      "bankNameLabel": "Ngân hàng",
+      "bankNamePlaceholder": "VD: Vietcombank",
+      "taxCodeLabel": "Mã số thuế (nếu có)",
+      "taxCodePlaceholder": "10–13 chữ số"
     },
     "profile": {
       "title": "Thông Tin Cá Nhân",
@@ -143,6 +223,14 @@
   "dashboard": {
     "overview": "Tổng quan",
     "welcome": "Chào mừng trở lại 👋",
+    "bookableWidget": {
+      "title": "Nhà sắp trống — sẵn sàng nhận cọc",
+      "unit": "căn",
+      "viewAll": "Xem tất cả",
+      "empty": "Chưa có nhà nào sắp trống trong 30 ngày tới",
+      "daysLeft": "Còn {{days}} ngày",
+      "now": "Sẵn sàng"
+    },
     "stats": {
       "totalContracts": "Tổng hợp đồng",
       "inSystem": "Trong hệ thống",
@@ -402,6 +490,7 @@
       "IN_PROGRESS": "Chờ khách thuê ký",
       "COMPLETED": "Đã hoàn thành",
       "PENDING_TERMINATION": "Chuẩn bị hết hạn",
+      "INSPECTION_DONE": "Đã kiểm tra bàn giao",
       "PENDING_REPLACEMENT_HANDOVER": "Chờ bàn giao thay thế",
       "REPLACED_BEFORE_DEPOSIT": "Đã thay thế (chưa cọc)",
       "REPLACED_AFTER_DEPOSIT": "Đã thay thế (đã cọc)",
@@ -648,9 +737,26 @@
       "dateOfIssue": "Ngày cấp CCCD",
       "placeOfIssue": "Nơi cấp CCCD",
       "rentalHouse": "Nhà cho thuê",
-      "availableHouses": "Các căn nhà trống",
+      "availableHouses": "Chọn nhà cho thuê",
       "selectHouse": "-- Chọn nhà --",
       "loadingHouse": "Đang tải thông tin nhà...",
+      "groupAvailableNow": "Còn trống — vào ở ngay ({{count}})",
+      "groupBookable": "Sắp trống — đặt cọc giữ chỗ ({{count}})",
+      "bookableHint": "Còn {{days}} ngày — nhận nhà từ {{date}}",
+      "bookableNowHint": "Sẵn sàng nhận nhà từ {{date}}",
+      "bookableBanner": "Nhà này đang được thuê đến hết tháng cuối — bạn có thể đặt cọc giữ chỗ",
+      "noHouseAvailable": "Không có nhà phù hợp",
+      "filterCategory": {
+        "ALL": "Tất cả",
+        "AVAILABLE_NOW": "Có thể vào ngay",
+        "DEPOSIT_BOOKABLE": "Đặt cọc giữ chỗ"
+      },
+      "filterCityPlaceholder": "Lọc theo khu vực",
+      "filterCount": "{{count}} căn",
+      "sort": {
+        "AVAILABLE_FIRST": "Có thể vào sớm nhất",
+        "NAME_ASC": "Tên A → Z"
+      },
       "houseAmenities": "Tiện ích nổi bật",
       "money": "Tiền & Chi phí",
       "rent": "Tiền thuê (VNĐ) *",
@@ -788,6 +894,17 @@
         "description": "Hệ thống sẽ gửi lại email thông báo cho người thuê để xem xét và xác nhận hợp đồng.",
         "confirmLabel": "Gửi lại"
       },
+      "resendTenantSign": {
+        "button": "Gửi lại email ký",
+        "dialogTitle": "Gửi lại email ký cho khách",
+        "dialogDescription": "VNPT sẽ tạo mã ký mới và gửi lại email cho khách thuê. Liên kết cũ trong email trước sẽ không còn hiệu lực.",
+        "dialogConfirm": "Gửi email mới",
+        "success": "Đã gửi lại email ký cho khách thuê.",
+        "error": "Gửi lại thất bại, vui lòng thử lại.",
+        "error403": "Bạn không có quyền gửi lại email ký.",
+        "error404": "Không tìm thấy hợp đồng.",
+        "error422": "Hợp đồng chưa ở trạng thái Chờ khách thuê ký, hoặc VNPT từ chối yêu cầu."
+      },
       "confirmSuccess": "Xác nhận thành công! Email đã được gửi cho khách thuê xem xét.",
       "resendSuccess": "Đã gửi lại hợp đồng cho người thuê xem xét.",
       "confirm400": "Không thể xác nhận hợp đồng này (hợp đồng không đủ điều kiện).",
@@ -870,6 +987,36 @@
       "noPdf": "Chưa có file PDF cho hợp đồng này.",
       "loadError": "Không thể tải file PDF. Vui lòng thử lại sau.",
       "loading": "Đang tải PDF..."
+    },
+    "cashDeposit": {
+      "button": "Xác nhận thu cọc tiền mặt",
+      "modal": {
+        "title": "Xác nhận thu cọc tiền mặt",
+        "subtitle": "Tạo phiếu thu cho khoản đặt cọc đã nhận",
+        "contract": "Hợp đồng",
+        "tenant": "Khách thuê",
+        "amountLabel": "Số tiền (VNĐ)",
+        "amountMismatch": "Số tiền phải đúng bằng {{expected}} ₫",
+        "noteLabel": "Ghi chú",
+        "notePlaceholder": "Mô tả thêm nếu cần (không bắt buộc)",
+        "acknowledge": "Tôi xác nhận đã nhận đủ số tiền nói trên",
+        "submit": "Tạo phiếu thu",
+        "cancel": "Huỷ",
+        "issuedTitle": "Đã tạo phiếu thu",
+        "method": "Tiền mặt",
+        "issuedHint": "In 2 bản, ký tay với khách thuê và đưa khách 1 bản gốc.",
+        "printPdf": "In phiếu thu",
+        "close": "Đóng"
+      },
+      "toast": {
+        "success": "Đã tạo phiếu thu {{number}}",
+        "pdfError": "Không tải được phiếu thu PDF",
+        "error400": "Dữ liệu không hợp lệ, kiểm tra lại số tiền",
+        "error403": "Bạn không có quyền thu cọc cho hợp đồng này",
+        "error404": "Không tìm thấy hợp đồng",
+        "error409": "Phiếu thu đã được tạo trước đó",
+        "errorDefault": "Không tạo được phiếu thu, vui lòng thử lại"
+      }
     }
   },
   "houses": {
@@ -891,12 +1038,36 @@
     "status": {
       "AVAILABLE": "Còn trống",
       "RENTED": "Đã thuê",
-      "MAINTENANCE": "Bảo trì"
+      "MAINTENANCE": "Bảo trì",
+      "REPAIRED": "Tạm ngừng cho thuê"
     },
     "statusCard": {
       "AVAILABLE": "CHƯA CÓ KHÁCH THUÊ",
       "RENTED": "ĐÃ THUÊ",
-      "MAINTENANCE": "BẢO TRÌ"
+      "MAINTENANCE": "BẢO TRÌ",
+      "REPAIRED": "TẠM NGỪNG CHO THUÊ"
+    },
+    "subscribe": {
+      "subscribe": "Báo khi trống",
+      "unsubscribe": "Bỏ theo dõi",
+      "subscribed": "Đã đăng ký nhận thông báo khi nhà trống",
+      "unsubscribed": "Đã hủy theo dõi nhà này",
+      "error": "Không thể đăng ký, vui lòng thử lại"
+    },
+    "statusUpdate": {
+      "title": "Cập nhật trạng thái nhà",
+      "current": "Hiện tại",
+      "next": "Chuyển sang",
+      "optionAvailable": "Có thể cho thuê",
+      "optionRepaired": "Tạm ngừng cho thuê (đang sửa chữa)",
+      "rentedHint": "Trạng thái 'Đã thuê' do hệ thống tự cập nhật theo hợp đồng — không thể chỉnh tay.",
+      "trigger": "Đổi trạng thái",
+      "confirm": "Xác nhận",
+      "cancel": "Hủy",
+      "successAvailable": "Đã mở lại nhà cho thuê.",
+      "successRepaired": "Đã chuyển nhà sang trạng thái tạm ngừng cho thuê.",
+      "error": "Không thể cập nhật trạng thái. Vui lòng thử lại.",
+      "rentedBlocked": "Không thể đổi trạng thái khi nhà đang có người thuê."
     },
     "areaType": {
       "BEDROOM": "Phòng ngủ",
@@ -948,6 +1119,14 @@
         "region": "Vui lòng chọn khu vực",
         "address": "Vui lòng chọn địa chỉ"
       }
+    },
+    "edit": {
+      "title": "Chỉnh sửa bất động sản",
+      "subtitle": "Cập nhật thông tin bất động sản hiện có",
+      "save": "Lưu thay đổi",
+      "saving": "Đang lưu...",
+      "successToast": "Cập nhật bất động sản thành công!",
+      "failToast": "Cập nhật thất bại, vui lòng thử lại."
     },
     "translations": {
       "title": "Xem lại bản dịch tự động",
@@ -1010,18 +1189,16 @@
     },
     "addArea": {
       "title": "Thêm khu vực mới",
-      "nameLabel": "Tên khu vực",
-      "namePlaceholder": "VD: Phòng ngủ 1, Bếp chính...",
       "areaTypeLabel": "Loại khu vực",
       "floorLabel": "Tầng",
       "floorOption": "Tầng {{n}}",
-      "customTypeLabel": "Loại cụ thể",
+      "customTypeLabel": "Tên loại khu vực",
       "customTypePlaceholder": "VD: Ban công, Gara xe, Phòng giặt...",
       "descriptionLabel": "Mô tả",
       "descriptionPlaceholder": "Mô tả thêm về khu vực này...",
       "submit": "Thêm khu vực",
-      "errorName": "Vui lòng nhập tên khu vực.",
-      "errorCustomType": "Vui lòng mô tả loại khu vực."
+      "errorAreaType": "Vui lòng chọn loại khu vực.",
+      "errorCustomType": "Vui lòng nhập tên cho loại khu vực 'Khác'."
     },
     "createAsset": {
       "title": "Thêm tài sản mới",
@@ -1514,6 +1691,7 @@
       "CREATED": "Mới tạo",
       "SCHEDULED": "Đã lên lịch",
       "IN_PROGRESS": "Đang tiến hành",
+      "PENDING_MANAGER_REVIEW": "Chờ quản lý duyệt đổi nhà",
       "DONE": "Hoàn thành",
       "APPROVED": "Đã duyệt",
       "CANCELLED": "Đã hủy"

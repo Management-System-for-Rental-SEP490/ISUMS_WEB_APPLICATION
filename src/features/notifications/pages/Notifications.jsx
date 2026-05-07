@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Bell,
@@ -21,15 +21,10 @@ import {
 } from "../constants/notification.constants";
 import { NOTIFICATION_METADATA_LABEL_KEYS } from "../constants/notificationMetadataLabels";
 import InspectionResultDrawer from "../../maintenance/components/InspectionResultDrawer";
-import MultiLangText from "../../../components/shared/i18n/MultiLangText";
-
-// Extract title/body in a shape consumable by MultiLangText. Backend may
-// return either the legacy plain string or the new translation map.
-const titleValue = (n) => n?.titleTranslations || n?.title;
-const bodyValue  = (n) => n?.bodyTranslations  || n?.body || n?.message || n?.content;
+import { resolveNotificationText } from "../utils/notificationText";
 
 // Reduce a translation-map (or string) to a plain searchable string. Used
-// only for client-side text filtering — display still goes through MultiLangText.
+// only for client-side text filtering.
 const flatten = (v) => {
   if (v == null) return "";
   if (typeof v === "string") return v;
@@ -51,31 +46,38 @@ const SORT_OPTION_KEYS = [
   { key: "oldest", labelKey: "notifications.sortOldest" },
 ];
 
+function formatTime(dateStr, now, t) {
+  if (!dateStr) return "";
+  try {
+    const date = new Date(dateStr);
+    const diffMs = now - date;
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return t("notifications.justNow");
+    if (diffMin < 60) return t("notifications.minutesAgo", { count: diffMin });
+    const diffH = Math.floor(diffMin / 60);
+    if (diffH < 24) return t("notifications.hoursAgo", { count: diffH });
+    const diffD = Math.floor(diffH / 24);
+    if (diffD < 7) return t("notifications.daysAgo", { count: diffD });
+    return date.toLocaleDateString();
+  } catch {
+    return dateStr;
+  }
+}
+
 export default function Notifications() {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
+  const language = i18n?.resolvedLanguage || i18n?.language || "vi";
   const [filterKey, setFilterKey] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortKey, setSortKey] = useState("newest");
   const [expandedId, setExpandedId] = useState(null);
   const [inspectionId, setInspectionId] = useState(null);
+  const [now, setNow] = useState(() => Date.now());
 
-  function formatTime(dateStr) {
-    if (!dateStr) return "";
-    try {
-      const date = new Date(dateStr);
-      const diffMs = Date.now() - date;
-      const diffMin = Math.floor(diffMs / 60000);
-      if (diffMin < 1) return t("notifications.justNow");
-      if (diffMin < 60) return t("notifications.minutesAgo", { count: diffMin });
-      const diffH = Math.floor(diffMin / 60);
-      if (diffH < 24) return t("notifications.hoursAgo", { count: diffH });
-      const diffD = Math.floor(diffH / 24);
-      if (diffD < 7) return t("notifications.daysAgo", { count: diffD });
-      return date.toLocaleDateString();
-    } catch {
-      return dateStr;
-    }
-  }
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(id);
+  }, []);
 
   function resolveMetaLabel(metadata) {
     if (!metadata) return null;
@@ -112,7 +114,7 @@ export default function Notifications() {
   const filtered = notifications
     .filter((n) => {
       const text =
-        `${flatten(titleValue(n))} ${flatten(bodyValue(n))}`.toLowerCase();
+        `${flatten(n?.titleTranslations)} ${flatten(n?.bodyTranslations)} ${n?.title ?? ""} ${n?.body ?? ""} ${n?.message ?? ""} ${n?.content ?? ""}`.toLowerCase();
       const matchSearch =
         !searchTerm || text.includes(searchTerm.toLowerCase());
       const matchFilter =
@@ -313,9 +315,14 @@ export default function Notifications() {
               const isUnread = !notif.read;
               const isExpanded = expandedId === notif.id;
               const metaTags = resolveMetaLabel(notif.metadata);
-              const titleVal = titleValue(notif);
-              const bodyVal = bodyValue(notif);
-              const hasBody = !!flatten(bodyVal);
+              const titleText = resolveNotificationText(
+                notif,
+                "title",
+                language,
+                notif.category ?? t("notifications.defaultTitle"),
+              );
+              const bodyText = resolveNotificationText(notif, "body", language, "");
+              const hasBody = !!bodyText;
               const metadata = notif.metadata ?? {};
 
               return (
@@ -347,7 +354,7 @@ export default function Notifications() {
                             className="text-sm font-semibold leading-snug mb-0.5"
                             style={{ color: isUnread ? "#1E2D28" : "#5A7A6E" }}
                           >
-                            <MultiLangText value={titleVal} fallback={notif.category ?? t("notifications.defaultTitle")} />
+                            {titleText}
                             {isUnread && (
                               <span
                                 className={`inline-block w-1.5 h-1.5 rounded-full ml-1.5 mb-0.5 align-middle ${cfg.dot}`}
@@ -356,7 +363,7 @@ export default function Notifications() {
                           </p>
                           {hasBody && !isExpanded && (
                             <p className="text-sm leading-relaxed line-clamp-2 mb-2" style={{ color: "#5A7A6E" }}>
-                              <MultiLangText value={bodyVal} />
+                              {bodyText}
                             </p>
                           )}
                           {/* Tags */}
@@ -381,7 +388,7 @@ export default function Notifications() {
                         {/* Right: time + chevron + actions */}
                         <div className="flex flex-col items-end gap-2 flex-shrink-0">
                           <span className="text-xs whitespace-nowrap" style={{ color: "#5A7A6E" }}>
-                            {formatTime(notif.createdAt ?? notif.time)}
+                            {formatTime(notif.createdAt ?? notif.time, now, t)}
                           </span>
                           <div className="flex items-center gap-1">
                             {isUnread && (
@@ -421,7 +428,7 @@ export default function Notifications() {
                     <div className="px-5 pb-4 ml-14 space-y-3">
                       {hasBody && (
                         <p className="text-sm leading-relaxed rounded-xl px-4 py-3" style={{ color: "#1E2D28", background: "#ffffff", border: "1px solid #C4DED5" }}>
-                          <MultiLangText value={bodyVal} />
+                          {bodyText}
                         </p>
                       )}
                       {Object.keys(metadata).length > 0 && (
@@ -493,4 +500,3 @@ export default function Notifications() {
     </div>
   );
 }
-

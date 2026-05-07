@@ -36,7 +36,9 @@ export default function ContractStatusBar({ breakdown = [], loading = false }) {
   const contractUnit = t("dashboard.contractStatus.contractUnit");
 
   const chartData = breakdown.map((d) => ({
-    label: t(`dashboard.contractStatus.${d.status}`, { defaultValue: d.status }),
+    label: t(`contracts.status.${d.status}`, {
+      defaultValue: t(`dashboard.contractStatus.${d.status}`, { defaultValue: d.status }),
+    }),
     value: d.count,
     color: STATUS_COLOR[d.status] ?? "#8ab5a3",
   }));
