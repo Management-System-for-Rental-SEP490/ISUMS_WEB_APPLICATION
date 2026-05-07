@@ -37,7 +37,6 @@ const SORT_OPTIONS = ["AVAILABLE_FIRST", "NAME_ASC"];
 
 function HousePicker({ value, onChange, houses, error, t }) {
   const [category, setCategory] = useState("ALL");
-  const [city, setCity] = useState("");
   const [sortBy, setSortBy] = useState("AVAILABLE_FIRST");
 
   const dataById = useMemo(() => {
@@ -46,19 +45,9 @@ function HousePicker({ value, onChange, houses, error, t }) {
     return map;
   }, [houses]);
 
-  const cityOptions = useMemo(() => {
-    const set = new Set();
-    for (const h of houses) {
-      const c = (h.address || "").split(",").pop()?.trim();
-      if (c) set.add(c);
-    }
-    return Array.from(set).sort();
-  }, [houses]);
-
   const filtered = useMemo(() => {
     let arr = [...houses];
     if (category !== "ALL") arr = arr.filter((h) => h.category === category);
-    if (city) arr = arr.filter((h) => (h.address || "").includes(city));
     if (sortBy === "AVAILABLE_FIRST") {
       arr.sort((a, b) => {
         const av = a.category === "AVAILABLE_NOW" ? 0 : 1;
@@ -72,7 +61,7 @@ function HousePicker({ value, onChange, houses, error, t }) {
       arr.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
     }
     return arr;
-  }, [houses, category, city, sortBy]);
+  }, [houses, category, sortBy]);
 
   const options = useMemo(() => {
     const vacant = filtered.filter((h) => h.category === "AVAILABLE_NOW");
@@ -126,16 +115,6 @@ function HousePicker({ value, onChange, houses, error, t }) {
           }))}
         />
         <Select
-          value={city || undefined}
-          onChange={(v) => setCity(v ?? "")}
-          allowClear
-          showSearch
-          size="small"
-          placeholder={t("contracts.form.filterCityPlaceholder")}
-          style={{ minWidth: 160 }}
-          options={cityOptions.map((c) => ({ value: c, label: c }))}
-        />
-        <Select
           value={sortBy}
           onChange={setSortBy}
           size="small"
@@ -185,14 +164,6 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
     return () => { cancelled = true; };
   }, [form.houseId]);
 
-  const depositDateValue = useMemo(
-    () => (form.depositDate ? dayjs(form.depositDate, "YYYY-MM-DD") : null),
-    [form.depositDate],
-  );
-  const handoverDateValue = useMemo(
-    () => (form.handoverDate ? dayjs(form.handoverDate, "YYYY-MM-DD") : null),
-    [form.handoverDate],
-  );
 
   const statusCfg = HOUSE_STATUS_KEYS[houseDetail?.status];
   const addressParts = [houseDetail?.address, houseDetail?.ward, houseDetail?.commune, houseDetail?.city]
@@ -235,7 +206,7 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
                 update("houseId")({ target: { value: val } });
                 if (meta?.availableFrom) {
                   const iso = meta.availableFrom.slice(0, 10);
-                  update("handoverDate")({ target: { value: iso } });
+                  update("startDate")({ target: { value: iso } });
                 }
               }}
               houses={Array.isArray(houses) ? houses : []}
@@ -385,26 +356,6 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
               <label className={labelClass}>{t("contracts.form.depositRefundDays")}</label>
               <input type="number" min={0} value={form.depositRefundDays ?? ""} onChange={update("depositRefundDays")}
                 placeholder="30" className={inputClass} />
-            </div>
-
-            <div>
-              <label className={labelClass}>{t("contracts.form.depositDate")}</label>
-              <DatePicker className={`w-full ${errors.depositDate ? "border-red-400" : ""}`}
-                value={depositDateValue} format="DD/MM/YYYY"
-                placeholder={t("contracts.form.depositDate")}
-                status={errors.depositDate ? "error" : ""}
-                onChange={(d) => update("depositDate")({ target: { value: d ? d.format("YYYY-MM-DD") : "" } })} />
-              {errors.depositDate && <p className="mt-1 text-xs text-red-500">{errors.depositDate}</p>}
-            </div>
-
-            <div>
-              <label className={labelClass}>{t("contracts.form.handoverDate")}</label>
-              <DatePicker className={`w-full ${errors.handoverDate ? "border-red-400" : ""}`}
-                value={handoverDateValue} format="DD/MM/YYYY"
-                placeholder={t("contracts.form.handoverDate")}
-                status={errors.handoverDate ? "error" : ""}
-                onChange={(d) => update("handoverDate")({ target: { value: d ? d.format("YYYY-MM-DD") : "" } })} />
-              {errors.handoverDate && <p className="mt-1 text-xs text-red-500">{errors.handoverDate}</p>}
             </div>
           </div>
         </div>

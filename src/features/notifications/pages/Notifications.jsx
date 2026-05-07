@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Bell,
@@ -46,6 +46,24 @@ const SORT_OPTION_KEYS = [
   { key: "oldest", labelKey: "notifications.sortOldest" },
 ];
 
+function formatTime(dateStr, now, t) {
+  if (!dateStr) return "";
+  try {
+    const date = new Date(dateStr);
+    const diffMs = now - date;
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return t("notifications.justNow");
+    if (diffMin < 60) return t("notifications.minutesAgo", { count: diffMin });
+    const diffH = Math.floor(diffMin / 60);
+    if (diffH < 24) return t("notifications.hoursAgo", { count: diffH });
+    const diffD = Math.floor(diffH / 24);
+    if (diffD < 7) return t("notifications.daysAgo", { count: diffD });
+    return date.toLocaleDateString();
+  } catch {
+    return dateStr;
+  }
+}
+
 export default function Notifications() {
   const { t, i18n } = useTranslation("common");
   const language = i18n?.resolvedLanguage || i18n?.language || "vi";
@@ -54,24 +72,12 @@ export default function Notifications() {
   const [sortKey, setSortKey] = useState("newest");
   const [expandedId, setExpandedId] = useState(null);
   const [inspectionId, setInspectionId] = useState(null);
+  const [now, setNow] = useState(() => Date.now());
 
-  function formatTime(dateStr) {
-    if (!dateStr) return "";
-    try {
-      const date = new Date(dateStr);
-      const diffMs = Date.now() - date;
-      const diffMin = Math.floor(diffMs / 60000);
-      if (diffMin < 1) return t("notifications.justNow");
-      if (diffMin < 60) return t("notifications.minutesAgo", { count: diffMin });
-      const diffH = Math.floor(diffMin / 60);
-      if (diffH < 24) return t("notifications.hoursAgo", { count: diffH });
-      const diffD = Math.floor(diffH / 24);
-      if (diffD < 7) return t("notifications.daysAgo", { count: diffD });
-      return date.toLocaleDateString();
-    } catch {
-      return dateStr;
-    }
-  }
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(id);
+  }, []);
 
   function resolveMetaLabel(metadata) {
     if (!metadata) return null;
@@ -382,7 +388,7 @@ export default function Notifications() {
                         {/* Right: time + chevron + actions */}
                         <div className="flex flex-col items-end gap-2 flex-shrink-0">
                           <span className="text-xs whitespace-nowrap" style={{ color: "#5A7A6E" }}>
-                            {formatTime(notif.createdAt ?? notif.time)}
+                            {formatTime(notif.createdAt ?? notif.time, now, t)}
                           </span>
                           <div className="flex items-center gap-1">
                             {isUnread && (

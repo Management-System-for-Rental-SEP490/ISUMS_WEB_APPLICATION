@@ -234,19 +234,6 @@ export default function DashboardLayout() {
 
             <NotificationDropdown />
 
-            <button
-              type="button"
-              className="hidden md:flex items-center gap-1.5 px-3.5 py-2 text-white text-xs font-semibold shadow-sm flex-shrink-0"
-              style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)", borderRadius: 10, transition: "opacity 0.2s ease, transform 0.2s ease" }}
-              onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.9"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.transform = "translateY(0)"; }}
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-              </svg>
-              {t("layout.addNew")}
-            </button>
-
             <div className="h-5 w-px" style={{ background: "#C4DED5" }} />
 
             {/* User dropdown */}

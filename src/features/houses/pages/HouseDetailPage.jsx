@@ -236,6 +236,7 @@ export default function HouseDetailPage() {
 
         <div className="flex items-center gap-2 flex-shrink-0">
           <button
+            onClick={() => navigate(`/houses?edit=${house.id}`)}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium transition"
             style={{ border: `1px solid ${B.border}`, color: B.mutedFg, background: "#fff" }}
             onMouseEnter={(e) => { e.currentTarget.style.borderColor = B.green; e.currentTarget.style.color = B.green; }}

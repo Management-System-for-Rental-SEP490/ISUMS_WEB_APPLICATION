@@ -12,7 +12,9 @@ import Icons from "../components/standalone/ContractDetailIcons";
 import ContractPdfViewer from "../components/shared/ContractPdfViewer";
 import ContractLegalSummary from "../components/shared/ContractLegalSummary";
 import ContractRelocationLinkBanner from "../components/standalone/ContractRelocationLinkBanner";
+import CashDepositConfirmModal from "../components/standalone/CashDepositConfirmModal";
 import { useAuthStore } from "../../../features/auth/store/auth.store";
+import { Wallet } from "lucide-react";
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 const STATUS_STYLE = {
@@ -169,6 +171,7 @@ export default function ContractDetailStandalone() {
   const [showManagerConfirm, setShowManagerConfirm] = useState(false);
   const [showResendConfirm, setShowResendConfirm] = useState(false);
   const [showResendTenantSignConfirm, setShowResendTenantSignConfirm] = useState(false);
+  const [showCashDepositModal, setShowCashDepositModal] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
@@ -299,6 +302,11 @@ export default function ContractDetailStandalone() {
   const canResendTenantSign = normalizedStatus === "IN_PROGRESS";
   const canLandlordSign = isLandlord && normalizedStatus === "READY";
   const canDownload = normalizedStatus === "COMPLETED" && !!pdfUrl;
+  const depositStatus = (contract?.depositStatus ?? "").toString().toUpperCase();
+  const canConfirmCashDeposit =
+    normalizedStatus === "COMPLETED" &&
+    (depositStatus === "" || depositStatus === "UNPAID" || depositStatus === "PENDING") &&
+    Number(contract?.depositAmount ?? 0) > 0;
 
   const goBack = () => navigate("/contracts");
 
@@ -429,6 +437,15 @@ export default function ContractDetailStandalone() {
                 {t("contracts.detail.download")}
               </ActionButton>
             )}
+            {canConfirmCashDeposit && (
+              <ActionButton
+                onClick={() => setShowCashDepositModal(true)}
+                variant="primary"
+                icon={<Wallet className="h-4 w-4" />}
+              >
+                {t("contracts.cashDeposit.button")}
+              </ActionButton>
+            )}
             <button
               type="button"
               onClick={goBack}
@@ -532,6 +549,18 @@ export default function ContractDetailStandalone() {
         description={t("contracts.detail.resendTenantSign.dialogDescription")}
         confirmLabel={t("contracts.detail.resendTenantSign.dialogConfirm")}
         t={t}
+      />
+
+      <CashDepositConfirmModal
+        open={showCashDepositModal}
+        onClose={() => setShowCashDepositModal(false)}
+        contractId={id}
+        contractNumber={contract?.contractNumber ?? contract?.name ?? id}
+        tenantName={contract?.tenantName ?? contract?.tenant ?? null}
+        expectedAmount={Number(contract?.depositAmount ?? contract?.deposit ?? 0) || null}
+        onConfirmed={() => {
+          refetchContract().catch(() => {});
+        }}
       />
     </div>
   );

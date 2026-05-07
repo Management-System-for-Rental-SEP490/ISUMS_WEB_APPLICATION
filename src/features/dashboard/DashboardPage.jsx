@@ -9,7 +9,6 @@ import { useNavigate } from "react-router-dom";
 import HouseStatusDonut from "./components/HouseStatusDonut";
 import ContractsByMonthLine from "./components/ContractsByMonthLine";
 import ContractStatusBar from "./components/ContractStatusBar";
-import BookableHousesWidget from "./components/BookableHousesWidget";
 import { useDashboardStats } from "./hooks/useDashboardStats";
 import { STATUS_LABEL, STATUS_BADGE } from "../contracts/utils/contract.constants";
 
@@ -167,8 +166,6 @@ export default function DashboardPage() {
           <KpiCard key={key} {...s} loading={loading} allOnTimeLabel={t("dashboard.stats.allOnTime")} />
         ))}
       </div>
-
-      <BookableHousesWidget />
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-5" style={{ height: 380 }}>
         <div className="lg:col-span-2 flex flex-col">

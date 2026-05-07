@@ -9,6 +9,7 @@ import {
   Globe,
   Save,
   Key,
+  Home,
 } from "lucide-react";
 import keycloak from "../../../keycloak";
 import { useAuthStore } from "../../auth/store/auth.store";
@@ -16,6 +17,7 @@ import { useLanguageStore, languageActions } from "../../../store/languageStore"
 import { updateUserLanguage, getMe } from "../../auth/api/auth.api";
 import { updateMyPhone } from "../../auth/api/users.api";
 import NotificationPreferencesPanel from "../../notifications/components/NotificationPreferencesPanel";
+import LandlordRentalSettings from "../components/LandlordRentalSettings";
 
 const ROLE_LABELS = {
   LANDLORD: "Chủ nhà",
@@ -80,8 +82,13 @@ export default function Settings() {
     },
   });
 
+  const isLandlordOrManager = roles?.some((r) => r === "LANDLORD" || r === "MANAGER");
+
   const tabs = [
     { id: "profile", label: t("settings.tabs.profile"), icon: User },
+    ...(isLandlordOrManager
+      ? [{ id: "landlord", label: t("settings.tabs.landlord"), icon: Home }]
+      : []),
     { id: "notifications", label: t("settings.tabs.notifications"), icon: Bell },
     { id: "security", label: t("settings.tabs.security"), icon: Shield },
     { id: "system", label: t("settings.tabs.system"), icon: Globe },
@@ -438,6 +445,7 @@ export default function Settings() {
   const renderTabContent = () => {
     switch (activeTab) {
       case "profile": return renderProfileTab();
+      case "landlord": return <LandlordRentalSettings />;
       case "notifications": return renderNotificationsTab();
       case "security": return renderSecurityTab();
       case "system": return renderSystemTab();

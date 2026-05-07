@@ -81,9 +81,9 @@ function transformContractPayload(payload) {
     payDate: Number(payload.payDate) || 5,
     payCycle: payload.payCycle?.trim() || "monthly",
     depositAmount: Number(payload.depositAmount) || 0,
-    depositDate: toVietnamDateStartISOString(payload.depositDate),
+    depositDate: null,
     depositRefundDays: Number(payload.depositRefundDays) || 0,
-    handoverDate: toVietnamDateStartISOString(payload.handoverDate),
+    handoverDate: toVietnamDateStartISOString(payload.handoverDate || payload.startDate),
     lateDays: Number(payload.lateDays) || 0,
     latePenaltyPercent: Number(payload.latePenaltyPercent) || 0,
     maxLateDays: Number(payload.maxLateDays) || 0,
@@ -92,7 +92,8 @@ function transformContractPayload(payload) {
     landlordBreachCompensation: payload.landlordBreachCompensation?.trim() || "",
     renewNoticeDays: Number(payload.renewNoticeDays) || 0,
     landlordNoticeDays: Number(payload.landlordNoticeDays) || 0,
-    forceMajeureNoticeHours: Number(payload.forceMajeureNoticeHours) || 0,
+    forceMajeureNoticeHours: payload.forceMajeureNoticeHours != null
+      ? Number(payload.forceMajeureNoticeHours) : null,
     disputeDays: Number(payload.disputeDays) || 0,
     disputeForum: payload.disputeForum?.trim() || "",
     taxFeeNote: payload.taxFeeNote?.trim() || "",
@@ -195,6 +196,29 @@ export async function resendTenantSignatureEmail(contractId) {
 export async function getDepositBookableHouses() {
   const response = await api.get(CONTRACTS_ENDPOINTS.MARKETPLACE_BOOKABLE);
   return extractResponseData(response);
+}
+
+export async function confirmCashDeposit(contractId, payload, idempotencyKey) {
+  const headers = idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {};
+  const response = await api.post(
+    CONTRACTS_ENDPOINTS.CASH_DEPOSIT_CONFIRM(contractId),
+    payload,
+    { headers },
+  );
+  return extractResponseData(response);
+}
+
+export async function getActiveCashDepositReceipt(contractId) {
+  const response = await api.get(CONTRACTS_ENDPOINTS.CASH_DEPOSIT_ACTIVE(contractId));
+  return extractResponseData(response);
+}
+
+export async function downloadCashDepositReceiptPdf(contractId, receiptNumber) {
+  const response = await api.get(
+    CONTRACTS_ENDPOINTS.CASH_DEPOSIT_PDF(contractId, receiptNumber),
+    { responseType: "blob" },
+  );
+  return response.data;
 }
 
 export async function getLockedHouseIds() {

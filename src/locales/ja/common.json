@@ -91,9 +91,30 @@
     "saveError": "保存に失敗しました。もう一度お試しください。",
     "tabs": {
       "profile": "プロフィール",
+      "landlord": "賃貸設定",
       "notifications": "通知",
       "security": "セキュリティ",
       "system": "システム"
+    },
+    "landlord": {
+      "loading": "設定を読み込み中...",
+      "loadError": "設定を読み込めませんでした。",
+      "profileMissing": "オーナープロフィールがまだ作成されていません。プロフィールを更新してから設定してください。",
+      "depositWaitTitle": "敷金支払期限",
+      "depositWaitSubtitle": "契約署名後、テナントのために物件を確保する日数。期限までに敷金が支払われない場合、契約は自動キャンセルされ、物件は再度利用可能になります。",
+      "depositWaitDaysLabel": "日数",
+      "depositWaitHint": "{{min}}〜{{max}}日。デフォルトは3日。",
+      "depositExpiryWarning": "署名済み契約で{{days}}日以内に敷金が支払われない場合、自動キャンセルされます。発生時にあなたとテナントの両方にメールが届きます。",
+      "forceMajeureTitle": "不可抗力通知期限",
+      "forceMajeureSubtitle": "不可抗力（自然災害、火災、疫病など）が発生した際、影響を受けた当事者が相手方に通知すべき時間。新規契約にすべて反映されます。",
+      "forceMajeureLabel": "通知時間",
+      "forceMajeureHint": "{{min}}〜{{max}}時間。デフォルトは24時間。",
+      "hoursUnit": "時間",
+      "daysUnit": "日",
+      "saveButton": "設定を保存",
+      "saving": "保存中...",
+      "saveSuccess": "敷金支払期限を更新しました。",
+      "saveError": "更新に失敗しました。再試行してください。"
     },
     "profile": {
       "title": "個人情報",
@@ -410,6 +431,7 @@
       "IN_PROGRESS": "入居者署名待ち",
       "COMPLETED": "完了",
       "PENDING_TERMINATION": "間もなく期限切れ",
+      "INSPECTION_DONE": "検査完了",
       "PENDING_REPLACEMENT_HANDOVER": "代替引渡し待ち",
       "REPLACED_BEFORE_DEPOSIT": "代替済み（敷金前）",
       "REPLACED_AFTER_DEPOSIT": "代替済み（敷金後）",
@@ -906,6 +928,36 @@
       "noPdf": "この契約書にはPDFファイルがありません。",
       "loadError": "PDFを読み込めませんでした。後でもう一度お試しください。",
       "loading": "PDFを読み込み中..."
+    },
+    "cashDeposit": {
+      "button": "現金敷金の受領を確定",
+      "modal": {
+        "title": "現金敷金の受領を確定",
+        "subtitle": "受領した敷金の領収書を発行します",
+        "contract": "契約",
+        "tenant": "テナント",
+        "amountLabel": "金額 (VND)",
+        "amountMismatch": "金額は {{expected}} ₫ と一致する必要があります",
+        "noteLabel": "備考",
+        "notePlaceholder": "任意のメモ",
+        "acknowledge": "上記の金額を全額受領したことを確認します",
+        "submit": "領収書を発行",
+        "cancel": "キャンセル",
+        "issuedTitle": "領収書を発行しました",
+        "method": "現金",
+        "issuedHint": "2部印刷し、テナントと署名してから1部を渡してください。",
+        "printPdf": "PDFを印刷",
+        "close": "閉じる"
+      },
+      "toast": {
+        "success": "領収書 {{number}} を発行しました",
+        "pdfError": "領収書PDFをダウンロードできません",
+        "error400": "入力に誤りがあります。金額をご確認ください",
+        "error403": "この敷金を確定する権限がありません",
+        "error404": "契約が見つかりません",
+        "error409": "領収書はすでに発行されています",
+        "errorDefault": "領収書を発行できませんでした。再試行してください"
+      }
     }
   },
   "houses": {
@@ -1009,6 +1061,14 @@
         "address": "住所を選択してください"
       }
     },
+    "edit": {
+      "title": "物件を編集",
+      "subtitle": "既存物件の情報を更新",
+      "save": "変更を保存",
+      "saving": "保存中...",
+      "successToast": "物件を更新しました！",
+      "failToast": "更新に失敗しました。再試行してください。"
+    },
     "translations": {
       "title": "自動翻訳内容の確認",
       "subtitle": "システムが情報を3言語に自動翻訳しました。保存前に編集できます。",
@@ -1070,18 +1130,16 @@
     },
     "addArea": {
       "title": "新規エリアを追加",
-      "nameLabel": "エリア名",
-      "namePlaceholder": "例：寝室1、メインキッチン...",
       "areaTypeLabel": "エリアタイプ",
       "floorLabel": "階",
       "floorOption": "{{n}}階",
-      "customTypeLabel": "具体的なタイプ",
+      "customTypeLabel": "エリアタイプ名",
       "customTypePlaceholder": "例：バルコニー、ガレージ、ランドリー...",
       "descriptionLabel": "説明",
       "descriptionPlaceholder": "このエリアの詳細を記入...",
       "submit": "エリアを追加",
-      "errorName": "エリア名を入力してください。",
-      "errorCustomType": "エリアタイプを説明してください。"
+      "errorAreaType": "エリアタイプを選択してください。",
+      "errorCustomType": "「その他」のエリア名を入力してください。"
     },
     "createAsset": {
       "title": "新規資産を追加",

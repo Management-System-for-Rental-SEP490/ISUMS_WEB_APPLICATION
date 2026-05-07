@@ -91,9 +91,55 @@
     "saveError": "Lưu thất bại, vui lòng thử lại.",
     "tabs": {
       "profile": "Hồ Sơ",
+      "landlord": "Cấu Hình Thuê",
       "notifications": "Thông Báo",
       "security": "Bảo Mật",
       "system": "Hệ Thống"
+    },
+    "landlord": {
+      "loading": "Đang tải cấu hình...",
+      "loadError": "Không tải được cấu hình.",
+      "profileMissing": "Bạn chưa có hồ sơ chủ nhà. Hãy cập nhật hồ sơ trước khi đặt cấu hình thuê.",
+      "depositWaitTitle": "Hạn chờ đặt cọc",
+      "depositWaitSubtitle": "Số ngày khách thuê được giữ nhà sau khi ký hợp đồng. Quá hạn mà chưa đặt cọc, hệ thống tự huỷ hợp đồng và mở lại nhà cho người khác.",
+      "depositWaitDaysLabel": "Số ngày",
+      "depositWaitHint": "Từ {{min}} đến {{max}} ngày. Mặc định 3 ngày.",
+      "depositExpiryWarning": "Hợp đồng đã ký nhưng quá {{days}} ngày không đặt cọc sẽ tự động bị huỷ. Email cảnh báo gửi cho cả khách thuê và bạn khi điều này xảy ra.",
+      "forceMajeureTitle": "Hạn báo bất khả kháng",
+      "forceMajeureSubtitle": "Khi xảy ra sự kiện bất khả kháng (thiên tai, hoả hoạn, dịch bệnh…), bên gặp sự kiện phải thông báo cho bên kia trong bao lâu. Số giờ này sẽ render vào mọi hợp đồng mới.",
+      "forceMajeureLabel": "Số giờ thông báo",
+      "forceMajeureHint": "Từ {{min}} đến {{max}} giờ. Mặc định 24 giờ.",
+      "hoursUnit": "giờ",
+      "daysUnit": "ngày",
+      "saveButton": "Lưu cấu hình",
+      "saving": "Đang lưu...",
+      "saveSuccess": "Đã cập nhật hồ sơ.",
+      "saveError": "Cập nhật thất bại, vui lòng thử lại.",
+      "personalInfoTitle": "Thông tin chủ nhà trong hợp đồng",
+      "personalInfoSubtitle": "Các thông tin này sẽ được điền tự động vào phần BÊN CHO THUÊ trên mọi hợp đồng mới.",
+      "fullNameLabel": "Họ và tên",
+      "fullNamePlaceholder": "Nguyễn Văn A",
+      "dobLabel": "Ngày sinh",
+      "identityNumberLabel": "Số CCCD/CMND",
+      "identityNumberPlaceholder": "12 chữ số",
+      "identityIssueDateLabel": "Ngày cấp",
+      "identityIssueDatePlaceholder": "DD/MM/YYYY",
+      "identityIssuePlaceLabel": "Nơi cấp",
+      "identityIssuePlacePlaceholder": "VD: Cục Cảnh sát QLHC về TTXH",
+      "permanentAddressLabel": "Địa chỉ thường trú",
+      "permanentAddressPlaceholder": "Số nhà, đường, phường/xã, quận/huyện, tỉnh/TP",
+      "addressLabel": "Địa chỉ liên hệ",
+      "addressPlaceholder": "Nếu khác địa chỉ thường trú",
+      "phoneLabel": "Số điện thoại",
+      "phonePlaceholder": "0xxxxxxxxx",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "bankAccountLabel": "Tài khoản nhận tiền",
+      "bankAccountPlaceholder": "Số tài khoản",
+      "bankNameLabel": "Ngân hàng",
+      "bankNamePlaceholder": "VD: Vietcombank",
+      "taxCodeLabel": "Mã số thuế (nếu có)",
+      "taxCodePlaceholder": "10–13 chữ số"
     },
     "profile": {
       "title": "Thông Tin Cá Nhân",
@@ -410,6 +456,7 @@
       "IN_PROGRESS": "Chờ khách thuê ký",
       "COMPLETED": "Đã hoàn thành",
       "PENDING_TERMINATION": "Chuẩn bị hết hạn",
+      "INSPECTION_DONE": "Đã kiểm tra bàn giao",
       "PENDING_REPLACEMENT_HANDOVER": "Chờ bàn giao thay thế",
       "REPLACED_BEFORE_DEPOSIT": "Đã thay thế (chưa cọc)",
       "REPLACED_AFTER_DEPOSIT": "Đã thay thế (đã cọc)",
@@ -906,6 +953,36 @@
       "noPdf": "Chưa có file PDF cho hợp đồng này.",
       "loadError": "Không thể tải file PDF. Vui lòng thử lại sau.",
       "loading": "Đang tải PDF..."
+    },
+    "cashDeposit": {
+      "button": "Xác nhận thu cọc tiền mặt",
+      "modal": {
+        "title": "Xác nhận thu cọc tiền mặt",
+        "subtitle": "Tạo phiếu thu cho khoản đặt cọc đã nhận",
+        "contract": "Hợp đồng",
+        "tenant": "Khách thuê",
+        "amountLabel": "Số tiền (VNĐ)",
+        "amountMismatch": "Số tiền phải đúng bằng {{expected}} ₫",
+        "noteLabel": "Ghi chú",
+        "notePlaceholder": "Mô tả thêm nếu cần (không bắt buộc)",
+        "acknowledge": "Tôi xác nhận đã nhận đủ số tiền nói trên",
+        "submit": "Tạo phiếu thu",
+        "cancel": "Huỷ",
+        "issuedTitle": "Đã tạo phiếu thu",
+        "method": "Tiền mặt",
+        "issuedHint": "In 2 bản, ký tay với khách thuê và đưa khách 1 bản gốc.",
+        "printPdf": "In phiếu thu",
+        "close": "Đóng"
+      },
+      "toast": {
+        "success": "Đã tạo phiếu thu {{number}}",
+        "pdfError": "Không tải được phiếu thu PDF",
+        "error400": "Dữ liệu không hợp lệ, kiểm tra lại số tiền",
+        "error403": "Bạn không có quyền thu cọc cho hợp đồng này",
+        "error404": "Không tìm thấy hợp đồng",
+        "error409": "Phiếu thu đã được tạo trước đó",
+        "errorDefault": "Không tạo được phiếu thu, vui lòng thử lại"
+      }
     }
   },
   "houses": {
@@ -1009,6 +1086,14 @@
         "address": "Vui lòng chọn địa chỉ"
       }
     },
+    "edit": {
+      "title": "Chỉnh sửa bất động sản",
+      "subtitle": "Cập nhật thông tin bất động sản hiện có",
+      "save": "Lưu thay đổi",
+      "saving": "Đang lưu...",
+      "successToast": "Cập nhật bất động sản thành công!",
+      "failToast": "Cập nhật thất bại, vui lòng thử lại."
+    },
     "translations": {
       "title": "Xem lại bản dịch tự động",
       "subtitle": "Hệ thống đã tự động dịch thông tin sang 3 ngôn ngữ. Bạn có thể chỉnh sửa trước khi lưu.",
@@ -1070,18 +1155,16 @@
     },
     "addArea": {
       "title": "Thêm khu vực mới",
-      "nameLabel": "Tên khu vực",
-      "namePlaceholder": "VD: Phòng ngủ 1, Bếp chính...",
       "areaTypeLabel": "Loại khu vực",
       "floorLabel": "Tầng",
       "floorOption": "Tầng {{n}}",
-      "customTypeLabel": "Loại cụ thể",
+      "customTypeLabel": "Tên loại khu vực",
       "customTypePlaceholder": "VD: Ban công, Gara xe, Phòng giặt...",
       "descriptionLabel": "Mô tả",
       "descriptionPlaceholder": "Mô tả thêm về khu vực này...",
       "submit": "Thêm khu vực",
-      "errorName": "Vui lòng nhập tên khu vực.",
-      "errorCustomType": "Vui lòng mô tả loại khu vực."
+      "errorAreaType": "Vui lòng chọn loại khu vực.",
+      "errorCustomType": "Vui lòng nhập tên cho loại khu vực 'Khác'."
     },
     "createAsset": {
       "title": "Thêm tài sản mới",

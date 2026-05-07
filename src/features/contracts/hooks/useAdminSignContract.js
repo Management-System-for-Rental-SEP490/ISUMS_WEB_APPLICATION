@@ -126,10 +126,11 @@ export function useAdminSignContract(id) {
     setShowSigModal(false);
   };
 
-  // ─── Payload builders ─────────────────────────────────────────────────────────
   const buildPayload = (otp, posOverride = null) => {
     const pos = posOverride ?? chosenPosition;
-    const [llx, lly, urx, ury] = pos.signingPosition.split(",").map(Number);
+    const [llx, lly, urx, ury] = pos.signingPosition
+      .split(",")
+      .map((v) => Math.round(Number(v)));
     return {
       processId: signingSession.processId,
       otp: otp ?? null,
@@ -139,7 +140,6 @@ export function useAdminSignContract(id) {
         return raw.startsWith("data:") ? raw : `data:image/png;base64,${raw}`;
       })(),
       signingPage: pos.page,
-      // signingPosition: `${llx - 48},${lly + 270 + 107},${urx - 48},${ury + 270 + 107}`,
       signingPosition: `${llx},${lly},${urx},${ury}`,
       reason: "Admin ký hợp đồng",
       reject: false,

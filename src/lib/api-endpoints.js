@@ -38,6 +38,11 @@ export const CONTRACTS_ENDPOINTS = {
   ADMIN_SIGN: "/econtracts/sign-admin",
   RESEND_TENANT_SIGNATURE: (id) => `/econtracts/${id}/notifications/resend-tenant-signature`,
   CONFIRM_REFUND: (id) => `/econtracts/${id}/confirm-refund`,
+  CASH_DEPOSIT_CONFIRM: (id) => `/econtracts/${id}/deposit/cash-receipt`,
+  CASH_DEPOSIT_ACTIVE: (id) => `/econtracts/${id}/deposit/cash-receipt`,
+  CASH_DEPOSIT_PDF: (id, receiptNumber) =>
+    `/econtracts/${id}/deposit/cash-receipt/${receiptNumber}/pdf`,
+  LANDLORD_PROFILE_ME: "/econtracts/landlord-profiles/me",
   CONFIRM_TERMINATION_OVERDUE: (id) =>
     `/econtracts/${id}/confirm-termination-overdue`,
   CONFIRM_POWER_CUT: (id) => `/econtracts/${id}/confirm-power-cut`,

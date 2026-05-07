@@ -97,12 +97,6 @@ export default function StepContractClauses({ form, update, errors = {} }) {
               className={`${inputClass} ${errors.landlordNoticeDays ? "border-red-500 focus:ring-red-500" : ""}`} />
             {errors.landlordNoticeDays && <p className="mt-1 text-xs text-red-600">{errors.landlordNoticeDays}</p>}
           </div>
-          <div>
-            <label className={labelClass}>{t("contracts.form.forceMajeureNoticeHours")}</label>
-            <input type="number" min={0} value={form.forceMajeureNoticeHours ?? ""} onChange={update("forceMajeureNoticeHours")} placeholder="24"
-              className={`${inputClass} ${errors.forceMajeureNoticeHours ? "border-red-500 focus:ring-red-500" : ""}`} />
-            {errors.forceMajeureNoticeHours && <p className="mt-1 text-xs text-red-600">{errors.forceMajeureNoticeHours}</p>}
-          </div>
         </div>
       </div>
 
