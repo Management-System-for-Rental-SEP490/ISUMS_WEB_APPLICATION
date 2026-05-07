@@ -94,7 +94,39 @@
       "landlord": "Rental Settings",
       "notifications": "Notifications",
       "security": "Security",
-      "system": "System"
+      "system": "System",
+      "voiceProvider": "Voice Provider"
+    },
+    "voiceProvider": {
+      "title": "Voice Provider",
+      "subtitle": "Select the outbound voice call provider for PREMIUM alerts. Applies immediately on save (5-minute cache).",
+      "active": "Active",
+      "reload": "Reload",
+      "save": "Save",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "savedTo": "Switched to {{provider}}",
+      "loadFailed": "Failed to load configuration",
+      "saveFailed": "Failed to save",
+      "empty": "No providers available.",
+      "providers": {
+        "STRINGEE": {
+          "title": "Stringee",
+          "desc": "Vietnamese phone numbers, native VN TTS, low cost. Production recommended."
+        },
+        "AWS_PINPOINT": {
+          "title": "AWS Pinpoint Voice",
+          "desc": "International numbers (US/UK), Polly Vietnamese (Lan/Hieu). Test only."
+        },
+        "TWILIO": {
+          "title": "Twilio",
+          "desc": "International numbers, TwiML voice. Fallback option."
+        },
+        "SPEEDSMS": {
+          "title": "SpeedSMS",
+          "desc": "Voice OTP digits-only. Limited for free-form text."
+        }
+      }
     },
     "landlord": {
       "loading": "Loading settings...",
@@ -132,6 +164,8 @@
       "addressPlaceholder": "If different from permanent address",
       "phoneLabel": "Phone",
       "phonePlaceholder": "0xxxxxxxxx",
+      "phoneNumberLabel": "Phone",
+      "phoneNumberPlaceholder": "0xxxxxxxxx",
       "emailLabel": "Email",
       "emailPlaceholder": "you@example.com",
       "bankAccountLabel": "Bank account",
@@ -1655,6 +1689,7 @@
       "CREATED": "Created",
       "SCHEDULED": "Scheduled",
       "IN_PROGRESS": "In Progress",
+      "PENDING_MANAGER_REVIEW": "Awaiting manager review",
       "DONE": "Done",
       "APPROVED": "Approved",
       "CANCELLED": "Cancelled"

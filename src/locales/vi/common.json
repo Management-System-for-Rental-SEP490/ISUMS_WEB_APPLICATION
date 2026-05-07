@@ -94,7 +94,39 @@
       "landlord": "Cấu Hình Thuê",
       "notifications": "Thông Báo",
       "security": "Bảo Mật",
-      "system": "Hệ Thống"
+      "system": "Hệ Thống",
+      "voiceProvider": "Nhà Cung Cấp Voice"
+    },
+    "voiceProvider": {
+      "title": "Nhà Cung Cấp Voice",
+      "subtitle": "Chọn nhà cung cấp dịch vụ gọi voice cho cảnh báo PREMIUM. Áp dụng ngay sau khi lưu (cache 5 phút).",
+      "active": "Đang dùng",
+      "reload": "Tải lại",
+      "save": "Lưu",
+      "cancel": "Hủy",
+      "saving": "Đang lưu...",
+      "savedTo": "Đã chuyển sang {{provider}}",
+      "loadFailed": "Không tải được cấu hình",
+      "saveFailed": "Không lưu được",
+      "empty": "Không có provider nào sẵn sàng.",
+      "providers": {
+        "STRINGEE": {
+          "title": "Stringee",
+          "desc": "Số Việt Nam, TTS tiếng Việt native, giá rẻ. Production recommended."
+        },
+        "AWS_PINPOINT": {
+          "title": "AWS Pinpoint Voice",
+          "desc": "Số quốc tế (US/UK), Polly Vietnamese (Lan/Hieu). Test only — caller ID nước ngoài."
+        },
+        "TWILIO": {
+          "title": "Twilio",
+          "desc": "Số quốc tế, TwiML voice. Fallback option."
+        },
+        "SPEEDSMS": {
+          "title": "SpeedSMS",
+          "desc": "Voice OTP digits-only. Hạn chế free-form text."
+        }
+      }
     },
     "landlord": {
       "loading": "Đang tải cấu hình...",
@@ -132,6 +164,8 @@
       "addressPlaceholder": "Nếu khác địa chỉ thường trú",
       "phoneLabel": "Số điện thoại",
       "phonePlaceholder": "0xxxxxxxxx",
+      "phoneNumberLabel": "Số điện thoại",
+      "phoneNumberPlaceholder": "0xxxxxxxxx",
       "emailLabel": "Email",
       "emailPlaceholder": "you@example.com",
       "bankAccountLabel": "Tài khoản nhận tiền",
@@ -1657,6 +1691,7 @@
       "CREATED": "Mới tạo",
       "SCHEDULED": "Đã lên lịch",
       "IN_PROGRESS": "Đang tiến hành",
+      "PENDING_MANAGER_REVIEW": "Chờ quản lý duyệt đổi nhà",
       "DONE": "Hoàn thành",
       "APPROVED": "Đã duyệt",
       "CANCELLED": "Đã hủy"

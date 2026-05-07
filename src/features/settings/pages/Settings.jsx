@@ -10,6 +10,7 @@ import {
   Save,
   Key,
   Home,
+  Phone,
 } from "lucide-react";
 import keycloak from "../../../keycloak";
 import { useAuthStore } from "../../auth/store/auth.store";
@@ -18,6 +19,7 @@ import { updateUserLanguage, getMe } from "../../auth/api/auth.api";
 import { updateMyPhone } from "../../auth/api/users.api";
 import NotificationPreferencesPanel from "../../notifications/components/NotificationPreferencesPanel";
 import LandlordRentalSettings from "../components/LandlordRentalSettings";
+import VoiceProviderTab from "../components/VoiceProviderTab";
 
 const ROLE_LABELS = {
   LANDLORD: "Chủ nhà",
@@ -83,6 +85,12 @@ export default function Settings() {
   });
 
   const isLandlordOrManager = roles?.some((r) => r === "LANDLORD" || r === "MANAGER");
+  const roleList = Array.isArray(roles) ? roles.map((r) => String(r).toUpperCase()) : [];
+  const isAdmin =
+    roleList.includes("LANDLORD") ||
+    roleList.includes("ADMIN") ||
+    roleList.includes("SYSTEM_ADMIN") ||
+    roleList.includes("MANAGER");
 
   const tabs = [
     { id: "profile", label: t("settings.tabs.profile"), icon: User },
@@ -92,6 +100,9 @@ export default function Settings() {
     { id: "notifications", label: t("settings.tabs.notifications"), icon: Bell },
     { id: "security", label: t("settings.tabs.security"), icon: Shield },
     { id: "system", label: t("settings.tabs.system"), icon: Globe },
+    ...(isAdmin
+      ? [{ id: "voiceProvider", label: t("settings.tabs.voiceProvider"), icon: Phone }]
+      : []),
   ];
 
   useEffect(() => {
@@ -449,6 +460,7 @@ export default function Settings() {
       case "notifications": return renderNotificationsTab();
       case "security": return renderSecurityTab();
       case "system": return renderSystemTab();
+      case "voiceProvider": return <VoiceProviderTab />;
       default: return null;
     }
   };

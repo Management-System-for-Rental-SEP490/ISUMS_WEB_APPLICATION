@@ -94,7 +94,39 @@
       "landlord": "賃貸設定",
       "notifications": "通知",
       "security": "セキュリティ",
-      "system": "システム"
+      "system": "システム",
+      "voiceProvider": "音声プロバイダ"
+    },
+    "voiceProvider": {
+      "title": "音声プロバイダ",
+      "subtitle": "PREMIUM 通知の音声発信プロバイダを選択します。保存後すぐに反映されます（5分キャッシュ）。",
+      "active": "使用中",
+      "reload": "再読込",
+      "save": "保存",
+      "cancel": "キャンセル",
+      "saving": "保存中...",
+      "savedTo": "{{provider}} に切り替えました",
+      "loadFailed": "設定を読み込めませんでした",
+      "saveFailed": "保存できませんでした",
+      "empty": "利用可能なプロバイダがありません。",
+      "providers": {
+        "STRINGEE": {
+          "title": "Stringee",
+          "desc": "ベトナム番号、ネイティブ TTS、低コスト。本番推奨。"
+        },
+        "AWS_PINPOINT": {
+          "title": "AWS Pinpoint Voice",
+          "desc": "国際番号 (US/UK)、Polly Vietnamese (Lan/Hieu)。テスト用。"
+        },
+        "TWILIO": {
+          "title": "Twilio",
+          "desc": "国際番号、TwiML voice。フォールバック。"
+        },
+        "SPEEDSMS": {
+          "title": "SpeedSMS",
+          "desc": "Voice OTP は数字のみ。自由文不可。"
+        }
+      }
     },
     "landlord": {
       "loading": "設定を読み込み中...",
@@ -1631,6 +1663,7 @@
       "CREATED": "作成済み",
       "SCHEDULED": "スケジュール済み",
       "IN_PROGRESS": "進行中",
+      "PENDING_MANAGER_REVIEW": "管理者の転居承認待ち",
       "DONE": "完了",
       "APPROVED": "承認済み",
       "CANCELLED": "キャンセル"

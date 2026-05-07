@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   ArrowRightLeft,
@@ -363,6 +363,8 @@ export default function RelocationRequestsPage() {
   const [contractOptions, setContractOptions] = useState([]);
   const [contractSearching, setContractSearching] = useState(false);
   const [evidencePreviewUrl, setEvidencePreviewUrl] = useState(null);
+  const [highlightIds, setHighlightIds] = useState(() => new Set());
+  const seenIdsRef = useRef(null);
 
   const houseOptions = useMemo(
     () =>
@@ -394,25 +396,72 @@ export default function RelocationRequestsPage() {
     [housesById],
   );
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const [requestData, houseData] = await Promise.all([
         getRelocationRequests(),
         getRelocationHouseOptions(),
       ]);
+
+      const incomingIds = new Set((requestData ?? []).map((r) => r.id));
+      const seen = seenIdsRef.current;
+      if (seen == null) {
+        seenIdsRef.current = incomingIds;
+      } else {
+        const fresh = [];
+        for (const id of incomingIds) {
+          if (!seen.has(id)) fresh.push(id);
+        }
+        if (fresh.length > 0) {
+          seenIdsRef.current = incomingIds;
+          setHighlightIds((prev) => {
+            const next = new Set(prev);
+            for (const id of fresh) next.add(id);
+            return next;
+          });
+          setTimeout(() => {
+            setHighlightIds((prev) => {
+              const next = new Set(prev);
+              for (const id of fresh) next.delete(id);
+              return next;
+            });
+          }, 3500);
+        } else {
+          seenIdsRef.current = incomingIds;
+        }
+      }
+
       setRequests(requestData);
       setHouses(houseData);
     } catch (error) {
-      toast.error(error.message || "Không tải được dữ liệu đổi nhà.");
+      if (!silent) toast.error(error.message || "Không tải được dữ liệu đổi nhà.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
+
+  useEffect(() => {
+    const POLL_MS = 10_000;
+    const tick = () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      if (activeRequest || reportOpen || submitting) return;
+      loadData({ silent: true });
+    };
+    const id = setInterval(tick, POLL_MS);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") tick();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [loadData, activeRequest, reportOpen, submitting]);
 
   const searchReportContracts = useCallback(async (searchText = "") => {
     setContractSearching(true);
@@ -732,7 +781,7 @@ export default function RelocationRequestsPage() {
             </div>
             <button
               type="button"
-              onClick={loadData}
+              onClick={() => loadData()}
               disabled={loading}
               className={TOOL_BUTTON_CLASS}
             >
@@ -794,7 +843,11 @@ export default function RelocationRequestsPage() {
                 {filteredRequests.map((request) => (
                   <tr
                     key={request.id}
-                    className="transition hover:bg-brand-muted"
+                    className={`transition hover:bg-brand-muted ${
+                      highlightIds.has(request.id)
+                        ? "relocation-row-flash"
+                        : ""
+                    }`}
                   >
                     <TableCell className="min-w-[240px]">
                       <div className="flex items-center gap-2">

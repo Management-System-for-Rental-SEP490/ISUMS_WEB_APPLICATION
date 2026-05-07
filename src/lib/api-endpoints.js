@@ -121,6 +121,7 @@ export const NOTIFICATIONS_ENDPOINTS = {
   PREFERENCES_SUBSCRIPTION: "/notifications/preferences/me/subscription",
   PREFERENCES_QUOTA:        "/notifications/preferences/me/quota",
   TEST_VOICE:               "/notifications/preferences/me/test-voice",
+  ADMIN_VOICE_PROVIDER:     "/notifications/admin/settings/voice-provider",
 
   // Voice call audit history (paged by created_at desc)
   CALLS_ME:                 "/notifications/calls/me",

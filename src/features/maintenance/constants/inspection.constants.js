@@ -1,14 +1,15 @@
 export const STATUS_CONFIG = {
-  CREATED:     { labelKey: "inspection.status.CREATED",     color: "#5A7A6E", bg: "rgba(90,122,110,0.10)" },
-  SCHEDULED:   { labelKey: "inspection.status.SCHEDULED",   color: "#2096d8", bg: "rgba(32,150,216,0.12)" },
-  IN_PROGRESS: { labelKey: "inspection.status.IN_PROGRESS", color: "#f59e0b", bg: "rgba(245,158,11,0.12)" },
-  DONE:        { labelKey: "inspection.status.DONE",        color: "#3bb582", bg: "rgba(59,181,130,0.12)" },
-  APPROVED:    { labelKey: "inspection.status.APPROVED",    color: "#3bb582", bg: "rgba(59,181,130,0.15)" },
-  CANCELLED:   { labelKey: "inspection.status.CANCELLED",   color: "#D95F4B", bg: "rgba(217,95,75,0.10)" },
+  CREATED:                { labelKey: "inspection.status.CREATED",                color: "#5A7A6E", bg: "rgba(90,122,110,0.10)" },
+  SCHEDULED:              { labelKey: "inspection.status.SCHEDULED",              color: "#2096d8", bg: "rgba(32,150,216,0.12)" },
+  IN_PROGRESS:            { labelKey: "inspection.status.IN_PROGRESS",            color: "#f59e0b", bg: "rgba(245,158,11,0.12)" },
+  PENDING_MANAGER_REVIEW: { labelKey: "inspection.status.PENDING_MANAGER_REVIEW", color: "#a855f7", bg: "rgba(168,85,247,0.12)" },
+  DONE:                   { labelKey: "inspection.status.DONE",                   color: "#3bb582", bg: "rgba(59,181,130,0.12)" },
+  APPROVED:               { labelKey: "inspection.status.APPROVED",               color: "#3bb582", bg: "rgba(59,181,130,0.15)" },
+  CANCELLED:              { labelKey: "inspection.status.CANCELLED",              color: "#D95F4B", bg: "rgba(217,95,75,0.10)" },
 };
 
 // Thứ tự các bước chính (không gồm CANCELLED)
-export const STATUS_STEPS = ["CREATED", "SCHEDULED", "IN_PROGRESS", "DONE", "APPROVED"];
+export const STATUS_STEPS = ["CREATED", "SCHEDULED", "IN_PROGRESS", "PENDING_MANAGER_REVIEW", "DONE", "APPROVED"];
 
 export const EVENT_TYPE_CONFIG = {
   MAINTENANCE: { labelKey: "inspection.eventType.MAINTENANCE", color: "#2096d8", bg: "rgba(32,150,216,0.12)" },
