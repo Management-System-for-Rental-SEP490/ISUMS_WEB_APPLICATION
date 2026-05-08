@@ -270,9 +270,169 @@
       "viewAll": "すべて表示"
     }
   },
+  "tenantAlerts": {
+    "title": "テナントからの警告",
+    "subtitle": "テナント物件の事故をモニタリング",
+    "helper": "ガス・煙・温度・湿度・テナント報告を追跡 — 生命に関わる事故を最優先で対応。",
+    "refresh": "更新",
+    "openHouse": "物件を開く",
+    "handledBy": "対応:",
+    "stats": {
+      "lifeSafety": "緊急 (生命)",
+      "critical": "重大",
+      "warning": "警告",
+      "handled": "対応済み"
+    },
+    "severity": {
+      "lifeSafety": "緊急",
+      "CRITICAL": "重大",
+      "WARNING": "警告",
+      "INFO": "情報"
+    },
+    "status": {
+      "handled": "対応済み",
+      "pending": "未対応"
+    },
+    "section": {
+      "lifeSafety": "🚨 緊急 — 生命に関わる",
+      "critical": "重大",
+      "warning": "警告",
+      "info": "情報",
+      "handled": "対応済み"
+    },
+    "filter": {
+      "title": "フィルタ",
+      "lifeSafetyOnly": "生命に関わるもののみ",
+      "status": {
+        "ALL": "すべて",
+        "PENDING": "未対応",
+        "HANDLED": "対応済み"
+      },
+      "severity": {
+        "ALL": "すべての重要度",
+        "CRITICAL": "重大",
+        "WARNING": "警告",
+        "INFO": "情報"
+      },
+      "days": {
+        "1": "本日",
+        "3": "3日間",
+        "7": "7日間",
+        "14": "14日間",
+        "30": "30日間"
+      }
+    },
+    "metric": {
+      "gas_ppm": "ガス濃度",
+      "smoke": "煙",
+      "temp_c": "温度",
+      "temperature": "温度",
+      "humidity": "湿度",
+      "humidity_pct": "湿度",
+      "voltage": "電圧",
+      "current": "電流",
+      "power_W": "電力",
+      "w_lpm": "水流量"
+    },
+    "action": {
+      "acknowledge": "対応",
+      "confirmAck": "確認",
+      "cancel": "キャンセル",
+      "notePlaceholder": "対応メモ(任意)"
+    },
+    "time": {
+      "justNow": "たった今",
+      "minutesAgo_one": "{{count}}分前",
+      "minutesAgo_other": "{{count}}分前",
+      "hoursAgo_one": "{{count}}時間前",
+      "hoursAgo_other": "{{count}}時間前",
+      "daysAgo_one": "{{count}}日前",
+      "daysAgo_other": "{{count}}日前"
+    },
+    "empty": {
+      "title": "すべて安全",
+      "subtitle": "選択期間に警告はありません。"
+    }
+  },
+  "finance": {
+    "title": "財務",
+    "subtitle": "収益・費用・利益の概要",
+    "retry": "再試行",
+    "kpi": {
+      "revenue": "総収入",
+      "revenueHint": "家賃 + 違約金",
+      "expense": "総支出",
+      "expenseHint": "メンテナンス + 修理 + 返金",
+      "netProfit": "純利益",
+      "profitPositive": "黒字",
+      "profitNegative": "赤字",
+      "outstanding": "未収金",
+      "outstandingCount": "{{count}} 件の請求書",
+      "noOutstanding": "未収金なし",
+      "total": "合計"
+    },
+    "category": {
+      "MONTHLY_RENT": "月額家賃",
+      "UTILITY": "光熱費",
+      "PENALTY": "延滞料",
+      "MAINTENANCE": "定期メンテナンス",
+      "ISSUE": "故障修理",
+      "DEPOSIT_REFUND": "敷金返金",
+      "DEPOSIT": "敷金"
+    },
+    "period": {
+      "THIS_MONTH": "今月",
+      "LAST_MONTH": "先月",
+      "THIS_QUARTER": "今四半期",
+      "LAST_6_MONTHS": "過去6ヶ月",
+      "YEAR_TO_DATE": "年初から",
+      "LAST_YEAR": "昨年",
+      "CUSTOM": "カスタム",
+      "apply": "適用"
+    },
+    "compare": {
+      "label": "比較",
+      "toggle": "前期間と比較",
+      "vs": "前期間比"
+    },
+    "charts": {
+      "monthlyTrend": "月次の収益・費用",
+      "revenueBreakdown": "収益の内訳",
+      "expenseBreakdown": "費用の内訳",
+      "empty": "この期間のデータはありません"
+    },
+    "table": {
+      "topHouses": "利益上位の物件",
+      "recentTransactions": "最近の取引",
+      "house": "物件",
+      "empty": "データなし"
+    },
+    "outstanding": {
+      "title": "未収金",
+      "summary": "{{count}} 件 — 合計 {{amount}}",
+      "expand": "詳細を見る",
+      "collapse": "折りたたむ",
+      "due": "期限",
+      "dueToday": "本日が期限",
+      "overdueDays": "{{days}} 日延滞",
+      "viewInvoice": "請求書を見る"
+    },
+    "summary": {
+      "title": "期間サマリー",
+      "period": "対象期間",
+      "managedHouses": "対象物件数",
+      "transactionsCount": "取引数",
+      "recentOnly": "(直近15件)",
+      "profitMargin": "利益率",
+      "lossWarning": "費用管理が必要",
+      "previousProfit": "前期間の利益"
+    }
+  },
   "sidebar": {
     "overview": "概要",
     "dashboard": "ダッシュボード",
+    "finance": "財務",
+    "tenantAlerts": "テナント警告",
     "utilities": "ユーティリティ",
     "schedule": "作業スケジュール",
     "realEstate": "不動産",
@@ -319,6 +479,8 @@
   },
   "pages": {
     "dashboard": "ダッシュボード",
+    "finance": "財務",
+    "tenantAlerts": "テナント警告",
     "manageProperties": "物件管理",
     "regions": "エリア管理",
     "propertyDetail": "物件詳細",

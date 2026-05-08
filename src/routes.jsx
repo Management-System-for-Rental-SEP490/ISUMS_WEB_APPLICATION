@@ -15,6 +15,8 @@ import FloorDetailPage from "./features/houses/pages/FloorDetailPage";
 import AssetsPage from "./features/assets/pages/AssetsPage";
 
 import DashboardPage from "./features/dashboard/DashboardPage";
+import FinanceDashboardPage from "./features/finance/pages/FinanceDashboardPage";
+import TenantAlertsPage from "./features/tenant-alerts/pages/TenantAlertsPage";
 import Houses from "./features/houses/pages/Houses";
 import Utilities from "./app/layout/Utilities";
 import UsersPage from "./features/tenants/pages/UsersPage";
@@ -65,6 +67,8 @@ export const router = createBrowserRouter([
             element: <DashboardLayout />,
             children: [
               { path: "/dashboard", element: <DashboardPage /> },
+              { path: "/finance", element: <FinanceDashboardPage /> },
+              { path: "/tenant-alerts", element: <TenantAlertsPage /> },
               { path: "/houses", element: <Houses /> },
               { path: "/regions", element: <RegionsPage /> },
               { path: "/houses/:id", element: <HouseDetailPage /> },

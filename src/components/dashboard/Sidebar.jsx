@@ -29,6 +29,7 @@ import {
   ShieldCheck,
   CreditCard,
   MapPin,
+  Coins,
 } from "lucide-react";
 import logo from "../../assets/logo.jpg";
 
@@ -62,6 +63,18 @@ export default function Sidebar({ isOpen, onLogout, unreadCount = 0 }) {
           label: t("sidebar.dashboard"),
           icon: Home,
           path: "/dashboard",
+        },
+        {
+          id: "finance",
+          label: t("sidebar.finance"),
+          icon: Coins,
+          path: "/finance",
+        },
+        {
+          id: "tenant-alerts",
+          label: t("sidebar.tenantAlerts"),
+          icon: AlertCircle,
+          path: "/tenant-alerts",
         },
         {
           id: "utilities",

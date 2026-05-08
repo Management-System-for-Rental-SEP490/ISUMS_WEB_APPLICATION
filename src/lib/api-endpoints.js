@@ -227,6 +227,15 @@ export const DASHBOARD_ENDPOINTS = {
   BASE: "/econtracts/dashboard",
 };
 
+export const FINANCE_ENDPOINTS = {
+  DASHBOARD: "/payments/finance/dashboard",
+};
+
+export const TENANT_ALERTS_ENDPOINTS = {
+  FEED: "/assets/tenant-alerts/feed",
+  ACKNOWLEDGE: (houseId, alertId) => `/assets/tenant-alerts/${houseId}/${alertId}/acknowledge`,
+};
+
 export const AUDIT_LOG_ENDPOINTS = {
   LIST: "/audit-logs",
   BY_EVENT_ID: (eventId) => `/audit-logs/${eventId}`,

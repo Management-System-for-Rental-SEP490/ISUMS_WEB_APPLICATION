@@ -297,9 +297,169 @@
       "viewAll": "View All"
     }
   },
+  "tenantAlerts": {
+    "title": "Tenant Alerts",
+    "subtitle": "Monitor incidents in tenant houses",
+    "helper": "Track gas, smoke, temperature, humidity and tenant-reported issues — prioritize life-safety incidents.",
+    "refresh": "Refresh",
+    "openHouse": "Open house detail",
+    "handledBy": "Handled at:",
+    "stats": {
+      "lifeSafety": "Life-safety",
+      "critical": "Critical",
+      "warning": "Warning",
+      "handled": "Handled"
+    },
+    "severity": {
+      "lifeSafety": "Emergency",
+      "CRITICAL": "Critical",
+      "WARNING": "Warning",
+      "INFO": "Info"
+    },
+    "status": {
+      "handled": "Handled",
+      "pending": "Pending"
+    },
+    "section": {
+      "lifeSafety": "🚨 Emergency — Life-Safety",
+      "critical": "Critical",
+      "warning": "Warning",
+      "info": "Info",
+      "handled": "Handled"
+    },
+    "filter": {
+      "title": "Filter",
+      "lifeSafetyOnly": "Life-safety only",
+      "status": {
+        "ALL": "All",
+        "PENDING": "Pending",
+        "HANDLED": "Handled"
+      },
+      "severity": {
+        "ALL": "All severities",
+        "CRITICAL": "Critical",
+        "WARNING": "Warning",
+        "INFO": "Info"
+      },
+      "days": {
+        "1": "Today",
+        "3": "3 days",
+        "7": "7 days",
+        "14": "14 days",
+        "30": "30 days"
+      }
+    },
+    "metric": {
+      "gas_ppm": "Gas concentration",
+      "smoke": "Smoke",
+      "temp_c": "Temperature",
+      "temperature": "Temperature",
+      "humidity": "Humidity",
+      "humidity_pct": "Humidity",
+      "voltage": "Voltage",
+      "current": "Current",
+      "power_W": "Power",
+      "w_lpm": "Water flow"
+    },
+    "action": {
+      "acknowledge": "Resolve",
+      "confirmAck": "Confirm",
+      "cancel": "Cancel",
+      "notePlaceholder": "Resolution note (optional)"
+    },
+    "time": {
+      "justNow": "Just now",
+      "minutesAgo_one": "{{count}} minute ago",
+      "minutesAgo_other": "{{count}} minutes ago",
+      "hoursAgo_one": "{{count}} hour ago",
+      "hoursAgo_other": "{{count}} hours ago",
+      "daysAgo_one": "{{count}} day ago",
+      "daysAgo_other": "{{count}} days ago"
+    },
+    "empty": {
+      "title": "All clear",
+      "subtitle": "No alerts in the selected period."
+    }
+  },
+  "finance": {
+    "title": "Finance",
+    "subtitle": "Revenue, expense and profit overview",
+    "retry": "Retry",
+    "kpi": {
+      "revenue": "Total Revenue",
+      "revenueHint": "Rent + late penalties",
+      "expense": "Total Expenses",
+      "expenseHint": "Maintenance + repairs + refunds",
+      "netProfit": "Net Profit",
+      "profitPositive": "Currently profitable",
+      "profitNegative": "Currently losing",
+      "outstanding": "Outstanding",
+      "outstandingCount": "{{count}} invoice(s)",
+      "noOutstanding": "No outstanding receivables",
+      "total": "Total"
+    },
+    "category": {
+      "MONTHLY_RENT": "Monthly rent",
+      "UTILITY": "Utilities (electric/water)",
+      "PENALTY": "Late penalty",
+      "MAINTENANCE": "Maintenance",
+      "ISSUE": "Issue repair",
+      "DEPOSIT_REFUND": "Deposit refund",
+      "DEPOSIT": "Deposit"
+    },
+    "period": {
+      "THIS_MONTH": "This month",
+      "LAST_MONTH": "Last month",
+      "THIS_QUARTER": "This quarter",
+      "LAST_6_MONTHS": "Last 6 months",
+      "YEAR_TO_DATE": "Year to date",
+      "LAST_YEAR": "Last year",
+      "CUSTOM": "Custom",
+      "apply": "Apply"
+    },
+    "compare": {
+      "label": "Compare",
+      "toggle": "Compare with previous period",
+      "vs": "vs previous period"
+    },
+    "charts": {
+      "monthlyTrend": "Monthly Revenue & Expense",
+      "revenueBreakdown": "Revenue Breakdown",
+      "expenseBreakdown": "Expense Breakdown",
+      "empty": "No data for this period"
+    },
+    "table": {
+      "topHouses": "Top Houses by Profit",
+      "recentTransactions": "Recent Transactions",
+      "house": "House",
+      "empty": "No data"
+    },
+    "outstanding": {
+      "title": "Outstanding Receivables",
+      "summary": "{{count}} invoice(s) — total {{amount}}",
+      "expand": "View details",
+      "collapse": "Collapse",
+      "due": "Due",
+      "dueToday": "Due today",
+      "overdueDays": "Overdue {{days}} days",
+      "viewInvoice": "View invoice"
+    },
+    "summary": {
+      "title": "Period Summary",
+      "period": "Date range",
+      "managedHouses": "Houses in scope",
+      "transactionsCount": "Transactions",
+      "recentOnly": "(latest 15)",
+      "profitMargin": "Profit margin",
+      "lossWarning": "Cost control needed",
+      "previousProfit": "Previous period profit"
+    }
+  },
   "sidebar": {
     "overview": "Overview",
     "dashboard": "Dashboard",
+    "finance": "Finance",
+    "tenantAlerts": "Tenant Alerts",
     "utilities": "Utilities",
     "schedule": "Work Schedule",
     "realEstate": "Real Estate",
@@ -345,6 +505,8 @@
   },
   "pages": {
     "dashboard": "Dashboard",
+    "finance": "Finance",
+    "tenantAlerts": "Tenant Alerts",
     "manageProperties": "Manage Properties",
     "propertyDetail": "Property Detail",
     "utilities": "Utilities",

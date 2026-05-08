@@ -59,9 +59,10 @@ export default function CreateContractWizard({
     if (!safeTrim(currentForm.name)) newErrors.name = t("contracts.validation.required");
 
     const phone = safeTrim(currentForm.phoneNumber);
+    const normalisedPhone = phone.replace(/[\s\-().]/g, "");
     if (!phone) {
       newErrors.phoneNumber = t("contracts.validation.required");
-    } else if (!/^\d{9,11}$/.test(phone)) {
+    } else if (!/^\+?\d{9,15}$/.test(normalisedPhone)) {
       newErrors.phoneNumber = t("contracts.validation.invalidPhone");
     }
 
