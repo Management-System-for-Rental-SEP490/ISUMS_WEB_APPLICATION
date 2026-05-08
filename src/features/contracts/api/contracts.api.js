@@ -42,13 +42,25 @@ function transformContractPayload(payload) {
         }))
     : [];
 
+  const hasPassport = Boolean(payload.passportNumber?.trim());
+  const hasCccd = Boolean(payload.identityNumber?.trim());
+  const inferredTenantType = payload.tenantType
+    || (hasPassport ? "FOREIGNER" : (hasCccd ? "VIETNAMESE" : null));
+  if (!inferredTenantType) {
+    throw new Error(
+      "Loại người thuê (tenantType) không xác định: vui lòng chọn 'Người Việt' hoặc 'Người nước ngoài' và nhập đúng giấy tờ tương ứng."
+    );
+  }
+  const inferredLanguage = payload.contractLanguage
+    || (inferredTenantType === "FOREIGNER" ? "VI_EN" : "VI");
+
   return {
     isNewAccount: Boolean(payload.isNewAccount ?? false),
-    tenantType: payload.tenantType || "VIETNAMESE",
-    contractLanguage: payload.contractLanguage || "VI",
+    tenantType: inferredTenantType,
+    contractLanguage: inferredLanguage,
     name: payload.name?.trim() || "",
     email: payload.email?.trim() || "",
-    phoneNumber: payload.phoneNumber?.trim() || "",
+    phoneNumber: payload.phoneNumber ? payload.phoneNumber.replace(/[\s\-().]/g, "") : "",
 
     // VN identity
     identityNumber: payload.identityNumber?.trim() || null,

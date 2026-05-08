@@ -297,9 +297,169 @@
       "viewAll": "Xem Tất Cả"
     }
   },
+  "tenantAlerts": {
+    "title": "Cảnh báo từ khách thuê",
+    "subtitle": "Theo dõi sự cố trong nhà thuê",
+    "helper": "Theo dõi gas, khói, nhiệt độ, độ ẩm và các báo cáo từ khách thuê — ưu tiên xử lý các sự cố ảnh hưởng tính mạng.",
+    "refresh": "Làm mới",
+    "openHouse": "Mở chi tiết nhà",
+    "handledBy": "Xử lý:",
+    "stats": {
+      "lifeSafety": "Khẩn cấp tính mạng",
+      "critical": "Nghiêm trọng",
+      "warning": "Cảnh báo",
+      "handled": "Đã xử lý"
+    },
+    "severity": {
+      "lifeSafety": "Khẩn cấp",
+      "CRITICAL": "Nghiêm trọng",
+      "WARNING": "Cảnh báo",
+      "INFO": "Thông tin"
+    },
+    "status": {
+      "handled": "Đã xử lý",
+      "pending": "Chưa xử lý"
+    },
+    "section": {
+      "lifeSafety": "🚨 Khẩn cấp — Liên quan tính mạng",
+      "critical": "Nghiêm trọng",
+      "warning": "Cảnh báo",
+      "info": "Thông tin",
+      "handled": "Đã xử lý"
+    },
+    "filter": {
+      "title": "Bộ lọc",
+      "lifeSafetyOnly": "Chỉ nhóm tính mạng",
+      "status": {
+        "ALL": "Tất cả",
+        "PENDING": "Chưa xử lý",
+        "HANDLED": "Đã xử lý"
+      },
+      "severity": {
+        "ALL": "Tất cả mức độ",
+        "CRITICAL": "Nghiêm trọng",
+        "WARNING": "Cảnh báo",
+        "INFO": "Thông tin"
+      },
+      "days": {
+        "1": "Hôm nay",
+        "3": "3 ngày",
+        "7": "7 ngày",
+        "14": "14 ngày",
+        "30": "30 ngày"
+      }
+    },
+    "metric": {
+      "gas_ppm": "Nồng độ gas",
+      "smoke": "Khói",
+      "temp_c": "Nhiệt độ",
+      "temperature": "Nhiệt độ",
+      "humidity": "Độ ẩm",
+      "humidity_pct": "Độ ẩm",
+      "voltage": "Điện áp",
+      "current": "Dòng điện",
+      "power_W": "Công suất",
+      "w_lpm": "Lưu lượng nước"
+    },
+    "action": {
+      "acknowledge": "Xử lý",
+      "confirmAck": "Xác nhận",
+      "cancel": "Huỷ",
+      "notePlaceholder": "Ghi chú xử lý (tùy chọn)"
+    },
+    "time": {
+      "justNow": "Vừa xong",
+      "minutesAgo_one": "{{count}} phút trước",
+      "minutesAgo_other": "{{count}} phút trước",
+      "hoursAgo_one": "{{count}} giờ trước",
+      "hoursAgo_other": "{{count}} giờ trước",
+      "daysAgo_one": "{{count}} ngày trước",
+      "daysAgo_other": "{{count}} ngày trước"
+    },
+    "empty": {
+      "title": "Tất cả an toàn",
+      "subtitle": "Không có cảnh báo trong khoảng thời gian đã chọn."
+    }
+  },
+  "finance": {
+    "title": "Tài chính",
+    "subtitle": "Tổng quan doanh thu, chi phí và lợi nhuận",
+    "retry": "Thử lại",
+    "kpi": {
+      "revenue": "Tổng doanh thu",
+      "revenueHint": "Tiền thuê + phạt trễ hạn",
+      "expense": "Tổng chi phí",
+      "expenseHint": "Bảo trì + sửa chữa + hoàn cọc",
+      "netProfit": "Lãi/Lỗ ròng",
+      "profitPositive": "Đang có lãi",
+      "profitNegative": "Đang lỗ",
+      "outstanding": "Công nợ tồn",
+      "outstandingCount": "{{count}} hóa đơn",
+      "noOutstanding": "Không có công nợ",
+      "total": "Tổng"
+    },
+    "category": {
+      "MONTHLY_RENT": "Tiền thuê hàng tháng",
+      "UTILITY": "Điện / Nước",
+      "PENALTY": "Phạt trễ hạn",
+      "MAINTENANCE": "Bảo trì định kỳ",
+      "ISSUE": "Sửa chữa sự cố",
+      "DEPOSIT_REFUND": "Hoàn cọc",
+      "DEPOSIT": "Tiền cọc"
+    },
+    "period": {
+      "THIS_MONTH": "Tháng này",
+      "LAST_MONTH": "Tháng trước",
+      "THIS_QUARTER": "Quý này",
+      "LAST_6_MONTHS": "6 tháng gần nhất",
+      "YEAR_TO_DATE": "Từ đầu năm",
+      "LAST_YEAR": "Năm trước",
+      "CUSTOM": "Tùy chỉnh",
+      "apply": "Áp dụng"
+    },
+    "compare": {
+      "label": "So sánh",
+      "toggle": "So sánh với kỳ trước",
+      "vs": "so với kỳ trước"
+    },
+    "charts": {
+      "monthlyTrend": "Doanh thu & chi phí theo tháng",
+      "revenueBreakdown": "Cơ cấu doanh thu",
+      "expenseBreakdown": "Cơ cấu chi phí",
+      "empty": "Chưa có dữ liệu trong kỳ"
+    },
+    "table": {
+      "topHouses": "Top nhà có lãi cao nhất",
+      "recentTransactions": "Giao dịch gần đây",
+      "house": "Nhà",
+      "empty": "Không có dữ liệu"
+    },
+    "outstanding": {
+      "title": "Công nợ quá hạn",
+      "summary": "{{count}} hóa đơn — tổng {{amount}}",
+      "expand": "Xem chi tiết",
+      "collapse": "Thu gọn",
+      "due": "Hạn",
+      "dueToday": "Đến hạn hôm nay",
+      "overdueDays": "Quá {{days}} ngày",
+      "viewInvoice": "Xem hóa đơn"
+    },
+    "summary": {
+      "title": "Tổng quan kỳ",
+      "period": "Khoảng thời gian",
+      "managedHouses": "Số nhà thuộc phạm vi",
+      "transactionsCount": "Số giao dịch",
+      "recentOnly": "(15 giao dịch gần nhất)",
+      "profitMargin": "Tỷ suất lợi nhuận",
+      "lossWarning": "Cần kiểm soát chi phí",
+      "previousProfit": "Lãi/lỗ kỳ trước"
+    }
+  },
   "sidebar": {
     "overview": "Tổng Quan",
     "dashboard": "Dashboard",
+    "finance": "Tài chính",
+    "tenantAlerts": "Cảnh báo khách thuê",
     "utilities": "Tiện Ích",
     "schedule": "Lịch Làm Việc",
     "realEstate": "Bất Động Sản",
@@ -346,6 +506,8 @@
   },
   "pages": {
     "dashboard": "Dashboard",
+    "finance": "Tài chính",
+    "tenantAlerts": "Cảnh báo từ khách thuê",
     "manageProperties": "Quản lý bất động sản",
     "regions": "Quản lý khu vực",
     "propertyDetail": "Chi tiết bất động sản",

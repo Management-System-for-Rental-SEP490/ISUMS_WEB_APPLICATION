@@ -22,6 +22,8 @@ function getInitial(name) {
 // path pattern → i18n key (no t() needed at module level)
 const PATH_TITLE_KEYS = {
   "/dashboard":                    "pages.dashboard",
+  "/finance":                      "pages.finance",
+  "/tenant-alerts":                "pages.tenantAlerts",
   "/houses":                       "pages.manageProperties",
   "/regions":                      "pages.regions",
   "/houses/:id":                   "pages.propertyDetail",
