@@ -3,6 +3,7 @@ import { getDashboardStats } from "../api/dashboard.api";
 import { getAllContracts } from "../../contracts/api/contracts.api";
 import { mapContractFromApi } from "../../contracts/utils/mapContractFromApi";
 import { getAllUsers } from "../../tenants/api/users.api";
+import { getAllHouses } from "../../houses/api/houses.api";
 
 const DEFAULT_PROPERTY_STATS = { total: 0, rented: 0, available: 0, expiringSoon: 0 };
 
@@ -34,11 +35,22 @@ export function useDashboardStats(period = "6M") {
     setLoading(true);
     setError(null);
     try {
-      const [dashResult, contractsResult, usersResult] = await Promise.allSettled([
+      const [dashResult, contractsResult, usersResult, housesResult] = await Promise.allSettled([
         getDashboardStats(period),
         getAllContracts({ page: 1, size: 5, sorts: "createdAt:DESC" }),
         getAllUsers(),
+        getAllHouses({ page: 1, size: 500 }),
       ]);
+
+      const housesById = new Map();
+      if (housesResult.status === "fulfilled") {
+        toArray(housesResult.value).forEach((h) => {
+          if (!h) return;
+          const id = h.id ?? h.houseId;
+          const name = h.name ?? h.title ?? h.houseName;
+          if (id && name) housesById.set(String(id), String(name));
+        });
+      }
 
       if (dashResult.status === "fulfilled") {
         const data = dashResult.value;
@@ -51,7 +63,17 @@ export function useDashboardStats(period = "6M") {
 
       if (contractsResult.status === "fulfilled") {
         const raw = contractsResult.value;
-        setRecentContracts(toArray(raw).map(mapContractFromApi).filter(Boolean));
+        const mapped = toArray(raw)
+          .map(mapContractFromApi)
+          .filter(Boolean)
+          .map((c) => {
+            const isMissingName = !c.property || c.property === "—";
+            if (!isMissingName) return c;
+            const lookupId = c.houseId ?? c.house_id ?? null;
+            const lookedUp = lookupId ? housesById.get(String(lookupId)) : null;
+            return lookedUp ? { ...c, property: lookedUp } : c;
+          });
+        setRecentContracts(mapped);
         const total = raw?.total ?? raw?.totalElements ?? toArray(raw).length;
         setTotalContracts(typeof total === "number" ? total : 0);
       }

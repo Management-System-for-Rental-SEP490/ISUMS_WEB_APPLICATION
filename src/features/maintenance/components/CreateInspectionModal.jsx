@@ -91,6 +91,7 @@ export default function CreateInspectionModal({ open, type: defaultType = "CHECK
     try {
       await createInspection({
         houseId: selectedHouse.id,
+        type,
         note: pickPrimary(note),
         noteTranslations: note,
       });
