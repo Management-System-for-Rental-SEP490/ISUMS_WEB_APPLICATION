@@ -37,6 +37,8 @@ export const CONTRACTS_ENDPOINTS = {
   GET_VNPT_DOCUMENT: (documentId) => `/econtracts/vnpt-document/${documentId}`,
   ADMIN_SIGN: "/econtracts/sign-admin",
   RESEND_TENANT_SIGNATURE: (id) => `/econtracts/${id}/notifications/resend-tenant-signature`,
+  RESEND_PAYMENT_EMAIL: (id) => `/econtracts/${id}/admin/resend-completion`,
+  CANCEL_AND_RELEASE: (id) => `/econtracts/${id}/admin/cancel-and-release`,
   CONFIRM_REFUND: (id) => `/econtracts/${id}/confirm-refund`,
   CASH_DEPOSIT_CONFIRM: (id) => `/econtracts/${id}/deposit/cash-receipt`,
   CASH_DEPOSIT_ACTIVE: (id) => `/econtracts/${id}/deposit/cash-receipt`,

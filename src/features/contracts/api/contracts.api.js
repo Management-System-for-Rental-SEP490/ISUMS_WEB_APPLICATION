@@ -205,6 +205,17 @@ export async function resendTenantSignatureEmail(contractId) {
   return extractResponseData(response);
 }
 
+export async function resendPaymentEmail(contractId, overrideEmail) {
+  const body = overrideEmail ? { tenantEmail: overrideEmail } : {};
+  const response = await api.post(CONTRACTS_ENDPOINTS.RESEND_PAYMENT_EMAIL(contractId), body);
+  return extractResponseData(response);
+}
+
+export async function cancelContractAndReleaseHouse(contractId) {
+  const response = await api.post(CONTRACTS_ENDPOINTS.CANCEL_AND_RELEASE(contractId));
+  return extractResponseData(response);
+}
+
 export async function getDepositBookableHouses() {
   const response = await api.get(CONTRACTS_ENDPOINTS.MARKETPLACE_BOOKABLE);
   return extractResponseData(response);

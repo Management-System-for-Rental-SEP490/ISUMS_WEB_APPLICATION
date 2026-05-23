@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { confirmByAdmin, getContractById, getCccdStatus, resendTenantSignatureEmail } from "../api/contracts.api";
+import {
+  cancelContractAndReleaseHouse,
+  confirmByAdmin,
+  getCccdStatus,
+  getContractById,
+  resendPaymentEmail,
+  resendTenantSignatureEmail,
+} from "../api/contracts.api";
 import { mapContractFromApi } from "../utils/mapContractFromApi";
 import { toast } from "react-toastify";
 import {
@@ -171,6 +178,8 @@ export default function ContractDetailStandalone() {
   const [showManagerConfirm, setShowManagerConfirm] = useState(false);
   const [showResendConfirm, setShowResendConfirm] = useState(false);
   const [showResendTenantSignConfirm, setShowResendTenantSignConfirm] = useState(false);
+  const [showResendPaymentConfirm, setShowResendPaymentConfirm] = useState(false);
+  const [showCancelReleaseConfirm, setShowCancelReleaseConfirm] = useState(false);
   const [showCashDepositModal, setShowCashDepositModal] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
@@ -264,6 +273,53 @@ export default function ContractDetailStandalone() {
     }
   };
 
+  const handleResendPayment = async () => {
+    if (!id || confirming) return;
+    setShowResendPaymentConfirm(false);
+    setConfirming(true);
+    try {
+      await resendPaymentEmail(id);
+      toast.success(t("contracts.detail.resendPayment.success"));
+    } catch (err) {
+      const httpStatus = err?.response?.status;
+      const msg =
+        httpStatus === 403
+          ? t("contracts.detail.resendPayment.error403")
+          : httpStatus === 404
+            ? t("contracts.detail.resendPayment.error404")
+            : httpStatus === 422
+              ? t("contracts.detail.resendPayment.error422")
+              : t("contracts.detail.resendPayment.error");
+      toast.error(msg);
+    } finally {
+      setConfirming(false);
+    }
+  };
+
+  const handleCancelAndRelease = async () => {
+    if (!id || confirming) return;
+    setShowCancelReleaseConfirm(false);
+    setConfirming(true);
+    try {
+      await cancelContractAndReleaseHouse(id);
+      toast.success(t("contracts.detail.cancelRelease.success"));
+      await refetchContract();
+    } catch (err) {
+      const httpStatus = err?.response?.status;
+      const msg =
+        httpStatus === 403
+          ? t("contracts.detail.cancelRelease.error403")
+          : httpStatus === 404
+            ? t("contracts.detail.cancelRelease.error404")
+            : httpStatus === 422
+              ? t("contracts.detail.cancelRelease.error422")
+              : t("contracts.detail.cancelRelease.error");
+      toast.error(msg);
+    } finally {
+      setConfirming(false);
+    }
+  };
+
   // Gửi lại hợp đồng cho người thuê (PENDING_TENANT_REVIEW → gọi lại confirm)
   const handleResend = async () => {
     if (!id || confirming) return;
@@ -307,6 +363,13 @@ export default function ContractDetailStandalone() {
     normalizedStatus === "COMPLETED" &&
     (depositStatus === "" || depositStatus === "UNPAID" || depositStatus === "PENDING") &&
     Number(contract?.depositAmount ?? 0) > 0;
+  const canResendPaymentEmail =
+    normalizedStatus === "COMPLETED" &&
+    (depositStatus === "" || depositStatus === "UNPAID" || depositStatus === "PENDING") &&
+    Number(contract?.depositAmount ?? 0) > 0;
+  const canCancelAndRelease =
+    normalizedStatus === "COMPLETED" &&
+    (depositStatus === "" || depositStatus === "UNPAID");
 
   const goBack = () => navigate("/contracts");
 
@@ -446,6 +509,26 @@ export default function ContractDetailStandalone() {
                 {t("contracts.cashDeposit.button")}
               </ActionButton>
             )}
+            {canResendPaymentEmail && (
+              <ActionButton
+                onClick={() => setShowResendPaymentConfirm(true)}
+                disabled={confirming}
+                variant="teal"
+                icon={<Icons.Send />}
+              >
+                {t("contracts.detail.resendPayment.button")}
+              </ActionButton>
+            )}
+            {canCancelAndRelease && (
+              <ActionButton
+                onClick={() => setShowCancelReleaseConfirm(true)}
+                disabled={confirming}
+                variant="danger"
+                icon={<Icons.AlertTriangle />}
+              >
+                {t("contracts.detail.cancelRelease.button")}
+              </ActionButton>
+            )}
             <button
               type="button"
               onClick={goBack}
@@ -548,6 +631,28 @@ export default function ContractDetailStandalone() {
         title={t("contracts.detail.resendTenantSign.dialogTitle")}
         description={t("contracts.detail.resendTenantSign.dialogDescription")}
         confirmLabel={t("contracts.detail.resendTenantSign.dialogConfirm")}
+        t={t}
+      />
+
+      <ConfirmDialog
+        open={showResendPaymentConfirm}
+        onClose={() => !confirming && setShowResendPaymentConfirm(false)}
+        onConfirm={handleResendPayment}
+        confirming={confirming}
+        title={t("contracts.detail.resendPayment.dialogTitle")}
+        description={t("contracts.detail.resendPayment.dialogDescription")}
+        confirmLabel={t("contracts.detail.resendPayment.dialogConfirm")}
+        t={t}
+      />
+
+      <ConfirmDialog
+        open={showCancelReleaseConfirm}
+        onClose={() => !confirming && setShowCancelReleaseConfirm(false)}
+        onConfirm={handleCancelAndRelease}
+        confirming={confirming}
+        title={t("contracts.detail.cancelRelease.dialogTitle")}
+        description={t("contracts.detail.cancelRelease.dialogDescription")}
+        confirmLabel={t("contracts.detail.cancelRelease.dialogConfirm")}
         t={t}
       />
 

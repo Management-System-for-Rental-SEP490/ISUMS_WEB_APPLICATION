@@ -1067,6 +1067,28 @@
         "error404": "Không tìm thấy hợp đồng.",
         "error422": "Hợp đồng chưa ở trạng thái Chờ khách thuê ký, hoặc VNPT từ chối yêu cầu."
       },
+      "resendPayment": {
+        "button": "Gửi lại email thanh toán",
+        "dialogTitle": "Gửi lại email thanh toán cọc online",
+        "dialogDescription": "Hệ thống sẽ phát lại sự kiện hợp đồng hoàn tất và gửi lại email kèm liên kết thanh toán VNPay mới cho khách thuê. Liên kết cũ vẫn dùng được; liên kết mới có hiệu lực trong 7 ngày.",
+        "dialogConfirm": "Gửi email mới",
+        "success": "Đã phát lại sự kiện hợp đồng hoàn tất — khách thuê sẽ nhận email thanh toán mới trong giây lát.",
+        "error": "Gửi lại email thanh toán thất bại, vui lòng thử lại.",
+        "error403": "Bạn không có quyền gửi lại email thanh toán.",
+        "error404": "Không tìm thấy hợp đồng.",
+        "error422": "Hợp đồng chưa ở trạng thái Hoàn tất nên không thể gửi email thanh toán."
+      },
+      "cancelRelease": {
+        "button": "Hủy hợp đồng & trả nhà",
+        "dialogTitle": "Hủy hợp đồng vì khách không cọc",
+        "dialogDescription": "Bạn sẽ hủy hợp đồng này ngay lập tức (không đợi 3 ngày hết hạn cọc). Trạng thái chuyển sang CANCELLED_BY_LANDLORD, hóa đơn cọc bị hủy, nhà được trả lại marketplace cho khách khác đặt. Khách thuê sẽ nhận email thông báo hủy. Thao tác KHÔNG thể hoàn tác.",
+        "dialogConfirm": "Xác nhận hủy & trả nhà",
+        "success": "Đã hủy hợp đồng và trả nhà về marketplace.",
+        "error": "Hủy hợp đồng thất bại, vui lòng thử lại.",
+        "error403": "Bạn không có quyền hủy hợp đồng này.",
+        "error404": "Không tìm thấy hợp đồng.",
+        "error422": "Hợp đồng không ở trạng thái Hoàn tất + chưa cọc, không thể hủy theo lối này."
+      },
       "confirmSuccess": "Xác nhận thành công! Email đã được gửi cho khách thuê xem xét.",
       "resendSuccess": "Đã gửi lại hợp đồng cho người thuê xem xét.",
       "confirm400": "Không thể xác nhận hợp đồng này (hợp đồng không đủ điều kiện).",
