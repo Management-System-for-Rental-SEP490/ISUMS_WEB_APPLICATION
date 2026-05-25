@@ -53,11 +53,12 @@ export default function Step1JobSelect({
           date: formatDateVN(job.periodStartDate),
         })
       );
-    if (jobType === "INSPECTION")
-      return (
-        job.note ??
-        t("schedule.inspectionAt", { house: houseNames[job.houseId] ?? "" })
-      );
+    if (jobType === "INSPECTION") {
+      const house = houseNames[job.houseId] ?? job.houseName ?? "";
+      const noteOrDefault =
+        job.note ?? t("schedule.inspectionAt", { house: "" });
+      return house ? `${noteOrDefault} — ${house}` : noteOrDefault;
+    }
     return job.title ?? "—";
   };
 
