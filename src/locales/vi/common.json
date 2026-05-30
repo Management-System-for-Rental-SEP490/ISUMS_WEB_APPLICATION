@@ -1914,7 +1914,7 @@
     "resultDrawer": {
       "title": "Kết quả kiểm tra",
       "loading": "Đang tải kết quả kiểm tra...",
-      "photoLabel": "Ảnh kiểm tra",
+      "photoLabel": "Ảnh kiểm tra nhà thực tế",
       "deductionLabel": "Có khấu trừ tiền cọc",
       "deductionAmount": "Số tiền khấu trừ:",
       "noValue": "Không có",
