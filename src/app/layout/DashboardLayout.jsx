@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Breadcrumb } from "antd";
 import { HomeOutlined, SettingOutlined } from "@ant-design/icons";
@@ -59,9 +59,9 @@ const PATHNAME_TITLES = {
   "/settings": "Cài đặt",
 };
 
-export default function DashboardLayout() {
-  if (keycloak?.authenticated) keycloak.updateToken(30);
+const EMPTY_ROLES = [];
 
+export default function DashboardLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(
@@ -69,8 +69,23 @@ export default function DashboardLayout() {
   );
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  const roles = useAuthStore((s) => s.roles ?? []);
-  const roleLabel = getRoleLabel(roles);
+  const roles = useAuthStore((s) => s.roles ?? EMPTY_ROLES);
+  const roleLabel = useMemo(() => getRoleLabel(roles), [roles]);
+
+  useEffect(() => {
+    if (!keycloak?.authenticated) return;
+    let cancelled = false;
+    const refresh = () => {
+      if (cancelled || !keycloak?.authenticated) return;
+      keycloak.updateToken(30).catch(() => {});
+    };
+    refresh();
+    const intervalId = setInterval(refresh, 60_000);
+    return () => {
+      cancelled = true;
+      clearInterval(intervalId);
+    };
+  }, []);
 
   const isOnDashboard = location.pathname === "/dashboard";
 

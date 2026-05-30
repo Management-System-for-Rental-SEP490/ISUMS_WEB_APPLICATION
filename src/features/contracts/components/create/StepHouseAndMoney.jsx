@@ -22,6 +22,13 @@ const HOUSE_STATUS = {
   MAINTENANCE: { label: "Bảo trì",       cls: "bg-slate-100 text-slate-600 border border-slate-200"     },
 };
 
+const PAY_CYCLE_OPTIONS = [
+  { value: "monthly",   label: "Hàng tháng" },
+  { value: "quarterly", label: "Hàng quý"   },
+  { value: "biannual",  label: "Nửa năm"    },
+  { value: "annual",    label: "Hàng năm"   },
+];
+
 export default function StepHouseAndMoney({ form, update, houses, errors = {} }) {
   const [houseDetail, setHouseDetail] = useState(null);
   const [loadingHouse, setLoadingHouse] = useState(false);
@@ -41,6 +48,17 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
       .finally(() => { if (!cancelled) setLoadingHouse(false); });
     return () => { cancelled = true; };
   }, [form.houseId]);
+
+  const houseOptions = useMemo(
+    () =>
+      Array.isArray(houses)
+        ? houses.map((h) => ({
+            value: h.id,
+            label: `${h.name || h.title}${h.address ? ` — ${h.address}` : ""}`,
+          }))
+        : [],
+    [houses],
+  );
 
   const depositDateValue = useMemo(
     () => (form.depositDate ? dayjs(form.depositDate, "YYYY-MM-DD") : null),
@@ -92,10 +110,7 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
               optionFilterProp="label"
               status={errors.houseId ? "error" : ""}
               style={{ width: "100%" }}
-              options={Array.isArray(houses) ? houses.map((h) => ({
-                value: h.id,
-                label: `${h.name || h.title}${h.address ? ` — ${h.address}` : ""}`,
-              })) : []}
+              options={houseOptions}
             />
             {errors.houseId && <p className="mt-1 text-xs text-red-500">{errors.houseId}</p>}
           </div>
@@ -223,12 +238,7 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
                 value={form.payCycle ?? "monthly"}
                 onChange={(val) => update("payCycle")({ target: { value: val } })}
                 style={{ width: "100%" }}
-                options={[
-                  { value: "monthly",   label: "Hàng tháng" },
-                  { value: "quarterly", label: "Hàng quý"   },
-                  { value: "biannual",  label: "Nửa năm"    },
-                  { value: "annual",    label: "Hàng năm"   },
-                ]}
+                options={PAY_CYCLE_OPTIONS}
               />
             </div>
 

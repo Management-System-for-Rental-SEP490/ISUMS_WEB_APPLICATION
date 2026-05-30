@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Select } from "antd";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
@@ -116,6 +116,15 @@ export default function AddressPicker({
 
   const preview = [street.trim(), selectedWard?.name, selectedProvince?.name].filter(Boolean).join(", ");
 
+  const provinceOptions = useMemo(
+    () => provinces.map((p) => ({ value: p.code, label: p.name })),
+    [provinces],
+  );
+  const wardOptions = useMemo(
+    () => wards.map((w) => ({ value: w.code, label: w.name })),
+    [wards],
+  );
+
   // Geocode khi preview thay đổi (debounce 800ms), chỉ khi showMap=true
   useEffect(() => {
     if (!showMap || !preview) return;
@@ -159,7 +168,7 @@ export default function AddressPicker({
             optionFilterProp="label"
             style={{ width: "100%" }}
             status={!selectedProvince && error ? "error" : ""}
-            options={provinces.map((p) => ({ value: p.code, label: p.name }))}
+            options={provinceOptions}
           />
         </div>
         <div>
@@ -174,7 +183,7 @@ export default function AddressPicker({
             optionFilterProp="label"
             style={{ width: "100%" }}
             status={!selectedWard && error ? "error" : ""}
-            options={wards.map((w) => ({ value: w.code, label: w.name }))}
+            options={wardOptions}
           />
         </div>
       </div>

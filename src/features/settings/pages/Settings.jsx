@@ -11,9 +11,12 @@ import {
   Mail,
   Phone,
   Building2,
+  FileText,
 } from "lucide-react";
 import keycloak from "../../../keycloak";
 import { useAuthStore } from "../../auth/store/auth.store";
+import SignTermsTab from "../components/SignTermsTab";
+import VoiceProviderTab from "../components/VoiceProviderTab";
 
 const ROLE_LABELS = {
   LANDLORD: "Chủ nhà",
@@ -64,11 +67,21 @@ export default function Settings() {
     },
   });
 
+  const roleList = Array.isArray(roles) ? roles.map((r) => String(r).toUpperCase()) : [];
+  const isAdmin =
+    roleList.includes("LANDLORD") ||
+    roleList.includes("ADMIN") ||
+    roleList.includes("SYSTEM_ADMIN") ||
+    roleList.includes("MANAGER");
   const tabs = [
     { id: "profile", label: "Hồ Sơ", icon: User },
     { id: "notifications", label: "Thông Báo", icon: Bell },
     { id: "security", label: "Bảo Mật", icon: Shield },
     { id: "system", label: "Hệ Thống", icon: Globe },
+    ...(isAdmin
+      ? [{ id: "voiceProvider", label: "Voice Provider", icon: Phone }]
+      : []),
+    { id: "signTerms", label: "Điều Khoản Ký Số", icon: FileText },
   ];
 
   // Cập nhật thông tin từ Keycloak khi component mount
@@ -424,6 +437,10 @@ export default function Settings() {
         return renderSecurityTab();
       case "system":
         return renderSystemTab();
+      case "voiceProvider":
+        return <VoiceProviderTab />;
+      case "signTerms":
+        return <SignTermsTab />;
       default:
         return null;
     }

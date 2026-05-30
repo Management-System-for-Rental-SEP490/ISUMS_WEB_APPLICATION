@@ -34,6 +34,13 @@ export const CONTRACTS_ENDPOINTS = {
   CONFIRM_POWER_CUT: (id) => `/econtracts/${id}/confirm-power-cut`,
 };
 
+export const SIGN_TERMS_ENDPOINTS = {
+  ME_ALL: "/econtracts/sign-terms/me",
+  ME_BY_LOCALE: (locale) => `/econtracts/sign-terms/me/${locale}`,
+  UPDATE: "/econtracts/sign-terms/me",
+  RESET: (locale) => `/econtracts/sign-terms/me/${locale}`,
+};
+
 // Users endpoints
 export const USERS_ENDPOINTS = {
   BASE: "/users",
@@ -79,6 +86,7 @@ export const NOTIFICATIONS_ENDPOINTS = {
   MANAGER_UNREAD_COUNT: "/notifications/manager/unread-count",
   MANAGER_MARK_READ: (id) => `/notifications/manager/${id}/read`,
   MANAGER_MARK_ALL_READ: "/notifications/manager/read-all",
+  ADMIN_VOICE_PROVIDER: "/notifications/admin/settings/voice-provider",
 };
 
 // Maintenance endpoints
