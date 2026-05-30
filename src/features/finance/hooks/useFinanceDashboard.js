@@ -19,6 +19,7 @@ const EMPTY_DTO = {
   },
   revenueBreakdown: [],
   expenseBreakdown: [],
+  regionSummaries: [],
   monthlyTrend: [],
   topHouses: [],
   recentTransactions: [],
@@ -30,6 +31,7 @@ export function useFinanceDashboard(initialPreset = PERIOD_PRESETS.LAST_6_MONTHS
   const [preset, setPreset] = useState(initialPreset);
   const [customRange, setCustomRange] = useState(null);
   const [compare, setCompare] = useState(false);
+  const [regionId, setRegionId] = useState("");
 
   const period = useMemo(() => resolvePeriod(preset, customRange), [preset, customRange]);
 
@@ -45,6 +47,7 @@ export function useFinanceDashboard(initialPreset = PERIOD_PRESETS.LAST_6_MONTHS
         from: toIso(period.from),
         to: toIso(period.to),
         compare,
+        regionId: regionId || null,
       });
       setData(dto ?? EMPTY_DTO);
     } catch (err) {
@@ -52,7 +55,7 @@ export function useFinanceDashboard(initialPreset = PERIOD_PRESETS.LAST_6_MONTHS
     } finally {
       setLoading(false);
     }
-  }, [period.from, period.to, compare]);
+  }, [period.from, period.to, compare, regionId]);
 
   useEffect(() => {
     fetchData();
@@ -74,6 +77,8 @@ export function useFinanceDashboard(initialPreset = PERIOD_PRESETS.LAST_6_MONTHS
     setCustomPeriod,
     compare,
     setCompare,
+    regionId,
+    setRegionId,
     refetch: fetchData,
   };
 }

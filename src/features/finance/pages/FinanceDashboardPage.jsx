@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import dayjs from "dayjs";
 import {
@@ -14,9 +15,11 @@ import BreakdownDonut from "../components/BreakdownDonut";
 import TopHousesTable from "../components/TopHousesTable";
 import RecentTransactionsList from "../components/RecentTransactionsList";
 import OutstandingAlert from "../components/OutstandingAlert";
+import RegionFinanceTable from "../components/RegionFinanceTable";
 import FinanceDateRangePicker from "../components/FinanceDateRangePicker";
 import { useFinanceDashboard } from "../hooks/useFinanceDashboard";
 import { formatVnd } from "../utils/currency";
+import { getRegions } from "../../houses/api/houses.api";
 
 const BRAND_GREEN = "#3bb582";
 const BRAND_GRADIENT = "linear-gradient(135deg, #3bb582 0%, rgba(32,150,216,0.7) 100%)";
@@ -34,11 +37,31 @@ export default function FinanceDashboardPage() {
     setCustomPeriod,
     compare,
     setCompare,
+    regionId,
+    setRegionId,
     refetch,
   } = useFinanceDashboard();
+  const [regions, setRegions] = useState([]);
 
   const summary = data.summary ?? {};
   const today = dayjs().format("dddd, D MMMM YYYY");
+  const regionNameById = useMemo(() => {
+    return Object.fromEntries((regions ?? []).map((region) => [region.id, region.name]));
+  }, [regions]);
+
+  useEffect(() => {
+    let mounted = true;
+    getRegions()
+      .then((items) => {
+        if (mounted) setRegions(Array.isArray(items) ? items : []);
+      })
+      .catch(() => {
+        if (mounted) setRegions([]);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const totalRevenue = Number(summary.totalRevenue) || 0;
   const totalExpense = Number(summary.totalExpense) || 0;
@@ -64,6 +87,25 @@ export default function FinanceDashboardPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <select
+            value={regionId}
+            onChange={(event) => setRegionId(event.target.value)}
+            className="rounded-xl px-3 py-2 text-xs font-semibold outline-none transition"
+            style={{
+              minWidth: 170,
+              background: "#FFFFFF",
+              border: "1px solid #C4DED5",
+              color: "#1E2D28",
+            }}
+            title={t("finance.region.filter", { defaultValue: "Lọc theo khu vực" })}
+          >
+            <option value="">{t("finance.region.all", { defaultValue: "Tất cả khu vực" })}</option>
+            {regions.map((region) => (
+              <option key={region.id} value={region.id}>
+                {region.name}
+              </option>
+            ))}
+          </select>
           <FinanceDateRangePicker
             preset={preset}
             period={period}
@@ -168,6 +210,12 @@ export default function FinanceDashboardPage() {
           />
         </div>
       </div>
+
+      <RegionFinanceTable
+        rows={data.regionSummaries ?? []}
+        regionNameById={regionNameById}
+        loading={loading}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-5" style={{ minHeight: 380 }}>
         <div className="lg:col-span-3 flex flex-col">
