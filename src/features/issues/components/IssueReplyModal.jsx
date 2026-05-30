@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal, Button } from "antd";
 import { Send } from "lucide-react";
 import { getIssueById, replyToIssue } from "../api/issues.api";
@@ -16,6 +17,7 @@ function InfoRow({ label, value }) {
 }
 
 export default function IssueReplyModal({ open, ticketId, onClose, onReplied }) {
+  const { t } = useTranslation("common");
   const [detail, setDetail]         = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [content, setContent]       = useState("");
@@ -44,7 +46,7 @@ export default function IssueReplyModal({ open, ticketId, onClose, onReplied }) 
       onReplied?.();
       onClose();
     } catch (e) {
-      setError(e.message ?? "Gửi phản hồi thất bại. Vui lòng thử lại.");
+      setError(e.message ?? t("issues.replyFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -65,13 +67,13 @@ export default function IssueReplyModal({ open, ticketId, onClose, onReplied }) 
             <span className="text-blue-600 text-sm font-bold">!</span>
           </div>
           <span className="text-base font-bold text-slate-800">
-            Phản hồi yêu cầu <span className="text-teal-600">{idShort}</span>
+            {t("issues.replyModalTitle")} <span className="text-teal-600">{idShort}</span>
           </span>
         </div>
       }
       footer={
         <div className="flex items-center justify-end gap-3">
-          <Button onClick={onClose}>Hủy</Button>
+          <Button onClick={onClose}>{t("actions.cancel")}</Button>
           <Button
             type="primary"
             icon={<Send className="w-4 h-4" />}
@@ -80,7 +82,7 @@ export default function IssueReplyModal({ open, ticketId, onClose, onReplied }) 
             onClick={handleSubmit}
             style={{ background: "#0d9488", borderColor: "#0d9488" }}
           >
-            {submitting ? "Đang gửi..." : "Gửi phản hồi & Cập nhật trạng thái"}
+            {submitting ? t("issues.replySending") : t("issues.replySubmit")}
           </Button>
         </div>
       }
@@ -97,12 +99,12 @@ export default function IssueReplyModal({ open, ticketId, onClose, onReplied }) 
               <div className="flex items-center gap-1.5 flex-shrink-0">
                 {status && (
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: status.bg, color: status.color }}>
-                    {status.label}
+                    {t(status.i18nKey, { defaultValue: status.i18nKey })}
                   </span>
                 )}
                 {typeConf && (
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: typeConf.bg, color: typeConf.color }}>
-                    {typeConf.label}
+                    {t(typeConf.i18nKey, { defaultValue: typeConf.i18nKey })}
                   </span>
                 )}
               </div>
@@ -113,27 +115,27 @@ export default function IssueReplyModal({ open, ticketId, onClose, onReplied }) 
               </p>
             )}
             <div className="pt-1 space-y-1.5">
-              <InfoRow label="Khách thuê"  value={detail.tenantName} />
-              <InfoRow label="Nhà / Phòng" value={[detail.houseName, detail.houseUnit].filter(Boolean).join(" · ") || null} />
-              <InfoRow label="Nhân viên"   value={detail.staffName ?? (detail.assignedStaffId ? "Đã phân công" : "Chưa phân công")} />
-              <InfoRow label="Ngày tạo"    value={detail.createdAt ? dayjs(detail.createdAt).format("DD/MM/YYYY HH:mm") : null} />
+              <InfoRow label={t("issues.drawerTenant")}  value={detail.tenantName} />
+              <InfoRow label={t("issues.drawerLocation")} value={[detail.houseName, detail.houseUnit].filter(Boolean).join(" · ") || null} />
+              <InfoRow label={t("issues.technicianSection")}   value={detail.staffName ?? (detail.assignedStaffId ? t("issues.assignedStaff") : t("issues.unassignedStaff"))} />
+              <InfoRow label={t("detailCreatedAt", { defaultValue: "Ngày tạo" })}    value={detail.createdAt ? dayjs(detail.createdAt).format("DD/MM/YYYY HH:mm") : null} />
             </div>
           </div>
         ) : (
-          <p className="text-xs text-slate-400 text-center py-4">Không thể tải thông tin yêu cầu.</p>
+          <p className="text-xs text-slate-400 text-center py-4">{t("issues.replyLoadError")}</p>
         )}
 
         {/* Textarea */}
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Nội dung phản hồi</label>
+          <label className="block text-sm font-medium text-slate-700 mb-2">{t("issues.replyContent")}</label>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Nhập nội dung phản hồi..."
+            placeholder={t("issues.replyPlaceholder")}
             rows={5}
             className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400 resize-none"
           />
-          <p className="text-[11px] text-slate-400 mt-1 text-right">{content.length} ký tự</p>
+          <p className="text-[11px] text-slate-400 mt-1 text-right">{t("issues.charCount", { count: content.length })}</p>
         </div>
 
         {error && (

@@ -23,7 +23,7 @@ export const TYPE_CONFIG = {
     border: "border-red-400",
     badge: "bg-red-100 text-red-700",
     dot: "bg-red-500",
-    label: "Khẩn cấp",
+    labelKey: "notifications.typeCritical",
   },
   warning: {
     icon: React.createElement(AlertTriangle, { className: "w-4 h-4" }),
@@ -32,7 +32,7 @@ export const TYPE_CONFIG = {
     border: "border-amber-400",
     badge: "bg-amber-100 text-amber-700",
     dot: "bg-amber-500",
-    label: "Cảnh báo",
+    labelKey: "notifications.typeWarning",
   },
   info: {
     icon: React.createElement(Info, { className: "w-4 h-4" }),
@@ -41,7 +41,7 @@ export const TYPE_CONFIG = {
     border: "border-blue-400",
     badge: "bg-blue-100 text-blue-700",
     dot: "bg-blue-500",
-    label: "Thông tin",
+    labelKey: "notifications.typeInfo",
   },
   success: {
     icon: React.createElement(CheckCircle, { className: "w-4 h-4" }),
@@ -50,7 +50,7 @@ export const TYPE_CONFIG = {
     border: "border-green-400",
     badge: "bg-green-100 text-green-700",
     dot: "bg-green-500",
-    label: "Thành công",
+    labelKey: "notifications.typeSuccess",
   },
 };
 
@@ -58,11 +58,11 @@ export const TYPE_CONFIG = {
  * Tab filter hiển thị trên trang danh sách thông báo.
  */
 export const FILTER_TABS = [
-  { key: "all", label: "Tất cả" },
-  { key: "critical", label: "Khẩn cấp" },
-  { key: "warning", label: "Cảnh báo" },
-  { key: "info", label: "Thông tin" },
-  { key: "success", label: "Thành công" },
+  { key: "all",      labelKey: "notifications.filterAll"      },
+  { key: "critical", labelKey: "notifications.typeCritical"   },
+  { key: "warning",  labelKey: "notifications.typeWarning"    },
+  { key: "info",     labelKey: "notifications.typeInfo"       },
+  { key: "success",  labelKey: "notifications.typeSuccess"    },
 ];
 
 /**

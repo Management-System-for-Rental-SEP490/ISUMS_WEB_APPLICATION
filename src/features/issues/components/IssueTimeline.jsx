@@ -9,22 +9,19 @@ const B = {
   muted:   "#EAF4F0",
 };
 
-const STATUS_FLOW = [
-  { key: "CREATED",                        label: "Tiếp nhận yêu cầu",            desc: "Yêu cầu mới được tạo trong hệ thống" },
-  { key: "SCHEDULED",                      label: "Đã lên lịch",                  desc: "Kỹ thuật viên được phân công, lịch làm việc xác nhận" },
-  { key: "IN_PROGRESS",                    label: "Đang xử lý",                   desc: "Kỹ thuật viên đang thực hiện tại hiện trường" },
-  { key: "WAITING_MANAGER_CONFIRM",        label: "Chờ quản lý xác nhận",         desc: "Kỹ thuật viên hoàn tất, chờ quản lý xác nhận kết quả" },
-  { key: "WAITING_MANAGER_APPROVAL_QUOTE", label: "Chờ quản lý duyệt báo giá",    desc: "Báo giá chi phí phát sinh đang chờ quản lý phê duyệt" },
-  { key: "WAITING_TENANT_APPROVAL_QUOTE",  label: "Chờ khách thuê duyệt báo giá", desc: "Báo giá đã được quản lý duyệt, chờ khách thuê xác nhận" },
-  { key: "WAITING_PAYMENT",               label: "Chờ thanh toán",               desc: "Khách thuê xác nhận, đang chờ hoàn tất thanh toán" },
-  { key: "DONE",                           label: "Hoàn thành",                   desc: "Yêu cầu đã được xử lý và thanh toán xong" },
-  { key: "CLOSED",                         label: "Đã đóng",                      desc: "Yêu cầu đã được đóng" },
+const getStatusFlow = (t) => [
+  { key: "CREATED",                        label: t("issues.timelineTitle"),                                  desc: t("issues.timelineDesc_CREATED") },
+  { key: "SCHEDULED",                      label: t("issues.timelineTitle_SCHEDULED"),                        desc: t("issues.timelineDesc_SCHEDULED") },
+  { key: "IN_PROGRESS",                    label: t("issues.timelineTitle_IN_PROGRESS"),                      desc: t("issues.timelineDesc_IN_PROGRESS") },
+  { key: "WAITING_MANAGER_CONFIRM",        label: t("issues.timelineTitle_WAITING_MANAGER_CONFIRM"),          desc: t("issues.timelineDesc_WAITING_MANAGER_CONFIRM") },
+  { key: "WAITING_MANAGER_APPROVAL_QUOTE", label: t("issues.timelineTitle_WAITING_MANAGER_APPROVAL_QUOTE"),   desc: t("issues.timelineDesc_WAITING_MANAGER_APPROVAL_QUOTE") },
+  { key: "WAITING_TENANT_APPROVAL_QUOTE",  label: t("issues.timelineTitle_WAITING_TENANT_APPROVAL_QUOTE"),    desc: t("issues.timelineDesc_WAITING_TENANT_APPROVAL_QUOTE") },
+  { key: "WAITING_PAYMENT",               label: t("issues.timelineTitle_WAITING_PAYMENT"),                  desc: t("issues.timelineDesc_WAITING_PAYMENT") },
+  { key: "DONE",                           label: t("issues.timelineTitle_DONE"),                             desc: t("issues.timelineDesc_DONE") },
+  { key: "CLOSED",                         label: t("issues.timelineTitle_CLOSED"),                           desc: t("issues.timelineDesc_CLOSED") },
 ];
 
-/**
- * @param {{ status: string }} props
- */
-export default function IssueTimeline({ status }) {
+export default function IssueTimeline({ status, t }) {
   if (status === "CANCELLED") {
     return (
       <div
@@ -38,15 +35,16 @@ export default function IssueTimeline({ status }) {
           <X className="w-4 h-4" style={{ color: "#D95F4B" }} />
         </div>
         <div>
-          <p className="text-sm font-semibold" style={{ color: "#D95F4B" }}>Đã hủy</p>
+          <p className="text-sm font-semibold" style={{ color: "#D95F4B" }}>{t("issues.timelineCancelled")}</p>
           <p className="text-xs mt-0.5" style={{ color: "rgba(217,95,75,0.7)" }}>
-            Yêu cầu này đã bị hủy và không còn được xử lý
+            {t("issues.timelineCancelledDesc")}
           </p>
         </div>
       </div>
     );
   }
 
+  const STATUS_FLOW = getStatusFlow(t);
   const currentIdx = STATUS_FLOW.findIndex((s) => s.key === status);
 
   const items = STATUS_FLOW.map((s, idx) => {

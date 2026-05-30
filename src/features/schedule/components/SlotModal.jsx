@@ -1,25 +1,29 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { createPortal } from "react-dom";
 import { getJobById, getInspectionById } from "../../maintenance/api/maintenance.api";
 import { getIssueByTicketId } from "../../issues/api/issues.api";
 import { getHouseById } from "../../houses/api/houses.api";
 import { getUserById } from "../../tenants/api/users.api";
-import { DAY_NAMES_LONG, MONTH_NAMES } from "../constants";
 import SlotListView from "./slot-modal/SlotListView";
 import SlotDetailView from "./slot-modal/SlotDetailView";
-
-function formatDateVN(dateStr) {
-  const d = new Date(dateStr + "T00:00:00");
-  const dayIdx = (d.getDay() + 6) % 7;
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${DAY_NAMES_LONG[dayIdx]}, ${day} ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
-}
 
 /**
  * Shared modal: list view → click row → detail view.
  * Props: dateStr "YYYY-MM-DD", timeSlot { start, end }, slots work-slot[], onClose () => void
  */
 export default function SlotModal({ dateStr, timeSlot, slots, onClose }) {
+  const { t } = useTranslation("common");
+  const DAY_NAMES_LONG  = [t("schedule.dayMon"), t("schedule.dayTue"), t("schedule.dayWed"), t("schedule.dayThu"), t("schedule.dayFri"), t("schedule.daySat"), t("schedule.daySun")];
+  const MONTH_NAMES = Array.from({ length: 12 }, (_, i) => t(`schedule.month${i + 1}`));
+
+  function formatDateVN(dateStr) {
+    const d = new Date(dateStr + "T00:00:00");
+    const dayIdx = (d.getDay() + 6) % 7;
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${DAY_NAMES_LONG[dayIdx]}, ${day} ${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`;
+  }
+
   const [jobDetails, setJobDetails] = useState({});
   const [houseDetails, setHouseDetails] = useState({});
   const [staffDetails, setStaffDetails] = useState({});

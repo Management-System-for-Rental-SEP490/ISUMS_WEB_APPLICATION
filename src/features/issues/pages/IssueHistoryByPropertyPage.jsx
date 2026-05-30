@@ -29,9 +29,9 @@ export default function IssueHistoryByPropertyPage() {
               key={p.id}
               onClick={() => toggle(p.id)}
               className="rounded-2xl p-4 text-left transition-all duration-200"
-              style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}
+              style={{ background: "#FFFFFF", border: "1px solid #C4DED5" }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.background = "#F0FAF6"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.background = "#FAFFFE"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.background = "#FFFFFF"; }}
             >
               <p className="text-sm font-semibold truncate" style={{ color: "#1E2D28" }}>{p.name}</p>
               <p className="text-2xl font-heading font-bold mt-1" style={{ color: "#3bb582" }}>{p.issues.length}</p>
@@ -45,7 +45,7 @@ export default function IssueHistoryByPropertyPage() {
       {propertiesWithIssues.length === 0 ? (
         <div
           className="rounded-2xl p-16 text-center text-sm"
-          style={{ background: "#FAFFFE", border: "1px solid #C4DED5", color: "#5A7A6E" }}
+          style={{ background: "#FFFFFF", border: "1px solid #C4DED5", color: "#5A7A6E" }}
         >
           Không có dữ liệu lịch sử sự cố
         </div>
@@ -57,7 +57,7 @@ export default function IssueHistoryByPropertyPage() {
               <div
                 key={p.id}
                 className="rounded-2xl overflow-hidden"
-                style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+                style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
               >
                 <button
                   onClick={() => toggle(p.id)}

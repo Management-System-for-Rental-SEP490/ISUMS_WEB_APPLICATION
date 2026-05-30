@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+
 function StepCircle({ number, done, active }) {
   if (done) {
     return (
@@ -28,15 +30,17 @@ export default function SigningProgressSidebar({
   onResetPosition,
   onReopenOtp,
 }) {
+  const { t } = useTranslation("common");
+
   return (
     <aside className="w-60 bg-white border-r border-slate-200 flex flex-col overflow-y-auto flex-shrink-0">
       <div className="px-5 pt-6 pb-2">
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-5">
-          Tiến trình ký
+          {t("contracts.progress.title")}
         </p>
 
         <div>
-          {/* Step 1: Tạo chữ ký */}
+          {/* Step 1 */}
           <div className="flex gap-3.5">
             <div className="flex flex-col items-center">
               <StepCircle number={1} done={!!signatureData} active={!signingSession && !signatureData} />
@@ -44,15 +48,15 @@ export default function SigningProgressSidebar({
             </div>
             <div className="pb-5">
               <p className={["text-sm font-semibold leading-tight", signatureData ? "text-emerald-600" : "text-slate-700"].join(" ")}>
-                Tạo chữ ký
+                {t("contracts.progress.step1Title")}
               </p>
               <p className="text-xs text-slate-400 mt-0.5">
-                {signatureData ? "Hoàn thành" : !signingSession ? "Chưa bắt đầu" : "Đang chờ"}
+                {signatureData ? t("contracts.progress.step1Done") : !signingSession ? t("contracts.progress.step1NotStarted") : t("contracts.progress.step1Waiting")}
               </p>
             </div>
           </div>
 
-          {/* Step 2: Vị trí chữ ký */}
+          {/* Step 2 */}
           <div className="flex gap-3.5">
             <div className="flex flex-col items-center">
               <StepCircle number={2} done={!!chosenPosition} active={!!signatureData && !chosenPosition} />
@@ -60,10 +64,10 @@ export default function SigningProgressSidebar({
             </div>
             <div className="pb-5">
               <p className={["text-sm font-semibold leading-tight", chosenPosition ? "text-emerald-600" : "text-slate-700"].join(" ")}>
-                Vị trí chữ ký
+                {t("contracts.progress.step2Title")}
               </p>
               <p className="text-xs text-slate-400 mt-0.5">
-                {chosenPosition ? "Đã xác nhận" : signatureData ? "Kéo ô chữ ký vào hợp đồng" : "Bước tiếp theo"}
+                {chosenPosition ? t("contracts.progress.step2Confirmed") : signatureData ? t("contracts.progress.step2Drag") : t("contracts.progress.step2Next")}
               </p>
               {chosenPosition && (
                 <button
@@ -71,23 +75,23 @@ export default function SigningProgressSidebar({
                   onClick={onResetPosition}
                   className="text-[11px] text-slate-400 hover:text-teal-600 underline underline-offset-2 transition mt-1 block"
                 >
-                  Chọn lại vị trí
+                  {t("contracts.progress.step2Reset")}
                 </button>
               )}
             </div>
           </div>
 
-          {/* Step 3: Xác nhận OTP */}
+          {/* Step 3 */}
           <div className="flex gap-3.5">
             <div className="flex flex-col items-center">
               <StepCircle number={3} done={otpSent && !showOtpModal} active={!!chosenPosition} />
             </div>
             <div>
               <p className={["text-sm font-semibold leading-tight", otpSent && !showOtpModal ? "text-emerald-600" : "text-slate-700"].join(" ")}>
-                Xác nhận OTP
+                {t("contracts.progress.step3Title")}
               </p>
               <p className="text-xs text-slate-400 mt-0.5">
-                {showOtpModal ? "Đang nhập OTP..." : otpSent ? "OTP đã gửi" : confirming ? "Đang gửi OTP..." : "Bước tiếp theo"}
+                {showOtpModal ? t("contracts.progress.step3Entering") : otpSent ? t("contracts.progress.step3Sent") : confirming ? t("contracts.progress.step3Sending") : t("contracts.progress.step3Next")}
               </p>
               {otpSent && !showOtpModal && !confirming && (
                 <button
@@ -95,7 +99,7 @@ export default function SigningProgressSidebar({
                   onClick={onReopenOtp}
                   className="text-[11px] text-teal-600 hover:text-teal-700 underline underline-offset-2 transition mt-1 block"
                 >
-                  Mở lại nhập OTP
+                  {t("contracts.progress.step3Reopen")}
                 </button>
               )}
             </div>
@@ -105,7 +109,6 @@ export default function SigningProgressSidebar({
 
       <div className="border-t border-slate-100 mx-4 my-3" />
 
-      {/* Hướng dẫn */}
       <div className="px-5 pb-5">
         <div className="flex items-center gap-2 mb-2.5">
           <div className="w-5 h-5 rounded-full bg-teal-100 flex items-center justify-center flex-shrink-0">
@@ -113,12 +116,10 @@ export default function SigningProgressSidebar({
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Hướng dẫn</p>
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{t("contracts.progress.guide")}</p>
         </div>
         <p className="text-xs text-slate-500 leading-relaxed">
-          Xem kỹ nội dung hợp đồng. Nhấn{" "}
-          <strong className="text-slate-700">Bắt đầu ký</strong> để tạo chữ ký,
-          sau đó kéo ô chữ ký vào vị trí mong muốn. Nhập OTP để hoàn tất.
+          {t("contracts.progress.guideText")}
         </p>
       </div>
     </aside>

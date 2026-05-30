@@ -88,6 +88,38 @@ export function toISOString(dateStr) {
 }
 
 /**
+ * Convert a date-only value to the start of that day in Vietnam time.
+ * Contract dates are business calendar dates, not UTC instants.
+ * @param {string|Date} dateStr
+ * @returns {string|null}
+ */
+export function toVietnamDateStartISOString(dateStr) {
+  if (!dateStr) return null;
+  try {
+    if (dateStr instanceof Date) {
+      if (isNaN(dateStr.getTime())) return null;
+      const yyyy = dateStr.getFullYear();
+      const mm = String(dateStr.getMonth() + 1).padStart(2, "0");
+      const dd = String(dateStr.getDate()).padStart(2, "0");
+      return new Date(`${yyyy}-${mm}-${dd}T00:00:00+07:00`).toISOString();
+    }
+
+    const s = String(dateStr).trim();
+    if (!s) return null;
+    const dateOnly = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (dateOnly) {
+      return new Date(`${dateOnly[1]}-${dateOnly[2]}-${dateOnly[3]}T00:00:00+07:00`).toISOString();
+    }
+
+    const date = new Date(s);
+    if (isNaN(date.getTime())) return null;
+    return date.toISOString();
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Convert date string to ISO datetime with timezone for API
  * @param {string|Date} dateStr - Date string or Date object
  * @returns {string|null} - ISO datetime string (YYYY-MM-DDTHH:mm:ssZ) or null

@@ -11,5 +11,12 @@ export function mapHouseToHouseCard(house) {
     rentPrice: house?.rentPrice ?? house?.rent ?? null,
     functionalAreas: Array.isArray(house?.functionalAreas) ? house.functionalAreas : [],
     images: Array.isArray(house?.images) ? house.images : [],
+    nameTranslations: house?.nameTranslations ?? null,
+    addressTranslations: house?.addressTranslations ?? null,
+    ward: house?.ward ?? "",
+    wardTranslations: house?.wardTranslations ?? null,
+    city: house?.city ?? "",
+    cityTranslations: house?.cityTranslations ?? null,
+    descriptionTranslations: house?.descriptionTranslations ?? null,
   };
 }

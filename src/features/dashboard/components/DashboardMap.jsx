@@ -1,30 +1,22 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl:       "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl:     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
 const STATUS_COLOR = {
-  RENTED: "#14b8a6",
-  AVAILABLE: "#22c55e",
-  VACANT: "#94a3b8",
+  RENTED:      "#14b8a6",
+  AVAILABLE:   "#22c55e",
+  VACANT:      "#94a3b8",
   MAINTENANCE: "#f59e0b",
-  INACTIVE: "#94a3b8",
-};
-
-const STATUS_LABEL = {
-  RENTED: "Đang thuê",
-  AVAILABLE: "Còn trống",
-  VACANT: "Còn trống",
-  MAINTENANCE: "Bảo trì",
-  INACTIVE: "Không hoạt động",
+  INACTIVE:    "#94a3b8",
 };
 
 function createDotIcon(color) {
@@ -45,12 +37,12 @@ async function geocode(address) {
   const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
   const res = await fetch(url, { headers: { "Accept-Language": "vi" } });
   const data = await res.json();
-  if (data[0])
-    return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+  if (data[0]) return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
   return null;
 }
 
 export default function DashboardMap({ houses = [] }) {
+  const { t } = useTranslation("common");
   const [markers, setMarkers] = useState([]);
 
   useEffect(() => {
@@ -66,36 +58,30 @@ export default function DashboardMap({ houses = [] }) {
           if (coords && !cancelled)
             setMarkers((prev) => [...prev, { house, ...coords }]);
         } catch {
-          // bỏ qua nếu geocode lỗi
+          // skip if geocode fails
         }
         await new Promise((r) => setTimeout(r, 1100));
       }
     };
 
     run();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [houses]);
 
-  const uniqueStatuses = [
-    ...new Set(houses.map((h) => h.status).filter(Boolean)),
-  ];
+  const uniqueStatuses = [...new Set(houses.map((h) => h.status).filter(Boolean))];
+
+  const subtitleText = markers.length > 0
+    ? t("dashboard.map.showing", { shown: markers.length, total: houses.length })
+    : houses.length > 0
+      ? t("dashboard.map.loadingLocations")
+      : t("dashboard.map.defaultCity");
 
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden" style={{ isolation: "isolate" }}>
       <div className="px-5 py-4 flex items-center justify-between border-b border-gray-100">
         <div>
-          <h3 className="font-semibold text-gray-900 text-sm">
-            Bản đồ bất động sản sở hữu{" "}
-          </h3>
-          <p className="text-xs text-gray-500 mt-0.5">
-            {markers.length > 0
-              ? `Hiển thị ${markers.length}/${houses.length} địa điểm`
-              : houses.length > 0
-                ? "Đang tải vị trí..."
-                : "TP. Hồ Chí Minh"}
-          </p>
+          <h3 className="font-semibold text-gray-900 text-sm">{t("dashboard.map.title")}</h3>
+          <p className="text-xs text-gray-500 mt-0.5">{subtitleText}</p>
         </div>
         <div className="flex items-center gap-4 text-xs text-gray-500">
           {uniqueStatuses.map((s) => (
@@ -104,7 +90,7 @@ export default function DashboardMap({ houses = [] }) {
                 className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
                 style={{ background: STATUS_COLOR[s] ?? "#94a3b8" }}
               />
-              {STATUS_LABEL[s] ?? s}
+              {t(`dashboard.map.${s}`, { defaultValue: s })}
             </span>
           ))}
         </div>
@@ -129,12 +115,8 @@ export default function DashboardMap({ houses = [] }) {
             >
               <Popup>
                 <div className="text-sm min-w-[200px]">
-                  <p className="font-semibold text-gray-900 mb-1">
-                    {house.name}
-                  </p>
-                  <p className="text-gray-500 text-xs mb-2">
-                    {buildAddress(house)}
-                  </p>
+                  <p className="font-semibold text-gray-900 mb-1">{house.name}</p>
+                  <p className="text-gray-500 text-xs mb-2">{buildAddress(house)}</p>
                   <span
                     className="text-xs px-2 py-0.5 rounded-full font-medium"
                     style={{
@@ -142,7 +124,7 @@ export default function DashboardMap({ houses = [] }) {
                       color: STATUS_COLOR[house.status] ?? "#94a3b8",
                     }}
                   >
-                    {STATUS_LABEL[house.status] ?? house.status}
+                    {t(`dashboard.map.${house.status}`, { defaultValue: house.status })}
                   </span>
                 </div>
               </Popup>

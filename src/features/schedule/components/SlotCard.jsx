@@ -1,6 +1,8 @@
+import { useTranslation } from "react-i18next";
 import { slotStatusConfig } from "../utils/dateHelpers";
 
 export default function SlotCard({ slot, isActive, onClick }) {
+  const { t } = useTranslation("common");
   const cfg = slotStatusConfig(slot);
   return (
     <div
@@ -16,7 +18,7 @@ export default function SlotCard({ slot, isActive, onClick }) {
         <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${cfg.dot}`} />
         <span className="text-[10px] font-bold text-slate-700">{slot.time}</span>
         <span className="ml-auto text-[10px] font-semibold text-slate-400 flex-shrink-0">
-          {slot.jobs.length} việc
+          {t("schedule.jobCount", { count: slot.jobs.length })}
         </span>
       </div>
     </div>

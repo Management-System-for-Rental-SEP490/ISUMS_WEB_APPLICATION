@@ -7,6 +7,17 @@ import api from "../../../lib/axios";
 import { HOUSES_ENDPOINTS, ASSET_ENDPOINTS } from "../../../lib/api-endpoints";
 import { extractResponseData, getErrorMessage } from "../../../lib/api-helpers";
 
+const normalizeHouseQueryParams = (params = {}) => {
+  const normalized = { ...params };
+  if (normalized.page !== undefined) {
+    normalized.page = Math.max(1, Number(normalized.page) || 1);
+  }
+  if (normalized.size !== undefined) {
+    normalized.size = Math.min(100, Math.max(1, Number(normalized.size) || 20));
+  }
+  return normalized;
+};
+
 /**
  * Get all houses with optional server-side filtering/pagination
  * @param {Object} params - Query params: page, size, keyword, sortBy, sortDir, status
@@ -15,7 +26,9 @@ import { extractResponseData, getErrorMessage } from "../../../lib/api-helpers";
  */
 export async function getAllHouses(params = {}) {
   try {
-    const response = await api.get(HOUSES_ENDPOINTS.BASE, { params });
+    const response = await api.get(HOUSES_ENDPOINTS.BASE, {
+      params: normalizeHouseQueryParams(params),
+    });
     return extractResponseData(response);
   } catch (error) {
     throw new Error(getErrorMessage(error));
@@ -68,6 +81,30 @@ export async function updateHouse(id, payload) {
   }
 }
 
+export async function updateHouseStatus(id, status) {
+  try {
+    const response = await api.patch(HOUSES_ENDPOINTS.UPDATE_STATUS(id), { status });
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+export async function subscribeToHouse(id) {
+  const response = await api.post(HOUSES_ENDPOINTS.SUBSCRIBE(id));
+  return extractResponseData(response);
+}
+
+export async function unsubscribeFromHouse(id) {
+  const response = await api.delete(HOUSES_ENDPOINTS.SUBSCRIBE(id));
+  return extractResponseData(response);
+}
+
+export async function isSubscribedToHouse(id) {
+  const response = await api.get(HOUSES_ENDPOINTS.SUBSCRIPTION_STATUS(id));
+  return extractResponseData(response);
+}
+
 /**
  * Delete house
  * @param {string} id - House ID
@@ -91,6 +128,34 @@ export async function getRegions() {
   try {
     const response = await api.get(HOUSES_ENDPOINTS.REGIONS);
     return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+export async function createRegion(payload) {
+  try {
+    const response = await api.post(HOUSES_ENDPOINTS.REGIONS_CREATE, payload);
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+export async function assignStaffToRegion(regionId, staffId) {
+  try {
+    const response = await api.post(HOUSES_ENDPOINTS.REGIONS_ASSIGN_STAFF(regionId, staffId));
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+export async function getHousesByRegion(regionId) {
+  try {
+    const response = await api.get(HOUSES_ENDPOINTS.HOUSES_BY_REGION(regionId));
+    const data = extractResponseData(response);
+    return Array.isArray(data) ? data : [];
   } catch (error) {
     throw new Error(getErrorMessage(error));
   }
@@ -218,6 +283,21 @@ export async function uploadAssetImages(assetId, files) {
     const response = await api.post(ASSET_ENDPOINTS.ITEM_IMAGES(assetId), formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
+ * Update house translations
+ * @param {string} houseId
+ * @param {Object} payload - { nameTranslations, addressTranslations, wardTranslations, communeTranslations, cityTranslations, descriptionTranslations }
+ * @returns {Promise<Object>}
+ */
+export async function updateHouseTranslations(houseId, payload) {
+  try {
+    const response = await api.patch(HOUSES_ENDPOINTS.TRANSLATIONS(houseId), payload);
     return extractResponseData(response);
   } catch (error) {
     throw new Error(getErrorMessage(error));

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
@@ -14,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { useUnreadCount } from "../hooks/useUnreadCount";
+import { resolveNotificationText } from "../utils/notificationText";
 import {
   getManagerNotifications,
   markNotificationRead,
@@ -68,21 +70,6 @@ const TYPE_TEXT_COLOR = {
   contract: "text-teal-600",
 };
 
-function formatTime(dateStr) {
-  if (!dateStr) return "";
-  try {
-    const date = new Date(dateStr);
-    const diffMs = Date.now() - date;
-    const diffMin = Math.floor(diffMs / 60000);
-    if (diffMin < 1) return "Vừa xong";
-    if (diffMin < 60) return `${diffMin} phút trước`;
-    const diffH = Math.floor(diffMin / 60);
-    if (diffH < 24) return `${diffH} giờ trước`;
-    return `${Math.floor(diffH / 24)} ngày trước`;
-  } catch {
-    return dateStr;
-  }
-}
 
 function resolveType(category) {
   const mapped = CATEGORY_TYPE[category] ?? category?.toLowerCase() ?? "info";
@@ -90,7 +77,25 @@ function resolveType(category) {
 }
 
 export default function NotificationDropdown() {
+  const { t, i18n } = useTranslation("common");
   const navigate = useNavigate();
+  const language = i18n?.resolvedLanguage || i18n?.language || "vi";
+
+  function formatTime(dateStr) {
+    if (!dateStr) return "";
+    try {
+      const date = new Date(dateStr);
+      const diffMs = Date.now() - date;
+      const diffMin = Math.floor(diffMs / 60000);
+      if (diffMin < 1) return t("notifications.justNow");
+      if (diffMin < 60) return t("notifications.minutesAgo", { count: diffMin });
+      const diffH = Math.floor(diffMin / 60);
+      if (diffH < 24) return t("notifications.hoursAgo", { count: diffH });
+      return t("notifications.daysAgo", { count: Math.floor(diffH / 24) });
+    } catch {
+      return dateStr;
+    }
+  }
   const [isOpen, setIsOpen] = useState(false);
   const [fetched, setFetched] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -119,6 +124,13 @@ export default function NotificationDropdown() {
 
     const type = resolveType(notif.category ?? "");
     const accent = TYPE_ACCENT[type] ?? "#3bb582";
+    const titleText = resolveNotificationText(
+      notif,
+      "title",
+      language,
+      t("notifications.newNotification"),
+    );
+    const bodyText = resolveNotificationText(notif, "body", language, "");
     toast(
       <div
         role="button"
@@ -136,22 +148,22 @@ export default function NotificationDropdown() {
         </div>
         <div className="flex-1 min-w-0 py-0.5">
           <p className="text-sm font-semibold text-gray-900 leading-snug truncate">
-            {notif.title ?? "Thông báo mới"}
+            {titleText}
           </p>
-          {notif.body && (
+          {bodyText && (
             <p className="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">
-              {notif.body}
+              {bodyText}
             </p>
           )}
           <div className="flex items-center justify-between mt-1.5">
             <p className="text-[11px] font-medium" style={{ color: accent }}>
-              Vừa xong
+              {t("notifications.justNow")}
             </p>
             <span
               className="text-[11px] font-semibold flex items-center gap-0.5"
               style={{ color: accent }}
             >
-              Xem chi tiết →
+              {t("notifications.viewDetail")} →
             </span>
           </div>
         </div>
@@ -167,7 +179,7 @@ export default function NotificationDropdown() {
         },
       },
     );
-  }, [liveNotifs, navigate]);
+  }, [liveNotifs, navigate, language, t]);
 
   // ── Fetch list when dropdown opens ───────────────────────────────────────
   const fetchPreviews = useCallback(async () => {
@@ -244,7 +256,7 @@ export default function NotificationDropdown() {
         type="button"
         onClick={() => setIsOpen((v) => !v)}
         className="relative p-2 rounded-lg hover:bg-gray-100 transition"
-        aria-label="Thông báo"
+        aria-label={t("notifications.pageTitle")}
       >
         <svg
           className="w-5 h-5 text-gray-500"
@@ -270,7 +282,7 @@ export default function NotificationDropdown() {
         {connStatus === "reconnecting" && (
           <span
             className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-amber-400 border border-white"
-            title="Đang kết nối lại..."
+            title={t("notifications.reconnecting")}
           />
         )}
       </button>
@@ -284,10 +296,10 @@ export default function NotificationDropdown() {
           {/* Header */}
           <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
             <div>
-              <h3 className="text-base font-bold text-gray-900">Thông báo</h3>
+              <h3 className="text-base font-bold text-gray-900">{t("notifications.pageTitle")}</h3>
               {unreadCount > 0 && (
                 <p className="text-xs text-gray-500 mt-0.5">
-                  {unreadCount} chưa đọc
+                  {t("notifications.unreadCount", { count: unreadCount })}
                 </p>
               )}
             </div>
@@ -302,7 +314,7 @@ export default function NotificationDropdown() {
                 ) : (
                   <Check className="w-3.5 h-3.5" />
                 )}
-                Đánh dấu là đã đọc tất cả
+                {t("notifications.markAllRead")}
               </button>
             )}
           </div>
@@ -312,20 +324,25 @@ export default function NotificationDropdown() {
             {isLoading ? (
               <div className="flex items-center justify-center py-10 gap-2 text-gray-400">
                 <Loader2 className="w-5 h-5 animate-spin" />
-                <span className="text-sm">Đang tải...</span>
+                <span className="text-sm">{t("notifications.loading")}</span>
               </div>
             ) : previews.length === 0 ? (
               <div className="text-center py-12">
                 <Bell className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-                <p className="text-sm text-gray-400">Không có thông báo nào</p>
+                <p className="text-sm text-gray-400">{t("notifications.empty")}</p>
               </div>
             ) : (
               previews.map((notif) => {
                 const category = notif.category ?? notif.type ?? "";
                 const type = resolveType(category);
                 const isUnread = !notif.read;
-                const bodyText =
-                  notif.body ?? notif.message ?? notif.content ?? "";
+                const titleText = resolveNotificationText(
+                  notif,
+                  "title",
+                  language,
+                  category || t("notifications.defaultTitle"),
+                );
+                const bodyText = resolveNotificationText(notif, "body", language, "");
 
                 return (
                   <button
@@ -343,7 +360,7 @@ export default function NotificationDropdown() {
                       <p
                         className={`text-sm leading-snug mb-0.5 ${isUnread ? "font-semibold text-gray-900" : "font-medium text-gray-700"}`}
                       >
-                        {notif.title ?? category ?? "Thông báo"}
+                        {titleText}
                       </p>
                       {bodyText && (
                         <p className="text-xs text-gray-500 line-clamp-1 leading-relaxed">
@@ -377,7 +394,7 @@ export default function NotificationDropdown() {
               }}
               className="w-full flex items-center justify-center gap-2 text-sm font-semibold text-teal-600 hover:text-teal-700 transition py-1"
             >
-              Xem tất cả thông báo
+              {t("notifications.viewAll")}
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { UserCheck, RefreshCw, Wrench } from "lucide-react";
 import { getAllIssues, getIssueById } from "../api/issues.api";
 import { getHouseById } from "../../houses/api/houses.api";
@@ -10,12 +11,17 @@ import IssueDetailPanel from "../components/assignment/IssueDetailPanel";
 import ImageLightbox from "../components/assignment/ImageLightbox";
 
 const B = {
-  green: "#3bb582", card: "#FAFFFE", muted: "#EAF4F0",
-  border: "#C4DED5", fg: "#1E2D28", mutedFg: "#5A7A6E",
+  green: "#3bb582",
+  card: "#FFFFFF",
+  muted: "#EAF4F0",
+  border: "#C4DED5",
+  fg: "#1E2D28",
+  mutedFg: "#5A7A6E",
   gradient: "linear-gradient(135deg, #3bb582 0%, rgba(32,150,216,0.7) 100%)",
 };
 
 export default function IssueAssignmentPage() {
+  const { t } = useTranslation("common");
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -28,27 +34,75 @@ export default function IssueAssignmentPage() {
   const [images, setImages] = useState([]);
   const [lightboxIndex, setLightboxIndex] = useState(null);
 
-  const fetchIssues = useCallback(async () => {
+  const fetchIssues = useCallback(async (keepSelectedId) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getAllIssues({ type: "REPAIR", status: "WAITING_MANAGER_CONFIRM" });
-      const list = Array.isArray(data) ? data : (Array.isArray(data?.items) ? data.items : []);
+      const data = await getAllIssues({
+        type: "REPAIR",
+        status: "WAITING_MANAGER_CONFIRM",
+      });
+      const list = Array.isArray(data)
+        ? data
+        : Array.isArray(data?.items)
+          ? data.items
+          : [];
       setIssues(list);
-      if (list.length > 0) setSelected(list[0]);
+
       const ids = [...new Set(list.map((i) => i.houseId).filter(Boolean))];
       const entries = await Promise.all(
-        ids.map((id) => getHouseById(id).then((h) => [id, h?.name ?? h?.houseName ?? "—"]).catch(() => [id, "—"])),
+        ids.map((id) =>
+          getHouseById(id)
+            .then((h) => [id, h?.name ?? h?.houseName ?? "—"])
+            .catch(() => [id, "—"]),
+        ),
       );
       setHouseNames(Object.fromEntries(entries));
+
+      // Re-select: keep current selection if still in list, otherwise pick first
+      const nextSelected = keepSelectedId
+        ? (list.find((i) => i.id === keepSelectedId) ?? list[0])
+        : list[0];
+
+      if (nextSelected) {
+        setSelected(nextSelected);
+        setSelectedDetail(null);
+        setStaffDetail(null);
+        setImages(
+          Array.isArray(nextSelected.images) ? nextSelected.images : [],
+        );
+        setDetailLoading(true);
+        try {
+          const detail = await getIssueById(nextSelected.id);
+          setSelectedDetail(detail);
+          if (Array.isArray(detail?.images) && detail.images.length > 0)
+            setImages(detail.images);
+          if (detail?.assignedStaffId) {
+            getUserById(detail.assignedStaffId)
+              .then(setStaffDetail)
+              .catch(() => {});
+          }
+        } catch {
+          // fallback to list data
+        } finally {
+          setDetailLoading(false);
+        }
+      } else {
+        setSelected(null);
+        setSelectedDetail(null);
+        setStaffDetail(null);
+        setImages([]);
+      }
     } catch (err) {
-      setError(err?.message ?? "Không thể tải danh sách yêu cầu.");
+      setError(err?.message ?? t("issues.loadListError"));
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => { fetchIssues(); }, [fetchIssues]);
+  useEffect(() => {
+    fetchIssues(null);
+  }, [fetchIssues]);
 
   const handleSelectIssue = async (issue) => {
     setSelected(issue);
@@ -64,11 +118,18 @@ export default function IssueAssignmentPage() {
       }
       if (detail?.houseId && !houseNames[detail.houseId]) {
         getHouseById(detail.houseId)
-          .then((h) => setHouseNames((prev) => ({ ...prev, [detail.houseId]: h?.name ?? h?.houseName ?? "—" })))
+          .then((h) =>
+            setHouseNames((prev) => ({
+              ...prev,
+              [detail.houseId]: h?.name ?? h?.houseName ?? "—",
+            })),
+          )
           .catch(() => {});
       }
       if (detail?.assignedStaffId) {
-        getUserById(detail.assignedStaffId).then((s) => setStaffDetail(s)).catch(() => {});
+        getUserById(detail.assignedStaffId)
+          .then((s) => setStaffDetail(s))
+          .catch(() => {});
       }
     } catch {
       // fallback to list data
@@ -82,14 +143,10 @@ export default function IssueAssignmentPage() {
     setConfirming(true);
     try {
       await confirmManagerWorkSlot(selected.id);
-      toast.success(`Đã xác nhận ca làm việc: ${selected.title}`);
-      setSelected(null);
-      setSelectedDetail(null);
-      setStaffDetail(null);
-      setImages([]);
-      fetchIssues();
+      toast.success(t("issues.confirmWorkSlot", { title: selected.title }));
+      fetchIssues(null);
     } catch (e) {
-      toast.error(e.message ?? "Xác nhận thất bại, vui lòng thử lại.");
+      toast.error(e.message ?? t("issues.confirmFailed"));
     } finally {
       setConfirming(false);
     }
@@ -103,58 +160,131 @@ export default function IssueAssignmentPage() {
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: B.muted }}>
+            <div
+              className="w-6 h-6 rounded-lg flex items-center justify-center"
+              style={{ background: B.muted }}
+            >
               <UserCheck className="w-3.5 h-3.5" style={{ color: B.green }} />
             </div>
-            <span className="text-xs font-bold uppercase tracking-widest" style={{ color: B.green }}>Sửa chữa</span>
+            <span
+              className="text-xs font-bold uppercase tracking-widest"
+              style={{ color: B.green }}
+            >
+              {t("issues.repairLabel")}
+            </span>
           </div>
-          <h2 className="font-heading text-3xl font-bold" style={{ color: B.fg }}>Phân công xử lý</h2>
+          <h2
+            className="font-heading text-3xl font-bold"
+            style={{ color: B.fg }}
+          >
+            {t("issues.assignmentTitle")}
+          </h2>
         </div>
         <button
-          onClick={fetchIssues}
+          onClick={() => fetchIssues(selected?.id)}
           disabled={loading}
           className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ background: B.muted, color: B.green, border: `1px solid ${B.border}` }}
+          style={{
+            background: B.muted,
+            color: B.green,
+            border: `1px solid ${B.border}`,
+          }}
         >
           <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          Làm mới
+          {t("issues.btnRefresh")}
         </button>
       </div>
 
       {/* Error Banner */}
       {error && (
-        <div className="rounded-2xl px-5 py-3.5 flex items-center justify-between" style={{ background: "rgba(217,95,75,0.08)", border: "1px solid rgba(217,95,75,0.25)" }}>
-          <p className="text-sm font-medium" style={{ color: "#D95F4B" }}>{error}</p>
-          <button onClick={fetchIssues} className="text-xs font-semibold underline" style={{ color: "#D95F4B" }}>Thử lại</button>
+        <div
+          className="rounded-2xl px-5 py-3.5 flex items-center justify-between"
+          style={{
+            background: "rgba(217,95,75,0.08)",
+            border: "1px solid rgba(217,95,75,0.25)",
+          }}
+        >
+          <p className="text-sm font-medium" style={{ color: "#D95F4B" }}>
+            {error}
+          </p>
+          <button
+            onClick={fetchIssues}
+            className="text-xs font-semibold underline"
+            style={{ color: "#D95F4B" }}
+          >
+            {t("issues.btnRetry")}
+          </button>
         </div>
       )}
 
       {/* Main layout */}
       <div className="flex gap-6 items-start">
-        <IssueListPanel issues={issues} loading={loading} selected={selected} onSelect={handleSelectIssue} />
+        <IssueListPanel
+          issues={issues}
+          loading={loading}
+          selected={selected}
+          onSelect={handleSelectIssue}
+          t={t}
+        />
 
         {!loading && detail ? (
-          <IssueDetailPanel
-            detail={detail}
-            houseNames={houseNames}
-            staffDetail={staffDetail}
-            images={images}
-            imagesLoading={detailLoading}
-            onConfirm={handleConfirm}
-            confirming={confirming}
-            onOpenLightbox={setLightboxIndex}
-          />
+          detailLoading ? (
+            <div
+              className="flex-1 rounded-2xl flex items-center justify-center py-24"
+              style={{
+                background: B.card,
+                border: `1px solid ${B.border}`,
+                boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)",
+              }}
+            >
+              <div className="text-center">
+                <div
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                  style={{ background: B.muted }}
+                >
+                  <Wrench
+                    className="w-7 h-7 animate-spin"
+                    style={{ color: B.green }}
+                  />
+                </div>
+                <p className="text-sm font-medium" style={{ color: B.mutedFg }}>
+                  {t("issues.detailLoading")}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <IssueDetailPanel
+              detail={detail}
+              houseNames={houseNames}
+              staffDetail={staffDetail}
+              images={images}
+              imagesLoading={detailLoading}
+              onConfirm={handleConfirm}
+              confirming={confirming}
+              onOpenLightbox={setLightboxIndex}
+              t={t}
+            />
+          )
         ) : (
           !loading && (
             <div
               className="flex-1 rounded-2xl flex items-center justify-center py-24"
-              style={{ background: B.card, border: `1px solid ${B.border}`, boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+              style={{
+                background: B.card,
+                border: `1px solid ${B.border}`,
+                boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)",
+              }}
             >
               <div className="text-center">
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: B.muted }}>
+                <div
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+                  style={{ background: B.muted }}
+                >
                   <Wrench className="w-7 h-7" style={{ color: B.green }} />
                 </div>
-                <p className="text-sm font-medium" style={{ color: B.mutedFg }}>Chọn một yêu cầu để xem chi tiết</p>
+                <p className="text-sm font-medium" style={{ color: B.mutedFg }}>
+                  {t("issues.selectToView")}
+                </p>
               </div>
             </div>
           )
@@ -166,7 +296,9 @@ export default function IssueAssignmentPage() {
         index={lightboxIndex}
         onClose={() => setLightboxIndex(null)}
         onNext={() => setLightboxIndex((i) => (i + 1) % images.length)}
-        onPrev={() => setLightboxIndex((i) => (i - 1 + images.length) % images.length)}
+        onPrev={() =>
+          setLightboxIndex((i) => (i - 1 + images.length) % images.length)
+        }
       />
     </div>
   );

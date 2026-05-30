@@ -2,7 +2,7 @@ export default function StatCard({ title, value, sub, iconBg, iconColor, icon })
   return (
     <div
       className="rounded-2xl p-5"
-      style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+      style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
     >
       <div className="flex items-start justify-between gap-2">
         <div>

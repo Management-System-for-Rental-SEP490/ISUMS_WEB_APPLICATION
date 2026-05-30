@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Bell,
   AlertTriangle,
@@ -18,54 +19,75 @@ import {
   TYPE_CONFIG,
   resolveNotifType,
 } from "../constants/notification.constants";
-import { NOTIFICATION_METADATA_LABELS } from "../constants/notificationMetadataLabels";
+import { NOTIFICATION_METADATA_LABEL_KEYS } from "../constants/notificationMetadataLabels";
 import InspectionResultDrawer from "../../maintenance/components/InspectionResultDrawer";
+import { resolveNotificationText } from "../utils/notificationText";
 
-function formatTime(dateStr) {
+// Reduce a translation-map (or string) to a plain searchable string. Used
+// only for client-side text filtering.
+const flatten = (v) => {
+  if (v == null) return "";
+  if (typeof v === "string") return v;
+  if (typeof v !== "object") return String(v);
+  return Object.entries(v)
+    .filter(([k, x]) => k !== "_source" && k !== "_auto" && typeof x === "string")
+    .map(([, x]) => x)
+    .join(" ");
+};
+
+const QUICK_FILTER_KEYS = [
+  { key: "all",      labelKey: "notifications.filterAll"    },
+  { key: "unread",   labelKey: "notifications.filterUnread" },
+  { key: "critical", labelKey: "notifications.typeCritical" },
+];
+
+const SORT_OPTION_KEYS = [
+  { key: "newest", labelKey: "notifications.sortNewest" },
+  { key: "oldest", labelKey: "notifications.sortOldest" },
+];
+
+function formatTime(dateStr, now, t) {
   if (!dateStr) return "";
   try {
     const date = new Date(dateStr);
-    const diffMs = Date.now() - date;
+    const diffMs = now - date;
     const diffMin = Math.floor(diffMs / 60000);
-    if (diffMin < 1) return "Vừa xong";
-    if (diffMin < 60) return `${diffMin} phút trước`;
+    if (diffMin < 1) return t("notifications.justNow");
+    if (diffMin < 60) return t("notifications.minutesAgo", { count: diffMin });
     const diffH = Math.floor(diffMin / 60);
-    if (diffH < 24) return `${diffH} giờ trước`;
+    if (diffH < 24) return t("notifications.hoursAgo", { count: diffH });
     const diffD = Math.floor(diffH / 24);
-    if (diffD < 7) return `${diffD} ngày trước`;
-    return date.toLocaleDateString("vi-VN");
+    if (diffD < 7) return t("notifications.daysAgo", { count: diffD });
+    return date.toLocaleDateString();
   } catch {
     return dateStr;
   }
 }
 
-function resolveMetaLabel(metadata) {
-  if (!metadata) return null;
-  const parts = [];
-  if (metadata.type === "CHECK_IN") parts.push("Bàn giao nhà");
-  else if (metadata.type === "CHECK_OUT") parts.push("Kết thúc HĐ");
-  if (metadata.contractId)
-    parts.push(`HĐ #${String(metadata.contractId).slice(-6).toUpperCase()}`);
-  return parts;
-}
-
-const QUICK_FILTERS = [
-  { key: "all", label: "Tất cả" },
-  { key: "unread", label: "Chưa đọc" },
-  { key: "critical", label: "Khẩn cấp" },
-];
-
-const SORT_OPTIONS = [
-  { key: "newest", label: "Mới nhất" },
-  { key: "oldest", label: "Cũ nhất" },
-];
-
 export default function Notifications() {
+  const { t, i18n } = useTranslation("common");
+  const language = i18n?.resolvedLanguage || i18n?.language || "vi";
   const [filterKey, setFilterKey] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortKey, setSortKey] = useState("newest");
   const [expandedId, setExpandedId] = useState(null);
   const [inspectionId, setInspectionId] = useState(null);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(id);
+  }, []);
+
+  function resolveMetaLabel(metadata) {
+    if (!metadata) return null;
+    const parts = [];
+    if (metadata.type === "CHECK_IN") parts.push(t("notifications.metaCheckIn"));
+    else if (metadata.type === "CHECK_OUT") parts.push(t("notifications.metaCheckOut"));
+    if (metadata.contractId)
+      parts.push(`${t("notifications.metaContractShort")} #${String(metadata.contractId).slice(-6).toUpperCase()}`);
+    return parts;
+  }
 
   const toggleExpand = (id) =>
     setExpandedId((prev) => (prev === id ? null : id));
@@ -92,7 +114,7 @@ export default function Notifications() {
   const filtered = notifications
     .filter((n) => {
       const text =
-        `${n.title ?? ""} ${n.message ?? ""} ${n.content ?? ""}`.toLowerCase();
+        `${flatten(n?.titleTranslations)} ${flatten(n?.bodyTranslations)} ${n?.title ?? ""} ${n?.body ?? ""} ${n?.message ?? ""} ${n?.content ?? ""}`.toLowerCase();
       const matchSearch =
         !searchTerm || text.includes(searchTerm.toLowerCase());
       const matchFilter =
@@ -109,26 +131,26 @@ export default function Notifications() {
 
   const STATS = [
     {
-      label: "Tổng thông báo",
+      label: t("notifications.statTotal"),
       value: notifications.length,
       icon: <Bell className="w-5 h-5 text-teal-500" />,
       iconBg: "bg-teal-50",
     },
     {
-      label: "Chưa đọc",
+      label: t("notifications.statUnread"),
       value: unreadCount,
       icon: <Mail className="w-5 h-5 text-blue-500" />,
       iconBg: "bg-blue-50",
     },
     {
-      label: "Khẩn cấp",
+      label: t("notifications.typeCritical"),
       value: criticalCount,
       icon: <XCircle className="w-5 h-5 text-red-500" />,
       iconBg: "bg-red-50",
       valueColor: criticalCount > 0 ? "text-red-600" : "text-gray-900",
     },
     {
-      label: "Cảnh báo",
+      label: t("notifications.typeWarning"),
       value: warningCount,
       icon: <AlertTriangle className="w-5 h-5 text-amber-500" />,
       iconBg: "bg-amber-50",
@@ -140,7 +162,7 @@ export default function Notifications() {
       {/* ── Header ── */}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div>
-<h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>Thông báo</h2>
+<h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>{t("notifications.pageTitle")}</h2>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0 mt-1">
           <button
@@ -151,7 +173,7 @@ export default function Notifications() {
             onMouseLeave={e => e.currentTarget.style.background = "#ffffff"}
           >
             <RefreshCw className="w-4 h-4" style={{ color: "#3bb582" }} />
-            Làm mới
+            {t("actions.refresh")}
           </button>
           <button
             onClick={markAllRead}
@@ -162,7 +184,7 @@ export default function Notifications() {
             onMouseLeave={e => e.currentTarget.style.opacity = "1"}
           >
             <Check className="w-4 h-4" />
-            Đánh dấu tất cả đã đọc
+            {t("notifications.markAllRead")}
           </button>
         </div>
       </div>
@@ -173,7 +195,7 @@ export default function Notifications() {
           <div
             key={label}
             className="rounded-2xl px-5 py-4 flex items-center justify-between transition-all duration-300 hover:-translate-y-1"
-            style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.10)" }}
+            style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.10)" }}
           >
             <div className="flex flex-col gap-2">
               <p className="text-xs font-semibold uppercase tracking-wider leading-none" style={{ color: "#5A7A6E" }}>
@@ -193,7 +215,7 @@ export default function Notifications() {
       {/* ── List Panel ── */}
       <div
         className="rounded-2xl overflow-hidden"
-        style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+        style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
       >
         {/* Search + Tabs + Sort */}
         <div style={{ borderBottom: "1px solid #C4DED5" }}>
@@ -203,7 +225,7 @@ export default function Notifications() {
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "#5A7A6E" }} />
               <input
                 type="text"
-                placeholder="Tìm kiếm thông báo..."
+                placeholder={t("notifications.searchPlaceholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 rounded-full text-sm outline-none transition"
@@ -217,7 +239,7 @@ export default function Notifications() {
           {/* Tabs + Sort */}
           <div className="flex items-center justify-between px-5">
             <div className="flex">
-              {QUICK_FILTERS.map(({ key, label }) => {
+              {QUICK_FILTER_KEYS.map(({ key, labelKey }) => {
                 const isActive = filterKey === key;
                 const count =
                   key === "all"
@@ -234,7 +256,7 @@ export default function Notifications() {
                     onMouseEnter={e => !isActive && (e.currentTarget.style.color = "#1E2D28")}
                     onMouseLeave={e => !isActive && (e.currentTarget.style.color = "#5A7A6E")}
                   >
-                    {label}
+                    {t(labelKey)}
                     {count > 0 && (
                       <span
                         className="text-xs px-1.5 py-0.5 rounded-full font-semibold"
@@ -255,15 +277,15 @@ export default function Notifications() {
 
             {/* Sort */}
             <div className="flex items-center gap-1.5 pb-3 pt-1">
-              <span className="text-xs" style={{ color: "#5A7A6E" }}>Sắp xếp theo:</span>
+              <span className="text-xs" style={{ color: "#5A7A6E" }}>{t("notifications.sortBy")}:</span>
               <select
                 value={sortKey}
                 onChange={(e) => setSortKey(e.target.value)}
                 className="text-xs font-medium border-none bg-transparent outline-none cursor-pointer pr-1"
                 style={{ color: "#1E2D28" }}
               >
-                {SORT_OPTIONS.map(({ key, label }) => (
-                  <option key={key} value={key}>{label}</option>
+                {SORT_OPTION_KEYS.map(({ key, labelKey }) => (
+                  <option key={key} value={key}>{t(labelKey)}</option>
                 ))}
               </select>
             </div>
@@ -274,7 +296,7 @@ export default function Notifications() {
         {isLoading ? (
           <div className="flex items-center justify-center py-20 gap-2.5" style={{ color: "#5A7A6E" }}>
             <Loader2 className="w-5 h-5 animate-spin" style={{ color: "#3bb582" }} />
-            <span className="text-sm">Đang tải thông báo...</span>
+            <span className="text-sm">{t("notifications.loading")}</span>
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 gap-3">
@@ -282,7 +304,7 @@ export default function Notifications() {
               <BellOff className="w-7 h-7" style={{ color: "#C4DED5" }} />
             </div>
             <p className="text-sm font-medium" style={{ color: "#5A7A6E" }}>
-              Không có thông báo nào
+              {t("notifications.empty")}
             </p>
           </div>
         ) : (
@@ -293,8 +315,14 @@ export default function Notifications() {
               const isUnread = !notif.read;
               const isExpanded = expandedId === notif.id;
               const metaTags = resolveMetaLabel(notif.metadata);
-              const bodyText =
-                notif.body ?? notif.message ?? notif.content ?? "";
+              const titleText = resolveNotificationText(
+                notif,
+                "title",
+                language,
+                notif.category ?? t("notifications.defaultTitle"),
+              );
+              const bodyText = resolveNotificationText(notif, "body", language, "");
+              const hasBody = !!bodyText;
               const metadata = notif.metadata ?? {};
 
               return (
@@ -326,14 +354,14 @@ export default function Notifications() {
                             className="text-sm font-semibold leading-snug mb-0.5"
                             style={{ color: isUnread ? "#1E2D28" : "#5A7A6E" }}
                           >
-                            {notif.title ?? notif.category ?? "Thông báo"}
+                            {titleText}
                             {isUnread && (
                               <span
                                 className={`inline-block w-1.5 h-1.5 rounded-full ml-1.5 mb-0.5 align-middle ${cfg.dot}`}
                               />
                             )}
                           </p>
-                          {bodyText && !isExpanded && (
+                          {hasBody && !isExpanded && (
                             <p className="text-sm leading-relaxed line-clamp-2 mb-2" style={{ color: "#5A7A6E" }}>
                               {bodyText}
                             </p>
@@ -343,7 +371,7 @@ export default function Notifications() {
                             <span
                               className={`text-[11px] font-bold px-2 py-0.5 rounded uppercase tracking-wide ${cfg.badge}`}
                             >
-                              {cfg.label}
+                              {t(cfg.labelKey)}
                             </span>
                             {metaTags?.map((tag) => (
                               <span
@@ -360,7 +388,7 @@ export default function Notifications() {
                         {/* Right: time + chevron + actions */}
                         <div className="flex flex-col items-end gap-2 flex-shrink-0">
                           <span className="text-xs whitespace-nowrap" style={{ color: "#5A7A6E" }}>
-                            {formatTime(notif.createdAt ?? notif.time)}
+                            {formatTime(notif.createdAt ?? notif.time, now, t)}
                           </span>
                           <div className="flex items-center gap-1">
                             {isUnread && (
@@ -370,7 +398,7 @@ export default function Notifications() {
                                   e.stopPropagation();
                                   markRead(notif.id);
                                 }}
-                                title="Đánh dấu đã đọc"
+                                title={t("notifications.markRead")}
                                 className="w-7 h-7 rounded-full flex items-center justify-center transition"
                               style={{ color: "#5A7A6E" }}
                               onMouseEnter={e => { e.currentTarget.style.color = "#3bb582"; e.currentTarget.style.background = "rgba(59,181,130,0.10)"; }}
@@ -398,7 +426,7 @@ export default function Notifications() {
                   {/* Expanded detail */}
                   {isExpanded && (
                     <div className="px-5 pb-4 ml-14 space-y-3">
-                      {bodyText && (
+                      {hasBody && (
                         <p className="text-sm leading-relaxed rounded-xl px-4 py-3" style={{ color: "#1E2D28", background: "#ffffff", border: "1px solid #C4DED5" }}>
                           {bodyText}
                         </p>
@@ -410,7 +438,7 @@ export default function Notifications() {
                               v != null && (
                                 <div key={k} className="flex items-center gap-2 text-xs">
                                   <span className="font-medium w-28 flex-shrink-0" style={{ color: "#5A7A6E" }}>
-                                    {NOTIFICATION_METADATA_LABELS[k] ?? k}
+                                    {NOTIFICATION_METADATA_LABEL_KEYS[k] ? t(NOTIFICATION_METADATA_LABEL_KEYS[k]) : k}
                                   </span>
                                   <span className="font-mono truncate" style={{ color: "#1E2D28" }}>
                                     {String(v)}
@@ -431,7 +459,7 @@ export default function Notifications() {
                           onMouseLeave={e => e.currentTarget.style.background = "rgba(59,181,130,0.10)"}
                         >
                           <ArrowRight className="w-3.5 h-3.5" />
-                          Xem kết quả kiểm tra
+                          {t("notifications.viewInspection")}
                         </button>
                       )}
                     </div>
@@ -455,10 +483,10 @@ export default function Notifications() {
             >
               {isLoadingMore ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" /> Đang tải...
+                  <Loader2 className="w-4 h-4 animate-spin" /> {t("notifications.loadingMore")}
                 </>
               ) : (
-                "Xem thêm thông báo cũ hơn"
+                t("notifications.loadMore")
               )}
             </button>
           </div>

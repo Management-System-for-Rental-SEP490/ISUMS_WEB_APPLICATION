@@ -16,29 +16,31 @@ const ImageCarousel = ({ images = [], alt = "image", height = "h-56", showThumbn
 
   return (
     <Image.PreviewGroup>
-      <div className="flex flex-col gap-0">
+      <div style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
         {/* Main carousel */}
         <Carousel
           arrows={images.length > 1}
           infinite={false}
           dotPosition="bottom"
           dots={images.length > 1}
+          style={{ lineHeight: 0, fontSize: 0 }}
         >
           {images.map((img) => (
-            <div key={img.id}>
-              <div className={`${height} bg-gray-100 overflow-hidden relative`}>
+            <div key={img.id} style={{ fontSize: 0, lineHeight: 0, display: "block" }}>
+              <div className={`${height} bg-gray-100 overflow-hidden relative`} style={{ fontSize: 0, lineHeight: 0 }}>
                 {preview ? (
                   <Image
                     src={img.url}
                     alt={alt}
                     style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                    wrapperStyle={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+                    wrapperStyle={{ position: "absolute", inset: 0, width: "100%", height: "100%", fontSize: 0, lineHeight: 0 }}
                     preview={{ mask: "Xem ảnh" }}
                   />
                 ) : (
                   <img
                     src={img.url}
                     alt={alt}
+                    style={{ display: "block" }}
                     className="absolute inset-0 w-full h-full object-cover"
                   />
                 )}

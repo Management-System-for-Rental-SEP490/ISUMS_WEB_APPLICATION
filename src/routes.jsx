@@ -10,15 +10,22 @@ import AdminSignContract from "./features/contracts/pages/AdminSignContract";
 import ContractDetailStandalone from "./features/contracts/pages/ContractDetailStandalone";
 import ContractEditStandalone from "./features/contracts/pages/ContractEditStandalone";
 import HouseDetailPage from "./features/houses/pages/HouseDetailPage";
+import RegionsPage from "./features/regions/pages/RegionsPage";
 import FloorDetailPage from "./features/houses/pages/FloorDetailPage";
+import AssetsPage from "./features/assets/pages/AssetsPage";
 
 import DashboardPage from "./features/dashboard/DashboardPage";
+import FinanceDashboardPage from "./features/finance/pages/FinanceDashboardPage";
+import TenantAlertsPage from "./features/tenant-alerts/pages/TenantAlertsPage";
 import Houses from "./features/houses/pages/Houses";
 import Utilities from "./app/layout/Utilities";
 import UsersPage from "./features/tenants/pages/UsersPage";
 import StaffPage from "./features/tenants/pages/StaffPage";
+import ManagersPage from "./features/tenants/pages/ManagersPage";
+import SubscriptionPlansPage from "./features/notifications/pages/SubscriptionPlansPage";
 import ContractsPage from "./features/contracts/pages/ContractsPage";
 import ContractsPendingSignPage from "./features/contracts/pages/ContractsPendingSignPage";
+import RelocationRequestsPage from "./features/relocations/pages/RelocationRequestsPage";
 import SchedulePage from "./features/schedule/pages/SchedulePage";
 import MaintenancePlansPage from "./features/maintenance/pages/MaintenancePlansPage";
 import MaintenanceJobsPage from "./features/maintenance/pages/MaintenanceJobsPage";
@@ -32,6 +39,8 @@ import IssueQuoteApprovalPage from "./features/issues/pages/IssueQuoteApprovalPa
 import Reports from "./features/reports/pages/Reports";
 import Notifications from "./features/notifications/pages/Notifications";
 import Settings from "./features/settings/pages/Settings";
+import AuditLogsPage from "./features/audit-logs/pages/AuditLogsPage";
+import MultiLangDemo from "./components/shared/i18n/MultiLangDemo";
 
 const ALLOWED_ROLES = ["ADMIN", "LANDLORD", "MANAGER"];
 
@@ -58,14 +67,21 @@ export const router = createBrowserRouter([
             element: <DashboardLayout />,
             children: [
               { path: "/dashboard", element: <DashboardPage /> },
+              { path: "/finance", element: <FinanceDashboardPage /> },
+              { path: "/tenant-alerts", element: <TenantAlertsPage /> },
               { path: "/houses", element: <Houses /> },
+              { path: "/regions", element: <RegionsPage /> },
               { path: "/houses/:id", element: <HouseDetailPage /> },
               { path: "/houses/:id/floors/:floorNo", element: <FloorDetailPage /> },
+              { path: "/assets", element: <AssetsPage /> },
               { path: "/utilities", element: <Utilities /> },
               { path: "/users", element: <UsersPage /> },
               { path: "/staff", element: <StaffPage /> },
+              { path: "/managers", element: <ManagersPage /> },
+              { path: "/subscription-plans", element: <SubscriptionPlansPage /> },
               { path: "/contracts", element: <ContractsPage /> },
               { path: "/contracts/pending", element: <ContractsPendingSignPage /> },
+              { path: "/contracts/relocations", element: <RelocationRequestsPage /> },
               { path: "/maintenance", element: <SchedulePage /> },
               { path: "/maintenance/plans", element: <MaintenancePlansPage /> },
               { path: "/maintenance/jobs", element: <MaintenanceJobsPage /> },
@@ -79,6 +95,8 @@ export const router = createBrowserRouter([
               { path: "/reports", element: <Reports /> },
               { path: "/notifications", element: <Notifications /> },
               { path: "/settings", element: <Settings /> },
+              { path: "/audit-logs", element: <AuditLogsPage /> },
+              { path: "/dev/i18n", element: <MultiLangDemo /> },
             ],
           },
           { path: "/contracts/:id", element: <ContractDetailStandalone /> },

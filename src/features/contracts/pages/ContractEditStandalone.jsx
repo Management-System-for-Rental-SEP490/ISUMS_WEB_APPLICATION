@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { getContractById, updateContractHtml } from "../api/contracts.api";
 import { mapContractFromApi } from "../utils/mapContractFromApi";
 import { toast } from "react-toastify";
@@ -12,11 +13,13 @@ import {
   wrapBodyWithFullDocument,
 } from "../utils/contractHtml.utils";
 import ContractHtmlEditor from "../components/editor/ContractHtmlEditor";
+import ContractQuickEditPanel from "../components/editor/ContractQuickEditPanel";
 import Icons from "../components/standalone/ContractEditIcons";
 
 export default function ContractEditStandalone() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation("common");
   const [contract, setContract] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -39,9 +42,9 @@ export default function ContractEditStandalone() {
       } catch (err) {
         const status = err?.response?.status;
         const msg =
-          status === 403 ? "Bạn không có quyền chỉnh sửa hợp đồng này." :
-          status === 404 ? "Không tìm thấy hợp đồng." :
-          "Không thể tải hợp đồng, vui lòng thử lại.";
+          status === 403 ? t("contract.toastSaveError403") :
+          status === 404 ? t("contract.toastSaveError404") :
+          t("contract.toastLoadErrorDefault");
         if (mounted) setError(msg);
       } finally {
         if (mounted) setLoading(false);
@@ -55,8 +58,8 @@ export default function ContractEditStandalone() {
 
   const handleSave = async () => {
     if (!contract?.id) {
-      setError("Thiếu ID hợp đồng.");
-      toast.error("Thiếu ID hợp đồng.");
+      setError(t("contract.toastMissingId"));
+      toast.error(t("contract.toastMissingId"));
       return;
     }
     setSaving(true);
@@ -65,14 +68,14 @@ export default function ContractEditStandalone() {
       const content = editorRef.current?.getContent?.() ?? bodyHtml;
       const fullHtml = wrapBodyWithFullDocument(content);
       await updateContractHtml(contract.id, fullHtml);
-      toast.success("Chỉnh sửa hợp đồng thành công!");
+      toast.success(t("contract.toastEditSuccess"));
       navigate(`/contracts/${contract.id}`);
     } catch (err) {
       const status = err?.response?.status;
       const msg =
-        status === 403 ? "Bạn không có quyền chỉnh sửa hợp đồng này." :
-        status === 404 ? "Không tìm thấy hợp đồng." :
-        "Không thể lưu hợp đồng, vui lòng thử lại.";
+        status === 403 ? t("contract.toastSaveError403") :
+        status === 404 ? t("contract.toastSaveError404") :
+        t("contract.toastSaveErrorDefault");
       setError(msg);
       toast.error(msg);
     } finally {
@@ -160,7 +163,8 @@ export default function ContractEditStandalone() {
 
         {/* Editor area */}
         {!loading && contract && (
-          <div className="max-w-4xl mx-auto space-y-4">
+          <div className="max-w-6xl mx-auto grid gap-4 lg:grid-cols-[1fr_360px]">
+            <div className="space-y-4 min-w-0">
             {/* Info banner */}
             <div className="flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2.5 text-[13px] font-medium text-blue-700">
               <Icons.Info />
@@ -227,6 +231,10 @@ export default function ContractEditStandalone() {
                 </button>
               </div>
             </div>
+            </div>
+            <aside className="lg:sticky lg:top-20 self-start max-h-[calc(100vh-6rem)] overflow-y-auto">
+              <ContractQuickEditPanel contract={contract} onSaved={() => { /* could re-fetch */ }} />
+            </aside>
           </div>
         )}
       </main>

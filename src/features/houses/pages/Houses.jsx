@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Select, Pagination } from "antd";
 import {
   ArrowUpDown,
@@ -13,28 +14,29 @@ import {
 import { useHouses } from "../hooks/useHouses";
 import HouseCard from "../components/HouseCard";
 import CreateHousePage from "./CreateHousePage";
+import HouseTranslationReview from "../components/HouseTranslationReview";
 import { LoadingSpinner } from "../../../components/shared/Loading";
+import { getHouseById } from "../api/houses.api";
 
 const PAGE_SIZE = 9;
 
-const SORT_OPTIONS = [
-  { value: ":",         label: "Mặc định" },
-  { value: "name:ASC",  label: "Tên A → Z" },
-  { value: "name:DESC", label: "Tên Z → A" },
-];
-
-const STATUS_BADGE = {
-  AVAILABLE:   { label: "Còn trống", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" },
-  RENTED:      { label: "Đã thuê",   cls: "bg-orange-50 text-orange-700 border-orange-200"   },
-  MAINTENANCE: { label: "Bảo trì",   cls: "bg-slate-100 text-slate-600 border-slate-200"     },
-  default:     { label: "—",         cls: "bg-gray-50 text-gray-500 border-gray-200"          },
-};
-
+function getLocalized(translations, fallback) {
+  const lang = localStorage.getItem("app_language") ?? "vi";
+  return translations?.[lang] || translations?.["vi"] || fallback || "";
+}
 
 function ListRow({ house }) {
-  const b     = STATUS_BADGE[house?.status] ?? STATUS_BADGE.default;
-  const name  = house?.name ?? house?.title ?? "Chưa đặt tên";
-  const addr  = house?.address ?? "—";
+  const { t } = useTranslation("common");
+  const statusCls = {
+    AVAILABLE:   "bg-emerald-50 text-emerald-700 border-emerald-200",
+    RENTED:      "bg-orange-50 text-orange-700 border-orange-200",
+    MAINTENANCE: "bg-slate-100 text-slate-600 border-slate-200",
+    default:     "bg-gray-50 text-gray-500 border-gray-200",
+  };
+  const cls   = statusCls[house?.status] ?? statusCls.default;
+  const label = t(`houses.status.${house?.status}`, { defaultValue: house?.status ?? "—" });
+  const name  = getLocalized(house?.nameTranslations, house?.name ?? house?.title) || t("houses.noName");
+  const addr  = getLocalized(house?.addressTranslations, house?.address) || "—";
   const price = house?.rentPrice ?? house?.rent;
 
   return (
@@ -51,13 +53,13 @@ function ListRow({ house }) {
         <p className="text-sm font-semibold truncate" style={{ color: "#1E2D28" }}>{name}</p>
         <p className="text-xs truncate" style={{ color: "#5A7A6E" }}>{addr}</p>
       </div>
-      <span className={`px-2.5 py-1 text-xs font-medium rounded-lg border shrink-0 ${b.cls}`}>
-        {b.label}
+      <span className={`px-2.5 py-1 text-xs font-medium rounded-lg border shrink-0 ${cls}`}>
+        {label}
       </span>
       {price != null && price > 0 && (
         <p className="text-sm font-semibold shrink-0 w-28 text-right" style={{ color: "#3bb582" }}>
           ₫{Number(price).toLocaleString("vi-VN")}
-          <span className="text-xs font-normal" style={{ color: "#5A7A6E" }}>/th</span>
+          <span className="text-xs font-normal" style={{ color: "#5A7A6E" }}>{t("houses.perMonth")}</span>
         </p>
       )}
       <button
@@ -67,14 +69,14 @@ function ListRow({ house }) {
         onMouseEnter={e => { e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.color = "#3bb582"; e.currentTarget.style.background = "rgba(59,181,130,0.06)"; }}
         onMouseLeave={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.color = "#5A7A6E"; e.currentTarget.style.background = "transparent"; }}
       >
-        Xem chi tiết
+        {t("houses.viewDetail")}
       </button>
     </div>
   );
 }
 
-/* ── Main page ── */
 export default function Houses() {
+  const { t } = useTranslation("common");
   const [keyword, setKeyword]         = useState("");
   const [debouncedKeyword, setDebouncedKeyword] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
@@ -82,12 +84,35 @@ export default function Houses() {
   const [viewMode, setViewMode]       = useState("grid");
   const [page, setPage]               = useState(1);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [showCreate, setShowCreate]   = useState(false);
+  const [editingHouse, setEditingHouse] = useState(null);
+  const [pendingHouse, setPendingHouse] = useState(null);
 
   useEffect(() => {
-    const t = setTimeout(() => { setDebouncedKeyword(keyword); setPage(1); }, 400);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => { setDebouncedKeyword(keyword); setPage(1); }, 400);
+    return () => clearTimeout(timer);
   }, [keyword]);
+
+  useEffect(() => {
+    const editId = searchParams.get("edit");
+    if (!editId) return;
+    let cancelled = false;
+    getHouseById(editId)
+      .then((data) => {
+        if (cancelled || !data) return;
+        setEditingHouse(data);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) {
+          const next = new URLSearchParams(searchParams);
+          next.delete("edit");
+          setSearchParams(next, { replace: true });
+        }
+      });
+    return () => { cancelled = true; };
+  }, [searchParams, setSearchParams]);
 
   const handleStatusChange = (val) => { setFilterStatus(val); setPage(1); };
   const handleSortChange   = (val) => { setSortValue(val);    setPage(1); };
@@ -103,22 +128,62 @@ export default function Houses() {
     status:  filterStatus,
   });
 
+  const sortOptions = [
+    { value: ":",         label: t("houses.sortDefault") },
+    { value: "name:ASC",  label: t("houses.sortNameAsc") },
+    { value: "name:DESC", label: t("houses.sortNameDesc") },
+  ];
+
+  const statusOptions = [
+    { value: "AVAILABLE", label: t("houses.status.AVAILABLE") },
+    { value: "RENTED",    label: t("houses.status.RENTED")    },
+    { value: "REPAIRED",  label: t("houses.status.REPAIRED")  },
+  ];
+
   if (showCreate) {
     return (
+      <>
+        <CreateHousePage
+          onBack={() => setShowCreate(false)}
+          onSubmit={(created) => {
+            setShowCreate(false);
+            refetch();
+            if (created) setPendingHouse(created);
+          }}
+        />
+      </>
+    );
+  }
+
+  if (editingHouse) {
+    return (
       <CreateHousePage
-        onBack={() => setShowCreate(false)}
-        onSubmit={() => { setShowCreate(false); refetch(); }}
+        house={editingHouse}
+        onBack={() => setEditingHouse(null)}
+        onSubmit={(updated) => {
+          setEditingHouse(null);
+          refetch();
+          if (updated) setPendingHouse(updated);
+        }}
       />
     );
   }
 
   return (
+    <>
+    {pendingHouse && (
+      <HouseTranslationReview
+        house={pendingHouse}
+        onClose={() => setPendingHouse(null)}
+        onDone={() => setPendingHouse(null)}
+      />
+    )}
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-<h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>
-            Quản lý Bất động sản
+          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>
+            {t("houses.title")}
           </h2>
         </div>
         <div className="flex items-center gap-2">
@@ -131,7 +196,7 @@ export default function Houses() {
             onMouseLeave={e => { e.currentTarget.style.borderColor = "#C4DED5"; e.currentTarget.style.color = "#5A7A6E"; e.currentTarget.style.background = "#ffffff"; }}
           >
             <RefreshCw className="w-4 h-4" />
-            Làm mới
+            {t("houses.refresh")}
           </button>
           <button
             type="button"
@@ -142,7 +207,7 @@ export default function Houses() {
             onClick={() => setShowCreate(true)}
           >
             <Plus className="w-4 h-4" />
-            Thêm bất động sản
+            {t("houses.addNew")}
           </button>
         </div>
       </div>
@@ -150,7 +215,7 @@ export default function Houses() {
       {/* Filter bar */}
       <div
         className="rounded-2xl px-4 py-3 flex flex-wrap items-center gap-3"
-        style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
+        style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
       >
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
@@ -158,7 +223,7 @@ export default function Houses() {
           <input
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            placeholder="Tìm theo tên nhà..."
+            placeholder={t("houses.searchPlaceholder")}
             className="w-full pl-9 pr-4 py-2 text-sm rounded-full outline-none transition"
             style={{ background: "#EAF4F0", border: "1px solid #C4DED5", color: "#1E2D28" }}
             onFocus={e => { e.currentTarget.style.background = "#ffffff"; e.currentTarget.style.borderColor = "#3bb582"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(59,181,130,0.12)"; }}
@@ -170,14 +235,10 @@ export default function Houses() {
         <Select
           value={filterStatus || undefined}
           onChange={handleStatusChange}
-          placeholder="Tất cả trạng thái"
+          placeholder={t("houses.filterAllStatus")}
           allowClear
           style={{ minWidth: 160 }}
-          options={[
-            { value: "AVAILABLE",   label: "Còn trống" },
-            { value: "RENTED",      label: "Đã thuê"   },
-            { value: "MAINTENANCE", label: "Bảo trì"   },
-          ]}
+          options={statusOptions}
           onClear={() => handleStatusChange("")}
         />
 
@@ -187,7 +248,7 @@ export default function Houses() {
           onChange={handleSortChange}
           style={{ minWidth: 150 }}
           suffixIcon={<ArrowUpDown className="w-3.5 h-3.5" style={{ color: "#5A7A6E" }} />}
-          options={SORT_OPTIONS}
+          options={sortOptions}
         />
 
         {/* View toggle */}
@@ -222,30 +283,30 @@ export default function Houses() {
       {loading && (
         <div
           className="rounded-2xl p-12 flex justify-center"
-          style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}
+          style={{ background: "#FFFFFF", border: "1px solid #C4DED5" }}
         >
-          <LoadingSpinner size="lg" showLabel label="Đang tải danh sách nhà..." />
+          <LoadingSpinner size="lg" showLabel label={t("houses.loading")} />
         </div>
       )}
 
       {/* Error */}
       {!loading && error && (
-        <div className="rounded-2xl p-6" style={{ background: "#FAFFFE", border: "1px solid rgba(217,95,75,0.3)" }}>
+        <div className="rounded-2xl p-6" style={{ background: "#FFFFFF", border: "1px solid rgba(217,95,75,0.3)" }}>
           <p className="font-medium text-sm" style={{ color: "#D95F4B" }}>
-            Không tải được danh sách nhà. Vui lòng thử lại sau.
+            {t("houses.loadError")}
           </p>
         </div>
       )}
 
       {/* Empty */}
       {!loading && !error && houses.length === 0 && (
-        <div className="rounded-2xl p-16 text-center" style={{ background: "#FAFFFE", border: "1px solid #C4DED5" }}>
+        <div className="rounded-2xl p-16 text-center" style={{ background: "#FFFFFF", border: "1px solid #C4DED5" }}>
           <div className="mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ background: "#EAF4F0" }}>
             <Building2 className="w-8 h-8" style={{ color: "#3bb582" }} />
           </div>
-          <h3 className="font-semibold" style={{ color: "#1E2D28" }}>Không tìm thấy bất động sản phù hợp</h3>
+          <h3 className="font-semibold" style={{ color: "#1E2D28" }}>{t("houses.empty")}</h3>
           <p className="mt-1.5 text-sm max-w-xs mx-auto" style={{ color: "#5A7A6E" }}>
-            Thử thay đổi bộ lọc trạng thái hoặc từ khóa tìm kiếm.
+            {t("houses.emptyHint")}
           </p>
         </div>
       )}
@@ -260,7 +321,7 @@ export default function Houses() {
                   key={house.id}
                   house={house}
                   onView={(h) => navigate(`/houses/${h.id}`)}
-                  onEdit={(h) => console.log("edit", h?.id)}
+                  onEdit={(h) => setEditingHouse(h)}
                 />
               ))}
             </div>
@@ -288,5 +349,6 @@ export default function Houses() {
       )}
 
     </div>
+    </>
   );
 }

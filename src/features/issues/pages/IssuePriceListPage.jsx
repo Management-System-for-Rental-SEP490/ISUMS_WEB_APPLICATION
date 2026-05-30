@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { RefreshCw, Tag, Plus, X, Pencil, Check } from "lucide-react";
 import { toast } from "react-toastify";
+import { useTranslation } from "react-i18next";
 import { getBanners, createBanner, updateBannerPrice } from "../api/issues.api";
 
 function formatCurrency(amount) {
@@ -13,7 +14,7 @@ function formatCurrency(amount) {
 
 const EMPTY_FORM = { name: "", price: "", estimateCost: "" };
 
-function CreateBannerModal({ open, onClose, onCreated }) {
+function CreateBannerModal({ open, onClose, onCreated, t }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -51,11 +52,11 @@ function CreateBannerModal({ open, onClose, onCreated }) {
         price: Number(form.price),
         estimateCost: Number(form.estimateCost),
       });
-      toast.success(`Đã thêm báo giá: ${form.name.trim()}`);
+      toast.success(t("priceList.toastCreateSuccess", { name: form.name.trim() }));
       onCreated();
       handleClose();
     } catch (e) {
-      setError(e.message ?? "Tạo thất bại, vui lòng thử lại.");
+      setError(e.message ?? t("priceList.toastCreateError"));
     } finally {
       setSubmitting(false);
     }
@@ -77,7 +78,7 @@ function CreateBannerModal({ open, onClose, onCreated }) {
       <div
         className="rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
         style={{
-          background: "#FAFFFE",
+          background: "#FFFFFF",
           transform: visible
             ? "translateY(0) scale(1)"
             : "translateY(20px) scale(0.97)",
@@ -91,10 +92,10 @@ function CreateBannerModal({ open, onClose, onCreated }) {
         <div className="px-6 pt-5 pb-4 flex items-center justify-between" style={{ borderBottom: "1px solid #C4DED5" }}>
           <div>
             <h3 className="text-lg font-bold" style={{ color: "#1E2D28" }}>
-              Thêm báo giá mới
+              {t("priceList.modalTitle")}
             </h3>
             <p className="text-xs mt-0.5" style={{ color: "#5A7A6E" }}>
-              Điền thông tin thiết bị / dịch vụ
+              {t("priceList.modalSubtitle")}
             </p>
           </div>
           <button
@@ -113,13 +114,13 @@ function CreateBannerModal({ open, onClose, onCreated }) {
         <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
           <div>
             <label className="block text-xs font-semibold mb-1.5" style={{ color: "#5A7A6E" }}>
-              Tên dịch vụ / thiết bị <span style={{ color: "#D95F4B" }}>*</span>
+              {t("priceList.fieldName")} <span style={{ color: "#D95F4B" }}>*</span>
             </label>
             <input
               name="name"
               value={form.name}
               onChange={handleChange}
-              placeholder="VD: Vệ sinh máy lạnh"
+              placeholder={t("priceList.fieldNamePlaceholder")}
               className="w-full rounded-xl px-3.5 py-2.5 text-sm outline-none transition"
               style={{ border: "1px solid #C4DED5", color: "#1E2D28", background: "#ffffff" }}
               onFocus={e => { e.currentTarget.style.borderColor = "#3bb582"; }}
@@ -131,7 +132,7 @@ function CreateBannerModal({ open, onClose, onCreated }) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold mb-1.5" style={{ color: "#5A7A6E" }}>
-                Giá mua (đ) <span style={{ color: "#D95F4B" }}>*</span>
+                {t("priceList.fieldBuyPrice")} <span style={{ color: "#D95F4B" }}>*</span>
               </label>
               <input
                 name="estimatedCost"
@@ -149,7 +150,7 @@ function CreateBannerModal({ open, onClose, onCreated }) {
             </div>
             <div>
               <label className="block text-xs font-semibold mb-1.5" style={{ color: "#5A7A6E" }}>
-                Giá bán (đ) <span style={{ color: "#D95F4B" }}>*</span>
+                {t("priceList.fieldSellPrice")} <span style={{ color: "#D95F4B" }}>*</span>
               </label>
               <input
                 name="currentPrice"
@@ -178,7 +179,7 @@ function CreateBannerModal({ open, onClose, onCreated }) {
               onMouseEnter={e => { e.currentTarget.style.background = "#EAF4F0"; }}
               onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
             >
-              Hủy
+              {t("priceList.cancel")}
             </button>
             <button
               type="submit"
@@ -186,7 +187,7 @@ function CreateBannerModal({ open, onClose, onCreated }) {
               className="px-6 py-2.5 rounded-full text-white text-sm font-bold transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
             >
-              {submitting ? "Đang tạo..." : "Tạo báo giá"}
+              {submitting ? t("priceList.creating") : t("priceList.create")}
             </button>
           </div>
         </form>
@@ -196,7 +197,7 @@ function CreateBannerModal({ open, onClose, onCreated }) {
   );
 }
 
-function EditPriceInline({ item, onUpdated }) {
+function EditPriceInline({ item, onUpdated, t }) {
   const [editing, setEditing] = useState(false);
   const [price, setPrice] = useState("");
   const [saving, setSaving] = useState(false);
@@ -211,11 +212,11 @@ function EditPriceInline({ item, onUpdated }) {
     setSaving(true);
     try {
       await updateBannerPrice(item.id, Number(price));
-      toast.success(`Đã cập nhật giá bán: ${item.name}`);
+      toast.success(t("priceList.toastUpdateSuccess", { name: item.name }));
       setEditing(false);
       onUpdated();
     } catch (e) {
-      toast.error(e.message ?? "Cập nhật thất bại.");
+      toast.error(e.message ?? t("priceList.toastUpdateError"));
     } finally {
       setSaving(false);
     }
@@ -280,6 +281,7 @@ function EditPriceInline({ item, onUpdated }) {
 }
 
 export default function IssuePriceListPage() {
+  const { t } = useTranslation("common");
   const [banners, setBanners] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -292,11 +294,11 @@ export default function IssuePriceListPage() {
       const data = await getBanners();
       setBanners(Array.isArray(data) ? data : []);
     } catch (e) {
-      setError(e.message ?? "Không thể tải danh sách, vui lòng thử lại.");
+      setError(e.message ?? t("priceList.loadError"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchBanners();
@@ -308,7 +310,7 @@ export default function IssuePriceListPage() {
       <div className="flex items-center justify-between">
         <div>
 <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>
-            Bảng giá dịch vụ
+            {t("priceList.title")}
           </h2>
         </div>
         <div className="flex items-center gap-2">
@@ -316,12 +318,12 @@ export default function IssuePriceListPage() {
             onClick={fetchBanners}
             disabled={loading}
             className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition disabled:opacity-50"
-            style={{ border: "1px solid #C4DED5", color: "#5A7A6E", background: "#FAFFFE" }}
+            style={{ border: "1px solid #C4DED5", color: "#5A7A6E", background: "#FFFFFF" }}
             onMouseEnter={e => { e.currentTarget.style.background = "#EAF4F0"; }}
-            onMouseLeave={e => { e.currentTarget.style.background = "#FAFFFE"; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "#FFFFFF"; }}
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-            Làm mới
+            {t("priceList.refresh")}
           </button>
           <button
             onClick={() => setModalOpen(true)}
@@ -329,7 +331,7 @@ export default function IssuePriceListPage() {
             style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
           >
             <Plus className="w-4 h-4" />
-            Thêm báo giá
+            {t("priceList.addNew")}
           </button>
         </div>
       </div>
@@ -338,15 +340,15 @@ export default function IssuePriceListPage() {
         <div className="rounded-xl px-4 py-3 flex items-center justify-between" style={{ background: "rgba(217,95,75,0.04)", border: "1px solid rgba(217,95,75,0.3)" }}>
           <p className="text-sm" style={{ color: "#D95F4B" }}>{error}</p>
           <button onClick={fetchBanners} className="text-xs underline" style={{ color: "#D95F4B" }}>
-            Thử lại
+            {t("priceList.retry")}
           </button>
         </div>
       )}
 
-      <div className="rounded-2xl overflow-hidden" style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
+      <div className="rounded-2xl overflow-hidden" style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>
         {/* Table header */}
         <div className="grid grid-cols-[48px_minmax(0,1fr)_200px_220px] gap-4 px-6 py-3" style={{ borderBottom: "1px solid #C4DED5", background: "#EAF4F0" }}>
-          {["STT", "Tên dịch vụ / thiết bị", "Giá mua vào", "Giá bán"].map(
+          {[t("priceList.colIndex"), t("priceList.colName"), t("priceList.colBuyPrice"), t("priceList.colSellPrice")].map(
             (h) => (
               <p key={h} className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#5A7A6E" }}>
                 {h}
@@ -376,7 +378,7 @@ export default function IssuePriceListPage() {
             <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "#EAF4F0" }}>
               <Tag className="w-7 h-7" style={{ color: "#3bb582" }} />
             </div>
-            <p className="text-sm" style={{ color: "#5A7A6E" }}>Chưa có dữ liệu bảng giá</p>
+            <p className="text-sm" style={{ color: "#5A7A6E" }}>{t("priceList.empty")}</p>
           </div>
         )}
 
@@ -397,7 +399,7 @@ export default function IssuePriceListPage() {
               <p className="text-sm font-semibold" style={{ color: "#5A7A6E" }}>
                 {formatCurrency(item.estimatedCost)}
               </p>
-              <EditPriceInline item={item} onUpdated={fetchBanners} />
+              <EditPriceInline item={item} onUpdated={fetchBanners} t={t} />
             </div>
           ))}
       </div>
@@ -406,6 +408,7 @@ export default function IssuePriceListPage() {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         onCreated={fetchBanners}
+        t={t}
       />
     </div>
   );

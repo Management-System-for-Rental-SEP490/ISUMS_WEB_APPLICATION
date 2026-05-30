@@ -5,7 +5,7 @@
  */
 
 import api from "../../../lib/axios";
-import { AUTH_ENDPOINTS } from "../../../lib/api-endpoints";
+import { AUTH_ENDPOINTS, USERS_ENDPOINTS } from "../../../lib/api-endpoints";
 import { extractResponseData, getErrorMessage } from "../../../lib/api-helpers";
 
 /**
@@ -70,6 +70,20 @@ export async function refreshToken() {
  * @returns {Promise<void>}
  * @throws {Error} If request fails
  */
+/**
+ * Update user preferred language on the server
+ * @param {string} language - "vi" | "en" | "ja"
+ * @returns {Promise<void>}
+ */
+export async function updateUserLanguage(language) {
+  try {
+    const response = await api.put(USERS_ENDPOINTS.LANGUAGE, { language });
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
 export async function logout() {
   try {
     const response = await api.post(AUTH_ENDPOINTS.LOGOUT);

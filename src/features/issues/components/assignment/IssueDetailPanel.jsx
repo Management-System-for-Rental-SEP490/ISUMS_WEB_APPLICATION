@@ -5,7 +5,7 @@ import { ISSUE_STATUS_CONFIG } from "../../constants/issue.constants";
 import IssueTimeline from "../IssueTimeline";
 
 const B = {
-  green: "#3bb582", blue: "#2096d8", card: "#FAFFFE",
+  green: "#3bb582", blue: "#2096d8", card: "#FFFFFF",
   muted: "#EAF4F0", border: "#C4DED5", fg: "#1E2D28", mutedFg: "#5A7A6E",
   gradient: "linear-gradient(135deg, #3bb582 0%, rgba(32,150,216,0.7) 100%)",
   blueMuted: "rgba(32, 150, 216, 0.12)", blueBorder: "rgba(32, 150, 216, 0.35)",
@@ -24,7 +24,7 @@ function SectionLabel({ children }) {
   return <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: B.mutedFg }}>{children}</p>;
 }
 
-export default function IssueDetailPanel({ detail, houseNames, staffDetail, images, imagesLoading, onConfirm, confirming, onOpenLightbox }) {
+export default function IssueDetailPanel({ detail, houseNames, staffDetail, images, imagesLoading, onConfirm, confirming, onOpenLightbox, t }) {
   const status = detail ? (ISSUE_STATUS_CONFIG[detail.status] ?? ISSUE_STATUS_CONFIG.CREATED) : null;
 
   return (
@@ -39,7 +39,7 @@ export default function IssueDetailPanel({ detail, houseNames, staffDetail, imag
             {status && (
               <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full" style={{ background: status.bg, color: status.color }}>
                 <span className="w-1.5 h-1.5 rounded-full" style={{ background: status.dot }} />
-                {status.label}
+                {t(status.i18nKey, { defaultValue: status.i18nKey })}
               </span>
             )}
           </div>
@@ -47,7 +47,7 @@ export default function IssueDetailPanel({ detail, houseNames, staffDetail, imag
           {detail.houseId && (
             <p className="flex items-center gap-1.5 text-sm mt-1.5" style={{ color: B.mutedFg }}>
               <MapPin className="w-3.5 h-3.5" style={{ color: B.green }} />
-              {houseNames[detail.houseId] ?? "Đang tải..."}
+              {houseNames[detail.houseId] ?? t("issues.detailLoading")}
             </p>
           )}
         </div>
@@ -58,7 +58,7 @@ export default function IssueDetailPanel({ detail, houseNames, staffDetail, imag
           style={{ background: B.gradient }}
         >
           <Check className="w-4 h-4" />
-          {confirming ? "Đang xác nhận..." : "Xác nhận ca làm việc"}
+          {confirming ? t("issues.confirmingBtn") : t("issues.confirmWorkSlotBtn")}
         </button>
       </div>
 
@@ -67,19 +67,19 @@ export default function IssueDetailPanel({ detail, houseNames, staffDetail, imag
         {/* Description + meta */}
         <div className="rounded-xl overflow-hidden" style={{ background: "#ffffff", border: `1px solid ${B.border}` }}>
           <div className="px-4 pt-4 pb-3">
-            <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: B.mutedFg }}>Chi tiết</p>
-            <p className="text-sm leading-relaxed" style={{ color: B.fg }}>{detail.description ?? "Không có mô tả."}</p>
+            <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: B.mutedFg }}>{t("issues.detailDesc")}</p>
+            <p className="text-sm leading-relaxed" style={{ color: B.fg }}>{detail.description ?? t("issues.detailNoDesc")}</p>
             <p className="text-[11px] mt-2 flex items-center gap-1.5" style={{ color: B.mutedFg }}>
               <Clock className="w-3 h-3" style={{ color: B.green }} />
               {dayjs(detail.createdAt).format("DD/MM/YYYY · HH:mm")}
             </p>
           </div>
-          <div className="px-4 py-3 grid grid-cols-4 gap-4" style={{ borderTop: `1px solid ${B.border}`, background: "#FAFFFE" }}>
+          <div className="px-4 py-3 grid grid-cols-4 gap-4" style={{ borderTop: `1px solid ${B.border}`, background: "#FFFFFF" }}>
             {[
-              { label: "Mã yêu cầu", value: String(detail.id).slice(0, 8).toUpperCase(), mono: true },
-              { label: "Loại", value: "Sửa chữa" },
-              { label: "Ngày tạo", value: dayjs(detail.createdAt).format("DD/MM/YYYY HH:mm") },
-              { label: "SĐT khách", value: detail.tenantPhone ?? "—" },
+              { label: t("issues.detailRequestId"), value: String(detail.id).slice(0, 8).toUpperCase(), mono: true },
+              { label: t("issues.detailType"), value: t("issues.detailRepair") },
+              { label: t("issues.detailCreatedAt"), value: dayjs(detail.createdAt).format("DD/MM/YYYY HH:mm") },
+              { label: t("issues.detailPhone"), value: detail.tenantPhone ?? "—" },
             ].map(({ label, value, mono }) => (
               <div key={label}>
                 <p className="text-[10px] font-bold uppercase tracking-wide mb-0.5" style={{ color: B.mutedFg }}>{label}</p>
@@ -93,7 +93,7 @@ export default function IssueDetailPanel({ detail, houseNames, staffDetail, imag
         <div className="grid grid-cols-2 gap-5">
           {/* Staff */}
           <div>
-            <SectionLabel>Kỹ thuật viên phụ trách</SectionLabel>
+            <SectionLabel>{t("issues.technicianSection")}</SectionLabel>
             {detail.assignedStaffId ? (
               (() => {
                 const name  = staffDetail?.name ?? detail.staffName;
@@ -114,14 +114,14 @@ export default function IssueDetailPanel({ detail, houseNames, staffDetail, imag
                   <div className="rounded-xl p-4 flex items-start gap-3" style={{ background: "#ffffff", border: `1px solid ${B.border}` }}>
                     <Avatar name={name} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold" style={{ color: B.fg }}>{name ?? "Nhân viên"}</p>
+                      <p className="text-sm font-bold" style={{ color: B.fg }}>{name ?? t("issues.staffDefault")}</p>
                       {phone && (
                         <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: B.mutedFg }}>
                           <Phone className="w-3 h-3" />{phone}
                         </p>
                       )}
                       {email && <p className="text-xs mt-0.5 truncate" style={{ color: B.mutedFg }}>{email}</p>}
-                      <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full mt-1.5" style={{ background: B.blueMuted, color: B.blue }}>Nhân viên kỹ thuật</span>
+                      <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full mt-1.5" style={{ background: B.blueMuted, color: B.blue }}>{t("issues.staffRole")}</span>
                     </div>
                     {phone && (
                       <a
@@ -141,8 +141,8 @@ export default function IssueDetailPanel({ detail, houseNames, staffDetail, imag
                   <Wrench className="w-4 h-4" style={{ color: "#D95F4B" }} />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold" style={{ color: "#D95F4B" }}>Chưa phân công</p>
-                  <p className="text-xs mt-0.5" style={{ color: "rgba(217,95,75,0.7)" }}>Cần gán nhân viên trước khi xác nhận</p>
+                  <p className="text-sm font-semibold" style={{ color: "#D95F4B" }}>{t("issues.unassignedStaff")}</p>
+                  <p className="text-xs mt-0.5" style={{ color: "rgba(217,95,75,0.7)" }}>{t("issues.unassignedWarning")}</p>
                 </div>
               </div>
             )}
@@ -152,7 +152,7 @@ export default function IssueDetailPanel({ detail, houseNames, staffDetail, imag
               <div className="mt-4">
                 <SectionLabel>
                   <span className="flex items-center gap-1.5">
-                    <ImageIcon className="w-3 h-3" />Ảnh đính kèm
+                    <ImageIcon className="w-3 h-3" />{t("issues.drawerImages")}
                     <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: B.muted, color: B.mutedFg }}>{images.length}</span>
                   </span>
                 </SectionLabel>
@@ -169,7 +169,7 @@ export default function IssueDetailPanel({ detail, houseNames, staffDetail, imag
 
           {/* Schedule */}
           <div>
-            <SectionLabel>Lịch trình thực hiện</SectionLabel>
+            <SectionLabel>{t("issues.scheduleSection")}</SectionLabel>
             <div className="rounded-xl p-4" style={{ background: "#ffffff", border: `1px solid ${B.border}` }}>
               <Steps
                 direction="vertical"
@@ -177,14 +177,14 @@ export default function IssueDetailPanel({ detail, houseNames, staffDetail, imag
                 current={detail.endTime ? 1 : detail.startTime ? 0 : -1}
                 items={[
                   {
-                    title: <span className="text-xs font-semibold" style={{ color: B.fg }}>Bắt đầu</span>,
-                    description: <span className="text-xs" style={{ color: B.mutedFg }}>{detail.startTime ? dayjs(detail.startTime).format("HH:mm · DD/MM/YYYY") : "Chưa xác định"}</span>,
+                    title: <span className="text-xs font-semibold" style={{ color: B.fg }}>{t("issues.scheduleStart")}</span>,
+                    description: <span className="text-xs" style={{ color: B.mutedFg }}>{detail.startTime ? dayjs(detail.startTime).format("HH:mm · DD/MM/YYYY") : t("issues.scheduleUnknown")}</span>,
                   },
                   {
-                    title: <span className="text-xs font-semibold" style={{ color: B.fg }}>Kết thúc dự kiến</span>,
+                    title: <span className="text-xs font-semibold" style={{ color: B.fg }}>{t("issues.scheduleEnd")}</span>,
                     description: (
                       <div>
-                        <span className="text-xs" style={{ color: B.mutedFg }}>{detail.endTime ? dayjs(detail.endTime).format("HH:mm · DD/MM/YYYY") : "Chưa xác định"}</span>
+                        <span className="text-xs" style={{ color: B.mutedFg }}>{detail.endTime ? dayjs(detail.endTime).format("HH:mm · DD/MM/YYYY") : t("issues.scheduleUnknown")}</span>
                         {detail.startTime && detail.endTime && (
                           <p className="text-[11px] mt-1" style={{ color: B.green }}>
                             ≈ {(dayjs(detail.endTime).diff(dayjs(detail.startTime), "minute") / 60).toFixed(1)} giờ
@@ -201,9 +201,9 @@ export default function IssueDetailPanel({ detail, houseNames, staffDetail, imag
 
         {/* History */}
         <div>
-          <SectionLabel>Lịch sử xử lý</SectionLabel>
+          <SectionLabel>{t("issues.historySection")}</SectionLabel>
           <div className="rounded-xl px-5 py-5" style={{ background: "#ffffff", border: `1px solid ${B.border}` }}>
-            <IssueTimeline status={detail.status} />
+            <IssueTimeline status={detail.status} t={t} />
           </div>
         </div>
       </div>

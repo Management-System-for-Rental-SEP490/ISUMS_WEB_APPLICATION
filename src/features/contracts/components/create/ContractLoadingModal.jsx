@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function ContractLoadingModal({
   isOpen,
@@ -9,6 +10,7 @@ export default function ContractLoadingModal({
   onRetry,
   onClose,
 }) {
+  const { t } = useTranslation("common");
   const [timePassed, setTimePassed] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
 
@@ -77,10 +79,10 @@ export default function ContractLoadingModal({
           {/* Content */}
           <div className="pt-8 px-8 pb-6 flex flex-col items-center">
             <h2 className="text-xl font-bold text-slate-800 mb-2">
-              Tạo hợp đồng thất bại
+              {t("contractLoading.errorTitle")}
             </h2>
             <p className="text-slate-500 text-[14px] text-center mb-6 px-2 leading-relaxed">
-              {errorMessage || "Đã có lỗi xảy ra, vui lòng thử lại."}
+              {errorMessage || t("contractLoading.errorFallback")}
             </p>
             <div className="w-full flex flex-col gap-3">
               {onRetry && (
@@ -88,7 +90,7 @@ export default function ContractLoadingModal({
                   onClick={onRetry}
                   className="w-full py-3 bg-[#357792] hover:bg-[#2d6f8a] text-white font-semibold rounded-xl transition-colors"
                 >
-                  Thử lại
+                  {t("contractLoading.retry")}
                 </button>
               )}
               {onClose && (
@@ -96,7 +98,7 @@ export default function ContractLoadingModal({
                   onClick={onClose}
                   className="w-full py-3 bg-white hover:bg-slate-50 text-slate-600 font-semibold rounded-xl border border-slate-200 transition-colors"
                 >
-                  Đóng
+                  {t("contractLoading.close")}
                 </button>
               )}
             </div>
@@ -106,7 +108,7 @@ export default function ContractLoadingModal({
           <div className="bg-[#F8F9FA] py-3.5 flex items-center justify-center gap-2 mt-auto">
             <span className="w-2 h-2 rounded-full bg-[#8E9A68]"></span>
             <span className="text-[11px] font-bold text-slate-600 tracking-wider">
-              ISUMS Hệ thống quản lý nhà cho thuê thông minh
+              {t("contractLoading.footer")}
             </span>
           </div>
         </div>
@@ -138,9 +140,9 @@ export default function ContractLoadingModal({
   }
 
   const steps = [
-    { title: "Bước 1: Đang xử lý thông tin" },
-    { title: "Bước 2: Đang khởi tạo bản thảo" },
-    { title: "Bước 3: Hoàn tất" },
+    { title: t("contractLoading.steps.step1") },
+    { title: t("contractLoading.steps.step2") },
+    { title: t("contractLoading.steps.step3") },
   ];
 
   const renderStepIcon = (index) => {
@@ -210,9 +212,9 @@ export default function ContractLoadingModal({
       currentStep > stepNumber ||
       (currentStep === stepNumber && isApiDone && timePassed >= 9000)
     )
-      return "HOÀN TẤT";
-    if (currentStep === stepNumber) return "ĐANG THỰC HIỆN";
-    return "CHỜ XỬ LÝ";
+      return t("contractLoading.statuses.done");
+    if (currentStep === stepNumber) return t("contractLoading.statuses.active");
+    return t("contractLoading.statuses.pending");
   };
 
   const getStepStatusColor = (index) => {
@@ -244,11 +246,10 @@ export default function ContractLoadingModal({
         {/* Content */}
         <div className="pt-8 px-8 pb-6 flex flex-col items-center">
           <h2 className="text-xl font-bold text-slate-800 mb-2">
-            Đang khởi tạo hợp đồng
+            {t("contractLoading.title")}
           </h2>
           <p className="text-slate-600 text-[14px] text-center mb-8 px-2 leading-relaxed">
-            Vui lòng đợi trong giây lát, chúng tôi đang chuẩn bị tài liệu cho
-            bạn.
+            {t("contractLoading.subtitle")}
           </p>
 
           {/* Progress Bar */}
@@ -295,7 +296,7 @@ export default function ContractLoadingModal({
         <div className="bg-[#F8F9FA] py-3.5 flex items-center justify-center gap-2 mt-auto">
           <span className="w-2 h-2 rounded-full bg-[#8E9A68]"></span>
           <span className="text-[11px] font-bold text-slate-600 tracking-wider">
-            ISUMS Hệ thống quản lý nhà cho thuê thông minh
+            {t("contractLoading.footer")}
           </span>
         </div>
       </div>

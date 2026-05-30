@@ -1,7 +1,9 @@
+import { useTranslation } from "react-i18next";
 import { Modal } from "antd";
 import { CheckCircle } from "lucide-react";
 
 export default function InspectionConfirmModal({ open, onCancel, onConfirm, loading }) {
+  const { t } = useTranslation("common");
   return (
     <Modal
       open={open}
@@ -17,13 +19,11 @@ export default function InspectionConfirmModal({ open, onCancel, onConfirm, load
           <CheckCircle className="w-8 h-8" style={{ color: "#3bb582" }} />
         </div>
         <div>
-          <h3 className="text-lg font-bold" style={{ color: "#1E2D28" }}>Xác nhận hoàn thành kiểm tra</h3>
+          <h3 className="text-lg font-bold" style={{ color: "#1E2D28" }}>{t("inspection.confirmModal.title")}</h3>
           <p className="text-sm mt-2 leading-relaxed" style={{ color: "#5A7A6E" }}>
-            Bạn xác nhận đã hoàn tất kiểm tra nhà.
+            {t("inspection.confirmModal.body")}
             <br />
-            Thao tác này sẽ cho phép khách hàng{" "}
-            <span className="font-semibold" style={{ color: "#1E2D28" }}>ra / vào nhà</span>{" "}
-            sau khi được duyệt.
+            {t("inspection.confirmModal.noteCheckin")}
           </p>
         </div>
         <div className="flex items-center gap-3 pt-1">
@@ -36,7 +36,7 @@ export default function InspectionConfirmModal({ open, onCancel, onConfirm, load
             onMouseEnter={(e) => (e.currentTarget.style.background = "#EAF4F0")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "#ffffff")}
           >
-            Hủy bỏ
+            {t("inspection.confirmModal.cancel")}
           </button>
           <button
             type="button"
@@ -47,7 +47,7 @@ export default function InspectionConfirmModal({ open, onCancel, onConfirm, load
             onMouseEnter={(e) => !loading && (e.currentTarget.style.opacity = "0.9")}
             onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
           >
-            {loading ? "Đang xử lý..." : "Xác nhận hoàn thành"}
+            {loading ? t("inspection.confirmModal.confirming") : t("inspection.confirmModal.confirm")}
           </button>
         </div>
       </div>

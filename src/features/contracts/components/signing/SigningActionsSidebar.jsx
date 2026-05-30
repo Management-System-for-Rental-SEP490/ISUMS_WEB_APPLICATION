@@ -1,3 +1,10 @@
+import { useTranslation } from "react-i18next";
+
+function signatureImageSrc(value) {
+  if (!value) return "";
+  return value.startsWith("data:") ? value : `data:image/png;base64,${value}`;
+}
+
 export default function SigningActionsSidebar({
   initiating,
   error,
@@ -19,9 +26,16 @@ export default function SigningActionsSidebar({
   onReopenOtp,
   onResendOtp,
 }) {
+  const { t } = useTranslation("common");
+  const signatureSrc = signatureData?.signatureImage
+    ? signatureData.signatureImage.startsWith("data:")
+      ? signatureData.signatureImage
+      : `data:image/png;base64,${signatureData.signatureImage}`
+    : "";
+
   return (
     <aside className="w-64 bg-white border-l border-slate-200 flex flex-col overflow-y-auto flex-shrink-0 p-5 gap-3">
-      {/* Bắt đầu ký */}
+      {/* Start signing */}
       <button
         type="button"
         onClick={onStartSigning}
@@ -49,7 +63,7 @@ export default function SigningActionsSidebar({
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
               />
             </svg>
-            Đang khởi tạo...
+            {t("contracts.signing.initiating")}
           </>
         ) : (
           <>
@@ -66,12 +80,12 @@ export default function SigningActionsSidebar({
                 d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
               />
             </svg>
-            Bắt đầu ký
+            {t("contracts.signing.startSign")}
           </>
         )}
       </button>
 
-      {/* Từ chối ký */}
+      {/* Reject */}
       {!showRejectBox ? (
         <button
           type="button"
@@ -92,18 +106,19 @@ export default function SigningActionsSidebar({
               d="M6 18L18 6M6 6l12 12"
             />
           </svg>
-          Từ chối ký
+          {t("contracts.signing.reject")}
         </button>
       ) : (
         <div className="rounded-xl border border-red-200 bg-red-50 p-3 space-y-2">
           <p className="text-xs font-semibold text-red-700">
-            Lý do từ chối <span className="text-red-500">*</span>
+            {t("contracts.signing.rejectReason")}{" "}
+            <span className="text-red-500">*</span>
           </p>
           <textarea
             rows={3}
             value={rejectReason}
             onChange={(e) => onRejectReasonChange(e.target.value)}
-            placeholder="Nhập lý do từ chối ký..."
+            placeholder={t("contracts.signing.rejectPlaceholder")}
             className="w-full rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
           />
           <div className="flex gap-1.5">
@@ -113,53 +128,51 @@ export default function SigningActionsSidebar({
               disabled={rejecting || !rejectReason.trim()}
               className="flex-1 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Xác nhận từ chối
+              {t("contracts.signing.confirmReject")}
             </button>
             <button
               type="button"
               onClick={onRejectCancel}
               className="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition"
             >
-              Hủy
+              {t("actions.cancel")}
             </button>
           </div>
         </div>
       )}
 
-      {/* Hủy & Thoát */}
+      {/* Cancel & Exit */}
       <button
         type="button"
         onClick={onExit}
         className="w-full text-center text-sm text-slate-400 hover:text-slate-600 transition py-0.5"
       >
-        Hủy &amp; Thoát
+        {t("contracts.signing.cancelExit")}
       </button>
 
       <div className="border-t border-slate-100" />
 
-      {/* Chữ ký có sẵn */}
+      {/* Saved signatures */}
       <div>
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
-          Chữ ký có sẵn
+          {t("contracts.signing.savedSignatures")}
         </p>
         <div className="space-y-2">
           {signatureData && (
             <div className="border-2 border-teal-400 rounded-xl overflow-hidden bg-slate-50">
               <div className="flex w-full h-20">
-                {/* Nửa trái: chữ ký */}
                 <img
-                  src={`data:image/png;base64,${signatureData.signatureImage}`}
-                  alt="Chữ ký"
+                  src={signatureSrc}
+                  alt={t("contracts.signing.defaultSignature")}
                   className="w-1/2 h-full object-contain p-1"
                 />
-                {/* Nửa phải: text căn trên */}
                 <div
                   className="w-1/2 flex flex-col justify-start pt-1 pr-1 text-blue-600 leading-tight"
                   style={{ fontSize: 12 }}
                 >
                   <div className="font-medium">{userName}</div>
                   <div>
-                    {new Date().toLocaleString("vi-VN", {
+                    {new Date().toLocaleString(undefined, {
                       day: "2-digit",
                       month: "2-digit",
                       year: "numeric",
@@ -172,7 +185,7 @@ export default function SigningActionsSidebar({
               </div>
               <div className="text-center py-1.5 bg-teal-50 border-t border-teal-200">
                 <span className="text-[11px] font-semibold text-teal-700">
-                  Chữ ký mặc định
+                  {t("contracts.signing.defaultSignature")}
                 </span>
               </div>
             </div>
@@ -197,13 +210,15 @@ export default function SigningActionsSidebar({
               />
             </svg>
             <span className="text-xs font-medium">
-              {signatureData ? "Tạo chữ ký mới" : "Tạo chữ ký"}
+              {signatureData
+                ? t("contracts.signing.createNewSignature")
+                : t("contracts.signing.createSignature")}
             </span>
           </button>
         </div>
       </div>
 
-      {/* OTP reopen — hiện khi cần */}
+      {/* OTP reopen */}
       {otpSent && !showOtpModal && !confirming && (
         <>
           <div className="border-t border-slate-100" />
@@ -231,7 +246,7 @@ export default function SigningActionsSidebar({
                   d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                 />
               </svg>
-              Mở lại nhập OTP
+              {t("contracts.signing.reopenOtp")}
             </button>
             <button
               type="button"
@@ -239,7 +254,7 @@ export default function SigningActionsSidebar({
               disabled={confirming}
               className="w-full text-xs text-slate-400 hover:text-teal-600 underline underline-offset-2 transition text-center py-1 disabled:opacity-50"
             >
-              Gửi lại OTP mới
+              {t("contracts.signing.resendOtp")}
             </button>
           </div>
         </>
@@ -262,7 +277,7 @@ export default function SigningActionsSidebar({
             />
           </svg>
           <span className="text-[10px] font-medium uppercase tracking-wide">
-            Bảo mật bởi VNPT eContract
+            {t("contracts.signing.security")}
           </span>
         </div>
       </div>

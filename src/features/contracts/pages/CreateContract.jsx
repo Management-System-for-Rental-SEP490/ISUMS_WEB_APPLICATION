@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import CreateContractWizard from "../components/create/CreateContractWizard";
 import ContractLoadingModal from "../components/create/ContractLoadingModal";
 import { useHouses } from "../../houses/hooks/useHouses";
-import { createContract } from "../api/contracts.api";
+import { createContract, getDepositBookableHouses, getLockedHouseIds } from "../api/contracts.api";
 import { toast } from "react-toastify";
 
 const getInitialForm = (todayISO) => ({
@@ -10,10 +11,23 @@ const getInitialForm = (todayISO) => ({
   email: "",
   emailChecked: false,
   phoneNumber: "",
+  tenantType: "VIETNAMESE",
+  contractLanguage: "VI",
   identityNumber: "",
   houseId: "",
   dateOfIssue: "",
   placeOfIssue: "Cục Cảnh sát QLHC về TTXH",
+  permanentAddress: "",
+  passportNumber: "",
+  passportIssueDate: "",
+  passportIssuePlace: "",
+  passportExpiryDate: "",
+  nationality: "",
+  visaType: "",
+  visaExpiryDate: "",
+  dateOfBirth: "",
+  gender: "",
+  occupation: "",
   tenantAddress: "",
   startDate: todayISO,
   endDate: "",
@@ -21,9 +35,7 @@ const getInitialForm = (todayISO) => ({
   payDate: 5,
   payCycle: "monthly",
   depositAmount: "",
-  depositDate: "",
   depositRefundDays: 30,
-  handoverDate: "",
   lateDays: 3,
   latePenaltyPercent: 5,
   maxLateDays: 10,
@@ -32,7 +44,6 @@ const getInitialForm = (todayISO) => ({
   landlordBreachCompensation: "",
   renewNoticeDays: 30,
   landlordNoticeDays: 30,
-  forceMajeureNoticeHours: 24,
   disputeDays: 30,
   disputeForum: "",
   copies: 2,
@@ -46,32 +57,72 @@ const getInitialForm = (todayISO) => ({
 });
 
 export default function CreateContract({ onCancel, onCreated }) {
+  const { t } = useTranslation("common");
   const todayISO = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const initialForm = useMemo(() => getInitialForm(todayISO), [todayISO]);
-  const { houses } = useHouses();
+  const { houses: vacantHouses } = useHouses({ status: "AVAILABLE", size: 100 });
+  const [bookable, setBookable] = useState([]);
+  const [lockedIds, setLockedIds] = useState(() => new Set());
   const [modalOpen, setModalOpen] = useState(false);
   const [isApiDone, setIsApiDone] = useState(false);
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [pendingForm, setPendingForm] = useState(null);
+  const [createdId, setCreatedId] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      getDepositBookableHouses().catch(() => []),
+      getLockedHouseIds().catch(() => []),
+    ]).then(([bookableRes, lockedRes]) => {
+      if (cancelled) return;
+      const arr = Array.isArray(bookableRes) ? bookableRes : (bookableRes?.items ?? []);
+      setBookable(arr);
+      const lockedArr = Array.isArray(lockedRes) ? lockedRes : (lockedRes?.items ?? []);
+      setLockedIds(new Set(lockedArr));
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   const houseOptions = useMemo(() => {
-    return Array.isArray(houses) ? houses : [];
-  }, [houses]);
+    const vacant = (Array.isArray(vacantHouses) ? vacantHouses : [])
+      .filter((h) => !lockedIds.has(h.id))
+      .map((h) => ({
+        id: h.id,
+        name: h.name || h.title,
+        address: h.address,
+        category: "AVAILABLE_NOW",
+        availableFrom: null,
+        currentContractEndAt: null,
+      }));
+    const booked = (Array.isArray(bookable) ? bookable : [])
+      .filter((h) => !lockedIds.has(h.houseId))
+      .map((h) => ({
+        id: h.houseId,
+        name: h.houseName,
+        address: [h.houseAddress, h.ward, h.commune, h.city].filter(Boolean).join(", "),
+        category: "DEPOSIT_BOOKABLE",
+        availableFrom: h.availableFrom,
+        currentContractEndAt: h.currentContractEndAt,
+      }));
+    return [...vacant, ...booked];
+  }, [vacantHouses, bookable, lockedIds]);
 
   const callCreateApi = async (form) => {
     setIsApiDone(false);
     setIsError(false);
     setErrorMessage("");
     try {
-      await createContract(form);
+      const result = await createContract(form);
+      setCreatedId(result?.id ?? null);
       setIsApiDone(true);
     } catch (err) {
       const status = err?.response?.status;
       const msg =
-        status === 400 ? "Dữ liệu không hợp lệ hoặc thông tin chủ nhà chưa được cập nhật đầy đủ." :
-        status === 404 ? "Không tìm thấy nhà hoặc email người dùng không tồn tại." :
-        "Tạo hợp đồng thất bại, vui lòng thử lại.";
+        status === 400 ? t("contracts.create.err400") :
+        status === 404 ? t("contracts.create.err404") :
+        t("contracts.create.errGeneric");
       setIsError(true);
       setErrorMessage(msg);
       setIsApiDone(true);
@@ -86,23 +137,8 @@ export default function CreateContract({ onCancel, onCreated }) {
 
   const handleModalSuccess = () => {
     setModalOpen(false);
-    const form = pendingForm;
-    const house = houseOptions.find((h) => h.id === form?.houseId);
-    toast.success("Tạo hợp đồng thành công!");
-    onCreated?.({
-      id: Date.now(),
-      contractNumber: `HD-${new Date().getFullYear()}-${String(Date.now()).slice(-6)}`,
-      tenant: form?.name,
-      property: house?.name || house?.title || form?.houseId || "—",
-      unit: house?.unit || "—",
-      startDate: form?.startDate,
-      endDate: form?.endDate,
-      rent: Number(form?.rentAmount) || 0,
-      deposit: Number(form?.depositAmount) || 0,
-      status: "pending",
-      paymentType: "monthly",
-      autoRenew: true,
-    });
+    toast.success(t("contract.toastCreateSuccess"));
+    onCreated?.({ id: createdId });
   };
 
   const handleRetry = () => {
@@ -124,10 +160,8 @@ export default function CreateContract({ onCancel, onCreated }) {
         onClose={() => setModalOpen(false)}
       />
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">Tạo Hợp Đồng</h2>
-        <p className="text-gray-600">
-          Bước 1: Người thuê — Bước 2: Nhà & chi phí — Bước 3: Điều khoản
-        </p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-1">{t("contracts.create.title")}</h2>
+        <p className="text-gray-600">{t("contracts.create.subtitle")}</p>
       </div>
       <CreateContractWizard
         initialForm={initialForm}

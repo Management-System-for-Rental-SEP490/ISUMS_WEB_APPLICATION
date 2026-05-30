@@ -1,8 +1,10 @@
+import { useTranslation } from "react-i18next";
+
 function StatCard({ label, value, iconPath, iconBg, iconColor }) {
   return (
     <div
       className="rounded-2xl px-5 py-4 flex items-center gap-4 transition-all duration-300 hover:-translate-y-1"
-      style={{ background: "#FAFFFE", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.10)" }}
+      style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.10)" }}
     >
       <div
         className="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0"
@@ -21,17 +23,18 @@ function StatCard({ label, value, iconPath, iconBg, iconColor }) {
 }
 
 export default function UsersStats({ stats }) {
+  const { t } = useTranslation("common");
   return (
     <div className="grid grid-cols-2 gap-4">
       <StatCard
-        label="Tổng người dùng"
+        label={t("users.statTotal")}
         value={stats.total}
         iconBg="rgba(59,181,130,0.12)"
         iconColor="#3bb582"
         iconPath="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
       />
       <StatCard
-        label="Kết quả tìm kiếm"
+        label={t("users.statFiltered")}
         value={stats.filtered}
         iconBg="rgba(32,150,216,0.12)"
         iconColor="#2096d8"
