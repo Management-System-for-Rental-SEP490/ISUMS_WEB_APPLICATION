@@ -1373,6 +1373,7 @@
       "imagesLabel": "Asset images",
       "imagesMax": "(max 5)",
       "chooseFiles": "Choose images",
+      "imageTooLarge": "Image exceeds {{max}}MB. Please choose a smaller file.",
       "saving": "Saving...",
       "save": "Save",
       "successToast": "Asset created successfully!",

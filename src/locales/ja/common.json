@@ -1348,6 +1348,7 @@
       "imagesLabel": "資産画像",
       "imagesMax": "(最大5枚)",
       "chooseFiles": "画像を選択",
+      "imageTooLarge": "画像サイズが{{max}}MBを超えています。小さい画像を選択してください。",
       "saving": "保存中...",
       "save": "保存",
       "successToast": "資産が正常に作成されました！",

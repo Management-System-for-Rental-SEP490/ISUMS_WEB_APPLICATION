@@ -1397,6 +1397,7 @@
       "imagesLabel": "Ảnh tài sản",
       "imagesMax": "(tối đa 5)",
       "chooseFiles": "Chọn ảnh",
+      "imageTooLarge": "Ảnh vượt quá {{max}}MB. Vui lòng chọn ảnh nhỏ hơn.",
       "saving": "Đang lưu...",
       "save": "Lưu",
       "successToast": "Tạo tài sản thành công!",
