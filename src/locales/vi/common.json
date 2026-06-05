@@ -1397,6 +1397,7 @@
       "imagesLabel": "Ảnh tài sản",
       "imagesMax": "(tối đa 5)",
       "chooseFiles": "Chọn ảnh",
+      "imageTooLarge": "Ảnh vượt quá {{max}}MB. Vui lòng chọn ảnh nhỏ hơn.",
       "saving": "Đang lưu...",
       "save": "Lưu",
       "successToast": "Tạo tài sản thành công!",
@@ -1914,7 +1915,7 @@
     "resultDrawer": {
       "title": "Kết quả kiểm tra",
       "loading": "Đang tải kết quả kiểm tra...",
-      "photoLabel": "Ảnh kiểm tra",
+      "photoLabel": "Ảnh kiểm tra nhà thực tế",
       "deductionLabel": "Có khấu trừ tiền cọc",
       "deductionAmount": "Số tiền khấu trừ:",
       "noValue": "Không có",

@@ -28,6 +28,8 @@ const inp =
   "w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 bg-slate-50 placeholder-slate-400 transition";
 const lbl =
   "block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5";
+const MAX_IMAGE_SIZE_MB = 10;
+const MAX_IMAGE_SIZE = MAX_IMAGE_SIZE_MB * 1024 * 1024;
 
 export default function CreateAssetModal({
   houseId,
@@ -51,9 +53,9 @@ export default function CreateAssetModal({
   const [submitting, setSubmitting] = useState(false);
 
   const assetStatusOptions = [
-    { value: "IN_USE",       label: t("houses.assetStatus.IN_USE")       },
+    { value: "IN_USE", label: t("houses.assetStatus.IN_USE") },
     { value: "UNDER_REPAIR", label: t("houses.assetStatus.UNDER_REPAIR") },
-    { value: "BROKEN",       label: t("houses.assetStatus.BROKEN")       },
+    { value: "BROKEN", label: t("houses.assetStatus.BROKEN") },
   ];
 
   useEffect(() => {
@@ -64,20 +66,43 @@ export default function CreateAssetModal({
   }, []);
 
   const handleImages = (e) => {
-    const files = Array.from(e.target.files).slice(0, 5);
-    setImages(files);
-    setPreviews(files.map((f) => URL.createObjectURL(f)));
+    const files = Array.from(e.target.files);
+    const valid = [];
+    let oversizedCount = 0;
+
+    for (const file of files) {
+      if (file.size > MAX_IMAGE_SIZE) {
+        oversizedCount += 1;
+        continue;
+      }
+      if (valid.length < 5) valid.push(file);
+    }
+
+    if (oversizedCount > 0) {
+      toast.error(
+        t("houses.createAsset.imageTooLarge", { max: MAX_IMAGE_SIZE_MB }),
+      );
+    }
+
+    setImages(valid);
+    setPreviews(valid.map((f) => URL.createObjectURL(f)));
   };
 
   const removeImage = (i) => {
     setImages((p) => p.filter((_, idx) => idx !== i));
-    setPreviews((p) => { URL.revokeObjectURL(p[i]); return p.filter((_, idx) => idx !== i); });
+    setPreviews((p) => {
+      URL.revokeObjectURL(p[i]);
+      return p.filter((_, idx) => idx !== i);
+    });
   };
 
   const generateSerial = () => {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     const seg = (len) =>
-      Array.from({ length: len }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+      Array.from(
+        { length: len },
+        () => chars[Math.floor(Math.random() * chars.length)],
+      ).join("");
     setField("serialNumber", `${seg(3)}-${seg(4)}-${seg(4)}-${seg(4)}`);
   };
 
@@ -88,8 +113,10 @@ export default function CreateAssetModal({
 
   const validate = () => {
     const e = {};
-    if (!form.categoryId)                       e.categoryId  = t("houses.createAsset.validation.category");
-    if (!pickPrimary(form.displayName).trim())  e.displayName = t("houses.createAsset.validation.name");
+    if (!form.categoryId)
+      e.categoryId = t("houses.createAsset.validation.category");
+    if (!pickPrimary(form.displayName).trim())
+      e.displayName = t("houses.createAsset.validation.name");
     setErrors(e);
     return !Object.keys(e).length;
   };
@@ -127,14 +154,20 @@ export default function CreateAssetModal({
 
   return createPortal(
     <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
+      />
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
           <h2 className="text-base font-bold text-slate-800">
             {t("houses.createAsset.title")}
           </h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 transition">
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg hover:bg-slate-100 transition"
+          >
             <X className="w-4 h-4 text-slate-500" />
           </button>
         </div>
@@ -143,7 +176,8 @@ export default function CreateAssetModal({
         <div className="px-6 py-5 space-y-4 max-h-[65vh] overflow-y-auto">
           <div>
             <label className={lbl}>
-              {t("houses.createAsset.categoryLabel")} <span className="text-red-500 normal-case">*</span>
+              {t("houses.createAsset.categoryLabel")}{" "}
+              <span className="text-red-500 normal-case">*</span>
             </label>
             <Select
               className="w-full"
@@ -197,7 +231,9 @@ export default function CreateAssetModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={lbl}>{t("houses.createAsset.conditionLabel")}</label>
+              <label className={lbl}>
+                {t("houses.createAsset.conditionLabel")}
+              </label>
               <InputNumber
                 className="w-full"
                 min={0}
@@ -211,24 +247,49 @@ export default function CreateAssetModal({
 
           <div>
             <label className={lbl}>
-              {t("houses.createAsset.imagesLabel")} <span className="normal-case font-normal text-slate-400">{t("houses.createAsset.imagesMax")}</span>
+              {t("houses.createAsset.imagesLabel")}{" "}
+              <span className="normal-case font-normal text-slate-400">
+                {t("houses.createAsset.imagesMax")}
+              </span>
             </label>
             {images.length < 5 && (
-              <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium cursor-pointer transition"
-                style={{ background: "#EAF4F0", color: "#3bb582", border: "1px solid #C4DED5" }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = "#d4ede3"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = "#EAF4F0"; }}
+              <label
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium cursor-pointer transition"
+                style={{
+                  background: "#EAF4F0",
+                  color: "#3bb582",
+                  border: "1px solid #C4DED5",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#d4ede3";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#EAF4F0";
+                }}
               >
                 <ImagePlus className="w-4 h-4" />
                 {t("houses.createAsset.chooseFiles")}
-                <input type="file" accept="image/*" multiple onChange={handleImages} className="hidden" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImages}
+                  className="hidden"
+                />
               </label>
             )}
             {previews.length > 0 && (
               <div className="flex gap-2 flex-wrap mt-2">
                 {previews.map((src, i) => (
-                  <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 group">
-                    <img src={src} alt="" className="w-full h-full object-cover" />
+                  <div
+                    key={i}
+                    className="relative w-16 h-16 rounded-lg overflow-hidden border border-slate-200 group"
+                  >
+                    <img
+                      src={src}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
                     <button
                       type="button"
                       onClick={() => removeImage(i)}
@@ -255,10 +316,18 @@ export default function CreateAssetModal({
             onClick={handleSubmit}
             disabled={submitting}
             className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white rounded-xl transition disabled:opacity-70"
-            style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
+            style={{
+              background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)",
+            }}
           >
-            {submitting ? <LoadingSpinner size="sm" /> : <Save className="w-4 h-4" />}
-            {submitting ? t("houses.createAsset.saving") : t("houses.createAsset.save")}
+            {submitting ? (
+              <LoadingSpinner size="sm" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            {submitting
+              ? t("houses.createAsset.saving")
+              : t("houses.createAsset.save")}
           </button>
         </div>
       </div>
@@ -266,4 +335,3 @@ export default function CreateAssetModal({
     document.body,
   );
 }
-
