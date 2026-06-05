@@ -103,12 +103,20 @@ const DEPOSIT_STATUS_META = {
 };
 
 const HANDLING_OPTIONS = [
-  { value: "CANCEL_PENDING_DEPOSIT", label: "Hủy invoice cọc cũ" },
+  { value: "CANCEL_PENDING_DEPOSIT", label: "Hủy invoice cọc cũ (chưa thanh toán)" },
   { value: "TRANSFER_TO_REPLACEMENT", label: "Chuyển cọc sang HĐ mới" },
   { value: "PARTIAL_TRANSFER", label: "Chuyển một phần cọc" },
   { value: "FORFEIT", label: "Giữ cọc theo điều khoản" },
   { value: "REFUND_TO_TENANT", label: "Hoàn cọc cho khách" },
 ];
+
+const HANDLING_BUSINESS_LABELS = {
+  CANCEL_PENDING_DEPOSIT: "Khách chưa thanh toán cọc cũ",
+  TRANSFER_TO_REPLACEMENT: "Chuyển toàn bộ cọc sang nhà mới",
+  PARTIAL_TRANSFER: "Chuyển một phần cọc",
+  FORFEIT: "Giữ cọc theo điều khoản",
+  REFUND_TO_TENANT: "Hoàn cọc cho khách",
+};
 
 const HOUSE_PAGE_SIZE = 100;
 const RESOLUTION_OPTIONS = [
@@ -336,6 +344,99 @@ function buildInitialForm(request) {
     refundDueAt: toDateValue(request?.refundDueAt),
     legalBasis: request?.legalBasis ?? "",
     managerNote: request?.managerNote ?? "",
+  };
+}
+
+function computeDepositAmounts(request, form) {
+  const oldDeposit = Number(request?.depositAmount ?? 0);
+  const newDeposit = Number(form?.newDepositAmount ?? 0);
+  const refundableDeposit = Number(
+    form?.refundableDepositAmount ?? request?.depositAmount ?? 0,
+  );
+  const transferCap = isActiveLeaseRequest(request)
+    ? Math.max(0, refundableDeposit)
+    : Math.max(0, oldDeposit);
+
+  if (form?.depositHandling === "TRANSFER_TO_REPLACEMENT") {
+    const transferred = Math.min(transferCap, newDeposit);
+    return {
+      transferredDepositAmount: transferred,
+      additionalDepositAmount: Math.max(0, newDeposit - transferred),
+    };
+  }
+
+  if (form?.depositHandling === "PARTIAL_TRANSFER") {
+    const transferred = Math.min(
+      Math.max(0, Number(form?.transferredDepositAmount ?? 0)),
+      transferCap,
+      newDeposit,
+    );
+    return {
+      transferredDepositAmount: transferred,
+      additionalDepositAmount: Math.max(0, newDeposit - transferred),
+    };
+  }
+
+  return {
+    transferredDepositAmount: null,
+    additionalDepositAmount: null,
+  };
+}
+
+function computeDepositSummary(request, form) {
+  const oldDeposit = Number(request?.depositAmount ?? 0);
+  const paidOldDeposit = isPaidDeposit(request?.depositStatusSnapshot)
+    ? oldDeposit
+    : 0;
+  const newDeposit = Number(form?.newDepositAmount ?? request?.newDepositAmount ?? 0);
+  const refundableDeposit = Number(
+    form?.refundableDepositAmount ?? request?.depositAmount ?? 0,
+  );
+  const availableDeposit = isActiveLeaseRequest(request)
+    ? Math.max(0, refundableDeposit)
+    : paidOldDeposit;
+  const handling = form?.depositHandling;
+
+  let transferred = 0;
+  let topUp = 0;
+  let refund = 0;
+  let retained = 0;
+
+  if (handling === "TRANSFER_TO_REPLACEMENT") {
+    transferred = Math.min(availableDeposit, newDeposit);
+    topUp = Math.max(0, newDeposit - transferred);
+    refund = Math.max(0, availableDeposit - transferred);
+  } else if (handling === "PARTIAL_TRANSFER") {
+    transferred = Math.min(
+      Math.max(0, Number(form?.transferredDepositAmount ?? 0)),
+      availableDeposit,
+      newDeposit,
+    );
+    topUp = Math.max(0, newDeposit - transferred);
+    refund = Math.max(0, availableDeposit - transferred);
+  } else if (handling === "REFUND_TO_TENANT") {
+    refund = Math.max(0, Number(form?.refundAmount ?? availableDeposit));
+  } else if (handling === "FORFEIT") {
+    retained = Math.min(
+      Math.max(0, Number(form?.forfeitAmount ?? 0)),
+      availableDeposit,
+    );
+    refund = Math.max(0, availableDeposit - retained);
+    topUp = Math.max(0, newDeposit);
+  } else {
+    topUp = Math.max(0, newDeposit);
+  }
+
+  return {
+    availableDeposit,
+    handling,
+    newDeposit,
+    oldDeposit,
+    paidOldDeposit,
+    refund,
+    retained,
+    topUp,
+    transferred,
   };
 }
 
@@ -597,6 +698,7 @@ export default function RelocationRequestsPage() {
     if (!activeRequest) return;
     setSubmitting(true);
     try {
+      const depositAmounts = computeDepositAmounts(activeRequest, form);
       await reviewRelocationRequest(activeRequest.id, {
         approved,
         resolutionType: approved ? form.resolutionType : null,
@@ -607,11 +709,15 @@ export default function RelocationRequestsPage() {
         newStartAt: approved ? toIso(form.newStartAt) : null,
         newEndAt: approved ? toIso(form.newEndAt) : null,
         newHandoverDate: approved ? toIso(form.newHandoverDate) : null,
-        transferredDepositAmount: null,
+        transferredDepositAmount: approved
+          ? depositAmounts.transferredDepositAmount
+          : null,
         forfeitAmount: approved && form.depositHandling === "FORFEIT"
           ? form.forfeitAmount
           : null,
-        additionalDepositAmount: null,
+        additionalDepositAmount: approved
+          ? depositAmounts.additionalDepositAmount
+          : null,
         oldRentProratedAmount: approved ? form.oldRentProratedAmount : null,
         oldUtilitiesAmount: approved ? form.oldUtilitiesAmount : null,
         oldDamageAmount: approved ? form.oldDamageAmount : null,
@@ -720,6 +826,9 @@ export default function RelocationRequestsPage() {
     }
     return item.value !== "REFUND_TO_TENANT";
   });
+  const activeDepositSummary = activeRequest
+    ? computeDepositSummary(activeRequest, form)
+    : null;
   const reviewCanApprove =
     !activeRequest || isRefundResolution || Boolean(form.approvedHouseId);
 
@@ -920,15 +1029,56 @@ export default function RelocationRequestsPage() {
                         );
                       })()}
                     </TableCell>
-                    <TableCell className="whitespace-nowrap">
-                      <div className="text-sm font-semibold text-brand-fg">
-                        {formatCurrency(request.depositAmount)}
-                      </div>
-                      <div className="mt-1 text-xs text-brand-muted-fg">
-                        {DEPOSIT_STATUS_META[request.depositStatusSnapshot] ||
-                          request.depositStatusSnapshot ||
-                          "-"}
-                      </div>
+                    <TableCell className="min-w-[210px]">
+                      {(() => {
+                        const summary = computeDepositSummary(
+                          request,
+                          buildInitialForm(request),
+                        );
+                        return (
+                          <div className="space-y-1 text-xs">
+                            <div className="flex justify-between gap-3">
+                              <span className="text-brand-muted-fg">
+                                Cọc cũ
+                              </span>
+                              <span className="font-semibold text-brand-fg">
+                                {formatCurrency(summary.oldDeposit)}
+                              </span>
+                            </div>
+                            <div className="text-brand-muted-fg">
+                              {DEPOSIT_STATUS_META[
+                                request.depositStatusSnapshot
+                              ] ||
+                                request.depositStatusSnapshot ||
+                                "-"}
+                            </div>
+                            {summary.transferred > 0 && (
+                              <div className="flex justify-between gap-3 text-emerald-700">
+                                <span>Sẽ chuyển</span>
+                                <span className="font-semibold">
+                                  {formatCurrency(summary.transferred)}
+                                </span>
+                              </div>
+                            )}
+                            {summary.topUp > 0 && (
+                              <div className="flex justify-between gap-3 text-amber-700">
+                                <span>Cần thu thêm</span>
+                                <span className="font-semibold">
+                                  {formatCurrency(summary.topUp)}
+                                </span>
+                              </div>
+                            )}
+                            {summary.refund > 0 && (
+                              <div className="flex justify-between gap-3 text-blue-700">
+                                <span>Hoàn lại</span>
+                                <span className="font-semibold">
+                                  {formatCurrency(summary.refund)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </TableCell>
                     <TableCell className="whitespace-nowrap text-brand-fg">
                       {formatDate(request.requestedAt)}
@@ -1126,6 +1276,75 @@ export default function RelocationRequestsPage() {
                   className="w-full"
                 />
               </Field>
+              <div className="md:col-span-2">
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      Xử lý tiền cọc
+                    </div>
+                    <div className="text-xs text-slate-500">
+                      Chọn kết quả nghiệp vụ, hệ thống sẽ tính số tiền phải thu
+                      thêm hoặc hoàn lại.
+                    </div>
+                  </div>
+                  <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
+                    {DEPOSIT_STATUS_META[activeRequest.depositStatusSnapshot] ||
+                      activeRequest.depositStatusSnapshot ||
+                      "Chưa rõ trạng thái cọc"}
+                  </div>
+                </div>
+                <div className="grid gap-2 md:grid-cols-2">
+                  {activeHandlingOptions.map((item) => {
+                    const selected = form.depositHandling === item.value;
+                    return (
+                      <button
+                        key={item.value}
+                        type="button"
+                        onClick={() =>
+                          patchForm({
+                            depositHandling: item.value,
+                            transferredDepositAmount:
+                              item.value === "PARTIAL_TRANSFER"
+                                ? form.transferredDepositAmount
+                                : 0,
+                          })
+                        }
+                        className={`rounded-xl border p-3 text-left transition ${
+                          selected
+                            ? "border-emerald-300 bg-emerald-50 text-emerald-900 shadow-sm"
+                            : "border-slate-200 bg-white text-slate-700 hover:border-emerald-200 hover:bg-emerald-50/50"
+                        }`}
+                      >
+                        <div className="flex items-start gap-2">
+                          <CheckCircle2
+                            className={`mt-0.5 h-4 w-4 ${
+                              selected ? "text-emerald-600" : "text-slate-300"
+                            }`}
+                          />
+                          <div>
+                            <div className="text-sm font-semibold">
+                              {HANDLING_BUSINESS_LABELS[item.value] ||
+                                item.label}
+                            </div>
+                            <div className="mt-1 text-xs text-slate-500">
+                              {item.value === "TRANSFER_TO_REPLACEMENT" &&
+                                "Dùng cọc đã thanh toán ở nhà cũ để đối trừ cho hợp đồng mới."}
+                              {item.value === "PARTIAL_TRANSFER" &&
+                                "Chỉ chuyển một phần cọc, phần còn lại sẽ hoàn hoặc xử lý theo quyết toán."}
+                              {item.value === "CANCEL_PENDING_DEPOSIT" &&
+                                "Áp dụng khi khách chưa thanh toán cọc cũ, nhà mới sẽ tạo yêu cầu cọc riêng."}
+                              {item.value === "FORFEIT" &&
+                                "Áp dụng khi lỗi thuộc về khách và hợp đồng cho phép giữ cọc."}
+                              {item.value === "REFUND_TO_TENANT" &&
+                                "Hoàn cọc cho khách thay vì tạo hợp đồng thay thế."}
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
               {!isRefundResolution && (
                 <>
                   <Field label="Nhà duyệt chuyển sang">
@@ -1169,6 +1388,26 @@ export default function RelocationRequestsPage() {
                       className="w-full"
                     />
                   </Field>
+                  {form.depositHandling === "PARTIAL_TRANSFER" && (
+                    <Field label="Số cọc chuyển sang HĐ mới">
+                      <InputNumber
+                        min={0}
+                        max={Math.min(
+                          Number(activeRequest?.depositAmount ?? 0),
+                          Number(form.newDepositAmount ?? 0),
+                        )}
+                        value={form.transferredDepositAmount}
+                        onChange={(value) =>
+                          patchForm({ transferredDepositAmount: value ?? 0 })
+                        }
+                        formatter={(value) =>
+                          `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                        parser={(value) => value?.replace(/\$\s?|(,*)/g, "")}
+                        className="w-full"
+                      />
+                    </Field>
+                  )}
                   {form.depositHandling === "FORFEIT" && (
                     <Field label="Cọc giữ lại">
                       <InputNumber
@@ -1201,46 +1440,96 @@ export default function RelocationRequestsPage() {
                       className="w-full"
                     />
                   </Field>
-                  {form.depositHandling === "TRANSFER_TO_REPLACEMENT" && (() => {
-                    const oldDeposit = Number(activeRequest?.depositAmount ?? 0);
-                    const newDeposit = Number(form.newDepositAmount ?? 0);
-                    const transferred = Math.min(oldDeposit, newDeposit);
-                    const topUp = Math.max(0, newDeposit - oldDeposit);
-                    const refund = Math.max(0, oldDeposit - newDeposit);
-                    return (
-                      <div className="md:col-span-2 rounded-2xl border border-brand-border bg-brand-subtle p-4 space-y-2 text-sm">
-                        <div className="font-semibold text-brand-fg">Tóm tắt xử lý cọc (tự động)</div>
-                        <div className="flex justify-between">
-                          <span className="text-brand-muted-fg">Cọc nhà cũ</span>
-                          <span className="font-medium text-brand-fg">{formatCurrency(oldDeposit)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-brand-muted-fg">Cọc nhà mới</span>
-                          <span className="font-medium text-brand-fg">{formatCurrency(newDeposit)}</span>
-                        </div>
-                        <hr className="border-brand-border" />
-                        <div className="flex justify-between">
-                          <span className="text-brand-fg">→ Chuyển sang nhà mới</span>
-                          <span className="font-semibold text-emerald-600">{formatCurrency(transferred)}</span>
-                        </div>
-                        {topUp > 0 && (
-                          <div className="flex justify-between">
-                            <span className="text-amber-700">⚠ Tenant cần nộp thêm</span>
-                            <span className="font-semibold text-amber-700">{formatCurrency(topUp)}</span>
+                  {activeDepositSummary && (
+                    <div className="md:col-span-2 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 text-sm">
+                      <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <div className="font-semibold text-slate-900">
+                            Quyết toán tiền cọc trước khi duyệt
                           </div>
-                        )}
-                        {refund > 0 && (
-                          <div className="flex justify-between">
-                            <span className="text-blue-700">💰 Hoàn lại tenant</span>
-                            <span className="font-semibold text-blue-700">{formatCurrency(refund)}</span>
+                          <div className="text-xs text-slate-500">
+                            Đây là kết quả tenant sẽ nhìn thấy sau khi hệ thống
+                            gửi thông báo.
                           </div>
-                        )}
-                        <div className="text-xs text-brand-muted-fg pt-1">
-                          Hệ thống sẽ tự gửi mail thu thêm hoặc hoàn lại sau khi duyệt.
+                        </div>
+                        <div className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-emerald-700">
+                          {HANDLING_BUSINESS_LABELS[
+                            activeDepositSummary.handling
+                          ] || "Chưa chọn cách xử lý"}
                         </div>
                       </div>
-                    );
-                  })()}
+
+                      <div className="overflow-hidden rounded-xl border border-emerald-100 bg-white">
+                        <div className="grid grid-cols-2 border-b border-slate-100 px-4 py-2">
+                          <span className="text-slate-500">
+                            Cọc hợp đồng cũ
+                          </span>
+                          <span className="text-right font-semibold text-slate-900">
+                            {formatCurrency(activeDepositSummary.oldDeposit)}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 border-b border-slate-100 px-4 py-2">
+                          <span className="text-slate-500">
+                            Cọc đã thanh toán có thể dùng
+                          </span>
+                          <span className="text-right font-semibold text-slate-900">
+                            {formatCurrency(
+                              activeDepositSummary.availableDeposit,
+                            )}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 border-b border-slate-100 px-4 py-2">
+                          <span className="text-slate-500">
+                            Cọc hợp đồng mới
+                          </span>
+                          <span className="text-right font-semibold text-slate-900">
+                            {formatCurrency(activeDepositSummary.newDeposit)}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 border-b border-slate-100 px-4 py-2 text-emerald-700">
+                          <span>Chuyển sang hợp đồng mới</span>
+                          <span className="text-right font-semibold">
+                            {formatCurrency(activeDepositSummary.transferred)}
+                          </span>
+                        </div>
+                        {activeDepositSummary.retained > 0 && (
+                          <div className="grid grid-cols-2 border-b border-slate-100 px-4 py-2 text-rose-700">
+                            <span>Cọc giữ lại</span>
+                            <span className="text-right font-semibold">
+                              {formatCurrency(activeDepositSummary.retained)}
+                            </span>
+                          </div>
+                        )}
+                        <div className="grid grid-cols-2 border-b border-slate-100 px-4 py-2 text-amber-700">
+                          <span>Tenant cần nộp thêm</span>
+                          <span className="text-right font-semibold">
+                            {formatCurrency(activeDepositSummary.topUp)}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 px-4 py-2 text-blue-700">
+                          <span>Hoàn lại tenant</span>
+                          <span className="text-right font-semibold">
+                            {formatCurrency(activeDepositSummary.refund)}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 rounded-xl border border-white bg-white/80 px-4 py-3 text-xs text-slate-600">
+                        <span className="font-semibold text-slate-800">
+                          Kết quả:
+                        </span>{" "}
+                        {activeDepositSummary.topUp > 0
+                          ? `Tenant cần thanh toán thêm ${formatCurrency(
+                              activeDepositSummary.topUp,
+                            )} vì cọc hợp đồng mới cao hơn phần cọc được chuyển.`
+                          : activeDepositSummary.refund > 0
+                            ? `Tenant sẽ được hoàn ${formatCurrency(
+                                activeDepositSummary.refund,
+                              )} sau khi đối trừ.`
+                            : "Tenant không cần thanh toán thêm tiền cọc."}
+                      </div>
+                    </div>
+                  )}
                   {activeLeaseReview && (
                     <>
                       <Field label="Tiền thuê còn phải quyết toán">
