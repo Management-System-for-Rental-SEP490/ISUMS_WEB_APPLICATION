@@ -226,11 +226,21 @@ export default function InspectionsPage() {
     try {
       const response = await getInspections({
         page: 1,
-        size: 100,
+        size: 50,
         sortBy: "updatedAt",
-        sortDir: "desc",
+        sortDir: "DESC",
       });
       const items = extractItems(response);
+      setInspections(
+        items.map((item) => ({
+          ...item,
+          houseInfo: resolveHouse(null, item.houseId),
+          contractInfo: resolveContract(null, item.contractId),
+          staffInfo: resolveStaff(item, null),
+        })),
+      );
+      setLoading(false);
+
       const houseIds = [...new Set(items.map((item) => item.houseId).filter(Boolean))];
       const contractIds = [
         ...new Set(items.map((item) => item.contractId).filter(Boolean)),
@@ -277,13 +287,15 @@ export default function InspectionsPage() {
       );
     } catch (fetchError) {
       setError(fetchError.message);
-    } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchInspections();
+    const timeoutId = window.setTimeout(() => {
+      void fetchInspections();
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
   }, [fetchInspections]);
 
   const countsByType = useMemo(
