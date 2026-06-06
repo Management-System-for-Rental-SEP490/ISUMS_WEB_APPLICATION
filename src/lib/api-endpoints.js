@@ -61,6 +61,9 @@ export const CONTRACTS_ENDPOINTS = {
     `/econtracts/${contractId}/relocation-link`,
   MARKETPLACE_BOOKABLE: "/econtracts/marketplace/deposit-bookable-houses",
   MARKETPLACE_LOCKED: "/econtracts/marketplace/locked-house-ids",
+  DEMO_PREVIEW: "/econtracts/demo/preview",
+  DEMO_RUN: "/econtracts/demo/run",
+  DEMO_ACTIVE: "/econtracts/demo/active",
 };
 
 // Users endpoints

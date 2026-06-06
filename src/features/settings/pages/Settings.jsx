@@ -11,6 +11,7 @@ import {
   Key,
   Home,
   Phone,
+  FlaskConical,
 } from "lucide-react";
 import keycloak from "../../../keycloak";
 import { useAuthStore } from "../../auth/store/auth.store";
@@ -20,6 +21,7 @@ import { updateMyPhone } from "../../auth/api/users.api";
 import NotificationPreferencesPanel from "../../notifications/components/NotificationPreferencesPanel";
 import LandlordRentalSettings from "../components/LandlordRentalSettings";
 import VoiceProviderTab from "../components/VoiceProviderTab";
+import ContractDemoEnvironment from "../components/ContractDemoEnvironment";
 
 const ROLE_LABELS = {
   LANDLORD: "Chủ nhà",
@@ -91,6 +93,7 @@ export default function Settings() {
     roleList.includes("ADMIN") ||
     roleList.includes("SYSTEM_ADMIN") ||
     roleList.includes("MANAGER");
+  const isLandlord = roleList.includes("LANDLORD");
 
   const tabs = [
     { id: "profile", label: t("settings.tabs.profile"), icon: User },
@@ -100,6 +103,9 @@ export default function Settings() {
     { id: "notifications", label: t("settings.tabs.notifications"), icon: Bell },
     { id: "security", label: t("settings.tabs.security"), icon: Shield },
     { id: "system", label: t("settings.tabs.system"), icon: Globe },
+    ...(isLandlord
+      ? [{ id: "contractDemo", label: "Demo hợp đồng", icon: FlaskConical }]
+      : []),
     ...(isAdmin
       ? [{ id: "voiceProvider", label: t("settings.tabs.voiceProvider"), icon: Phone }]
       : []),
@@ -179,29 +185,6 @@ export default function Settings() {
     } finally {
       setSaving(false);
     }
-  };
-
-  const notificationLabels = {
-    emailNotifications: {
-      label: t("settings.notifications.email"),
-      desc: t("settings.notifications.emailDesc"),
-    },
-    smsNotifications: {
-      label: t("settings.notifications.sms"),
-      desc: t("settings.notifications.smsDesc"),
-    },
-    criticalAlerts: {
-      label: t("settings.notifications.critical"),
-      desc: t("settings.notifications.criticalDesc"),
-    },
-    weeklyReports: {
-      label: t("settings.notifications.weekly"),
-      desc: t("settings.notifications.weeklyDesc"),
-    },
-    monthlyReports: {
-      label: t("settings.notifications.monthly"),
-      desc: t("settings.notifications.monthlyDesc"),
-    },
   };
 
   const renderProfileTab = () => (
@@ -460,6 +443,7 @@ export default function Settings() {
       case "notifications": return renderNotificationsTab();
       case "security": return renderSecurityTab();
       case "system": return renderSystemTab();
+      case "contractDemo": return <ContractDemoEnvironment />;
       case "voiceProvider": return <VoiceProviderTab />;
       default: return null;
     }
@@ -473,7 +457,7 @@ export default function Settings() {
             {t("settings.title")}
           </h2>
         </div>
-        <button
+        {activeTab !== "contractDemo" && <button
           onClick={handleSave}
           disabled={saving}
           className="px-4 py-2.5 text-white rounded-full text-sm flex items-center gap-2 transition shadow-sm mt-1 disabled:opacity-70"
@@ -483,7 +467,7 @@ export default function Settings() {
         >
           <Save className="w-4 h-4" />
           {saving ? t("actions.save") + "..." : t("settings.save")}
-        </button>
+        </button>}
       </div>
 
       <div className="rounded-2xl p-1" style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}>

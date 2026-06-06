@@ -249,6 +249,30 @@ export async function getLockedHouseIds() {
   return extractResponseData(response);
 }
 
+export async function previewContractDemo(params) {
+  const response = await api.get(CONTRACTS_ENDPOINTS.DEMO_PREVIEW, { params });
+  return extractResponseData(response);
+}
+
+export async function runContractDemo(payload) {
+  const response = await api.post(CONTRACTS_ENDPOINTS.DEMO_RUN, payload);
+  return extractResponseData(response);
+}
+
+export async function getActiveContractDemo(contractId) {
+  const response = await api.get(CONTRACTS_ENDPOINTS.DEMO_ACTIVE, {
+    params: { contractId },
+  });
+  return extractResponseData(response);
+}
+
+export async function cancelContractDemo(contractId) {
+  const response = await api.delete(CONTRACTS_ENDPOINTS.DEMO_ACTIVE, {
+    params: { contractId },
+  });
+  return extractResponseData(response);
+}
+
 // -----------------------------------------------------------------------------
 // Passport flow (for foreign tenants)
 // -----------------------------------------------------------------------------
