@@ -161,7 +161,18 @@ const client = (() => {
     } catch (err) {
       if (err.name === "AbortError") return;
       const status = err.httpStatus;
-      if (status && status >= 400 && status < 500 && status !== 408) {
+      if (status === 401) {
+        try {
+          await keycloak.updateToken(-1);
+        } catch {
+          setStatus("error");
+          return;
+        }
+        reconnectDelay = INITIAL_RECONNECT_MS;
+        scheduleReconnect();
+        return;
+      }
+      if (status === 403 || status === 404) {
         setStatus("error");
         return;
       }
