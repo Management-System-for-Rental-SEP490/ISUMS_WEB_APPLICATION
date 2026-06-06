@@ -187,21 +187,22 @@ function resolveSlot(slot) {
 }
 
 function getTimeMeta(item, t) {
-  if (item.status === "CREATED") {
-    return {
+  const entries = [
+    {
       label: t("inspection.createdAt"),
       ...(formatVietnamInstant(item.createdAt) ?? {}),
-    };
-  }
+    },
+  ];
 
   if (["SCHEDULED", "IN_PROGRESS"].includes(item.status)) {
-    return {
+    entries.push({
       label: t("inspection.scheduledAt"),
       ...(formatVietnamLocalSlot(
         item.slotInfo?.startTime,
         item.slotInfo?.endTime,
       ) ?? { date: t("inspection.scheduleUnavailable") }),
-    };
+    });
+    return entries;
   }
 
   const labelKeys = {
@@ -210,10 +211,13 @@ function getTimeMeta(item, t) {
     APPROVED: "approvedAt",
     CANCELLED: "cancelledAt",
   };
-  return {
-    label: t(`inspection.${labelKeys[item.status] ?? "updatedAt"}`),
-    ...(formatVietnamInstant(item.updatedAt ?? item.createdAt) ?? {}),
-  };
+  if (labelKeys[item.status]) {
+    entries.push({
+      label: t(`inspection.${labelKeys[item.status]}`),
+      ...(formatVietnamInstant(item.updatedAt) ?? {}),
+    });
+  }
+  return entries;
 }
 
 function getActionLabel(status, t) {
@@ -625,7 +629,7 @@ export default function InspectionsPage() {
 
                 {visibleInspections.map((item) => {
                   const type = TYPE_CONFIG[item.type] ?? TYPE_CONFIG.CHECK_IN;
-                  const time = getTimeMeta(item, t);
+                  const timeEntries = getTimeMeta(item, t);
                   const note = meaningfulNote(item.note);
                   return (
                     <div
@@ -675,18 +679,29 @@ export default function InspectionsPage() {
                         })}
                       </span>
 
-                      <div>
-                        <p className="text-xs font-medium text-slate-500">
-                          {time.label}
-                        </p>
-                        <p className="mt-0.5 whitespace-nowrap text-sm font-medium text-slate-800">
-                          {time.date ?? "—"}
-                        </p>
-                        {time.time && (
-                          <p className="mt-0.5 whitespace-nowrap text-xs text-slate-500">
-                            {time.time}
-                          </p>
-                        )}
+                      <div className="space-y-2">
+                        {timeEntries.map((entry, index) => (
+                          <div
+                            key={`${entry.label}-${index}`}
+                            className={
+                              index > 0
+                                ? "border-t border-slate-100 pt-2"
+                                : undefined
+                            }
+                          >
+                            <p className="text-xs font-medium text-slate-500">
+                              {entry.label}
+                            </p>
+                            <p className="mt-0.5 whitespace-nowrap text-sm font-medium text-slate-800">
+                              {entry.date ?? "—"}
+                            </p>
+                            {entry.time && (
+                              <p className="mt-0.5 whitespace-nowrap text-xs text-slate-500">
+                                {entry.time}
+                              </p>
+                            )}
+                          </div>
+                        ))}
                       </div>
 
                       <div className="min-w-0">
@@ -716,7 +731,7 @@ export default function InspectionsPage() {
             <div className="divide-y divide-slate-100 lg:hidden">
               {visibleInspections.map((item) => {
                 const type = TYPE_CONFIG[item.type] ?? TYPE_CONFIG.CHECK_IN;
-                const time = getTimeMeta(item, t);
+                const timeEntries = getTimeMeta(item, t);
                 return (
                   <article key={item.id} className="space-y-4 p-4">
                     <div className="flex items-start justify-between gap-3">
@@ -762,16 +777,25 @@ export default function InspectionsPage() {
                       <div className="min-w-0">
                         <p className="flex items-center gap-1 text-[11px] font-medium text-slate-500">
                           <CalendarClock className="h-3 w-3" />
-                          {time.label}
+                          {t("inspection.colSchedule")}
                         </p>
-                        <p className="mt-1 text-xs font-semibold text-slate-800">
-                          {time.date ?? "—"}
-                        </p>
-                        {time.time && (
-                          <p className="mt-0.5 text-[11px] text-slate-500">
-                            {time.time}
-                          </p>
-                        )}
+                        <div className="mt-1 space-y-1.5">
+                          {timeEntries.map((entry, index) => (
+                            <div key={`${entry.label}-${index}`}>
+                              <p className="text-[10px] text-slate-500">
+                                {entry.label}
+                              </p>
+                              <p className="text-xs font-semibold text-slate-800">
+                                {entry.date ?? "—"}
+                              </p>
+                              {entry.time && (
+                                <p className="text-[11px] text-slate-500">
+                                  {entry.time}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                       <div className="min-w-0">
                         <p className="flex items-center gap-1 text-[11px] font-medium text-slate-500">

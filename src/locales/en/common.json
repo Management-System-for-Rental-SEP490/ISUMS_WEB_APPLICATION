@@ -1845,7 +1845,7 @@
     "colTenant": "Tenant",
     "colNote": "Note",
     "colType": "Type",
-    "colSchedule": "Timeline",
+    "colSchedule": "Time",
     "colStaff": "Staff",
     "colStatus": "Status",
     "colCompletedAt": "Completed At",

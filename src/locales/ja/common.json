@@ -1819,7 +1819,7 @@
     "colTenant": "入居者",
     "colNote": "メモ",
     "colType": "種類",
-    "colSchedule": "日時",
+    "colSchedule": "時間",
     "colStaff": "スタッフ",
     "colStatus": "ステータス",
     "colCompletedAt": "完了日時",
