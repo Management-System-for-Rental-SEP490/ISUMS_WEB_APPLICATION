@@ -149,14 +149,27 @@ export async function getInspectionById(id) {
 
 /**
  * Get all inspections.
- * @param {string} [status] - optional filter by status
+ * @param {Object} params - optional filters and pagination
  * @returns {Promise<Array>}
  */
-export async function getInspections({ status, type } = {}) {
+export async function getInspections({
+  page,
+  size,
+  status,
+  type,
+  keyword,
+  sortBy,
+  sortDir,
+} = {}) {
   try {
     const params = {};
+    if (page)    params.page    = page;
+    if (size)    params.size    = size;
     if (status) params.status = status;
     if (type)   params.type   = type;
+    if (keyword) params.keyword = keyword;
+    if (sortBy)  params.sortBy  = sortBy;
+    if (sortDir) params.sortDir = sortDir;
     const response = await api.get(INSPECTION_ENDPOINTS.BASE, { params });
     return extractResponseData(response);
   } catch (error) {

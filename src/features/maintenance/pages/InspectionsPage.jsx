@@ -1,469 +1,735 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { RefreshCw, ClipboardCheck, Eye, Plus, MapPin, User, Calendar, FileText, Tag, X, Phone } from "lucide-react";
-import { getInspections } from "../api/maintenance.api";
+import {
+  CalendarClock,
+  ChevronRight,
+  ClipboardCheck,
+  FileCheck2,
+  House,
+  Plus,
+  RefreshCw,
+  Search,
+  UserRound,
+} from "lucide-react";
+import { getContractById } from "../../contracts/api/contracts.api";
 import { getHouseById } from "../../houses/api/houses.api";
 import { getUserById } from "../../tenants/api/users.api";
 import CreateInspectionModal from "../components/CreateInspectionModal";
+import { getInspections } from "../api/maintenance.api";
 
 const STATUS_CONFIG = {
-  CREATED:     { bg: "rgba(90,122,110,0.08)",  color: "#5A7A6E", dot: "#5A7A6E" },
-  SCHEDULED:   { bg: "rgba(32,150,216,0.10)",  color: "#2096d8", dot: "#2096d8" },
-  IN_PROGRESS: { bg: "rgba(59,181,130,0.10)",  color: "#3bb582", dot: "#3bb582" },
-  DONE:        { bg: "rgba(59,181,130,0.10)",  color: "#3bb582", dot: "#3bb582" },
-  APPROVED:    { bg: "rgba(32,150,216,0.10)",  color: "#2096d8", dot: "#2096d8" },
-  CANCELLED:   { bg: "rgba(217,95,75,0.10)",   color: "#D95F4B", dot: "#D95F4B" },
+  CREATED: { bg: "#F3F4F6", color: "#4B5563", dot: "#6B7280" },
+  SCHEDULED: { bg: "#EAF4FF", color: "#1769AA", dot: "#2096D8" },
+  IN_PROGRESS: { bg: "#E8F8F1", color: "#187A56", dot: "#3BB582" },
+  PENDING_MANAGER_REVIEW: { bg: "#FFF7E6", color: "#9A6200", dot: "#E6A31A" },
+  DONE: { bg: "#EEF2FF", color: "#4F46A5", dot: "#6366F1" },
+  APPROVED: { bg: "#E8F8F1", color: "#187A56", dot: "#3BB582" },
+  CANCELLED: { bg: "#FFF0ED", color: "#B8402F", dot: "#D95F4B" },
 };
 
-const STATUS_FILTER_VALUES = ["", "CREATED", "SCHEDULED", "IN_PROGRESS", "DONE", "APPROVED", "CANCELLED"];
+const STATUS_FILTER_VALUES = [
+  "",
+  "CREATED",
+  "SCHEDULED",
+  "IN_PROGRESS",
+  "DONE",
+  "PENDING_MANAGER_REVIEW",
+  "APPROVED",
+  "CANCELLED",
+];
 
 const TYPE_CONFIG = {
-  CHECK_IN:  { label: "Check-in",  bg: "rgba(59,181,130,0.10)", color: "#3bb582" },
-  CHECK_OUT: { label: "Check-out", bg: "rgba(217,95,75,0.08)",  color: "#D95F4B" },
+  CHECK_IN: { bg: "#E8F8F1", color: "#187A56" },
+  CHECK_OUT: { bg: "#FFF0ED", color: "#B8402F" },
 };
 
+const TABS = [
+  { key: "CHECK_IN", labelKey: "inspection.type.CHECK_IN", color: "#2D9D72" },
+  { key: "CHECK_OUT", labelKey: "inspection.type.CHECK_OUT", color: "#D95F4B" },
+];
 
-function formatDate(iso) {
+const GENERIC_NOTES = [
+  "kiểm tra bàn giao nhà trước khi khách vào ở",
+  "kiem tra ban giao nha truoc khi khach vao o",
+  "kiểm tra bàn giao nhà khi khách trả nhà",
+  "kiem tra ban giao nha khi khach tra nha",
+];
+
+function extractItems(data) {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.data)) return data.data;
+  if (Array.isArray(data?.content)) return data.content;
+  return [];
+}
+
+function shortId(value) {
+  return value ? String(value).slice(0, 8).toUpperCase() : "--------";
+}
+
+function formatDateTime(iso) {
   if (!iso) return "—";
-  const d = new Date(iso);
-  if (isNaN(d)) return iso;
-  return d.toLocaleDateString("vi-VN", {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return new Intl.DateTimeFormat("vi-VN", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
-  });
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
 }
 
-function DetailModal({ inspection, onClose, t }) {
-  const [house, setHouse] = useState(null);
-  const [staff, setStaff] = useState(null);
-  const [fetching, setFetching] = useState(false);
+function meaningfulNote(note) {
+  const normalized = note?.trim().toLocaleLowerCase("vi-VN");
+  if (!normalized || GENERIC_NOTES.some((value) => normalized.includes(value))) {
+    return null;
+  }
+  return note.trim();
+}
 
-  useEffect(() => {
-    if (!inspection) return;
-    setHouse(null);
-    setStaff(null);
-    setFetching(true);
-    Promise.all([
-      inspection.houseId ? getHouseById(inspection.houseId).catch(() => null) : Promise.resolve(null),
-      inspection.assignedStaffId ? getUserById(inspection.assignedStaffId).catch(() => null) : Promise.resolve(null),
-    ]).then(([houseData, staffData]) => {
-      setHouse(houseData);
-      setStaff(staffData);
-      setFetching(false);
-    });
-  }, [inspection]);
+function resolveHouse(house, houseId) {
+  const name =
+    house?.name ??
+    house?.houseName ??
+    house?.code ??
+    `Nhà #${shortId(houseId)}`;
+  const address = [
+    house?.address,
+    house?.ward,
+    house?.district,
+    house?.city,
+  ]
+    .filter(Boolean)
+    .join(", ");
+  return { name, address };
+}
 
-  if (!inspection) return null;
-  const st = STATUS_CONFIG[inspection.status] ?? { bg: "#EAF4F0", color: "#5A7A6E", dot: "#5A7A6E" };
-  const stLabel = t(`inspection.status.${inspection.status}`, { defaultValue: inspection.status });
-  const tp = inspection.type ? (TYPE_CONFIG[inspection.type] ?? null) : null;
-  const tpLabel = inspection.type ? t(`inspection.type.${inspection.type}`, { defaultValue: inspection.type }) : null;
+function resolveContract(contract, contractId) {
+  return {
+    number:
+      contract?.contractNumber ??
+      contract?.code ??
+      contract?.name ??
+      shortId(contractId),
+    tenantName:
+      contract?.tenantName ??
+      contract?.tenant?.name ??
+      contract?.tenant?.fullName ??
+      contract?.nameOfTenant ??
+      contract?.name ??
+      null,
+    tenantContact:
+      contract?.tenantEmail ??
+      contract?.tenant?.email ??
+      contract?.email ??
+      contract?.tenantPhone ??
+      contract?.tenant?.phoneNumber ??
+      contract?.phoneNumber ??
+      null,
+  };
+}
 
-  const houseName = house?.name ?? house?.houseName ?? null;
-  const houseAddress = fetching ? null : ([house?.address, house?.ward, house?.city].filter(Boolean).join(", ") || null);
-  const staffName = staff?.fullName ?? staff?.name ?? null;
-  const staffPhone = staff?.phoneNumber ?? null;
-  const staffEmail = staff?.email ?? null;
-  const staffRole = staff?.roles?.[0] ?? null;
-  const staffInitial = staffName ? staffName.trim().split(" ").pop()[0].toUpperCase() : null;
+function resolveStaff(item, staff) {
+  return {
+    name:
+      item?.staffName ??
+      staff?.fullName ??
+      staff?.name ??
+      staff?.username ??
+      null,
+    contact:
+      item?.staffPhone ??
+      staff?.phoneNumber ??
+      staff?.phone ??
+      staff?.email ??
+      null,
+  };
+}
 
+function getTimeMeta(item, t) {
+  if (item.status === "CREATED") {
+    return {
+      label: t("inspection.createdAt"),
+      value: formatDateTime(item.createdAt),
+    };
+  }
+  if (["DONE", "PENDING_MANAGER_REVIEW", "APPROVED"].includes(item.status)) {
+    return {
+      label: t("inspection.completedLabel"),
+      value: formatDateTime(item.updatedAt),
+    };
+  }
+  return {
+    label: t("inspection.updatedAt"),
+    value: formatDateTime(item.updatedAt),
+  };
+}
+
+function getActionLabel(status, t) {
+  const keyByStatus = {
+    CREATED: "actionViewRequest",
+    SCHEDULED: "actionViewSchedule",
+    IN_PROGRESS: "actionTrack",
+    DONE: "actionReview",
+    PENDING_MANAGER_REVIEW: "actionReview",
+    APPROVED: "actionViewReport",
+    CANCELLED: "actionViewDetail",
+  };
+  return t(`inspection.${keyByStatus[status] ?? "actionViewDetail"}`);
+}
+
+function StatusBadge({ status, t }) {
+  const config = STATUS_CONFIG[status] ?? STATUS_CONFIG.CREATED;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm" style={{ background: "rgba(30,45,40,0.75)" }}>
-      <div className="rounded-3xl shadow-2xl w-full max-w-md mx-4 overflow-hidden" style={{ background: "#FFFFFF" }}>
-
-        {/* Banner */}
-        <div className="relative h-28 px-6 pt-5" style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}>
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-teal-100 text-xs font-medium mb-1">{t("inspection.detailTitle")}</p>
-              <p className="text-white text-xs font-mono opacity-60 truncate max-w-[260px]">#{inspection.id?.slice(0, 8).toUpperCase()}</p>
-            </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-          {/* Badges float on banner */}
-          <div className="absolute -bottom-4 left-6 flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold shadow-md" style={{ background: st.bg, color: st.color, border: "1px solid rgba(255,255,255,0.6)" }}>
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: st.dot }} />
-              {stLabel}
-            </span>
-            {tp && (
-              <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold shadow-md" style={{ background: tp.bg, color: tp.color, border: "1px solid rgba(255,255,255,0.6)" }}>
-                {tpLabel}
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Body */}
-        <div className="px-6 pt-8 pb-6 space-y-4">
-
-          {/* House card */}
-          <div className="rounded-2xl p-4 flex items-start gap-3" style={{ background: "#ffffff", border: "1px solid #C4DED5" }}>
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "#EAF4F0" }}>
-              <MapPin className="w-4 h-4" style={{ color: "#3bb582" }} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium mb-0.5" style={{ color: "#5A7A6E" }}>{t("inspection.houseInfo")}</p>
-              {fetching ? (
-                <div className="space-y-1.5">
-                  <div className="h-3 w-36 rounded animate-pulse" style={{ background: "#EAF4F0" }} />
-                  <div className="h-3 w-48 rounded animate-pulse" style={{ background: "#EAF4F0" }} />
-                </div>
-              ) : (
-                <>
-                  <p className="text-sm font-semibold truncate" style={{ color: "#1E2D28" }}>{houseName ?? "—"}</p>
-                  {houseAddress && <p className="text-xs mt-0.5 leading-relaxed" style={{ color: "#5A7A6E" }}>{houseAddress}</p>}
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Staff card */}
-          <div className="rounded-2xl p-4 flex items-start gap-3" style={{ background: "#ffffff", border: "1px solid #C4DED5" }}>
-            {fetching ? (
-              <div className="w-10 h-10 rounded-xl animate-pulse flex-shrink-0" style={{ background: "#EAF4F0" }} />
-            ) : staffInitial ? (
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "rgba(32,150,216,0.12)" }}>
-                <span className="text-sm font-bold" style={{ color: "#2096d8" }}>{staffInitial}</span>
-              </div>
-            ) : (
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "#EAF4F0" }}>
-                <User className="w-4 h-4" style={{ color: "#5A7A6E" }} />
-              </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium mb-1" style={{ color: "#5A7A6E" }}>{t("inspection.staffInfo")}</p>
-              {fetching ? (
-                <div className="space-y-1.5">
-                  <div className="h-3 w-32 rounded animate-pulse" style={{ background: "#EAF4F0" }} />
-                  <div className="h-3 w-24 rounded animate-pulse" style={{ background: "#EAF4F0" }} />
-                </div>
-              ) : staffName ? (
-                <div className="space-y-1">
-                  <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>{staffName}</p>
-                  {staffPhone && (
-                    <p className="text-xs flex items-center gap-1" style={{ color: "#5A7A6E" }}>
-                      <Phone className="w-3 h-3" style={{ color: "#5A7A6E" }} />
-                      <a href={`tel:${staffPhone}`} className="transition" style={{ color: "#5A7A6E" }}
-                        onMouseEnter={e => e.currentTarget.style.color = "#3bb582"}
-                        onMouseLeave={e => e.currentTarget.style.color = "#5A7A6E"}
-                      >{staffPhone}</a>
-                    </p>
-                  )}
-                  {staffEmail && <p className="text-xs truncate" style={{ color: "#5A7A6E" }}>{staffEmail}</p>}
-                  {staffRole && (
-                    <span className="inline-block text-[10px] font-semibold px-2 py-0.5 rounded-full mt-0.5" style={{ background: "rgba(32,150,216,0.10)", color: "#2096d8" }}>
-                      {staffRole}
-                    </span>
-                  )}
-                </div>
-              ) : (
-                <p className="text-sm" style={{ color: "#5A7A6E" }}>{t("inspection.staffNone")}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Note + Dates */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="col-span-2 rounded-2xl px-4 py-3 flex items-start gap-2.5" style={{ background: "#ffffff", border: "1px solid #C4DED5" }}>
-              <FileText className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "#5A7A6E" }} />
-              <div className="min-w-0">
-                <p className="text-xs font-medium mb-0.5" style={{ color: "#5A7A6E" }}>{t("inspection.noteLabel")}</p>
-                <p className="text-sm leading-relaxed" style={{ color: "#1E2D28" }}>{inspection.note || "—"}</p>
-              </div>
-            </div>
-            <div className="rounded-2xl px-4 py-3 flex items-start gap-2.5" style={{ background: "#ffffff", border: "1px solid #C4DED5" }}>
-              <Calendar className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "#5A7A6E" }} />
-              <div>
-                <p className="text-xs font-medium mb-0.5" style={{ color: "#5A7A6E" }}>{t("inspection.createdAt")}</p>
-                <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>{formatDate(inspection.createdAt)}</p>
-              </div>
-            </div>
-            <div className="rounded-2xl px-4 py-3 flex items-start gap-2.5" style={{ background: "#ffffff", border: "1px solid #C4DED5" }}>
-              <Tag className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "#5A7A6E" }} />
-              <div>
-                <p className="text-xs font-medium mb-0.5" style={{ color: "#5A7A6E" }}>{t("inspection.updatedAt")}</p>
-                <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>{formatDate(inspection.updatedAt)}</p>
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-full py-2.5 rounded-2xl text-sm font-semibold transition"
-            style={{ background: "#EAF4F0", color: "#5A7A6E" }}
-            onMouseEnter={e => e.currentTarget.style.background = "#C4DED5"}
-            onMouseLeave={e => e.currentTarget.style.background = "#EAF4F0"}
-          >
-            {t("actions.close")}
-          </button>
-        </div>
-      </div>
-    </div>
+    <span
+      className="inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
+      style={{ background: config.bg, color: config.color }}
+    >
+      <span
+        className="h-1.5 w-1.5 rounded-full"
+        style={{ background: config.dot }}
+      />
+      {t(`inspection.status.${status}`, { defaultValue: status })}
+    </span>
   );
 }
 
-const TABS = [
-  { key: "CHECK_IN",  labelKey: "inspection.type.CHECK_IN",  color: "#3bb582", bg: "rgba(59,181,130,0.10)" },
-  { key: "CHECK_OUT", labelKey: "inspection.type.CHECK_OUT", color: "#D95F4B", bg: "rgba(217,95,75,0.08)" },
-];
+function RecordAction({ item, onClick, t }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-700 transition hover:border-emerald-600 hover:bg-emerald-600 hover:text-white"
+    >
+      {getActionLabel(item.status, t)}
+      <ChevronRight className="h-3.5 w-3.5" />
+    </button>
+  );
+}
 
 export default function InspectionsPage() {
   const { t } = useTranslation("common");
+  const navigate = useNavigate();
   const [inspections, setInspections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
   const [activeTab, setActiveTab] = useState("CHECK_IN");
-  const [slideDir, setSlideDir] = useState("right");
   const [filterStatus, setFilterStatus] = useState("");
-  const [selectedInspection, setSelectedInspection] = useState(null);
-  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const handleTabChange = (key) => {
-    if (key === activeTab) return;
-    const newIdx = TABS.findIndex((t) => t.key === key);
-    const oldIdx = TABS.findIndex((t) => t.key === activeTab);
-    setSlideDir(newIdx > oldIdx ? "right" : "left");
-    setActiveTab(key);
-  };
-
-  const fetchInspections = (status = filterStatus, type = activeTab) => {
+  const fetchInspections = useCallback(async () => {
     setLoading(true);
     setError(null);
-    getInspections({ status: status || undefined, type })
-      .then((data) =>
-        setInspections(
-          Array.isArray(data) ? data : (data?.items ?? data?.data ?? []),
-        ),
-      )
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-  };
+    try {
+      const response = await getInspections({
+        page: 1,
+        size: 100,
+        sortBy: "updatedAt",
+        sortDir: "desc",
+      });
+      const items = extractItems(response);
+      const houseIds = [...new Set(items.map((item) => item.houseId).filter(Boolean))];
+      const contractIds = [
+        ...new Set(items.map((item) => item.contractId).filter(Boolean)),
+      ];
+      const staffIds = [
+        ...new Set(items.map((item) => item.assignedStaffId).filter(Boolean)),
+      ];
 
-  useEffect(() => { fetchInspections(filterStatus, activeTab); }, [activeTab, filterStatus]);
+      const [houses, contracts, staffs] = await Promise.all([
+        Promise.all(
+          houseIds.map(async (id) => [
+            id,
+            await getHouseById(id).catch(() => null),
+          ]),
+        ),
+        Promise.all(
+          contractIds.map(async (id) => [
+            id,
+            await getContractById(id).catch(() => null),
+          ]),
+        ),
+        Promise.all(
+          staffIds.map(async (id) => [
+            id,
+            await getUserById(id).catch(() => null),
+          ]),
+        ),
+      ]);
+
+      const houseMap = new Map(houses);
+      const contractMap = new Map(contracts);
+      const staffMap = new Map(staffs);
+
+      setInspections(
+        items.map((item) => ({
+          ...item,
+          houseInfo: resolveHouse(houseMap.get(item.houseId), item.houseId),
+          contractInfo: resolveContract(
+            contractMap.get(item.contractId),
+            item.contractId,
+          ),
+          staffInfo: resolveStaff(item, staffMap.get(item.assignedStaffId)),
+        })),
+      );
+    } catch (fetchError) {
+      setError(fetchError.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchInspections();
+  }, [fetchInspections]);
+
+  const countsByType = useMemo(
+    () =>
+      inspections.reduce(
+        (counts, item) => {
+          if (counts[item.type] !== undefined) counts[item.type] += 1;
+          return counts;
+        },
+        { CHECK_IN: 0, CHECK_OUT: 0 },
+      ),
+    [inspections],
+  );
+
+  const tabInspections = useMemo(
+    () => inspections.filter((item) => item.type === activeTab),
+    [activeTab, inspections],
+  );
+
+  const summary = useMemo(
+    () => ({
+      total: tabInspections.length,
+      waiting: tabInspections.filter((item) => item.status === "CREATED").length,
+      active: tabInspections.filter((item) =>
+        ["SCHEDULED", "IN_PROGRESS"].includes(item.status),
+      ).length,
+      review: tabInspections.filter((item) =>
+        ["DONE", "PENDING_MANAGER_REVIEW"].includes(item.status),
+      ).length,
+      approved: tabInspections.filter((item) => item.status === "APPROVED").length,
+    }),
+    [tabInspections],
+  );
+
+  const visibleInspections = useMemo(() => {
+    const keyword = searchTerm.trim().toLocaleLowerCase("vi-VN");
+    return tabInspections.filter((item) => {
+      if (filterStatus && item.status !== filterStatus) return false;
+      if (!keyword) return true;
+      const searchable = [
+        item.houseInfo?.name,
+        item.houseInfo?.address,
+        item.contractInfo?.number,
+        item.contractInfo?.tenantName,
+        item.contractInfo?.tenantContact,
+        item.staffInfo?.name,
+        item.staffInfo?.contact,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLocaleLowerCase("vi-VN");
+      return searchable.includes(keyword);
+    });
+  }, [filterStatus, searchTerm, tabInspections]);
+
+  const summaryItems = [
+    ["total", t("inspection.summaryTotal")],
+    ["waiting", t("inspection.summaryWaiting")],
+    ["active", t("inspection.summaryActive")],
+    ["review", t("inspection.summaryReview")],
+    ["approved", t("inspection.summaryApproved")],
+  ];
 
   return (
     <div className="space-y-5">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="font-heading text-3xl font-bold" style={{ color: "#1E2D28" }}>{t("inspection.pageTitle")}</h2>
+          <h2 className="font-heading text-3xl font-bold text-slate-900">
+            {t("inspection.pageTitle")}
+          </h2>
+          <p className="mt-1 max-w-2xl text-sm text-slate-500">
+            {t("inspection.pageSubtitle")}
+          </p>
         </div>
-        <div className="flex items-center gap-2 mt-1">
+        <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => fetchInspections()}
+            onClick={fetchInspections}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-semibold rounded-full transition disabled:opacity-50"
-            style={{ border: "1px solid #C4DED5", color: "#5A7A6E", background: "#ffffff" }}
-            onMouseEnter={e => e.currentTarget.style.background = "#EAF4F0"}
-            onMouseLeave={e => e.currentTarget.style.background = "#ffffff"}
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} style={{ color: "#3bb582" }} />
+            <RefreshCw
+              className={`h-4 w-4 text-emerald-600 ${loading ? "animate-spin" : ""}`}
+            />
             {t("actions.refresh")}
           </button>
           <button
             type="button"
             onClick={() => setShowCreate(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-white text-sm font-semibold rounded-full shadow-sm transition"
-            style={{ background: "linear-gradient(135deg, #3bb582 0%, #2096d8 100%)" }}
-            onMouseEnter={e => e.currentTarget.style.opacity = "0.9"}
-            onMouseLeave={e => e.currentTarget.style.opacity = "1"}
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-emerald-600 px-4 text-sm font-semibold text-white transition hover:bg-emerald-700"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="h-4 w-4" />
             {t("inspection.createBtn")}
           </button>
         </div>
       </div>
 
-      {/* Main card */}
-      <div
-        className="rounded-2xl overflow-hidden"
-        style={{ background: "#FFFFFF", border: "1px solid #C4DED5", boxShadow: "0 4px 20px -2px rgba(59,181,130,0.08)" }}
-      >
-        {/* Row 1 — Type tabs */}
-        <div className="flex items-center gap-0 px-5 pt-4 pb-0" style={{ borderBottom: "1px solid #C4DED5" }}>
+      <section className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+        <div className="flex border-b border-slate-200 px-4 pt-2">
           {TABS.map((tab) => {
-            const isActive = activeTab === tab.key;
-            const count = activeTab === tab.key ? inspections.length : null;
+            const active = activeTab === tab.key;
             return (
               <button
                 key={tab.key}
                 type="button"
-                onClick={() => handleTabChange(tab.key)}
-                className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold whitespace-nowrap transition-all flex-shrink-0"
-                style={isActive
-                  ? { color: tab.color, borderBottom: "2px solid " + tab.color, marginBottom: "-1px", paddingBottom: "calc(0.625rem + 1px)" }
-                  : { color: "#9CA3AF", borderBottom: "2px solid transparent", marginBottom: "-1px" }}
-                onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = "#5A7A6E"; }}
-                onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = "#9CA3AF"; }}
+                onClick={() => {
+                  setActiveTab(tab.key);
+                  setFilterStatus("");
+                }}
+                className="flex min-h-12 items-center gap-2 border-b-2 px-4 text-sm font-semibold transition"
+                style={{
+                  borderBottomColor: active ? tab.color : "transparent",
+                  color: active ? tab.color : "#64748B",
+                }}
               >
-                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: tab.color }} />
                 {t(tab.labelKey)}
-                {isActive && !loading && count > 0 && (
-                  <span
-                    className="text-[10px] font-bold px-1.5 py-0.5 rounded-full"
-                    style={{ background: tab.bg, color: tab.color }}
-                  >
-                    {count}
-                  </span>
-                )}
+                <span
+                  className="min-w-6 rounded-full px-1.5 py-0.5 text-center text-[11px]"
+                  style={{
+                    background: active ? `${tab.color}16` : "#F1F5F9",
+                    color: active ? tab.color : "#64748B",
+                  }}
+                >
+                  {countsByType[tab.key]}
+                </span>
               </button>
             );
           })}
         </div>
 
-        {/* Row 2 — Status filter */}
-        <div className="flex items-center gap-1 px-5 py-2 overflow-x-auto" style={{ borderBottom: "1px solid #C4DED5", background: "#F7FBF9" }}>
-          {STATUS_FILTER_VALUES.map((v) => {
-            const isActive = filterStatus === v;
-            const cfg = v ? STATUS_CONFIG[v] : null;
-            return (
-              <button
-                key={v}
-                type="button"
-                onClick={() => setFilterStatus(v)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all flex-shrink-0"
-                style={isActive
-                  ? { background: cfg ? cfg.bg : "#EAF4F0", color: cfg ? cfg.color : "#3bb582", border: "1.5px solid " + (cfg ? cfg.color : "#3bb582") }
-                  : { background: "transparent", color: "#5A7A6E", border: "1.5px solid transparent" }}
-                onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "#EAF4F0"; }}
-                onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
-              >
-                {cfg && <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: cfg.dot }} />}
-                {v ? t(`inspection.status.${v}`, { defaultValue: v }) : t("inspection.filterAll")}
-              </button>
-            );
-          })}
+        <div className="grid grid-cols-2 border-b border-slate-200 bg-slate-50 sm:grid-cols-5">
+          {summaryItems.map(([key, label], index) => (
+            <div
+              key={key}
+              className={`px-4 py-3 ${
+                index < summaryItems.length - 1 ? "sm:border-r sm:border-slate-200" : ""
+              }`}
+            >
+              <p className="text-xs font-medium text-slate-500">{label}</p>
+              <p className="mt-0.5 text-xl font-bold text-slate-900">
+                {summary[key]}
+              </p>
+            </div>
+          ))}
         </div>
 
-        {/* Content */}
-        <div key={activeTab} className={slideDir === "right" ? "slide-from-right" : "slide-from-left"}>
+        <div className="space-y-3 border-b border-slate-200 px-4 py-3">
+          <div className="relative max-w-md">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder={t("inspection.searchPlaceholder")}
+              className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+            />
+          </div>
+          <div className="flex gap-1 overflow-x-auto pb-0.5">
+            {STATUS_FILTER_VALUES.map((value) => {
+              const active = filterStatus === value;
+              const config = value ? STATUS_CONFIG[value] : null;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setFilterStatus(value)}
+                  className="inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition"
+                  style={
+                    active
+                      ? {
+                          background: config?.bg ?? "#E8F8F1",
+                          color: config?.color ?? "#187A56",
+                          borderColor: config?.dot ?? "#3BB582",
+                        }
+                      : {
+                          background: "#FFFFFF",
+                          color: "#64748B",
+                          borderColor: "#E2E8F0",
+                        }
+                  }
+                >
+                  {config && (
+                    <span
+                      className="h-1.5 w-1.5 rounded-full"
+                      style={{ background: config.dot }}
+                    />
+                  )}
+                  {value
+                    ? t(`inspection.status.${value}`, { defaultValue: value })
+                    : t("inspection.filterAll")}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-        {/* Loading */}
         {loading && (
-          <div>
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="px-6 py-4 flex items-center gap-5" style={{ borderBottom: "1px solid rgba(196,222,213,0.35)" }}>
-                <div className="w-6 h-3 rounded animate-pulse" style={{ background: "#EAF4F0" }} />
-                <div className="flex-1 h-3 rounded animate-pulse" style={{ background: "#EAF4F0" }} />
-                <div className="w-20 h-5 rounded-full animate-pulse" style={{ background: "#EAF4F0" }} />
-                <div className="w-24 h-3 rounded animate-pulse" style={{ background: "#EAF4F0" }} />
-                <div className="w-20 h-6 rounded-full animate-pulse" style={{ background: "#EAF4F0" }} />
+          <div className="space-y-0">
+            {[...Array(5)].map((_, index) => (
+              <div
+                key={index}
+                className="flex gap-5 border-b border-slate-100 px-5 py-5"
+              >
+                <div className="h-11 w-11 animate-pulse rounded-lg bg-slate-100" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-48 animate-pulse rounded bg-slate-100" />
+                  <div className="h-3 w-72 max-w-full animate-pulse rounded bg-slate-100" />
+                </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* Error */}
         {!loading && error && (
-          <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <p className="text-sm font-semibold" style={{ color: "#D95F4B" }}>{error}</p>
-            <button type="button" onClick={fetchInspections} className="text-xs font-semibold underline" style={{ color: "#D95F4B" }}>
+          <div className="flex flex-col items-center gap-3 px-4 py-16 text-center">
+            <p className="text-sm font-semibold text-red-600">{error}</p>
+            <button
+              type="button"
+              onClick={fetchInspections}
+              className="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-700"
+            >
               {t("actions.retry")}
             </button>
           </div>
         )}
 
-        {/* Empty */}
-        {!loading && !error && inspections.length === 0 && (
-          <div className="py-20 flex flex-col items-center gap-3">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "#EAF4F0" }}>
-              <ClipboardCheck className="w-7 h-7" style={{ color: "#3bb582" }} />
+        {!loading && !error && visibleInspections.length === 0 && (
+          <div className="flex flex-col items-center gap-3 px-4 py-16 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-50">
+              <ClipboardCheck className="h-6 w-6 text-emerald-600" />
             </div>
-            <p className="text-sm font-semibold" style={{ color: "#1E2D28" }}>{t("inspection.emptyTitle")}</p>
-            <p className="text-xs" style={{ color: "#9CA3AF" }}>
-              {activeTab === "CHECK_IN" ? t("inspection.emptyCheckin") : t("inspection.emptyCheckout")}
+            <p className="text-sm font-semibold text-slate-900">
+              {t("inspection.emptyTitle")}
+            </p>
+            <p className="text-xs text-slate-500">
+              {searchTerm || filterStatus
+                ? t("inspection.emptyFiltered")
+                : activeTab === "CHECK_IN"
+                  ? t("inspection.emptyCheckin")
+                  : t("inspection.emptyCheckout")}
             </p>
           </div>
         )}
 
-        {/* List */}
-        {!loading && !error && inspections.length > 0 && (
-          <div>
-            {/* Table header */}
-            <div
-              className="grid gap-4 px-6 py-2.5"
-              style={{ gridTemplateColumns: "44px 1fr 140px 160px 130px", borderBottom: "1px solid #C4DED5", background: "#EAF4F0" }}
-            >
-              {["#", t("inspection.colNote"), t("inspection.colType"), t("inspection.colCompletedAt"), t("inspection.colAction")].map((h) => (
-                <p key={h} className="text-[11px] font-bold uppercase tracking-widest" style={{ color: "#5A7A6E" }}>{h}</p>
-              ))}
+        {!loading && !error && visibleInspections.length > 0 && (
+          <>
+            <div className="hidden overflow-x-auto lg:block">
+              <div className="min-w-[1180px]">
+                <div className="grid grid-cols-[minmax(250px,1.5fr)_minmax(170px,1fr)_100px_minmax(160px,.9fr)_minmax(160px,.9fr)_170px_150px] gap-4 border-b border-slate-200 bg-slate-50 px-5 py-3">
+                  {[
+                    t("inspection.colHouse"),
+                    t("inspection.colTenant"),
+                    t("inspection.colType"),
+                    t("inspection.colSchedule"),
+                    t("inspection.colStaff"),
+                    t("inspection.colStatus"),
+                    t("inspection.colAction"),
+                  ].map((label) => (
+                    <p
+                      key={label}
+                      className="text-[11px] font-bold uppercase text-slate-500"
+                    >
+                      {label}
+                    </p>
+                  ))}
+                </div>
+
+                {visibleInspections.map((item) => {
+                  const type = TYPE_CONFIG[item.type] ?? TYPE_CONFIG.CHECK_IN;
+                  const time = getTimeMeta(item, t);
+                  const note = meaningfulNote(item.note);
+                  return (
+                    <div
+                      key={item.id}
+                      className="grid grid-cols-[minmax(250px,1.5fr)_minmax(170px,1fr)_100px_minmax(160px,.9fr)_minmax(160px,.9fr)_170px_150px] items-center gap-4 border-b border-slate-100 px-5 py-4 transition last:border-b-0 hover:bg-emerald-50/40"
+                    >
+                      <div className="flex min-w-0 items-start gap-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100">
+                          <House className="h-4 w-4 text-slate-600" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-slate-900">
+                            {item.houseInfo.name}
+                          </p>
+                          <p className="truncate text-xs text-slate-500">
+                            {item.houseInfo.address ||
+                              t("inspection.addressUnavailable")}
+                          </p>
+                          <p className="mt-1 text-[11px] font-medium text-emerald-700">
+                            {t("inspection.contractLabel")} #
+                            {item.contractInfo.number}
+                          </p>
+                          {note && (
+                            <p className="mt-1 line-clamp-1 text-xs text-slate-500">
+                              {note}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-slate-800">
+                          {item.contractInfo.tenantName ??
+                            t("inspection.tenantUnknown")}
+                        </p>
+                        <p className="truncate text-xs text-slate-500">
+                          {item.contractInfo.tenantContact ?? "—"}
+                        </p>
+                      </div>
+
+                      <span
+                        className="w-fit rounded-full px-2.5 py-1 text-xs font-semibold"
+                        style={{ background: type.bg, color: type.color }}
+                      >
+                        {t(`inspection.type.${item.type}`, {
+                          defaultValue: item.type,
+                        })}
+                      </span>
+
+                      <div>
+                        <p className="text-xs font-medium text-slate-500">
+                          {time.label}
+                        </p>
+                        <p className="mt-0.5 text-sm text-slate-800">
+                          {time.value}
+                        </p>
+                      </div>
+
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-slate-800">
+                          {item.staffInfo.name ?? t("inspection.staffNone")}
+                        </p>
+                        <p className="truncate text-xs text-slate-500">
+                          {item.staffInfo.contact ?? "—"}
+                        </p>
+                      </div>
+
+                      <StatusBadge status={item.status} t={t} />
+
+                      <RecordAction
+                        item={item}
+                        t={t}
+                        onClick={() =>
+                          navigate(`/maintenance/inspections/${item.id}`)
+                        }
+                      />
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
-            {inspections.map((item, idx) => {
-              const tp = TYPE_CONFIG[item.type] ?? { bg: "#EAF4F0", color: "#5A7A6E" };
-              const st = STATUS_CONFIG[item.status] ?? { bg: "#EAF4F0", color: "#5A7A6E", dot: "#5A7A6E" };
-              return (
-                <div
-                  key={item.id}
-                  className="grid gap-4 px-6 py-4 transition-colors items-center group"
-                  style={{ gridTemplateColumns: "44px 1fr 140px 160px 130px", borderBottom: "1px solid rgba(196,222,213,0.35)" }}
-                  onMouseEnter={e => e.currentTarget.style.background = "#F5FDF9"}
-                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                >
-                  {/* No. */}
-                  <span className="text-xs font-mono font-bold" style={{ color: "#D1D5DB" }}>{String(idx + 1).padStart(2, "0")}</span>
+            <div className="divide-y divide-slate-100 lg:hidden">
+              {visibleInspections.map((item) => {
+                const type = TYPE_CONFIG[item.type] ?? TYPE_CONFIG.CHECK_IN;
+                const time = getTimeMeta(item, t);
+                return (
+                  <article key={item.id} className="space-y-4 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-start gap-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100">
+                          <House className="h-4 w-4 text-slate-600" />
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="truncate text-sm font-semibold text-slate-900">
+                            {item.houseInfo.name}
+                          </h3>
+                          <p className="truncate text-xs text-slate-500">
+                            {item.houseInfo.address ||
+                              t("inspection.addressUnavailable")}
+                          </p>
+                          <p className="mt-1 text-[11px] font-medium text-emerald-700">
+                            {t("inspection.contractLabel")} #
+                            {item.contractInfo.number}
+                          </p>
+                        </div>
+                      </div>
+                      <span
+                        className="shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold"
+                        style={{ background: type.bg, color: type.color }}
+                      >
+                        {t(`inspection.type.${item.type}`, {
+                          defaultValue: item.type,
+                        })}
+                      </span>
+                    </div>
 
-                  {/* Note + status badge */}
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: "#1E2D28" }}>{item.note || "—"}</p>
-                    <span
-                      className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                      style={{ background: st.bg, color: st.color }}
-                    >
-                      <span className="w-1 h-1 rounded-full" style={{ background: st.dot }} />
-                      {t(`inspection.status.${item.status}`, { defaultValue: item.status })}
-                    </span>
-                  </div>
+                    <div className="grid grid-cols-2 gap-3 rounded-lg bg-slate-50 p-3">
+                      <div className="min-w-0">
+                        <p className="flex items-center gap-1 text-[11px] font-medium text-slate-500">
+                          <UserRound className="h-3 w-3" />
+                          {t("inspection.colTenant")}
+                        </p>
+                        <p className="mt-1 truncate text-xs font-semibold text-slate-800">
+                          {item.contractInfo.tenantName ??
+                            t("inspection.tenantUnknown")}
+                        </p>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="flex items-center gap-1 text-[11px] font-medium text-slate-500">
+                          <CalendarClock className="h-3 w-3" />
+                          {time.label}
+                        </p>
+                        <p className="mt-1 text-xs font-semibold text-slate-800">
+                          {time.value}
+                        </p>
+                      </div>
+                      <div className="min-w-0">
+                        <p className="flex items-center gap-1 text-[11px] font-medium text-slate-500">
+                          <FileCheck2 className="h-3 w-3" />
+                          {t("inspection.colStaff")}
+                        </p>
+                        <p className="mt-1 truncate text-xs font-semibold text-slate-800">
+                          {item.staffInfo.name ?? t("inspection.staffNone")}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="mb-1 text-[11px] font-medium text-slate-500">
+                          {t("inspection.colStatus")}
+                        </p>
+                        <StatusBadge status={item.status} t={t} />
+                      </div>
+                    </div>
 
-                  {/* Type */}
-                  <span
-                    className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold w-fit"
-                    style={{ background: tp.bg, color: tp.color }}
-                  >
-                    {t(`inspection.type.${item.type}`, { defaultValue: item.type })}
-                  </span>
-
-                  {/* Date */}
-                  <p className="text-sm" style={{ color: "#5A7A6E" }}>{formatDate(item.completedAt ?? item.updatedAt)}</p>
-
-                  {/* Action */}
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/maintenance/inspections/${item.id}`)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition w-fit"
-                    style={{ background: "rgba(59,181,130,0.10)", color: "#3bb582", border: "1px solid rgba(59,181,130,0.2)" }}
-                    onMouseEnter={e => { e.currentTarget.style.background = "#3bb582"; e.currentTarget.style.color = "#fff"; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = "rgba(59,181,130,0.10)"; e.currentTarget.style.color = "#3bb582"; }}
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    {t("inspection.viewResult")}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
+                    <RecordAction
+                      item={item}
+                      t={t}
+                      onClick={() =>
+                        navigate(`/maintenance/inspections/${item.id}`)
+                      }
+                    />
+                  </article>
+                );
+              })}
+            </div>
+          </>
         )}
-
-        </div>{/* end slide wrapper */}
-      </div>{/* end main card */}
+      </section>
 
       <CreateInspectionModal
         open={showCreate}
         type={activeTab}
         onClose={() => setShowCreate(false)}
-        onCreated={() => { setShowCreate(false); fetchInspections(); }}
+        onCreated={() => {
+          setShowCreate(false);
+          fetchInspections();
+        }}
       />
     </div>
   );
