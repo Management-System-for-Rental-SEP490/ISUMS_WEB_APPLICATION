@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { getContractById } from "../../contracts/api/contracts.api";
 import { getHouseById } from "../../houses/api/houses.api";
+import { getWorkSlotById } from "../../schedule/api/schedule.api";
 import { getUserById } from "../../tenants/api/users.api";
 import CreateInspectionModal from "../components/CreateInspectionModal";
 import { getInspections } from "../api/maintenance.api";
@@ -70,17 +71,41 @@ function shortId(value) {
   return value ? String(value).slice(0, 8).toUpperCase() : "--------";
 }
 
-function formatDateTime(iso) {
-  if (!iso) return "—";
+const VIETNAM_TIME_ZONE = "Asia/Ho_Chi_Minh";
+
+function formatVietnamInstant(iso) {
+  if (!iso) return null;
   const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return iso;
-  return new Intl.DateTimeFormat("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
+  if (Number.isNaN(date.getTime())) return null;
+  return {
+    date: new Intl.DateTimeFormat("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      timeZone: VIETNAM_TIME_ZONE,
+    }).format(date),
+    time: new Intl.DateTimeFormat("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: VIETNAM_TIME_ZONE,
+    }).format(date),
+  };
+}
+
+function formatVietnamLocalSlot(startTime, endTime) {
+  if (!startTime) return null;
+  const [datePart, startPart = ""] = String(startTime).split("T");
+  const [year, month, day] = datePart.split("-");
+  if (!year || !month || !day) return null;
+
+  const endPart = String(endTime ?? "").split("T")[1] ?? "";
+  const start = startPart.slice(0, 5);
+  const end = endPart.slice(0, 5);
+  return {
+    date: `${day}/${month}/${year}`,
+    time: end ? `${start} - ${end}` : start || null,
+  };
 }
 
 function meaningfulNote(note) {
@@ -154,22 +179,40 @@ function resolveStaff(item, staff) {
   };
 }
 
+function resolveSlot(slot) {
+  return {
+    startTime: slot?.startTime ?? null,
+    endTime: slot?.endTime ?? null,
+  };
+}
+
 function getTimeMeta(item, t) {
   if (item.status === "CREATED") {
     return {
       label: t("inspection.createdAt"),
-      value: formatDateTime(item.createdAt),
+      ...(formatVietnamInstant(item.createdAt) ?? {}),
     };
   }
-  if (["DONE", "PENDING_MANAGER_REVIEW", "APPROVED"].includes(item.status)) {
+
+  if (["SCHEDULED", "IN_PROGRESS"].includes(item.status)) {
     return {
-      label: t("inspection.completedLabel"),
-      value: formatDateTime(item.updatedAt),
+      label: t("inspection.scheduledAt"),
+      ...(formatVietnamLocalSlot(
+        item.slotInfo?.startTime,
+        item.slotInfo?.endTime,
+      ) ?? { date: t("inspection.scheduleUnavailable") }),
     };
   }
+
+  const labelKeys = {
+    DONE: "completedLabel",
+    PENDING_MANAGER_REVIEW: "submittedAt",
+    APPROVED: "approvedAt",
+    CANCELLED: "cancelledAt",
+  };
   return {
-    label: t("inspection.updatedAt"),
-    value: formatDateTime(item.updatedAt),
+    label: t(`inspection.${labelKeys[item.status] ?? "updatedAt"}`),
+    ...(formatVietnamInstant(item.updatedAt ?? item.createdAt) ?? {}),
   };
 }
 
@@ -233,7 +276,7 @@ export default function InspectionsPage() {
       const response = await getInspections({
         page: 1,
         size: 50,
-        sortBy: "updatedAt",
+        sortBy: "createdAt",
         sortDir: "DESC",
       });
       const items = extractItems(response);
@@ -243,6 +286,7 @@ export default function InspectionsPage() {
           houseInfo: resolveHouse(null, item.houseId),
           contractInfo: resolveContract(null, item.contractId),
           staffInfo: resolveStaff(item, null),
+          slotInfo: resolveSlot(null),
         })),
       );
       setLoading(false);
@@ -254,8 +298,11 @@ export default function InspectionsPage() {
       const staffIds = [
         ...new Set(items.map((item) => item.assignedStaffId).filter(Boolean)),
       ];
+      const slotIds = [
+        ...new Set(items.map((item) => item.slotId).filter(Boolean)),
+      ];
 
-      const [houses, contracts, staffs] = await Promise.all([
+      const [houses, contracts, staffs, slots] = await Promise.all([
         Promise.all(
           houseIds.map(async (id) => [
             id,
@@ -274,11 +321,18 @@ export default function InspectionsPage() {
             await getUserById(id).catch(() => null),
           ]),
         ),
+        Promise.all(
+          slotIds.map(async (id) => [
+            id,
+            await getWorkSlotById(id).catch(() => null),
+          ]),
+        ),
       ]);
 
       const houseMap = new Map(houses);
       const contractMap = new Map(contracts);
       const staffMap = new Map(staffs);
+      const slotMap = new Map(slots);
 
       setInspections(
         items.map((item) => ({
@@ -289,6 +343,7 @@ export default function InspectionsPage() {
             item.contractId,
           ),
           staffInfo: resolveStaff(item, staffMap.get(item.assignedStaffId)),
+          slotInfo: resolveSlot(slotMap.get(item.slotId)),
         })),
       );
     } catch (fetchError) {
@@ -624,9 +679,14 @@ export default function InspectionsPage() {
                         <p className="text-xs font-medium text-slate-500">
                           {time.label}
                         </p>
-                        <p className="mt-0.5 text-sm text-slate-800">
-                          {time.value}
+                        <p className="mt-0.5 whitespace-nowrap text-sm font-medium text-slate-800">
+                          {time.date ?? "—"}
                         </p>
+                        {time.time && (
+                          <p className="mt-0.5 whitespace-nowrap text-xs text-slate-500">
+                            {time.time}
+                          </p>
+                        )}
                       </div>
 
                       <div className="min-w-0">
@@ -705,8 +765,13 @@ export default function InspectionsPage() {
                           {time.label}
                         </p>
                         <p className="mt-1 text-xs font-semibold text-slate-800">
-                          {time.value}
+                          {time.date ?? "—"}
                         </p>
+                        {time.time && (
+                          <p className="mt-0.5 text-[11px] text-slate-500">
+                            {time.time}
+                          </p>
+                        )}
                       </div>
                       <div className="min-w-0">
                         <p className="flex items-center gap-1 text-[11px] font-medium text-slate-500">

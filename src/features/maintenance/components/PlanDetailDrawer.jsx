@@ -16,7 +16,12 @@ function formatDate(value) {
   if (!value) return "—";
   const d = new Date(value);
   if (isNaN(d)) return value;
-  return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+  return d.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "Asia/Ho_Chi_Minh",
+  });
 }
 
 export default function PlanDetailDrawer({ open, planId, onClose, t }) {

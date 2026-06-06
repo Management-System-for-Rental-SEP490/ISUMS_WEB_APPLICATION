@@ -136,6 +136,22 @@ export async function getWorkSlotsInRange(start, end) {
 }
 
 /**
+ * Get a work slot by ID.
+ * Schedule timestamps are local date-times in Vietnam and must not be
+ * converted as UTC by the frontend.
+ * @param {string} slotId
+ * @returns {Promise<Object>}
+ */
+export async function getWorkSlotById(slotId) {
+  try {
+    const response = await api.get(SCHEDULE_ENDPOINTS.WORK_SLOT_BY_ID(slotId));
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
+/**
  * Create a new work slot.
  * @param {{ staffId: string, jobId: string, jobType: string, startTime: string }} payload
  * @returns {Promise<Object>} Created work slot

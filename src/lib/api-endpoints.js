@@ -166,6 +166,7 @@ export const MAINTENANCE_ENDPOINTS = {
 export const SCHEDULE_ENDPOINTS = {
   WORK_SLOTS: "/schedules/work_slots/confirm",
   WORK_SLOTS_CURRENT: "/schedules/work_slots/current",
+  WORK_SLOT_BY_ID: (slotId) => `/schedules/work_slots/${slotId}`,
   WORK_SLOTS_CONFIRM_MAINTENANCE: "/schedules/work_slots/confirm-maintenance",
   WORK_SLOTS_MANAGER_CONFIRM: (jobId) =>
     `/schedules/work_slots/manager/confirm-issue/${jobId}`,

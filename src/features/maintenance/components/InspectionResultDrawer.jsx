@@ -7,9 +7,13 @@ import ImageCarousel from "../../../components/shared/ImageCarousel";
 
 function formatDate(str) {
   if (!str) return "—";
-  return new Date(str).toLocaleString("vi-VN", {
+  const date = new Date(str);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleString("vi-VN", {
     day: "2-digit", month: "2-digit", year: "numeric",
     hour: "2-digit", minute: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Ho_Chi_Minh",
   });
 }
 
