@@ -54,6 +54,8 @@ const GENERIC_NOTES = [
   "kiem tra ban giao nha truoc khi khach vao o",
   "kiểm tra bàn giao nhà khi khách trả nhà",
   "kiem tra ban giao nha khi khach tra nha",
+  "kiểm tra nhà trước khi bàn giao",
+  "kiem tra nha truoc khi ban giao",
 ];
 
 function extractItems(data) {
@@ -107,12 +109,16 @@ function resolveHouse(house, houseId) {
 }
 
 function resolveContract(contract, contractId) {
+  const rawNumber =
+    contract?.contractNumber ??
+    contract?.code ??
+    contract?.name ??
+    null;
   return {
     number:
-      contract?.contractNumber ??
-      contract?.code ??
-      contract?.name ??
-      shortId(contractId),
+      rawNumber && !/^econtract_/i.test(rawNumber)
+        ? rawNumber
+        : shortId(contractId),
     tenantName:
       contract?.tenantName ??
       contract?.tenant?.name ??
