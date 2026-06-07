@@ -91,7 +91,7 @@ export default function ContractDemoEnvironment() {
         const raw = await getAllContracts({
           status: "COMPLETED",
           size: 100,
-          sorts: "endAt:ASC",
+          sorts: "createdAt:DESC",
         });
         if (!cancelled) setContracts(pageItems(raw));
       } catch (error) {
