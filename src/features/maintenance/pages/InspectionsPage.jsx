@@ -13,7 +13,6 @@ import {
   UserRound,
 } from "lucide-react";
 import { getContractById } from "../../contracts/api/contracts.api";
-import { getHouseById } from "../../houses/api/houses.api";
 import { getWorkSlotById } from "../../schedule/api/schedule.api";
 import { getUserById } from "../../tenants/api/users.api";
 import CreateInspectionModal from "../components/CreateInspectionModal";
@@ -118,18 +117,15 @@ function meaningfulNote(note) {
 
 function resolveHouse(house, houseId) {
   const name =
-    house?.name ??
     house?.houseName ??
+    house?.name ??
     house?.code ??
     `Nhà #${shortId(houseId)}`;
-  const address = [
-    house?.address,
-    house?.ward,
-    house?.district,
-    house?.city,
-  ]
-    .filter(Boolean)
-    .join(", ");
+  const address =
+    house?.houseAddress ??
+    [house?.address, house?.ward, house?.district, house?.city]
+      .filter(Boolean)
+      .join(", ");
   return { name, address };
 }
 
@@ -287,7 +283,7 @@ export default function InspectionsPage() {
       setInspections(
         items.map((item) => ({
           ...item,
-          houseInfo: resolveHouse(null, item.houseId),
+          houseInfo: resolveHouse(item, item.houseId),
           contractInfo: resolveContract(null, item.contractId),
           staffInfo: resolveStaff(item, null),
           slotInfo: resolveSlot(null),
@@ -295,7 +291,6 @@ export default function InspectionsPage() {
       );
       setLoading(false);
 
-      const houseIds = [...new Set(items.map((item) => item.houseId).filter(Boolean))];
       const contractIds = [
         ...new Set(items.map((item) => item.contractId).filter(Boolean)),
       ];
@@ -306,13 +301,7 @@ export default function InspectionsPage() {
         ...new Set(items.map((item) => item.slotId).filter(Boolean)),
       ];
 
-      const [houses, contracts, staffs, slots] = await Promise.all([
-        Promise.all(
-          houseIds.map(async (id) => [
-            id,
-            await getHouseById(id).catch(() => null),
-          ]),
-        ),
+      const [contracts, staffs, slots] = await Promise.all([
         Promise.all(
           contractIds.map(async (id) => [
             id,
@@ -333,7 +322,6 @@ export default function InspectionsPage() {
         ),
       ]);
 
-      const houseMap = new Map(houses);
       const contractMap = new Map(contracts);
       const staffMap = new Map(staffs);
       const slotMap = new Map(slots);
@@ -341,7 +329,7 @@ export default function InspectionsPage() {
       setInspections(
         items.map((item) => ({
           ...item,
-          houseInfo: resolveHouse(houseMap.get(item.houseId), item.houseId),
+          houseInfo: resolveHouse(item, item.houseId),
           contractInfo: resolveContract(
             contractMap.get(item.contractId),
             item.contractId,
