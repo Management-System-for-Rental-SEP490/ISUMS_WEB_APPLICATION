@@ -1054,6 +1054,17 @@
         "confirmLabel": "Confirm & Send",
         "cancel": "Cancel"
       },
+      "refund": {
+        "button": "Confirm deposit refund",
+        "dialogTitle": "Confirm deposit refund",
+        "dialogDescription": "Enter the deposit amount to refund to the tenant after the move-out inspection. The contract will move to Pending deposit refund.",
+        "amountLabel": "Refund amount (VND)",
+        "noteLabel": "Note (optional)",
+        "confirmLabel": "Confirm refund",
+        "success": "Deposit refund confirmed.",
+        "error": "Could not confirm the deposit refund, please try again.",
+        "error400": "The contract is not in a state that allows a deposit refund."
+      },
       "resendDialog": {
         "title": "Resend to Tenant",
         "description": "The system will resend the notification email to the tenant to review and confirm the contract.",

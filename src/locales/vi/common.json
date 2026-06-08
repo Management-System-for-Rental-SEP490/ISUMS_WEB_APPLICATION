@@ -1056,6 +1056,17 @@
         "confirmLabel": "Xác nhận & Gửi",
         "cancel": "Hủy bỏ"
       },
+      "refund": {
+        "button": "Xác nhận hoàn cọc",
+        "dialogTitle": "Xác nhận hoàn cọc",
+        "dialogDescription": "Nhập số tiền cọc hoàn trả cho khách thuê sau khi đã kiểm tra bàn giao. Hợp đồng sẽ chuyển sang trạng thái Chờ hoàn cọc.",
+        "amountLabel": "Số tiền hoàn (VNĐ)",
+        "noteLabel": "Ghi chú (tùy chọn)",
+        "confirmLabel": "Xác nhận hoàn cọc",
+        "success": "Đã xác nhận hoàn cọc.",
+        "error": "Không thể xác nhận hoàn cọc, vui lòng thử lại.",
+        "error400": "Hợp đồng không ở trạng thái cho phép hoàn cọc."
+      },
       "resendDialog": {
         "title": "Gửi lại cho người thuê",
         "description": "Hệ thống sẽ gửi lại email thông báo cho người thuê để xem xét và xác nhận hợp đồng.",

@@ -216,6 +216,15 @@ export async function cancelContractAndReleaseHouse(contractId) {
   return extractResponseData(response);
 }
 
+export async function confirmRefund(contractId, payload) {
+  const body = {
+    refundAmount: Number(payload?.refundAmount) || 0,
+    note: payload?.note?.trim() || null,
+  };
+  const response = await api.put(CONTRACTS_ENDPOINTS.CONFIRM_REFUND(contractId), body);
+  return extractResponseData(response);
+}
+
 export async function getDepositBookableHouses() {
   const response = await api.get(CONTRACTS_ENDPOINTS.MARKETPLACE_BOOKABLE);
   return extractResponseData(response);

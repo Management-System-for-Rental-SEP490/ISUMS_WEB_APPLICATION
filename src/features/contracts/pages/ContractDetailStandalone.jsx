@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import {
   cancelContractAndReleaseHouse,
   confirmByAdmin,
+  confirmRefund,
   getCccdStatus,
   getContractById,
   resendPaymentEmail,
@@ -158,6 +159,94 @@ function ConfirmDialog({
   );
 }
 
+// ─── Refund Dialog ──────────────────────────────────────────────────────────
+function RefundDialog({ open, onClose, onConfirm, confirming, defaultAmount, t }) {
+  const [amount, setAmount] = useState("");
+  const [note, setNote] = useState("");
+
+  useEffect(() => {
+    if (open) {
+      setAmount(defaultAmount != null ? String(defaultAmount) : "");
+      setNote("");
+    }
+  }, [open, defaultAmount]);
+
+  if (!open) return null;
+
+  const amountNum = Number(amount);
+  const valid = amount !== "" && Number.isFinite(amountNum) && amountNum >= 0;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="w-[calc(100%-32px)] max-w-md rounded-2xl bg-white p-7 shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-5 flex items-start gap-3.5">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-fuchsia-300/70 bg-fuchsia-50 text-fuchsia-700">
+            <Wallet className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="m-0 text-base font-bold text-slate-900">
+              {t("contracts.detail.refund.dialogTitle")}
+            </h3>
+            <p className="mt-1.5 text-[13px] leading-relaxed text-slate-600">
+              {t("contracts.detail.refund.dialogDescription")}
+            </p>
+          </div>
+        </div>
+        <div className="space-y-3.5">
+          <label className="block">
+            <span className="mb-1 block text-[13px] font-semibold text-slate-700">
+              {t("contracts.detail.refund.amountLabel")}
+            </span>
+            <input
+              type="number"
+              min="0"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-[13px] font-semibold text-slate-700">
+              {t("contracts.detail.refund.noteLabel")}
+            </span>
+            <textarea
+              rows={3}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              className="w-full resize-none rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:outline-none"
+            />
+          </label>
+        </div>
+        <div className="my-5 h-px bg-slate-100" />
+        <div className="flex justify-end gap-2.5">
+          <ActionButton
+            onClick={onClose}
+            disabled={confirming}
+            variant="outline"
+            icon={<Icons.X />}
+          >
+            {t("contracts.detail.confirmDialog.cancel")}
+          </ActionButton>
+          <ActionButton
+            onClick={() => onConfirm(amountNum, note.trim())}
+            disabled={confirming || !valid}
+            variant="primary"
+            icon={confirming ? <Icons.Loader /> : <Icons.Send />}
+          >
+            {confirming ? t("contracts.detail.processing") : t("contracts.detail.refund.confirmLabel")}
+          </ActionButton>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function ContractDetailStandalone() {
   const { id } = useParams();
@@ -181,6 +270,7 @@ export default function ContractDetailStandalone() {
   const [showResendPaymentConfirm, setShowResendPaymentConfirm] = useState(false);
   const [showCancelReleaseConfirm, setShowCancelReleaseConfirm] = useState(false);
   const [showCashDepositModal, setShowCashDepositModal] = useState(false);
+  const [showRefundModal, setShowRefundModal] = useState(false);
   const [confirming, setConfirming] = useState(false);
 
   useEffect(() => {
@@ -223,6 +313,26 @@ export default function ContractDetailStandalone() {
     const raw = await getContractById(id);
     setStatus(raw.status);
     setContract(mapContractFromApi(raw));
+  };
+
+  const handleConfirmRefund = async (refundAmount, note) => {
+    if (!id || confirming) return;
+    setShowRefundModal(false);
+    setConfirming(true);
+    try {
+      await confirmRefund(id, { refundAmount, note });
+      toast.success(t("contracts.detail.refund.success"));
+      await refetchContract();
+    } catch (err) {
+      const status = err?.response?.status;
+      toast.error(
+        status === 400
+          ? t("contracts.detail.refund.error400")
+          : t("contracts.detail.refund.error"),
+      );
+    } finally {
+      setConfirming(false);
+    }
   };
 
   // Manager xác nhận DRAFT → PENDING_TENANT_REVIEW
@@ -370,6 +480,7 @@ export default function ContractDetailStandalone() {
   const canCancelAndRelease =
     normalizedStatus === "COMPLETED" &&
     (depositStatus === "" || depositStatus === "UNPAID");
+  const canConfirmRefund = normalizedStatus === "INSPECTION_DONE";
 
   const goBack = () => navigate("/contracts");
 
@@ -529,6 +640,16 @@ export default function ContractDetailStandalone() {
                 {t("contracts.detail.cancelRelease.button")}
               </ActionButton>
             )}
+            {canConfirmRefund && (
+              <ActionButton
+                onClick={() => setShowRefundModal(true)}
+                disabled={confirming || loading || !!error}
+                variant="violet"
+                icon={<Wallet className="h-4 w-4" />}
+              >
+                {t("contracts.detail.refund.button")}
+              </ActionButton>
+            )}
             <button
               type="button"
               onClick={goBack}
@@ -666,6 +787,15 @@ export default function ContractDetailStandalone() {
         onConfirmed={() => {
           refetchContract().catch(() => {});
         }}
+      />
+
+      <RefundDialog
+        open={showRefundModal}
+        onClose={() => !confirming && setShowRefundModal(false)}
+        onConfirm={handleConfirmRefund}
+        confirming={confirming}
+        defaultAmount={Number(contract?.depositAmount ?? contract?.deposit ?? 0) || 0}
+        t={t}
       />
     </div>
   );

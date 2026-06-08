@@ -1029,6 +1029,17 @@
         "confirmLabel": "確認して送信",
         "cancel": "キャンセル"
       },
+      "refund": {
+        "button": "敷金返金を確認",
+        "dialogTitle": "敷金返金を確認",
+        "dialogDescription": "退去検査の完了後、テナントへ返金する敷金額を入力してください。契約は「敷金返金待ち」に移行します。",
+        "amountLabel": "返金額（VND）",
+        "noteLabel": "メモ（任意）",
+        "confirmLabel": "返金を確認",
+        "success": "敷金返金を確認しました。",
+        "error": "敷金返金を確認できませんでした。再試行してください。",
+        "error400": "この契約は敷金返金が許可される状態ではありません。"
+      },
       "resendDialog": {
         "title": "テナントに再送",
         "description": "システムがテナントに通知メールを再送し、契約の確認を求めます。",
