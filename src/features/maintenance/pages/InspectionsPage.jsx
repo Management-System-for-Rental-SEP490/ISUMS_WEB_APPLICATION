@@ -283,7 +283,7 @@ export default function InspectionsPage() {
     try {
       const response = await getInspections({
         page: 1,
-        size: 200,
+        size: 100,
         sortBy: "createdAt",
         sortDir: "DESC",
       });
