@@ -16,6 +16,7 @@ import InspectionHouseCard from "../components/inspection-result/InspectionHouse
 import InspectionInfoCards from "../components/inspection-result/InspectionInfoCards";
 import AssetEventsTable from "../components/inspection-result/AssetEventsTable";
 import InspectionConfirmModal from "../components/inspection-result/InspectionConfirmModal";
+import DepositRefundActions from "../components/inspection-result/DepositRefundActions";
 
 // Normalise inspection response → shape dùng trong UI
 function toImageArray(photoUrls) {
@@ -48,6 +49,7 @@ function normaliseInspection(raw, house) {
       null,
     jobId: raw.jobId ?? null,
     houseId: raw.houseId ?? null,
+    contractId: raw.contractId ?? null,
     housePhotos: toImageArray(raw.housePhotoUrls),
   };
 }
@@ -185,6 +187,9 @@ export default function InspectionResultPage() {
       />
       <InspectionHouseCard house={house} />
       <InspectionInfoCards inspection={inspection} staff={staff} />
+      {inspection?.type === "CHECK_OUT" && inspection?.contractId && (
+        <DepositRefundActions contractId={inspection.contractId} />
+      )}
       <section
         aria-label={t("inspection.resultDrawer.photoLabel")}
         className="rounded-2xl overflow-hidden"

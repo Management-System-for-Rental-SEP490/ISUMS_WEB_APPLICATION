@@ -152,6 +152,8 @@ export const PAYMENTS_ENDPOINTS = {
   VNPAY_INVOICE:      "/payments/vnpay",                // existing Ă¢â‚¬â€ invoice/quote pay
   VNPAY_SUBSCRIPTION: "/payments/vnpay/subscription",   // new Ă¢â‚¬â€ PREMIUM upgrade
   VNPAY_RETURN:       "/payments/vnpay/return",
+  DEPOSIT_REFUND_INVOICE: (contractId) => `/payments/contracts/${contractId}/deposit-refund-invoice`,
+  MARK_REFUND_PAID: (invoiceId) => `/payments/${invoiceId}/mark-refund-paid`,
 };
 
 // Maintenance endpoints
