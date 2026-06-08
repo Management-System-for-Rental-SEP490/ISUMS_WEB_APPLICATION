@@ -12,9 +12,9 @@ import {
   Search,
   UserRound,
 } from "lucide-react";
-import { getContractById } from "../../contracts/api/contracts.api";
+import { getContractsByIds } from "../../contracts/api/contracts.api";
 import { getHouseById } from "../../houses/api/houses.api";
-import { getWorkSlotById } from "../../schedule/api/schedule.api";
+import { getWorkSlotsByIds } from "../../schedule/api/schedule.api";
 import { getUserById } from "../../tenants/api/users.api";
 import CreateInspectionModal from "../components/CreateInspectionModal";
 import { getInspections } from "../api/maintenance.api";
@@ -49,6 +49,8 @@ const TABS = [
   { key: "CHECK_IN", labelKey: "inspection.type.CHECK_IN", color: "#2D9D72" },
   { key: "CHECK_OUT", labelKey: "inspection.type.CHECK_OUT", color: "#D95F4B" },
 ];
+
+const PAGE_SIZE = 8;
 
 const GENERIC_NOTES = [
   "kiểm tra bàn giao nhà trước khi khách vào ở",
@@ -272,6 +274,8 @@ export default function InspectionsPage() {
   const [activeTab, setActiveTab] = useState("CHECK_IN");
   const [filterStatus, setFilterStatus] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
+  const [enrichMap, setEnrichMap] = useState(() => new Map());
 
   const fetchInspections = useCallback(async () => {
     setLoading(true);
@@ -279,79 +283,41 @@ export default function InspectionsPage() {
     try {
       const response = await getInspections({
         page: 1,
-        size: 50,
+        size: 200,
         sortBy: "createdAt",
         sortDir: "DESC",
       });
       const items = extractItems(response);
-      setInspections(
-        items.map((item) => ({
-          ...item,
-          houseInfo: resolveHouse(null, item.houseId),
-          contractInfo: resolveContract(null, item.contractId),
-          staffInfo: resolveStaff(item, null),
-          slotInfo: resolveSlot(null),
-        })),
-      );
-      setLoading(false);
+      setEnrichMap(new Map());
 
-      const houseIds = [...new Set(items.map((item) => item.houseId).filter(Boolean))];
       const contractIds = [
         ...new Set(items.map((item) => item.contractId).filter(Boolean)),
-      ];
-      const staffIds = [
-        ...new Set(items.map((item) => item.assignedStaffId).filter(Boolean)),
       ];
       const slotIds = [
         ...new Set(items.map((item) => item.slotId).filter(Boolean)),
       ];
-
-      const [houses, contracts, staffs, slots] = await Promise.all([
-        Promise.all(
-          houseIds.map(async (id) => [
-            id,
-            await getHouseById(id).catch(() => null),
-          ]),
-        ),
-        Promise.all(
-          contractIds.map(async (id) => [
-            id,
-            await getContractById(id).catch(() => null),
-          ]),
-        ),
-        Promise.all(
-          staffIds.map(async (id) => [
-            id,
-            await getUserById(id).catch(() => null),
-          ]),
-        ),
-        Promise.all(
-          slotIds.map(async (id) => [
-            id,
-            await getWorkSlotById(id).catch(() => null),
-          ]),
-        ),
+      const [contracts, slots] = await Promise.all([
+        getContractsByIds(contractIds).catch(() => []),
+        getWorkSlotsByIds(slotIds).catch(() => []),
       ]);
-
-      const houseMap = new Map(houses);
-      const contractMap = new Map(contracts);
-      const staffMap = new Map(staffs);
-      const slotMap = new Map(slots);
+      const contractMap = new Map((contracts || []).map((c) => [c.id, c]));
+      const slotMap = new Map((slots || []).map((s) => [s.id, s]));
 
       setInspections(
         items.map((item) => ({
           ...item,
-          houseInfo: resolveHouse(houseMap.get(item.houseId), item.houseId),
+          houseInfo: resolveHouse(null, item.houseId),
           contractInfo: resolveContract(
             contractMap.get(item.contractId),
             item.contractId,
           ),
-          staffInfo: resolveStaff(item, staffMap.get(item.assignedStaffId)),
+          staffInfo: resolveStaff(item, null),
           slotInfo: resolveSlot(slotMap.get(item.slotId)),
         })),
       );
     } catch (fetchError) {
       setError(fetchError.message);
+    } finally {
       setLoading(false);
     }
   }, []);
@@ -415,6 +381,78 @@ export default function InspectionsPage() {
       return searchable.includes(keyword);
     });
   }, [filterStatus, searchTerm, tabInspections]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(visibleInspections.length / PAGE_SIZE),
+  );
+  const safePage = Math.min(page, totalPages);
+
+  const pagedBase = useMemo(
+    () =>
+      visibleInspections.slice(
+        (safePage - 1) * PAGE_SIZE,
+        safePage * PAGE_SIZE,
+      ),
+    [visibleInspections, safePage],
+  );
+
+  const pagedInspections = useMemo(
+    () =>
+      pagedBase.map((item) => ({ ...item, ...(enrichMap.get(item.id) || {}) })),
+    [pagedBase, enrichMap],
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab, filterStatus, searchTerm]);
+
+  useEffect(() => {
+    const targets = pagedBase.filter((item) => !enrichMap.has(item.id));
+    if (targets.length === 0) return undefined;
+
+    let cancelled = false;
+    (async () => {
+      const houseIds = [
+        ...new Set(targets.map((item) => item.houseId).filter(Boolean)),
+      ];
+      const staffIds = [
+        ...new Set(targets.map((item) => item.assignedStaffId).filter(Boolean)),
+      ];
+      const [houses, staffs] = await Promise.all([
+        Promise.all(
+          houseIds.map(async (id) => [
+            id,
+            await getHouseById(id).catch(() => null),
+          ]),
+        ),
+        Promise.all(
+          staffIds.map(async (id) => [
+            id,
+            await getUserById(id).catch(() => null),
+          ]),
+        ),
+      ]);
+      if (cancelled) return;
+
+      const houseMap = new Map(houses);
+      const staffMap = new Map(staffs);
+      setEnrichMap((prev) => {
+        const next = new Map(prev);
+        targets.forEach((item) => {
+          next.set(item.id, {
+            houseInfo: resolveHouse(houseMap.get(item.houseId), item.houseId),
+            staffInfo: resolveStaff(item, staffMap.get(item.assignedStaffId)),
+          });
+        });
+        return next;
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pagedBase, enrichMap]);
 
   const summaryItems = [
     ["total", t("inspection.summaryTotal")],
@@ -627,7 +665,7 @@ export default function InspectionsPage() {
                   ))}
                 </div>
 
-                {visibleInspections.map((item) => {
+                {pagedInspections.map((item) => {
                   const type = TYPE_CONFIG[item.type] ?? TYPE_CONFIG.CHECK_IN;
                   const timeEntries = getTimeMeta(item, t);
                   const note = meaningfulNote(item.note);
@@ -729,7 +767,7 @@ export default function InspectionsPage() {
             </div>
 
             <div className="divide-y divide-slate-100 lg:hidden">
-              {visibleInspections.map((item) => {
+              {pagedInspections.map((item) => {
                 const type = TYPE_CONFIG[item.type] ?? TYPE_CONFIG.CHECK_IN;
                 const timeEntries = getTimeMeta(item, t);
                 return (
@@ -825,6 +863,32 @@ export default function InspectionsPage() {
                 );
               })}
             </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between gap-3 border-t border-slate-200 px-5 py-4">
+                <p className="text-xs text-slate-500">
+                  {`${t("inspection.paginationPage", { defaultValue: "Trang" })} ${safePage} / ${totalPages}`}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPage(Math.max(1, safePage - 1))}
+                    disabled={safePage <= 1}
+                    className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {t("inspection.paginationPrev", { defaultValue: "Trước" })}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPage(Math.min(totalPages, safePage + 1))}
+                    disabled={safePage >= totalPages}
+                    className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {t("inspection.paginationNext", { defaultValue: "Sau" })}
+                  </button>
+                </div>
+              </div>
+            )}
           </>
         )}
       </section>

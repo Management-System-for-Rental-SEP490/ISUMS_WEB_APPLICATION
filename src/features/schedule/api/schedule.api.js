@@ -151,6 +151,18 @@ export async function getWorkSlotById(slotId) {
   }
 }
 
+export async function getWorkSlotsByIds(ids) {
+  if (!Array.isArray(ids) || ids.length === 0) return [];
+  try {
+    const response = await api.get(SCHEDULE_ENDPOINTS.WORK_SLOTS_BATCH, {
+      params: { ids: ids.join(",") },
+    });
+    return extractResponseData(response);
+  } catch (error) {
+    throw new Error(getErrorMessage(error));
+  }
+}
+
 /**
  * Create a new work slot.
  * @param {{ staffId: string, jobId: string, jobType: string, startTime: string }} payload

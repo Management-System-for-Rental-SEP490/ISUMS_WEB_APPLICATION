@@ -225,6 +225,12 @@ export async function confirmRefund(contractId, payload) {
   return extractResponseData(response);
 }
 
+export async function getContractsByIds(ids) {
+  if (!Array.isArray(ids) || ids.length === 0) return [];
+  const response = await api.post(CONTRACTS_ENDPOINTS.BATCH, ids);
+  return extractResponseData(response);
+}
+
 export async function getDepositBookableHouses() {
   const response = await api.get(CONTRACTS_ENDPOINTS.MARKETPLACE_BOOKABLE);
   return extractResponseData(response);
