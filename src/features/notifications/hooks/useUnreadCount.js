@@ -69,7 +69,10 @@ const client = (() => {
   const fetchCount = async () => {
     try {
       const count = await getManagerUnreadCount();
-      const n = typeof count === "number" ? count : (count?.data ?? 0);
+      const n =
+        typeof count === "number"
+          ? count
+          : (count?.data?.count ?? count?.count ?? 0);
       setCount(n);
     } catch {
       // keep stale count
