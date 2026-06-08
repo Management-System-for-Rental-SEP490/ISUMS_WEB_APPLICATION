@@ -35,19 +35,60 @@ function daysUntil(iso) {
 const CATEGORY_FILTERS = ["ALL", "AVAILABLE_NOW", "DEPOSIT_BOOKABLE"];
 const SORT_OPTIONS = ["AVAILABLE_FIRST", "NAME_ASC"];
 
+function HouseCard({ house, selected, onSelect, t }) {
+  const bookable = house.category === "DEPOSIT_BOOKABLE";
+  const days = daysUntil(house.availableFrom);
+  const dateStr = house.availableFrom ? dayjs(house.availableFrom).format("DD/MM/YYYY") : "";
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={`w-full text-left rounded-xl border p-3 transition ${selected ? "border-teal-400 ring-2 ring-teal-400/40 bg-teal-50/40" : "border-slate-200 bg-white hover:border-teal-300"}`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-slate-800 truncate">{house.name}</p>
+          {house.address && (
+            <p className="flex items-center gap-1 text-xs text-slate-500 mt-0.5">
+              <MapPin className="w-3 h-3 shrink-0 text-teal-500" />
+              <span className="truncate">{house.address}</span>
+            </p>
+          )}
+        </div>
+        <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${bookable ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-emerald-50 text-emerald-700 border-emerald-200"}`}>
+          {bookable ? t("contracts.form.badgeBookable") : t("houses.status.AVAILABLE")}
+        </span>
+      </div>
+      {bookable && (
+        <div className="mt-2 space-y-0.5 text-[11px] leading-relaxed text-amber-700">
+          <p className="flex items-center gap-1">
+            <Clock className="w-3 h-3 shrink-0" />
+            {days != null && days > 0
+              ? t("contracts.form.bookableHint", { days, date: dateStr })
+              : t("contracts.form.bookableNowHint", { date: dateStr })}
+          </p>
+          {house.currentContractEndAt && (
+            <p className="text-slate-400">
+              {t("contracts.form.currentContractEndLine", { date: dayjs(house.currentContractEndAt).format("DD/MM/YYYY") })}
+            </p>
+          )}
+        </div>
+      )}
+    </button>
+  );
+}
+
 function HousePicker({ value, onChange, houses, error, t }) {
   const [category, setCategory] = useState("ALL");
   const [sortBy, setSortBy] = useState("AVAILABLE_FIRST");
 
-  const dataById = useMemo(() => {
-    const map = new Map();
-    for (const h of houses) map.set(h.id, h);
-    return map;
-  }, [houses]);
+  const [keyword, setKeyword] = useState("");
 
   const filtered = useMemo(() => {
     let arr = [...houses];
     if (category !== "ALL") arr = arr.filter((h) => h.category === category);
+    const kw = keyword.trim().toLowerCase();
+    if (kw) arr = arr.filter((h) => `${h.name ?? ""} ${h.address ?? ""}`.toLowerCase().includes(kw));
     if (sortBy === "AVAILABLE_FIRST") {
       arr.sort((a, b) => {
         const av = a.category === "AVAILABLE_NOW" ? 0 : 1;
@@ -61,54 +102,31 @@ function HousePicker({ value, onChange, houses, error, t }) {
       arr.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
     }
     return arr;
-  }, [houses, category, sortBy]);
+  }, [houses, category, sortBy, keyword]);
 
-  const options = useMemo(() => {
+  const groups = useMemo(() => {
     const vacant = filtered.filter((h) => h.category === "AVAILABLE_NOW");
     const bookable = filtered.filter((h) => h.category === "DEPOSIT_BOOKABLE");
-    const out = [];
-    if (vacant.length) {
-      out.push({
-        label: t("contracts.form.groupAvailableNow", { count: vacant.length }),
-        title: t("contracts.form.groupAvailableNow", { count: vacant.length }),
-        options: vacant.map((h) => ({
-          value: h.id,
-          label: `${h.name}${h.address ? ` — ${h.address}` : ""}`,
-        })),
-      });
-    }
-    if (bookable.length) {
-      out.push({
-        label: t("contracts.form.groupBookable", { count: bookable.length }),
-        title: t("contracts.form.groupBookable", { count: bookable.length }),
-        options: bookable.map((h) => {
-          const days = daysUntil(h.availableFrom);
-          const dateStr = h.availableFrom ? dayjs(h.availableFrom).format("DD/MM/YYYY") : "";
-          const hint = days != null && days > 0
-            ? t("contracts.form.bookableHint", { days, date: dateStr })
-            : t("contracts.form.bookableNowHint", { date: dateStr });
-          return {
-            value: h.id,
-            label: `${h.name}${h.address ? ` — ${h.address}` : ""} · ${hint}`,
-          };
-        }),
-      });
-    }
-    return out;
+    return [
+      { key: "AVAILABLE_NOW", title: t("contracts.form.groupAvailableNow", { count: vacant.length }), tone: "#0f766e", items: vacant },
+      { key: "DEPOSIT_BOOKABLE", title: t("contracts.form.groupBookable", { count: bookable.length }), tone: "#b45309", items: bookable },
+    ].filter((g) => g.items.length > 0);
   }, [filtered, t]);
 
-  const handleChange = (val) => {
-    onChange?.(val, dataById.get(val) ?? null);
-  };
-
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
+        <input
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          placeholder={t("contracts.form.searchHousePlaceholder")}
+          className="flex-1 min-w-[160px] px-3 py-1.5 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/50"
+        />
         <Select
           value={category}
           onChange={setCategory}
           size="small"
-          style={{ minWidth: 160 }}
+          style={{ minWidth: 150 }}
           options={CATEGORY_FILTERS.map((c) => ({
             value: c,
             label: t(`contracts.form.filterCategory.${c}`),
@@ -118,7 +136,7 @@ function HousePicker({ value, onChange, houses, error, t }) {
           value={sortBy}
           onChange={setSortBy}
           size="small"
-          style={{ minWidth: 180 }}
+          style={{ minWidth: 170 }}
           options={SORT_OPTIONS.map((s) => ({
             value: s,
             label: t(`contracts.form.sort.${s}`),
@@ -128,17 +146,30 @@ function HousePicker({ value, onChange, houses, error, t }) {
           {t("contracts.form.filterCount", { count: filtered.length })}
         </span>
       </div>
-      <Select
-        value={value ?? undefined}
-        onChange={handleChange}
-        placeholder={t("contracts.form.selectHouse")}
-        showSearch
-        optionFilterProp="label"
-        status={error ? "error" : ""}
-        style={{ width: "100%" }}
-        options={options}
-        notFoundContent={t("contracts.form.noHouseAvailable")}
-      />
+      {groups.length === 0 ? (
+        <div className={`rounded-xl border border-dashed px-4 py-6 text-center text-sm text-slate-400 ${error ? "border-red-300" : "border-slate-200"}`}>
+          {t("contracts.form.noHouseAvailable")}
+        </div>
+      ) : (
+        <div className={`space-y-4 max-h-[420px] overflow-y-auto pr-1 ${error ? "rounded-xl ring-1 ring-red-300 p-2" : ""}`}>
+          {groups.map((g) => (
+            <div key={g.key} className="space-y-2">
+              <p className="text-[11px] font-bold uppercase tracking-wide" style={{ color: g.tone }}>{g.title}</p>
+              <div className="grid gap-2">
+                {g.items.map((h) => (
+                  <HouseCard
+                    key={h.id}
+                    house={h}
+                    selected={value === h.id}
+                    onSelect={() => onChange?.(h.id, h)}
+                    t={t}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -172,6 +203,12 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
     () => (Array.isArray(houses) ? houses.find((h) => h.id === form.houseId) : null) ?? null,
     [houses, form.houseId],
   );
+
+  const depositTotal = Number(form.depositAmount) || 0;
+  const rentValue = Number(form.rentAmount) || 0;
+  const depositMonths = rentValue > 0 && depositTotal > 0
+    ? Math.round((depositTotal / rentValue) * 10) / 10
+    : null;
 
   const areaChips = useMemo(() => {
     const areas = Array.isArray(houseDetail?.functionalAreas) ? houseDetail.functionalAreas : [];
@@ -255,7 +292,7 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
                   <div className="flex items-center gap-1.5 shrink-0">
                     {statusCfg && (
                       <span className={`text-[10px] font-semibold px-2.5 py-0.5 rounded-full border uppercase tracking-wide ${statusCfg.cls}`}>
-                        {t(`dashboard.map.${statusCfg.tKey}`, { defaultValue: houseDetail.status })}
+                        {t(`houses.status.${statusCfg.tKey}`, { defaultValue: houseDetail.status })}
                       </span>
                     )}
                     <span className="w-5 h-5 flex items-center justify-center rounded-full bg-teal-500 text-white">
@@ -358,6 +395,22 @@ export default function StepHouseAndMoney({ form, update, houses, errors = {} })
                 placeholder="30" className={inputClass} />
             </div>
           </div>
+
+          {depositTotal > 0 && (
+            <div className="flex items-center justify-between rounded-xl border border-teal-100 bg-teal-50/50 px-4 py-3">
+              <span className="text-sm font-medium text-slate-600">{t("contracts.form.totalDeposit")}</span>
+              <span className="text-right">
+                <span className="text-base font-bold text-teal-700">
+                  {formatMoney(form.depositAmount)} <span className="text-xs font-medium text-slate-400">VNĐ</span>
+                </span>
+                {depositMonths && (
+                  <span className="block text-[11px] text-slate-400">
+                    {t("contracts.form.totalDepositMonths", { months: depositMonths })}
+                  </span>
+                )}
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </>

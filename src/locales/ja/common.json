@@ -880,6 +880,11 @@
       "bookableHint": "残り{{days}}日 — {{date}}から引き渡し",
       "bookableNowHint": "{{date}}から引き渡し可能",
       "bookableBanner": "現在は最終月の入居中 — 敷金で先に予約できます",
+      "badgeBookable": "近日空き",
+      "currentContractEndLine": "現契約は{{date}}に終了",
+      "searchHousePlaceholder": "名前・住所で検索",
+      "totalDeposit": "敷金合計",
+      "totalDepositMonths": "≈ 賃料{{months}}ヶ月分",
       "noHouseAvailable": "該当する物件がありません",
       "filterCategory": {
         "ALL": "すべて",

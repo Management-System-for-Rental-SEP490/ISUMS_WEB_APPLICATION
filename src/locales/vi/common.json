@@ -907,6 +907,11 @@
       "bookableHint": "Còn {{days}} ngày — nhận nhà từ {{date}}",
       "bookableNowHint": "Sẵn sàng nhận nhà từ {{date}}",
       "bookableBanner": "Nhà này đang được thuê đến hết tháng cuối — bạn có thể đặt cọc giữ chỗ",
+      "badgeBookable": "Sắp trống",
+      "currentContractEndLine": "HĐ hiện tại kết thúc {{date}}",
+      "searchHousePlaceholder": "Tìm theo tên hoặc địa chỉ",
+      "totalDeposit": "Tổng cọc",
+      "totalDepositMonths": "≈ {{months}} tháng thuê",
       "noHouseAvailable": "Không có nhà phù hợp",
       "filterCategory": {
         "ALL": "Tất cả",

@@ -22,8 +22,12 @@ import { getErrorMessage } from "../../../lib/api-helpers";
 const SCENARIOS = [
   { value: "D60", label: "D-60", hint: "Nhắc ưu tiên khách cũ" },
   { value: "D30", label: "D-30", hint: "Mở cửa sổ đặt cọc" },
+  { value: "D14", label: "D-14", hint: "Nhắc gia hạn" },
+  { value: "D7", label: "D-7", hint: "Nhắc gia hạn" },
+  { value: "D3", label: "D-3", hint: "Nhắc gia hạn" },
   { value: "D1", label: "D-1", hint: "Nhắc trước ngày hết hạn" },
-  { value: "EXPIRED", label: "Đã hết hạn", hint: "Chạy check-out thật" },
+  { value: "D0", label: "D-0", hint: "Mở cọc + nhắc cuối" },
+  { value: "EXPIRED", label: "Đã hết hạn", hint: "Chấm dứt HĐ + check-out (phá huỷ)", danger: true },
   { value: "CUSTOM", label: "Tùy chọn", hint: "Mốc nghiệp vụ hợp lệ" },
 ];
 
@@ -70,7 +74,7 @@ function ReadinessRow({ ready, children }) {
 export default function ContractDemoEnvironment() {
   const [contracts, setContracts] = useState([]);
   const [contractId, setContractId] = useState("");
-  const [scenario, setScenario] = useState("EXPIRED");
+  const [scenario, setScenario] = useState("D30");
   const [customTime, setCustomTime] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [preview, setPreview] = useState(null);
@@ -251,9 +255,10 @@ export default function ContractDemoEnvironment() {
             ))}
           </select>
 
-          <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-5">
+          <div className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-5">
             {SCENARIOS.map((item) => {
               const active = scenario === item.value;
+              const danger = item.danger;
               return (
                 <button
                   key={item.value}
@@ -262,8 +267,12 @@ export default function ContractDemoEnvironment() {
                   onClick={() => setScenario(item.value)}
                   className="min-h-16 rounded-lg border px-2 py-2 text-sm transition"
                   style={active
-                    ? { borderColor: "#17835b", background: "#EAF7F1", color: "#126747", fontWeight: 600 }
-                    : { borderColor: "#D8E7E1", color: "#5A7A6E" }}
+                    ? (danger
+                        ? { borderColor: "#dc2626", background: "#fef2f2", color: "#b91c1c", fontWeight: 600 }
+                        : { borderColor: "#17835b", background: "#EAF7F1", color: "#126747", fontWeight: 600 })
+                    : (danger
+                        ? { borderColor: "#fecaca", color: "#dc2626" }
+                        : { borderColor: "#D8E7E1", color: "#5A7A6E" })}
                 >
                   {item.label}
                   <span className="mt-1 block text-[11px] font-normal leading-4">

@@ -905,6 +905,11 @@
       "bookableHint": "{{days}} days left — handover from {{date}}",
       "bookableNowHint": "Ready for handover from {{date}}",
       "bookableBanner": "Currently leased through its final month — you can place a deposit to reserve it",
+      "badgeBookable": "Coming soon",
+      "currentContractEndLine": "Current lease ends {{date}}",
+      "searchHousePlaceholder": "Search by name or address",
+      "totalDeposit": "Total deposit",
+      "totalDepositMonths": "≈ {{months}} months' rent",
       "noHouseAvailable": "No matching properties",
       "filterCategory": {
         "ALL": "All",
