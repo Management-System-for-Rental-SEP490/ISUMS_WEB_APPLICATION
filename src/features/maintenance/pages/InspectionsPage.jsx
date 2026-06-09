@@ -13,7 +13,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { getContractsByIds } from "../../contracts/api/contracts.api";
-import { getHouseById } from "../../houses/api/houses.api";
+import { getAllHouses } from "../../houses/api/houses.api";
 import { getWorkSlotsByIds } from "../../schedule/api/schedule.api";
 import { getStaffs } from "../../tenants/api/users.api";
 import CreateInspectionModal from "../components/CreateInspectionModal";
@@ -188,6 +188,25 @@ function resolveSlot(slot) {
   };
 }
 
+async function fetchAllHouses() {
+  const all = [];
+  let page = 1;
+  while (page <= 20) {
+    let res;
+    try {
+      res = await getAllHouses({ page, size: 100 });
+    } catch {
+      break;
+    }
+    const arr = res?.content ?? res?.items ?? (Array.isArray(res) ? res : []);
+    all.push(...arr);
+    const totalPages = res?.totalPages ?? 1;
+    if (arr.length === 0 || page >= totalPages) break;
+    page += 1;
+  }
+  return all;
+}
+
 function getTimeMeta(item, t) {
   const entries = [
     {
@@ -275,7 +294,6 @@ export default function InspectionsPage() {
   const [filterStatus, setFilterStatus] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
-  const [enrichMap, setEnrichMap] = useState(() => new Map());
 
   const fetchInspections = useCallback(async () => {
     setLoading(true);
@@ -288,7 +306,6 @@ export default function InspectionsPage() {
         sortDir: "DESC",
       });
       const items = extractItems(response);
-      setEnrichMap(new Map());
 
       const contractIds = [
         ...new Set(items.map((item) => item.contractId).filter(Boolean)),
@@ -296,19 +313,21 @@ export default function InspectionsPage() {
       const slotIds = [
         ...new Set(items.map((item) => item.slotId).filter(Boolean)),
       ];
-      const [contracts, slots, staffs] = await Promise.all([
+      const [contracts, slots, staffs, houses] = await Promise.all([
         getContractsByIds(contractIds).catch(() => []),
         getWorkSlotsByIds(slotIds).catch(() => []),
         getStaffs().catch(() => []),
+        fetchAllHouses(),
       ]);
       const contractMap = new Map((contracts || []).map((c) => [c.id, c]));
       const slotMap = new Map((slots || []).map((s) => [s.id, s]));
       const staffMap = new Map((staffs || []).map((s) => [s.id, s]));
+      const houseMap = new Map((houses || []).map((h) => [h.id, h]));
 
       setInspections(
         items.map((item) => ({
           ...item,
-          houseInfo: resolveHouse(null, item.houseId),
+          houseInfo: resolveHouse(houseMap.get(item.houseId), item.houseId),
           contractInfo: resolveContract(
             contractMap.get(item.contractId),
             item.contractId,
@@ -399,49 +418,11 @@ export default function InspectionsPage() {
     [visibleInspections, safePage],
   );
 
-  const pagedInspections = useMemo(
-    () =>
-      pagedBase.map((item) => ({ ...item, ...(enrichMap.get(item.id) || {}) })),
-    [pagedBase, enrichMap],
-  );
+  const pagedInspections = pagedBase;
 
   useEffect(() => {
     setPage(1);
   }, [activeTab, filterStatus, searchTerm]);
-
-  useEffect(() => {
-    const targets = pagedBase.filter((item) => !enrichMap.has(item.id));
-    if (targets.length === 0) return undefined;
-
-    let cancelled = false;
-    (async () => {
-      const houseIds = [
-        ...new Set(targets.map((item) => item.houseId).filter(Boolean)),
-      ];
-      const houses = await Promise.all(
-        houseIds.map(async (id) => [
-          id,
-          await getHouseById(id).catch(() => null),
-        ]),
-      );
-      if (cancelled) return;
-
-      const houseMap = new Map(houses);
-      setEnrichMap((prev) => {
-        const next = new Map(prev);
-        targets.forEach((item) => {
-          next.set(item.id, {
-            houseInfo: resolveHouse(houseMap.get(item.houseId), item.houseId),
-          });
-        });
-        return next;
-      });
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [pagedBase, enrichMap]);
 
   const summaryItems = [
     ["total", t("inspection.summaryTotal")],
