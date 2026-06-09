@@ -15,7 +15,7 @@ import {
 import { getContractsByIds } from "../../contracts/api/contracts.api";
 import { getHouseById } from "../../houses/api/houses.api";
 import { getWorkSlotsByIds } from "../../schedule/api/schedule.api";
-import { getUserById } from "../../tenants/api/users.api";
+import { getStaffs } from "../../tenants/api/users.api";
 import CreateInspectionModal from "../components/CreateInspectionModal";
 import { getInspections } from "../api/maintenance.api";
 
@@ -296,12 +296,14 @@ export default function InspectionsPage() {
       const slotIds = [
         ...new Set(items.map((item) => item.slotId).filter(Boolean)),
       ];
-      const [contracts, slots] = await Promise.all([
+      const [contracts, slots, staffs] = await Promise.all([
         getContractsByIds(contractIds).catch(() => []),
         getWorkSlotsByIds(slotIds).catch(() => []),
+        getStaffs().catch(() => []),
       ]);
       const contractMap = new Map((contracts || []).map((c) => [c.id, c]));
       const slotMap = new Map((slots || []).map((s) => [s.id, s]));
+      const staffMap = new Map((staffs || []).map((s) => [s.id, s]));
 
       setInspections(
         items.map((item) => ({
@@ -311,7 +313,7 @@ export default function InspectionsPage() {
             contractMap.get(item.contractId),
             item.contractId,
           ),
-          staffInfo: resolveStaff(item, null),
+          staffInfo: resolveStaff(item, staffMap.get(item.assignedStaffId)),
           slotInfo: resolveSlot(slotMap.get(item.slotId)),
         })),
       );
@@ -416,33 +418,20 @@ export default function InspectionsPage() {
       const houseIds = [
         ...new Set(targets.map((item) => item.houseId).filter(Boolean)),
       ];
-      const staffIds = [
-        ...new Set(targets.map((item) => item.assignedStaffId).filter(Boolean)),
-      ];
-      const [houses, staffs] = await Promise.all([
-        Promise.all(
-          houseIds.map(async (id) => [
-            id,
-            await getHouseById(id).catch(() => null),
-          ]),
-        ),
-        Promise.all(
-          staffIds.map(async (id) => [
-            id,
-            await getUserById(id).catch(() => null),
-          ]),
-        ),
-      ]);
+      const houses = await Promise.all(
+        houseIds.map(async (id) => [
+          id,
+          await getHouseById(id).catch(() => null),
+        ]),
+      );
       if (cancelled) return;
 
       const houseMap = new Map(houses);
-      const staffMap = new Map(staffs);
       setEnrichMap((prev) => {
         const next = new Map(prev);
         targets.forEach((item) => {
           next.set(item.id, {
             houseInfo: resolveHouse(houseMap.get(item.houseId), item.houseId),
-            staffInfo: resolveStaff(item, staffMap.get(item.assignedStaffId)),
           });
         });
         return next;
